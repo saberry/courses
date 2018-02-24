@@ -112,7 +112,7 @@ diamonds %>%
   
 ```
 
-It isn't a reduction in lines, but it is certainly clearer and follows a more logical thought process. This is the whole point of the tidyverse (and dplyr specifically) -- allowing you write how you would explain the process. 
+It isn't a reduction in lines, but it is certainly clearer and follows a more logical thought process. This is the whole point of the tidyverse (and dplyr specifically) -- allowing you to write how you would explain the process. 
 
 As an added bonus, we don't need to create a bunch of different objects to do something simple.
 
@@ -128,7 +128,7 @@ mtcars %>%
 
 ### On Code Golf
 
-You will often notice that a dplyr chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this is ability is exactly why we use R!
+You will often notice that a dplyr chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
 
 ## Your Turn
 
@@ -212,7 +212,7 @@ Depending on your needs, reading an html table into R is getting to be too easy.
 ```{r, eval = FALSE}
 library(rvest)
 
-read_xml() %>% 
+read_html() %>% 
   html_table()
 ```
 
@@ -266,7 +266,7 @@ myData2 = read.csv("test2.csv")
 Would you want to do this for 5 files? What about 100? Or 1000? I will answer it for you: no!
 
 
-The chunks below introduce some very important functions. We are going to see the lapply function again -- it is important to you learn to love the apply family!
+The chunks below introduce some very important functions. We are going to see the lapply function again -- it is important that you learn to love the apply family!
 
 ```{r, eval = FALSE}
 allFiles = list.files(path = "", all.files = TRUE, full.names = TRUE, 
@@ -342,13 +342,53 @@ testData = testData[, keepers]
 ```
 
 
+Not only do we have another regular expression, but we also have this paste line to create variable names. It seems like too much work to do something simple!
+
+While not beautiful, these are perfectly valid ways to do this work. I have such sights to show you, but don't forget about this stuff -- you never know when you might need to use it.
+
 ## dplyr
+
+We have already seen a bit of dplyr, but we are going to dive right into some of the functions now.
+
+In base R, we have to do some chanting to select our variables. With dplyr, we can just use the select function:
 
 ```{r}
 mtcars %>% 
-  select(mpg, starts_with("c"), -vs)
+  select(mpg, cyl, am)
 ```
 
+
+We can also drop variables with the -:
+
+```{r}
+mtcars %>% 
+  select(-vs)
+```
+
+
+We also have several helper functions that we can use:
+
+```{r}
+HolzingerSwineford1939 %>% 
+  select(num_range("x", 1:9), starts_with("age"))
+```
+
+
+### Not Important, But Helpful
+
+Changing variable position in R is a pain:
+
+```{r}
+head(HolzingerSwineford1939[, c(1, 7:15, 2:6)])
+```
+
+
+
+```{r}
+HolzingerSwineford1939 %>% 
+  select(id, starts_with("x"), everything()) %>% 
+  head()
+```
 
 
 ## Your Turn!
@@ -370,9 +410,7 @@ summary(mtcars[mtcars$mpg < mean(mtcars$mpg), ])
 Unless you know exactly what you are doing, this is a bit hard to read -- you might be asking yourself what the comma means and why there is nothing after it.
 
 
-## Tidyverse
-
-We have already seen some dplyr stuff, but we are going to keep exploring.
+## dplyr
 
 When we use filter, we are specifying what it is that we want to keep.
 
@@ -388,7 +426,7 @@ Filter this and that:
 
 ```{r}
 mtcars %>% 
-  filter(cyl == 4 & mpg > 25 | am == 1) %>% 
+  filter(cyl == 4 & mpg > 25) %>% 
   summary()
 ```
 
@@ -425,31 +463,89 @@ Adding a new variable in base R is as easy as the following:
 mtcars$roundedMPG = round(mtcars$mpg)
 ```
 
-## Tidyverse
+## dplyr
 
 If, however, we want to do things in a tidy chunk, we need to use mutate.
 
 ```{r}
 mtcars = mtcars %>% 
-  mutate(roundMPG = round(mpg))
+  mutate(roundedMPG = round(mpg))
+```
+
+
+## Base Recoding
+
+You will need to recode variables at some point. Depending on the nature of the recode it can be easy (e.g., to reverse code a scale, you just subtract every value by max value + 1).
+
+You will need to do some more elaborate stuff:
+
+```{r}
+
+mtcars$mpgLoHi = 0
+
+mtcars$mpgLoHi[mtcars$mpg > median(mtcars$mpg)] = 1
+```
+
+
+```{r}
+mtcars$mpgLoHi = ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+```
+
+These are pretty good ways to do recoding of this nature, but what about this:
+
+```{r}
+mtcars$vs[which(mtcars$vs == 0)] = "v"
+
+mtcars$vs[which(mtcars$vs == 1)] = "s"
+```
+
+
+## dplyr recoding
+
+```{r}
+recode(mtcars$vs, `0` = "v", `1` = "s")
 ```
 
 
 
+# Day 2
 
 # Reshaping {.tabset .tabset-fade .tabset-pills}
 
 Now, things are going to get weird.
 
-Someone explain data to me.
-
 Data can take many different forms.
+
+We can have data that looks like this:
+
+```{r}
+wideDat = data.frame(id = 1:3, 
+                     age = c(33, 35, 37), 
+                     employeeType = c("full", "full", "part"))
+```
+
+
+Or like this:
+
+```{r}
+wideDat = data.frame(id = rep(1:3, times = 2), 
+                     variable = rep(c("age", "employeeType"), each = 3), 
+                     value = c(33, 35, 37, 
+                               "full", "full", "part"))
+```
+
+
+The first type, is what many will recongize as standard tabular data. Each row represents an observation, each column is a variable, and each "cell" holds one value.
+
+The second type, long data, is what many will call key-value pairs. You will often see data like this in timeseries data.
+
+You will encounter people who will swear that one way or the other is the ideal way to represent data -- we are going to opt for pragmatic as opposed to dogmatic. We can easily switch between these two types of data representations -- this is called reshaping.
 
 There is a bit of a hierarchy in R with regard to reshaping data. The reshape function in the stats package can handle most of your needs, but to resulting data is a bit on the ugly side (bad default row names, weird automatic column names, and a bunch of arguments). The reshape package gives you all of the power, but with clearer code and better output. The reshape2 package has all of the power, but with some added functionality. the tidyr package makes things incredibly easy, but at the expense of flexibility. 
 
 ## Base/stats
 
-Try the following chunk of code with the as.data.frame().
+Try the following chunk of code with the as.data.frame(). Why, you might ask? Almost everything in dplyr converts data to a tibble. Many base R functions will go crazy when they encounter a tibble, so you need to explicitly make it a data frame.
 
 ```{r}
 
@@ -469,7 +565,7 @@ as.data.frame(starwars) %>%
 
 ## reshape
 
-Let's use the reshape package to do the same thing:
+Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide)
 
 ```{r}
 as.data.frame(starwars) %>% 
@@ -485,7 +581,7 @@ as.data.frame(starwars) %>%
 
 ## reshape2
 
-Now, 
+We don't need to worry about the tibble issue with reshape2!
 
 ```{r}
 starwars %>% 
@@ -519,7 +615,34 @@ Sometimes, reshaping can cause weird drops.
 
 ## Your Turn
 
-# Joining {.tabset .tabset-fade .tabset-pills}
+# Merging {.tabset .tabset-fade .tabset-pills}
+
+Now we are playing with power! Having multiple datasets in memory is one of R's strong points (not everything can manage such a modern feat). 
+
+Not only can we have multiple datasets open, but we can also merge those datasets together, with the proper variables, of course. 
+
+## base
+
+The merge function in base R, like everything else, can do us a great amount of good. 
+
+```{r}
+
+board = haven::read_sas()
+
+organization = haven::read_sas()
+
+mergedDat = merge(x = board, y = organization, by = "", 
+      all.x = TRUE, all.y = FALSE)
+
+```
+
+If there is anything good to be gotten from SQL, it is the notion of different joins and the handy language that it provides for specifying those joins. The merge function gives us no such explicit conventions (we would need to intuit or...read the documentation).
+
+
+### Simulated Merryment
+
+
+
 
 ## Left
 
@@ -535,6 +658,8 @@ Sometimes, reshaping can cause weird drops.
 
 ## Your Turn
 
+
+
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
 
 ## Tidy Work
@@ -545,11 +670,13 @@ Sometimes, reshaping can cause weird drops.
 
 ## Your Turn
 
+# Day 3
+
 # Fuzzy Joins {.tabset .tabset-fade .tabset-pills}
 
 ## String Distances
 
-## Summarizing
+# Summarizing
 
 # Tips & Tricks {.tabset .tabset-fade .tabset-pills}
 

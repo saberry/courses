@@ -22,3 +22,80 @@ At the end of the day, we are trying to create rectangles.
 ## Why are you here?
 
 ## Embed a web page as a background {data-background-iframe="https://www.youtube.com/watch?v=_UQsqFiyw9k"}
+
+## 
+
+If you have used R before, you can completely ignore me for the next few minutes. 
+
+  - Wait for the special signal to return your attention!
+
+Instead of peaking ahead or browsing the internet, feel free to listen to these tunes:
+
+
+## Basics: Quickly
+
+In R, everything is an object or a function.
+
+To create an object, we just assign it a name.
+
+```{r}
+x = 1:5
+
+y <- 6:10
+```
+
+You can use either "=" or "<-".
+
+- The shortcut for "<-" is Alt + -
+
+## Applying Functions
+
+Now that we have some objects, x and y, we can apply some functions to each:
+
+```{r}
+
+xMean = mean(x)
+
+ySD = sd(y)
+
+```
+
+
+## Combinging Function
+
+We can also combined functions!
+
+```{r}
+
+abs(mean(-1:-10))
+
+```
+
+Clear as mud, right?
+
+## Packages
+
+Many functions are grouped into things called packages. 
+
+Packages are usually written to contain functions that do similar things.
+
+You load a package like this:
+
+```{r}
+library(dplyr)
+```
+
+
+If you don't have a package already, you install it with:
+
+```{r}
+install.packages("dplyr")
+```
+
+## Important Issues
+
+All closures need...closed: (), {}, '', ""
+
+Case matters:
+
+  -  thisName != ThisName != this_name

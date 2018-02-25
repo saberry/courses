@@ -241,6 +241,17 @@ jsonlite::read_json(path = )
 
 This is a very simple form of JSON. We are going to see a hairier verson of this data soon. 
 
+#### JSON Dangers
+
+There is JSON and then there is JSON. You might find yourself some interesting data and want to bring it in, but an error happens and you have no idea why the read_json function is telling you that the file is not JSON. 
+
+Not all JSON is pure JSON! When that is the case, you will need to create pure JSON.
+
+```{r amazonExample}
+
+```
+
+
 ### XML
 
 It is getting to be a bit less common (still prevalent), but XML (eXtensible Markup Language) is another type of nested structure common on the web.
@@ -565,7 +576,7 @@ as.data.frame(starwars) %>%
 
 ## reshape
 
-Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide)
+Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide). I 
 
 ```{r}
 as.data.frame(starwars) %>% 
@@ -597,7 +608,7 @@ starwars %>%
 
 ## tidyr
 
-Allows for dplyr variable selection.
+Allows for dplyr variable selection and a little bit more clarity with creating the id(s) variables.
 
 ```{r}
 starwars %>% 
@@ -609,9 +620,6 @@ starwars %>%
   theme_minimal()
 ```
 
-### Reshaping Dangers
-
-Sometimes, reshaping can cause weird drops.
 
 ## Your Turn
 
@@ -659,6 +667,46 @@ If there is anything good to be gotten from SQL, it is the notion of different j
 ## Your Turn
 
 
+# Summarizing And Grouping
+
+If we recall, we already saw a little bit of grouping and merging (if you don't, you might remember that mess with aggregate). Given that we already saw aggregate, we will just dive right into the tidyverse.
+
+## dplyr
+
+Grouping data and comparing various summary statistics by group is a common task. Sometimes it is just a means of exploration and sometimes it will actually answer the question. No matter the need, you will likely find it quite simple.
+
+```{r}
+mtcars %>% 
+  summarize(meanMPG = mean(mpg), 
+            meanSD = sd(mpg))
+```
+
+
+You can even summarize all of your variables in handy way.
+
+```{r}
+mtcars %>% 
+  summarize_all(funs(mean, sd), na.rm = TRUE)
+```
+
+Because we are dealing with the tidyverse, variable selection is included.
+
+```{r}
+mtcars %>% 
+  summarize_at(vars(starts_with("c")), 
+               funs(mean, sd), na.rm = TRUE)
+```
+
+
+Combining group_by with summarize welcomes even more power to summarize data.
+
+
+```{r}
+mtcars %>% 
+  group_by(am) %>% 
+  summarize(meanMPG = mean(mpg), 
+            meanSD = sd(mpg))
+```
 
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
 
@@ -675,8 +723,6 @@ If there is anything good to be gotten from SQL, it is the notion of different j
 # Fuzzy Joins {.tabset .tabset-fade .tabset-pills}
 
 ## String Distances
-
-# Summarizing
 
 # Tips & Tricks {.tabset .tabset-fade .tabset-pills}
 

@@ -649,8 +649,19 @@ If there is anything good to be gotten from SQL, it is the notion of different j
 
 ### Simulated Merryment
 
+#### Live And Onstage!
 
+Left join = all rows from x and all columns from x and y
 
+Right join = all rows from y and all columns from x and y
+
+Inner join = all rows from x with matching values in y and all columns from x and y
+
+Semi join = all rows from x with matching values in y and just columns from x
+
+Full join = everything
+
+With that knowledge, can we map the various combinations of all.x and all.y, 
 
 ## Left
 
@@ -665,6 +676,7 @@ If there is anything good to be gotten from SQL, it is the notion of different j
 ## Anti
 
 ## Your Turn
+
 
 
 # Summarizing And Grouping
@@ -708,13 +720,80 @@ mtcars %>%
             meanSD = sd(mpg))
 ```
 
+
+You are not limited to single group_by statements!
+
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
 
-## Tidy Work
+Data has strings...it is a simple fact of modern data.
+
+If you can clean strings, you can conquer any data task that gets thrown at you.
 
 ## Regular Expressions
 
+Regular expressions (regex) are wild. Regex's purpose is to match patterns in strings. 
+
+Of everything that we have and will see, regex is something that you can use in places outside of data. 
+
 ## stringr
+
+What is the difference between sub and gsub?
+
+What is the difference between grep and grepl?
+
+Why did grep just return a bunch of numbers?
+
+What does the following do: "^\\s+|\\s+$"
+
+For the love of all that is good, what does regexpr() do?
+
+These are just a few of the questions that will come up when working with strings in base R.
+
+There is also the issue of mixed arguments. Consider grep and gsub.
+
+```{r}
+realComments = c("I love wrangling data", "stringz r fun", 
+                 "This guy is a hack", "Can't we use excel?")
+
+grep(pattern = "\\b[a-z]{2}\\b", x = realComments, value = TRUE)
+
+gsub(pattern = "(hack)", replacement = "star", x = realComments)
+```
+
+
+It might not seem like a big deal, but the argument order can be a bit troublesome when you are just learning or have not used them in a while. 
+
+Check these out:
+
+```{r}
+library(stringr)
+
+str_subset(string = realComments, pattern = "\\b[a-z]{2}\\b")
+
+str_replace_all(string = realComments, pattern = "(hack)", 
+                replacement = "star")
+```
+
+We now have consistent argument order and very clear names. 
+
+Clear names and consistent arguments aside, stringr also simplifies some previously cumbersome processes.
+
+```{r}
+matchedComments = regexpr(pattern = "love|like|enjoy", 
+                          text = realComments)
+
+regmatches(x = realComments, m = matchedComments)
+
+```
+
+This becomes the following with stringr:
+
+```{r}
+str_extract_all(string = realComments, 
+                pattern = "love|like|enjoy")
+```
+
+
 
 ## Your Turn
 
@@ -722,7 +801,41 @@ mtcars %>%
 
 # Fuzzy Joins {.tabset .tabset-fade .tabset-pills}
 
+We have seen joins and character work, but now we are goin to combine them into one world.
+
+Whenever we use joins we are generally looking for exact matches. In reality, we get about 50/50.
+
+Fuzzy joins allow us to use string distance metrics 
+
 ## String Distances
+
+Not including spelling mistakes, there are many different ways to represent words; this is especially true when we are discussing companies.
+
+Would AG Edwards and A.G. Edwards join? Of course not! They are the same company, but not the same words.
+
+We have learned enough about string cleaning to know that we could tidy that one up, but what about something more subtle, like AG Edward and AG Edwards. 
+
+We can use the adist function to figure out the distance between these two strings.
+
+```{r}
+string1 = "AG Edward"
+
+string2 = "AG Edwards"
+
+adist(x = string1, y = string2)
+```
+
+The adist function uses generalized edit distance as the metric. This does things like calculate the number of characters that need to be inserted, deleted, or substituted to make a match. 
+
+If we are merging, generalized edit distance might not give use the level of granularity that we need for minimizing
+```{r}
+library(stringdist)
+
+stringdist(string1, string2, method = "jw")
+```
+
+
+
 
 # Tips & Tricks {.tabset .tabset-fade .tabset-pills}
 

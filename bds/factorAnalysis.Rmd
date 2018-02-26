@@ -1,0 +1,130 @@
+---
+title: "Factor Analysis"
+author: "Behavioral Data Science"
+date: "February 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Measurement & Latent Variables
+
+If I asked you your height, could you tell me? How do you know your height and what allowed you to know your height? Like most, you have probably been measured at the doctor's office with some device marked with inches.
+
+Now, if I were to ask you how you felt, what would you tell me? You might say that you are feeling well or not feeling too well, but how did you measure this? Did you use your wellness measuring tape or your wellness balance beam -- unlikely. Instead, you likely thought about everything going on -- your current health, general mood, and whatever else you deemed important at the time. Put another way, I could essentially be asking your about your affect (mood). Unfortunately, we can't measure your affect like we can measure your height. There is no agreed upon method for measuring your current affect (there isn't even an argument between Imperial and metric to be had).
+
+Affect is an example of a latent variable -- we have a pretty good idea that it exists and we have operationalized it, but there is no way that we can physically measure it. If we think of what latent tends to mean, hidden, we start to understand what latent variables are -- variables that are hidden, but still interesting. Instead, we have to rely on a series of questions that gets us close to what we think is affect. This process of "getting at" affect through questions is what is known as *measurement*. You have been involved with measurement for a very long time, even if you did not know it. If you ever took a high-stakes standardized test (e.g., GRE, GMAT, LSAT), then you were directly involved in measurement -- we can't actually measure the mass of your mathematical reasoning ability, so we have to ask questions to measure that ability.
+
+
+### On Principal Compenents Analysis And Factor Analysis
+
+There might be a feeling of dejavu creeping in here. You have already learned about a technique used for taking items and reducing them down -- principal components analysis (PCA). The logical question is are factor analysis and pca the same things? They are both matrix factorization techniques, but the similarities start to end pretty quickly after that.
+
+  - Causal direction: The video highlights the difference between the causual direction of PCA and factor analysis.
+  
+  - Component/Factor Interpretation: These is no interpretation of a component -- it simply exists to reduce the variables. Factors represent the latent variables are important.
+  
+  - Variance: PCA attempts to extract as much variance as possible from the items. Each succesive component after the first will extract less variance than the first
+  
+  - Measurement error: PCA assumes perfect measurement
+
+Let's see what these difference mean
+
+```{r}
+library(dplyr)
+
+library(psych)
+
+testData = bfi %>% 
+  select(starts_with("A", ignore.case = FALSE), 
+         starts_with("C"))
+
+testPCA = pca(r = testData, nfactors = 2, rotate = "none")
+
+testFA = fa(r = testData, nfactors = 2, rotate = "none")
+
+```
+
+
+## Determining Factor Numbers
+
+Determining the appropriate number of factors in an exploratory factor analysis can be complex. How many might theory dictate? Is there a strong theory at all? In an exploratory setting, it is helpful to conduct something called a parallel analysis (PA). PA is a Monte Carlo simulation that takes into account the number of items and rows within your data and then produces a random matrix of the same shape.
+
+```{r}
+
+psych::fa.parallel(testData)
+```
+
+
+## Rotation
+
+```{r}
+orthRotation = fa(r = testData, nfactors = 2, rotate = "varimax")
+
+obliqueRotation = fa(r = testData, nfactors = 2, rotate = "promax")
+```
+
+
+## Factor Loadings
+
+We can think of factor loadings as the correlation between an item and a factor -- they are interpreted in this manner.
+
+
+## Factor Scoring
+
+We have gone through the necessary steps of performing our factor analysis to this point, but what do we ultimately get out of it? In the end, we want to take our factors and produce some type of score.
+
+What kind of score should we produce? If we use the numeric values given by the observed variables (e.g., 1-5, 0-4), then we can imagine producing some type of aggregate score (i.e., a sum or an average score). If you ever took an undergraduate Psychology course, you have probably already done something like this:
+
+```{r}
+testData = testData %>% 
+  rowwise() %>% 
+  mutate(agreeAverage = (sum(A1, A2, A3, A4, A5, na.rm = TRUE) / 5), 
+         consAverage = (sum(C1, C2, C3, C4, C5, na.rm = TRUE) / 5))
+```
+
+
+Do those aggregate scores tell the complete truth? Remember how we just talked about loadings? The factor loadings are essentially telling us how much the variable is related to the factor. If we use a simple aggregate score, is that relationship captured? I am afraid not; aggregate scores are going to give the same weight to every item, regardless of how highly it loads on any given factor.
+
+Instead, we can use factor scores. There are several different types of factor scores that we can compute, but we are going to compute Thurstone scores. 
+
+Thurstone score are incredibly easy to produce by hand, so let's give it a try.
+
+To compute those score, we need to produce a correlation matrix of our observed scores. For simplicity, let's just work with the five items representing agreeableness.
+
+```{r}
+agreeCorrs = testData %>% 
+  select(starts_with("A")) %>% 
+  cor(., use = "pairwise")
+```
+
+
+Then, we need to get the loadings from our factor analysis results:
+
+```{r}
+agreeLoadings = obliqueRotation$loadings[1:5, 2]
+```
+
+Now, we have everything that we need: item loadings, item correlations, and observed scores.
+
+The first step is to get the matrix product between the inverse correlation matrix and the factor loading matrix:
+
+```{r}
+w = solve(agreeCorrs, agreeLoadings)
+```
+
+
+Finally, we center and scale the observed data, and do matrix multiplication for the product w that we just found:
+
+```{r}
+agreeScaled = testData %>% 
+  select(starts_with("A")) %>% 
+  scale()
+
+facScores = agreeScaled %*% w
+```
+
+
+## Reliability

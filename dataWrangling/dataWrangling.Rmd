@@ -576,14 +576,18 @@ as.data.frame(starwars) %>%
 
 ## reshape
 
-Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide). I 
+Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide). Melting makes plenty of sense to me, but I can only imagine what casting means. 
 
 ```{r}
-as.data.frame(starwars) %>% 
-  filter(species == "Human" & grepl("(Skywalker)|(Rey)|(Vader)|(Kylo)", .$name)) %>% 
+starwars %>% 
+  as.data.frame() %>% 
+  filter(species == "Human" & 
+           grepl("(Skywalker)|(Rey)|(Vader)|(Kylo)", 
+                 .$name)) %>% 
   select(name, height, mass) %>% 
   reshape::melt.data.frame(., id.vars = "name", 
-                           measure.vars = 2:3, variable_name = "type", na.rm = TRUE) %>% 
+                           measure.vars = 2:3, 
+                           variable_name = "type", na.rm = TRUE) %>% 
   ggplot(., aes(x = name, y = value, color = type)) + 
   geom_point() +
   theme_minimal()
@@ -805,7 +809,7 @@ We have seen joins and character work, but now we are goin to combine them into 
 
 Whenever we use joins we are generally looking for exact matches. In reality, we get about 50/50.
 
-Fuzzy joins allow us to use string distance metrics 
+Fuzzy joins allow us to use string distance metrics to join non-matching strings together.
 
 ## String Distances
 
@@ -827,23 +831,112 @@ adist(x = string1, y = string2)
 
 The adist function uses generalized edit distance as the metric. This does things like calculate the number of characters that need to be inserted, deleted, or substituted to make a match. 
 
-If we are merging, generalized edit distance might not give use the level of granularity that we need for minimizing
+If we are merging, generalized edit distance might not give use the level of granularity that we need for minimizing.
+
+
+Let's try out a few different strings below.
+
 ```{r}
 library(stringdist)
 
+string3 = "A G Edwards"
+
 stringdist(string1, string2, method = "jw")
+
+stringdist(string2, string3, method = "jw")
+
+stringdist(string1, string3, method = "jw")
+```
+
+And compare them to our standard edit distance:
+
+```{r}
+adist(c(string1, string2, string3))
+```
+
+We can see that we get a little more fine scoring with the Jaro-Winker distance.
+
+
+```{r}
+stringdist(string1, string2, method = "jaccard")
+
+stringdist(string2, string3, method = "jaccard")
+
+stringdist(string1, string3, method = "jaccard")
 ```
 
 
+You might be wondering why we need to so much granularity. Consider what happens between Safeway and Subway:
 
+```{r}
+stringdist("safeway", "subway", method = "soundex")
+
+stringdist("safeway", "subway", method = "jaccard")
+
+stringdist("safeway", "subway", method = "jw")
+
+```
+
+I think we can imagine the consequences of using metrics like soundex or Jaccard distance to join strings together.
+
+
+## Fuzzy Joins
 
 # Tips & Tricks {.tabset .tabset-fade .tabset-pills}
 
 ## Row/Group Indices
 
+When you are doing so type of data wrangling tasks (especially when things need grouped or merged), you might find a row or group index to be helpful.
+
 ## Leads and Lags
 
 ## Dates and Times
+
+### lubridate
+
+Another glorius thing that will happen to you is working with dates -- they tend to be a pain.
+
+```{r}
+Sys.Date()
+
+format(Sys.Date(), "%m-%d-%Y")
+```
+
+And you get things like this:
+
+```{r}
+date1 = "12012018"
+
+date2 = "20180112"
+
+date3 = "12-01-2018"
+
+date4 = "12/01/2018"
+```
+
+If you had to merge data based upon these dates, you would be in trouble.
+
+You could, naturally, use some of the string cleaning stuff that we learned to tear them apart and then re-arrange them in a consistent manner.
+
+```{r}
+dateStrings = strsplit(date3, split = "-")
+
+paste(dateStrings[[1]][3], 
+      dateStrings[[1]][2], dateStrings[[1]][1], 
+      sep = "-")
+```
+
+
+Or...we can just do this:
+
+```{r}
+library(lubridate)
+
+mdy(date3)
+```
+
+
+### hms
 
 ## Apply Family
 
@@ -851,33 +944,11 @@ stringdist(string1, string2, method = "jw")
 
 # Back To The Basics {.tabset .tabset-fade .tabset-pills}
 
-## Objects and Assignment
-
-Everything in R is an object -- everything. single values, models, and even functions -- all objects.
-
-The stray puppy:
-
-```{r}
-1:5
-```
-
-Naming the stray:
-
-```{r}
-fido = 1:5
-```
-
-
-Grooming the stray:
-
-```{r}
-fido = fido * 2
-```
-
-
 ## Functions
 
-I genuinely hope you learned a lot from our time together; however, if you only learn one thing, I hope that you learn to write functions.
+I genuinely hope you learned a lot from our time together; however, if you only learn one thing, I hope that you feel empowered to write your own functions. For all of R's greatness, writing your own functions is what really makes it work so well. 
+
+You might not feel like you can write a function -- we all feel that way at some point. You can!
 
 Functions are simply objects that act upon other objects. 
 
@@ -887,8 +958,6 @@ This is a simple function:
 sum(fido)
 ```
 
-
-We can even create our own functions. While this may seem daunting at first, it will become second nature with enough practice.
 
 ```{r}
 meanFunction = function(x) {

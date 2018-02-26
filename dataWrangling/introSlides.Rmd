@@ -34,7 +34,7 @@ Instead of peaking ahead or browsing the internet, feel free to listen to these 
 
 ## Basics: Quickly
 
-In R, everything is an object or a function.
+Everything in R is an object -- everything. single values, models, and even functions -- all objects.
 
 To create an object, we just assign it a name.
 
@@ -47,6 +47,28 @@ y <- 6:10
 You can use either "=" or "<-".
 
 - The shortcut for "<-" is Alt + -
+
+## Assignment
+
+The stray puppy:
+
+```{r}
+1:5
+```
+
+Naming the stray:
+
+```{r}
+fido = 1:5
+```
+
+Grooming the stray:
+
+```{r}
+fido = fido * 2
+```
+
+
 
 ## Applying Functions
 

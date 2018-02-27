@@ -987,7 +987,6 @@ starwars = starwars %>%
   slice(1)
 ```
 
-## Apply Family
 
 # Back To The Basics {.tabset .tabset-fade .tabset-pills}
 
@@ -1055,3 +1054,15 @@ testFunc = function(x) {
   return(res)
 }
 ```
+
+
+## Apply Family
+
+We have seen a lot of different things over the last few hours together. The final bit of wisdom to pass along is the apply family. The apply family (lapply, sapply, mapply, etc.) allows you to pass a function over something like a list. 
+
+```{r}
+testNames = c("Jack", "Jill", "Frank", "Steve", "Harry", "Lloyd")
+
+sapply(testNames, function(x) paste(x, "went over the hill", sep = " "))
+```
+

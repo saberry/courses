@@ -886,7 +886,15 @@ I think we can imagine the consequences of using metrics like soundex or Jaccard
 
 ## Row/Group Indices
 
-When you are doing so type of data wrangling tasks (especially when things need grouped or merged), you might find a row or group index to be helpful.
+When you are doing some type of data wrangling tasks (especially when things need grouped or merged), you might find a row or group index to be helpful.
+
+```{r}
+carsID = mtcars %>% 
+  mutate(rowID = 1:nrow(mtcars)) %>% 
+  group_by(cyl) %>% 
+  mutate(groupID = 1:n())
+```
+
 
 ## Leads and Lags
 
@@ -927,6 +935,8 @@ paste(dateStrings[[1]][3],
 ```
 
 
+If we wanted to go down the path of that previous chunk, we would need to pass the whole thing into an lapply.
+
 Or...we can just do this:
 
 ```{r}
@@ -938,9 +948,46 @@ mdy(date3)
 
 ### hms
 
-## Apply Family
-
 ## Lists
+
+Lists are just a part of life at this point. You will see lists of data frames and you will see columns within data frames that contain lists.
+
+If you recall our previous look at JSON, you will see that there is a variable that actually contains a list.
+
+We also saw our starwars example:
+
+```{r}
+glimpse(starwars)
+```
+
+
+There would be a few ways to tackle such an enterprise:
+
+```{r}
+movies = unique(unlist(starwars$films))
+
+starwars = starwars %>% 
+  mutate(revengeSith = ifelse(grepl(movies[grep("Sith", movies)], films), 
+                              1, 0))
+```
+
+
+
+```{r}
+
+data(starwars)
+
+starwars = starwars %>% 
+  unnest(films) %>% 
+  mutate(id = 1:nrow(.)) %>% 
+  spread(key = films, value = films) %>% 
+  group_by(name) %>% 
+  fill(12:18, .direction = "up") %>% 
+  fill(12:18, .direction = "down") %>% 
+  slice(1)
+```
+
+## Apply Family
 
 # Back To The Basics {.tabset .tabset-fade .tabset-pills}
 

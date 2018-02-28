@@ -17,6 +17,7 @@ Now, if I were to ask you how you felt, what would you tell me? You might say th
 
 Affect is an example of a latent variable -- we have a pretty good idea that it exists and we have operationalized it, but there is no way that we can physically measure it. If we think of what latent tends to mean, hidden, we start to understand what latent variables are -- variables that are hidden, but still interesting. Instead, we have to rely on a series of questions that gets us close to what we think is affect. This process of "getting at" affect through questions is what is known as *measurement*. You have been involved with measurement for a very long time, even if you did not know it. If you ever took a high-stakes standardized test (e.g., GRE, GMAT, LSAT), then you were directly involved in measurement -- we can't actually measure the mass of your mathematical reasoning ability, so we have to ask questions to measure that ability.
 
+An important part of measurement concerns error. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
 
 ### On Principal Compenents Analysis And Factor Analysis
 
@@ -45,6 +46,10 @@ testPCA = pca(r = testData, nfactors = 2, rotate = "none")
 
 testFA = fa(r = testData, nfactors = 2, rotate = "none")
 
+
+testPCA
+
+testFA
 ```
 
 
@@ -64,6 +69,10 @@ psych::fa.parallel(testData)
 orthRotation = fa(r = testData, nfactors = 2, rotate = "varimax")
 
 obliqueRotation = fa(r = testData, nfactors = 2, rotate = "promax")
+
+orthRotation
+
+obliqueRotation
 ```
 
 
@@ -96,7 +105,7 @@ To compute those score, we need to produce a correlation matrix of our observed 
 
 ```{r}
 agreeCorrs = testData %>% 
-  select(starts_with("A")) %>% 
+  select(starts_with("A", ignore.case = FALSE)) %>% 
   cor(., use = "pairwise")
 ```
 
@@ -120,10 +129,12 @@ Finally, we center and scale the observed data, and do matrix multiplication for
 
 ```{r}
 agreeScaled = testData %>% 
-  select(starts_with("A")) %>% 
+  select(starts_with("A", ignore.case = FALSE)) %>% 
   scale()
 
 facScores = agreeScaled %*% w
+
+head(facScores)
 ```
 
 

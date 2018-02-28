@@ -669,15 +669,47 @@ With that knowledge, can we map the various combinations of all.x and all.y,
 
 ## Left
 
+```{r}
+left_join()
+```
+
+
 ## Right
+
+```{r}
+right_join()
+```
 
 ## Inner
 
+```{r}
+inner_join()
+```
+
+
 ## Semi
+
+```{r}
+semi_join()
+```
+
 
 ## Full
 
+```{r}
+ful
+l_join()
+```
+
+
 ## Anti
+
+I didn't mention the anti join before! It does exactly what it sounds like -- it finds the things that don't match. A natural curiousity is the potential purpose for such a function.
+
+```{r}
+anti_join()
+```
+
 
 ## Your Turn
 
@@ -948,6 +980,8 @@ mdy(date3)
 
 ### hms
 
+
+
 ## Lists
 
 Lists are just a part of life at this point. You will see lists of data frames and you will see columns within data frames that contain lists.
@@ -1058,11 +1092,17 @@ testFunc = function(x) {
 
 ## Apply Family
 
-We have seen a lot of different things over the last few hours together. The final bit of wisdom to pass along is the apply family. The apply family (lapply, sapply, mapply, etc.) allows you to pass a function over something like a list. 
+We have seen a lot of different things over the last few hours together. The final bit of wisdom to pass along is the apply family. The apply family (lapply, sapply, mapply, etc.) allows you to pass a function over something like a list and then return something predictable. 
 
 ```{r}
 testNames = c("Jack", "Jill", "Frank", "Steve", "Harry", "Lloyd")
 
 sapply(testNames, function(x) paste(x, "went over the hill", sep = " "))
+```
+
+Now that is a bit of a goofy example. Since R is vectorized, we would have gotten the same result just by pasting our testNames vector to the string. But, a more realistic situation is as follows:
+
+```{r}
+
 ```
 

@@ -518,7 +518,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 </section>
 <section id="basics-quickly" class="slide level2">
 <h2>Basics: Quickly</h2>
-<p>In R, everything is an object or a function.</p>
+<p>Everything in R is an object – everything. single values, models, and even functions – all objects.</p>
 <p>To create an object, we just assign it a name.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">x =<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span>
 
@@ -527,6 +527,16 @@ y &lt;-<span class="st"> </span><span class="dv">6</span><span class="op">:</spa
 <ul>
 <li>The shortcut for “&lt;-” is Alt + -</li>
 </ul>
+</section>
+<section id="assignment" class="slide level2">
+<h2>Assignment</h2>
+<p>The stray puppy:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="dv">1</span><span class="op">:</span><span class="dv">5</span></code></pre></div>
+<pre><code>## [1] 1 2 3 4 5</code></pre>
+<p>Naming the stray:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fido =<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span></code></pre></div>
+<p>Grooming the stray:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fido =<span class="st"> </span>fido <span class="op">*</span><span class="st"> </span><span class="dv">2</span></code></pre></div>
 </section>
 <section id="applying-functions" class="slide level2">
 <h2>Applying Functions</h2>
@@ -541,6 +551,32 @@ ySD =<span class="st"> </span><span class="kw">sd</span>(y)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">abs</span>(<span class="kw">mean</span>(<span class="op">-</span><span class="dv">1</span><span class="op">:-</span><span class="dv">10</span>))</code></pre></div>
 <pre><code>## [1] 5.5</code></pre>
 <p>Clear as mud, right?</p>
+</section>
+<section id="packages" class="slide level2">
+<h2>Packages</h2>
+<p>Many functions are grouped into things called packages.</p>
+<p>Packages are usually written to contain functions that do similar things.</p>
+<p>You load a package like this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
+<p>If you don’t have a package already, you install it with:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;dplyr&quot;</span>)</code></pre></div>
+</section>
+<section id="important-issues" class="slide level2">
+<h2>Important Issues</h2>
+<p>All closures need…closed: (), {}, ’’, “”</p>
+<p>Case matters:</p>
+<ul>
+<li>thisName != ThisName != this_name</li>
+</ul>
+</section>
+<section id="our-packages" class="slide level2">
+<h2>our Packages</h2>
+<p>These are the packages that you will need:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">&quot;tidyverse&quot;</span>, <span class="st">&quot;rio&quot;</span>, 
+                   <span class="st">&quot;jsonlite&quot;</span>, <span class="st">&quot;psych&quot;</span>, 
+                   <span class="st">&quot;lavaan&quot;</span> <span class="st">&quot;reshape&quot;</span>, 
+                   <span class="st">&quot;reshape2&quot;</span>, <span class="st">&quot;stringdist&quot;</span>))</code></pre></div>
+<p>If more creep up, we will install them when the time is right.</p>
 </section>
     </div>
   </div>

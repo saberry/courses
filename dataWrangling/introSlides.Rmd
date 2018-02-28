@@ -103,14 +103,14 @@ Packages are usually written to contain functions that do similar things.
 
 You load a package like this:
 
-```{r}
+```{r, eval = FALSE}
 library(dplyr)
 ```
 
 
 If you don't have a package already, you install it with:
 
-```{r}
+```{r, eval = FALSE}
 install.packages("dplyr")
 ```
 
@@ -121,3 +121,16 @@ All closures need...closed: (), {}, '', ""
 Case matters:
 
   -  thisName != ThisName != this_name
+  
+## our Packages
+
+These are the packages that you will need:
+
+```{r, eval = FALSE}
+install.packages(c("tidyverse", "rio", 
+                   "jsonlite", "psych", 
+                   "lavaan" "reshape", 
+                   "reshape2", "stringdist"))
+```
+
+If more creep up, we will install them when the time is right.

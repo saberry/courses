@@ -4,6 +4,7 @@ output:
   html_document:
     toc: true
     toc_float: true
+    theme: flatly
     highlight: zenburn
 ---
 
@@ -341,7 +342,9 @@ For starters, the magic numbers are a no-go. The keepers lines could work, but w
 Let's check this wacky stuff out where we want all variables that start with "age" and variables that likely represent questions (x1, x2, x3, ...):
 
 ```{r}
-testData = lavaan::HolzingerSwineford1939
+library(lavaan)
+
+testData = HolzingerSwineford1939
 
 names(testData)
 
@@ -637,7 +640,7 @@ Not only can we have multiple datasets open, but we can also merge those dataset
 
 The merge function in base R, like everything else, can do us a great amount of good. 
 
-```{r}
+```{r, eval = FALSE}
 
 board = haven::read_sas()
 
@@ -669,34 +672,34 @@ With that knowledge, can we map the various combinations of all.x and all.y,
 
 ## Left
 
-```{r}
+```{r, eval = FALSE}
 left_join()
 ```
 
 
 ## Right
 
-```{r}
+```{r, eval = FALSE}
 right_join()
 ```
 
 ## Inner
 
-```{r}
+```{r, eval = FALSE}
 inner_join()
 ```
 
 
 ## Semi
 
-```{r}
+```{r, eval = FALSE}
 semi_join()
 ```
 
 
 ## Full
 
-```{r}
+```{r, eval = FALSE}
 ful
 l_join()
 ```
@@ -706,7 +709,7 @@ l_join()
 
 I didn't mention the anti join before! It does exactly what it sounds like -- it finds the things that don't match. A natural curiousity is the potential purpose for such a function.
 
-```{r}
+```{r, eval = FALSE}
 anti_join()
 ```
 
@@ -753,23 +756,34 @@ Combining group_by with summarize welcomes even more power to summarize data.
 mtcars %>% 
   group_by(am) %>% 
   summarize(meanMPG = mean(mpg), 
-            meanSD = sd(mpg))
+            sdMPG = sd(mpg))
 ```
 
 
 You are not limited to single group_by statements!
 
+## Your Turn
+
+Group and plot
+
+
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
 
 Data has strings...it is a simple fact of modern data.
 
-If you can clean strings, you can conquer any data task that gets thrown at you.
+If you can clean strings, you can conquer any data task that gets thrown at you. To clean strings, though, you will need to learn how to use magic!
 
 ## Regular Expressions
 
 Regular expressions (regex) are wild. Regex's purpose is to match patterns in strings. 
 
 Of everything that we have and will see, regex is something that you can use in places outside of data. 
+
+Some regular expressions are very easy to understand (once you know what they mean): [A-Za-z]+
+
+Others take some intense trial and error: \\(*[0-9]{3}.*[0-9]{3}.*[0-9]{4}
+
+Learning just a little and being able to use them in a variety of settings is most helpful.
 
 ## stringr
 
@@ -797,7 +811,7 @@ gsub(pattern = "(hack)", replacement = "star", x = realComments)
 ```
 
 
-It might not seem like a big deal, but the argument order can be a bit troublesome when you are just learning or have not used them in a while. 
+It is pretty subtle, but the argument order can be a bit troublesome when you are just learning or have not used them in a while. 
 
 Check these out:
 
@@ -1009,6 +1023,8 @@ starwars = starwars %>%
 
 ```{r}
 
+library(tidyr)
+
 data(starwars)
 
 starwars = starwars %>% 
@@ -1034,12 +1050,12 @@ Functions are simply objects that act upon other objects.
 
 This is a simple function:
 
-```{r}
+```{r, eval = FALSE}
 sum(fido)
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 meanFunction = function(x) {
   xLength = length(x)
   
@@ -1100,9 +1116,25 @@ testNames = c("Jack", "Jill", "Frank", "Steve", "Harry", "Lloyd")
 sapply(testNames, function(x) paste(x, "went over the hill", sep = " "))
 ```
 
+The sapply function will return a vector -- what do you think an lapply will return? mapply?
+
 Now that is a bit of a goofy example. Since R is vectorized, we would have gotten the same result just by pasting our testNames vector to the string. But, a more realistic situation is as follows:
 
-```{r}
 
+
+```{r}
+starwarsShips = unique(unlist(starwars$starships))
+
+shipRider = lapply(starwarsShips, function(x) {
+  
+  riders = starwars$name[which(grepl(x, starwars$starships))]
+  
+  res = data.frame(ship = x, 
+                   riders = riders)
+  
+  return(res)
+})
 ```
+
+
 

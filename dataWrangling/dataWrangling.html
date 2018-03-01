@@ -98,6 +98,7 @@ h6 {
 }
 </style>
 
+<link href="data:text/css;charset=utf-8,body%20%7B%0Afont%2Dfamily%3A%20%22Lato%22%2C%22Helvetica%20Neue%22%2CHelvetica%2CArial%2Csans%2Dserif%3B%0Afont%2Dsize%3A%2015px%3B%0Aline%2Dheight%3A%201%2E42857143%3B%0Acolor%3A%20%23f1f1f1%3B%0Abackground%2Dcolor%3A%20%23000%3B%0A%7D%0Apre%20%7B%0Adisplay%3A%20block%3B%0Apadding%3A%2010px%3B%0Amargin%3A%200%200%2010%2E5px%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E42857143%3B%0Aword%2Dbreak%3A%20break%2Dall%3B%0Aword%2Dwrap%3A%20break%2Dword%3B%0Acolor%3A%20%23f1f1f1%3B%0Abackground%2Dcolor%3A%20%23000%3B%0Aborder%3A%201px%20solid%20%23cccccc%3B%0Aborder%2Dradius%3A%204px%3B%0A%7D" rel="stylesheet" type="text/css" />
 
 </head>
 
@@ -292,7 +293,7 @@ plotDat</code></pre></div>
 </div>
 <div id="improper-plotting" class="section level2">
 <h2>(Im)Proper Plotting</h2>
-<p>What do we know about the am variable? Is this an appropriate way to plot the relationships here?</p>
+<p>Look at help(mtcars) and check out the variables. Can you spot what is wrong with this plot?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(mtcars, <span class="kw">aes</span>(<span class="dt">x =</span> wt, <span class="dt">y =</span> mpg, <span class="dt">color =</span> am)) <span class="op">+</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span>
 <span class="st">  </span><span class="kw">theme_minimal</span>()</code></pre></div>
@@ -1819,9 +1820,9 @@ string3 =<span class="st"> &quot;A G Edwards&quot;</span>
 <h3>lubridate</h3>
 <p>Another glorius thing that will happen to you is working with dates – they tend to be a pain.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Sys.Date</span>()</code></pre></div>
-<pre><code>[1] &quot;2018-02-27&quot;</code></pre>
+<pre><code>[1] &quot;2018-02-28&quot;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">format</span>(<span class="kw">Sys.Date</span>(), <span class="st">&quot;%m-%d-%Y&quot;</span>)</code></pre></div>
-<pre><code>[1] &quot;02-27-2018&quot;</code></pre>
+<pre><code>[1] &quot;02-28-2018&quot;</code></pre>
 <p>And you get things like this:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">date1 =<span class="st"> &quot;12012018&quot;</span>
 

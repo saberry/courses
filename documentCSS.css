@@ -1,0 +1,21 @@
+body {
+    font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 15px;
+    line-height: 1.42857143;
+    color: #f1f1f1;
+    background-color: #000;
+}
+
+pre {
+    display: block;
+    padding: 10px;
+    margin: 0 0 10.5px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    word-break: break-all;
+    word-wrap: break-word;
+    color: #f1f1f1;
+    background-color: #000;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}

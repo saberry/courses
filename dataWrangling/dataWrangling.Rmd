@@ -6,6 +6,7 @@ output:
     toc_float: true
     theme: flatly
     highlight: zenburn
+    css: documentCSS.css
 ---
 
 ```{r setup, include=FALSE}
@@ -60,7 +61,7 @@ ggplot(plotDat, aes(x = cut, y = n)) +
 
 ## (Im)Proper Plotting
 
-What do we know about the am variable? Is this an appropriate way to plot the relationships here?
+Look at help(mtcars) and check out the variables. Can you spot what is wrong with this plot?
 
 ```{r}
 ggplot(mtcars, aes(x = wt, y = mpg, color = am)) + 
@@ -384,7 +385,8 @@ We also have several helper functions that we can use:
 
 ```{r}
 HolzingerSwineford1939 %>% 
-  select(num_range("x", 1:9), starts_with("age"))
+  select(num_range("x", 1:9), starts_with("age"), 
+         matches("^s.*.l$"))
 ```
 
 
@@ -493,7 +495,7 @@ You will need to recode variables at some point. Depending on the nature of the 
 
 You will need to do some more elaborate stuff:
 
-```{r}
+```{r, eval = FALSE}
 
 mtcars$mpgLoHi = 0
 
@@ -501,26 +503,46 @@ mtcars$mpgLoHi[mtcars$mpg > median(mtcars$mpg)] = 1
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 mtcars$mpgLoHi = ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
 ```
 
 These are pretty good ways to do recoding of this nature, but what about this:
 
-```{r}
+```{r, eval = FALSE}
 mtcars$vs[which(mtcars$vs == 0)] = "v"
 
 mtcars$vs[which(mtcars$vs == 1)] = "s"
 ```
 
 
+Or this:
+
+```{r, eval = FALSE}
+mtcars$vs = ifelse(mtcars$vs == 0, "v", "s")
+```
+
+
 ## dplyr recoding
 
-```{r}
+```{r, eval = FALSE}
 recode(mtcars$vs, `0` = "v", `1` = "s")
 ```
 
 
+# Day 1 Wrap
+
+We covered a pretty good chunk of stuff today: importing, filtering, and subsetting. 
+
+While none of this stuff was super fancy, the introduction to dplyr will serve us well going forward. 
+
+As an end of the day exercise, let's do the following:
+
+1.  Read this data:
+
+2.  Keep observations with x or y.
+
+3.  Keep only the following variables:
 
 # Day 2
 
@@ -555,11 +577,11 @@ The second type, long data, is what many will call key-value pairs. You will oft
 
 You will encounter people who will swear that one way or the other is the ideal way to represent data -- we are going to opt for pragmatic as opposed to dogmatic. We can easily switch between these two types of data representations -- this is called reshaping.
 
-There is a bit of a hierarchy in R with regard to reshaping data. The reshape function in the stats package can handle most of your needs, but to resulting data is a bit on the ugly side (bad default row names, weird automatic column names, and a bunch of arguments). The reshape package gives you all of the power, but with clearer code and better output. The reshape2 package has all of the power, but with some added functionality. the tidyr package makes things incredibly easy, but at the expense of flexibility. 
+There is a bit of a hierarchy in R with regard to reshaping data. The reshape function in the stats package can handle most of your needs, but to resulting data is a bit on the ugly side (bad default row names, weird automatic column names, and a bunch of arguments). The reshape package gives you all of the power, but with clearer code and better output. The reshape2 package has all of the power, but with some added functionality. the tidyr package makes things incredibly easy, but at the expense of some flexibility. 
 
 ## Base/stats
 
-Try the following chunk of code with the as.data.frame(). Why, you might ask? Almost everything in dplyr converts data to a tibble. Many base R functions will go crazy when they encounter a tibble, so you need to explicitly make it a data frame.
+Try the following chunk of code with the as.data.frame(). Why, you might ask? Almost everything in dplyr converts data to a tibble. Many base R functions will go crazy when they encounter a tibble, so you need to explicitly make it a data frame. You might ask what is the trouble tibbles (anyone?)...
 
 ```{r}
 
@@ -571,7 +593,8 @@ as.data.frame(starwars) %>%
   reshape(., idvar = "name", v.names = "values", varying = list(2:3), 
           times = c("height", "mass"), direction = "long") %>% 
   ggplot(., aes(x = name, y = values, color = time)) + 
-  geom_point() +
+  geom_point(size = 3.5) +
+  scale_color_brewer(palette = "Dark2") +
   theme_minimal()
   
 ```
@@ -592,7 +615,8 @@ starwars %>%
                            measure.vars = 2:3, 
                            variable_name = "type", na.rm = TRUE) %>% 
   ggplot(., aes(x = name, y = value, color = type)) + 
-  geom_point() +
+  geom_point(size = 3.5) +
+  scale_color_brewer(palette = "Dark2") +
   theme_minimal()
 ```
 
@@ -609,7 +633,8 @@ starwars %>%
                            measure.vars = 2:3, variable.name = "type", 
                            value.name = "value", na.rm = TRUE) %>% 
   ggplot(., aes(x = name, y = value, color = type)) + 
-  geom_point() +
+  geom_point(size = 3.5) +
+  scale_color_brewer(palette = "Dark2") +
   theme_minimal()
 ```
 
@@ -623,7 +648,8 @@ starwars %>%
   select(name, height, mass) %>% 
   tidyr::gather(., key = type, value = value, -name) %>% 
   ggplot(., aes(x = name, y = value, color = type)) + 
-  geom_point() +
+  geom_point(size = 3.5) +
+  scale_color_brewer(palette = "Dark2") +
   theme_minimal()
 ```
 
@@ -632,7 +658,7 @@ starwars %>%
 
 # Merging {.tabset .tabset-fade .tabset-pills}
 
-Now we are playing with power! Having multiple datasets in memory is one of R's strong points (not everything can manage such a modern feat). 
+Now we are playing with power! Having multiple datasets in memory is one of R's strong points (not everything can manage such a modern feat). Once you get out there, this becomes important.
 
 Not only can we have multiple datasets open, but we can also merge those datasets together, with the proper variables, of course. 
 
@@ -668,7 +694,7 @@ Semi join = all rows from x with matching values in y and just columns from x
 
 Full join = everything
 
-With that knowledge, can we map the various combinations of all.x and all.y, 
+With that knowledge, can we map the various combinations of all.x and all.y? 
 
 ## Left
 
@@ -700,14 +726,13 @@ semi_join()
 ## Full
 
 ```{r, eval = FALSE}
-ful
-l_join()
+full_join()
 ```
 
 
 ## Anti
 
-I didn't mention the anti join before! It does exactly what it sounds like -- it finds the things that don't match. A natural curiousity is the potential purpose for such a function.
+I didn't mention the anti join before! It does exactly what it sounds like -- it finds the things that don't match. A natural curiousity is the potential purpose for such a function. Can anyone think of anything?
 
 ```{r, eval = FALSE}
 anti_join()
@@ -785,6 +810,9 @@ Others take some intense trial and error: \\(*[0-9]{3}.*[0-9]{3}.*[0-9]{4}
 
 Learning just a little and being able to use them in a variety of settings is most helpful.
 
+
+
+
 ## stringr
 
 What is the difference between sub and gsub?
@@ -845,13 +873,17 @@ str_extract_all(string = realComments,
 
 
 
-## Your Turn
+# Day 2 Wrap
+
+Good times all around today! We got into some pretty meaty issue on data wrangling. Reshaping can be a real challenge to your future wrangling tasks and joining/merging can give you fits if you don't really check your data.
+
+If there is anything to really take away from today is regex. It might seem like you may never use it, but you will find places to use it. Really take some time to play with it.
 
 # Day 3
 
 # Fuzzy Joins {.tabset .tabset-fade .tabset-pills}
 
-We have seen joins and character work, but now we are goin to combine them into one world.
+We have seen joins and some character work, but now we are going to combine them into one world.
 
 Whenever we use joins we are generally looking for exact matches. In reality, we get about 50/50.
 
@@ -903,6 +935,8 @@ adist(c(string1, string2, string3))
 We can see that we get a little more fine scoring with the Jaro-Winker distance.
 
 
+Now let's take a gander at Jaccard's distance:
+
 ```{r}
 stringdist(string1, string2, method = "jaccard")
 
@@ -912,7 +946,7 @@ stringdist(string1, string3, method = "jaccard")
 ```
 
 
-You might be wondering why we need to so much granularity. Consider what happens between Safeway and Subway:
+You might be wondering why we need much granularity. Consider what happens between Safeway and Subway:
 
 ```{r}
 stringdist("safeway", "subway", method = "soundex")
@@ -925,6 +959,7 @@ stringdist("safeway", "subway", method = "jw")
 
 I think we can imagine the consequences of using metrics like soundex or Jaccard distance to join strings together.
 
+So, is there a good time to use something like soundex: sure. If you find yourself needing to find possible word matches
 
 ## Fuzzy Joins
 

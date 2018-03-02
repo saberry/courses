@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
 ```
 
-# Our Purpose {.tabset .tabset-fade .tabset-pills}
+# Our Purpose
 
 We are going to learn how to wrangle data, but to what end? Wrangling purely for the sake of it is exceedingly rare and certainly useless. 
 
@@ -23,17 +23,22 @@ In all of our examples, we are going to do the following:
 2.  Tweak
 3.  Visualize
 
-We are going to see examples in a few different ways: namely base R and tidyverse.
+We are going to see examples in a few different ways: namely <span class="pack"></span>base R and <span class="pack"></span>tidyverse.
 
-# The Tidyverse {.tabset .tabset-fade .tabset-pills}
+# The Tidyverse
 
-We are going to be working around in the *tidyverse* for a good chunk of our time together. The whole point of the tidyverse is to offer a grammer of verbs. It is going to help us in a lot of the situations that we are going to be seeing.
+```{r, echo = FALSE}
+tidyverse::tidyverse_logo()
+```
 
-Another great feature of the tidyverse is the pipe: %>%
+
+We are going to be working around in the <span class="pack">tidyverse</span> for a good chunk of our time together. The whole point of the <span class="pack">tidyverse</span> is to offer a grammer of verbs. It is going to help us in a lot of the situations that we are going to be seeing.
+
+Another great feature of the <span class="pack">tidyverse</span> is the pipe: <span class="func">%>%</span>
 
 It does the same thing as the Unix |, but | in R is an or operator. 
 
-With all of the glowing praise for the tidyverse, we are still going to see some base R. Sometimes, it will demonstrate great reasons for using the tidyverse. In other situations, it will help you to not be afraid to use it when situations arise.
+With all of the glowing praise for the <span class="pack">tidyverse</span>, we are still going to see some <span class="pack">base</span> R. Sometimes, it will demonstrate great reasons for using the <span class="pack">tidyverse</span>. In other situations, it will help you to not be afraid to use it when situations arise.
 
 
 # Some Demonstrations {.tabset .tabset-fade .tabset-pills}
@@ -61,7 +66,7 @@ ggplot(plotDat, aes(x = cut, y = n)) +
 
 ## (Im)Proper Plotting
 
-Look at help(mtcars) and check out the variables. Can you spot what is wrong with this plot?
+Look at <span class="func">help(mtcars)</span> and check out the variables. Can you spot what is wrong with this plot?
 
 ```{r}
 ggplot(mtcars, aes(x = wt, y = mpg, color = am)) + 
@@ -100,9 +105,9 @@ ggplot(plotDat, aes(x = cut, y = n)) +
   theme_minimal()
 ```
 
-This is somewhat tricky code. We have to create a new object with the oft-muddy aggregate function and reset a column name (by magic number, no less). 
+This is somewhat tricky code. We have to create a new object with the oft-muddy <span class="func">aggregate</span> and reset a column name (by magic number, no less). 
 
-This can be made much easier with dplyr:
+This can be made much easier with <span class="pack">dplyr</span>:
 
 ```{r}
 diamonds %>% 
@@ -114,11 +119,11 @@ diamonds %>%
   
 ```
 
-It isn't a reduction in lines, but it is certainly clearer and follows a more logical thought process. This is the whole point of the tidyverse (and dplyr specifically) -- allowing you to write how you would explain the process. 
+It isn't a reduction in lines, but it is certainly clearer and follows a more logical thought process. This is the whole point of the <span class="pack">tidyverse</span> (and <span class="pack">dplyr</span> specifically) -- allowing you to write how you would explain the process. 
 
 As an added bonus, we don't need to create a bunch of different objects to do something simple.
 
-We can see that dplyr will also make the plot for am easier.
+We can see that <span class="pack">dplyr</span> will also make the plot for am easier.
 
 ```{r}
 mtcars %>% 
@@ -128,14 +133,14 @@ mtcars %>%
   theme_minimal()
 ```
 
-### On Code Golf
+## On Code Golf
 
-You will often notice that a dplyr chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
+You will often notice that a <span class="pack">dplyr</span> chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
 
 ## Your Turn
 
 1.  Read in the following data:
-    - Try read.csv()
+    - Try <span class="func">read.csv()</span>
 2.  Make a quick plot
     - Follow the ggplot stuff we just saw
 3.  Tweak
@@ -165,7 +170,7 @@ Is the same as:
 read.delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment")
 ```
 
-The read.table() function gives you added flexibility to specify the delimiter (these can be semicolons, periods, or any number of odd things). 
+The <span class="func">read.table()</span> function gives you added flexibility to specify the delimiter (these can be semicolons, periods, or any number of odd things). 
 
 Examine the following file from SDC and read it in properly:
 
@@ -174,31 +179,29 @@ Examine the following file from SDC and read it in properly:
 ```
 
 
-## Haven and readxl
+At time, you will get data in some proprietary format. That is when you need to turn to other places.
 
-You will often get data in proprietary formats:
-
-### Excel
+## Excel
 
 ```{r, eval = FALSE}
 readxl::read_excel(path = "folder/fileName")
 ```
 
 
-### SAS
+## SAS
 
 ```{r, eval = FALSE}
 haven::read_sas(data_file = "folder/fileName.sas7dbat")
 ```
 
 
-### Stata
+## Stata
 
 ```{r, eval = FALSE}
 haven::read_dta(file = "folder/fileName.dta")
 ```
 
-### SPSS
+## SPSS
 
 We often see the -99 added as the missing value in SPSS (of course, there is no way that -99 would ever be an actual value, right?).
 
@@ -214,14 +217,24 @@ Depending on your needs, reading an html table into R is getting to be too easy.
 ```{r, eval = FALSE}
 library(rvest)
 
-read_html() %>% 
-  html_table()
+cpi = read_html("http://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/") %>% 
+  html_table(fill = TRUE)
 ```
+
+
+Things might get a bit tricky:
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE)
+```
+
+What is the return of this call?
 
 
 ## rio
 
-For many of these tasks, you can just use the rio package -- you give it the file and it will do the rest!
+For many of these tasks, you can just use the <span class="pack">rio</span> package -- you give it the file and it will do the rest!
 
 ```{r, eval = FALSE}
 rio::import("folder/file")
@@ -230,13 +243,16 @@ rio::import("folder/file")
 
 ## Nested Structures
 
-### JSON
+#### JSON
 
 Web-based graphics started getting popular not too long ago. Generally, stats people were not using them, but web developer-type folks were. They needed a structure that would work well for the web and interact with their JavaScript-based graphics -- thus, JavaScript Object Notation (JSON) was born. You will see JSON come out of many web-based interfaces. 
 
 There are a few JSON-reading packages in R, but jsonlite tends to work pretty well.
 
 ```{r, eval = FALSE}
+
+###optionsDataBrief
+
 jsonlite::read_json(path = )
 ```
 
@@ -254,7 +270,7 @@ Not all JSON is pure JSON! When that is the case, you will need to create pure J
 ```
 
 
-### XML
+## XML
 
 It is getting to be a bit less common (still prevalent), but XML (eXtensible Markup Language) is another type of nested structure common on the web.
 
@@ -278,8 +294,7 @@ myData2 = read.csv("test2.csv")
 
 Would you want to do this for 5 files? What about 100? Or 1000? I will answer it for you: no!
 
-
-The chunks below introduce some very important functions. We are going to see the lapply function again -- it is important that you learn to love the apply family!
+The chunks below introduce some very important functions. We are going to see <span class="func">lapply</span> again -- it is important that you learn to love the apply family!
 
 ```{r, eval = FALSE}
 allFiles = list.files(path = "", all.files = TRUE, full.names = TRUE, 
@@ -291,7 +306,7 @@ allData = do.call("rbind", allFilesRead)
 ```
 
 
-You can also use rio:
+You can also use <span class="pack">rio</span>:
 
 ```{r, eval = FALSE}
 rio::import_list("", rbind = TRUE)
@@ -305,15 +320,64 @@ rio::import_list("", rbind = TRUE)
 3.  Summarize the data.
 4.  Visualize the data in any way you wish!
 
-If that was easy for you, then do the same thing with the following file:
 
 
+# The Grammar Of Data
+
+One of the major aims of the <span class="pack">tidyverse</span> is to provide a clear and consistent grammar to data manipulation. This is helpful when diving deeper into the weeds. 
+
+Do you remember this?
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE)
+```
+
+What did we get out of this? It was a big list of data frames. If we are looking for only one thing and we know that it is the first thing, we have some options:
+
+
+```{r, eval = FALSE}
+highest = highest[[1]]
+```
+
+
+This is great for keeping the object at first and then plucking out what we want. If you want the whole thing to be together, though, we have even more options:
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>% 
+  `[[`(1)
+```
+
+
+And now we see why R mystifies people. What does is that bit of nonsense at the end. It is really just an index shortcut. Once you know how to use it, it is great; however, it will make you shake your head if you see it in the wild without knowing about it first.
+
+This is where the benefit of <span class="pack">tidyverse</span> become clear. 
+
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>%
+  magrittr::extract2(1)
+```
+
+
+Or...
+
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>%
+  purrr::pluck(1)
+```
+
+Do be careful, though, because we can have some issues in function masking and <span class="func">pluck</span> from <span class="pack">purrr</span> does something very different than <span class="func">pluck</span> from <span class="pack">dplyr</span>.
 
 # Selecting {.tabset .tabset-fade .tabset-pills}
 
 ## Base
 
-There are many ways to select variables with base R:
+There are many ways to select variables with <span class="pack">base</span> R:
 
 ```{r, eval = FALSE}
 mtcars[, c(1:5, 7:8)]
@@ -363,9 +427,9 @@ While not beautiful, these are perfectly valid ways to do this work. I have such
 
 ## dplyr
 
-We have already seen a bit of dplyr, but we are going to dive right into some of the functions now.
+We have already seen a bit of <span class="pack">dplyr</span>, but we are going to dive right into some of the functions now.
 
-In base R, we have to do some chanting to select our variables. With dplyr, we can just use the select function:
+In base R, we have to do some chanting to select our variables. With <span class="pack">dplyr</span>, we can just use <span class="func">select</span>: 
 
 ```{r}
 mtcars %>% 
@@ -373,7 +437,7 @@ mtcars %>%
 ```
 
 
-We can also drop variables with the -:
+We can also drop variables with the <span class="func">-</span>:
 
 ```{r}
 mtcars %>% 
@@ -390,7 +454,7 @@ HolzingerSwineford1939 %>%
 ```
 
 
-### Not Important, But Helpful
+#### Not Important, But Helpful
 
 Changing variable position in R is a pain:
 
@@ -417,7 +481,7 @@ One of the more frequent tasks is related to filtering/subsetting your data. You
 
 ## Base
 
-Base R gives us all the ability in the world to filter data.
+R gives us all the ability in the world to filter data.
 
 ```{r}
 summary(mtcars[mtcars$mpg < mean(mtcars$mpg), ])
@@ -428,7 +492,7 @@ Unless you know exactly what you are doing, this is a bit hard to read -- you mi
 
 ## dplyr
 
-When we use filter, we are specifying what it is that we want to keep.
+When we use <span class="func">filter</span>, we are specifying what it is that we want to keep.
 
 Filter this or that:
 
@@ -473,7 +537,7 @@ mtcars %>%
 
 ## Base
 
-Adding a new variable in base R is as easy as the following:
+Adding a new variable in <span class="pack">base</span> R is as easy as the following:
 
 ```{r}
 mtcars$roundedMPG = round(mtcars$mpg)
@@ -481,13 +545,15 @@ mtcars$roundedMPG = round(mtcars$mpg)
 
 ## dplyr
 
-If, however, we want to do things in a tidy chunk, we need to use mutate.
+If, however, we want to do things in a tidy chunk, we need to use <span class="func">mutate</span>.
 
 ```{r}
 mtcars = mtcars %>% 
   mutate(roundedMPG = round(mpg))
 ```
 
+
+There is also <span class="func">transmute</span>. Can anyone venture a guess as to what it might do?
 
 ## Base Recoding
 
@@ -546,6 +612,54 @@ As an end of the day exercise, let's do the following:
 
 # Day 2
 
+# Summarizing And Grouping
+
+If we recall, we already saw a little bit of grouping and merging (if you don't, you might remember that mess with aggregate). Given that we already saw aggregate, we will just dive right into the tidyverse.
+
+## dplyr
+
+Grouping data and comparing various summary statistics by group is a common task. Sometimes it is just a means of exploration and sometimes it will actually answer the question. No matter the need, you will likely find it quite simple.
+
+```{r}
+mtcars %>% 
+  summarize(meanMPG = mean(mpg), 
+            meanSD = sd(mpg))
+```
+
+
+You can even summarize all of your variables in handy way.
+
+```{r}
+mtcars %>% 
+  summarize_all(funs(mean, sd), na.rm = TRUE)
+```
+
+Because we are dealing with the tidyverse, variable selection is included.
+
+```{r}
+mtcars %>% 
+  summarize_at(vars(starts_with("c")), 
+               funs(mean, sd), na.rm = TRUE)
+```
+
+
+Combining group_by with summarize welcomes even more power to summarize data.
+
+
+```{r}
+mtcars %>% 
+  group_by(am) %>% 
+  summarize(meanMPG = mean(mpg), 
+            sdMPG = sd(mpg))
+```
+
+
+You are not limited to single <span class="func">group_by statements</span>!
+
+## Your Turn
+
+Group and plot
+
 # Reshaping {.tabset .tabset-fade .tabset-pills}
 
 Now, things are going to get weird.
@@ -577,11 +691,11 @@ The second type, long data, is what many will call key-value pairs. You will oft
 
 You will encounter people who will swear that one way or the other is the ideal way to represent data -- we are going to opt for pragmatic as opposed to dogmatic. We can easily switch between these two types of data representations -- this is called reshaping.
 
-There is a bit of a hierarchy in R with regard to reshaping data. The reshape function in the stats package can handle most of your needs, but to resulting data is a bit on the ugly side (bad default row names, weird automatic column names, and a bunch of arguments). The reshape package gives you all of the power, but with clearer code and better output. The reshape2 package has all of the power, but with some added functionality. the tidyr package makes things incredibly easy, but at the expense of some flexibility. 
+There is a bit of a hierarchy in R with regard to reshaping data. The <span class="func">reshape</span> function in the <span class="pack">stats</span> package can handle most of your needs, but to resulting data is a bit on the ugly side (bad default row names, weird automatic column names, and a bunch of arguments). The <span class="pack">reshape</span> package gives you all of the power, but with clearer code and better output. The <span class="pack">reshape2</span> package has all of the power, but with some added functionality. The <span class="pack">tidyr</span> package makes things incredibly easy, but at the expense of some flexibility. 
 
 ## Base/stats
 
-Try the following chunk of code with the as.data.frame(). Why, you might ask? Almost everything in dplyr converts data to a tibble. Many base R functions will go crazy when they encounter a tibble, so you need to explicitly make it a data frame. You might ask what is the trouble tibbles (anyone?)...
+The following chunk of code needs the <span class="func">as.data.frame()</span>. Why, you might ask? Almost everything in <span class="pack">dplyr</span> converts data to a <span class="pack">tibble</span>. Many base R functions will go crazy when they encounter a tibble, so you need to explicitly make it a data frame. You might ask what is the trouble tibbles (anyone?)...
 
 ```{r}
 
@@ -602,7 +716,7 @@ as.data.frame(starwars) %>%
 
 ## reshape
 
-Let's use the reshape package to do the same thing. You are going to notice a few differences in the function arguments. The reshape packages have this notion of melting (going from wide to long) and casting (going from long to wide). Melting makes plenty of sense to me, but I can only imagine what casting means. 
+Let's use the <span class="pack">reshape</span> package to do the same thing. You are going to notice a few differences in the function arguments. The <span class="pack">reshape</span> packages have this notion of melting (going from wide to long) and casting (going from long to wide). Melting makes plenty of sense to me, but I can only imagine what casting means. 
 
 ```{r}
 starwars %>% 
@@ -621,9 +735,11 @@ starwars %>%
 ```
 
 
+Reshape introduced the vernacular, but I really do not see a reason to use it anymore.
+
 ## reshape2
 
-We don't need to worry about the tibble issue with reshape2!
+We don't need to worry about the tibble issue with <span class="pack">reshape2</span>!
 
 ```{r}
 starwars %>% 
@@ -640,7 +756,7 @@ starwars %>%
 
 ## tidyr
 
-Allows for dplyr variable selection and a little bit more clarity with creating the id(s) variables.
+Allows for <span class="pack">dplyr</span> variable selection and a little bit more clarity with creating the id(s) variables.
 
 ```{r}
 starwars %>% 
@@ -653,6 +769,29 @@ starwars %>%
   theme_minimal()
 ```
 
+The complimentary function to <span class="func">gather</span> is <span class="func">spread</span>:
+
+```{r}
+library(tidyr)
+
+starwarsLong = starwars %>% 
+  filter(species == "Human" & grepl("(Skywalker)|(Rey)|(Vader)|(Kylo)", .$name)) %>% 
+  select(name, height, mass) %>% 
+  gather(., key = type, value = value, -name)
+
+starwarsLong
+
+starwarsLong %>% 
+  spread(., key = type, value = value)
+
+```
+
+
+In addition to reshaping, <span class="pack">tidyr</span> has some handy functions for splitting (<span class="func">separate</span>) and pasting (<span class="func">unite</span>) columns.
+
+## Others
+
+While we won't dive into it, the <span class="pack">splitstackshape</span> package is very handy for reshaping. It also has additional uses for column manipulations
 
 ## Your Turn
 
@@ -664,7 +803,7 @@ Not only can we have multiple datasets open, but we can also merge those dataset
 
 ## base
 
-The merge function in base R, like everything else, can do us a great amount of good. 
+The <span class="func"></span>merge function in base R, like everything else, can do us a great amount of good. 
 
 ```{r, eval = FALSE}
 
@@ -739,57 +878,13 @@ anti_join()
 ```
 
 
-## Your Turn
+## Data Wrangling?
+
+This is a point where we should revisit the term data wrangling. It makes sense conceptually, but it casts a certain mental image that might be limiting. What we have seen up to this point should make it abundantly clear that we are in control of our data -- this sits nicely with wrangling. What might not be so clear is the artistically forceful way that we sometimes need to make our data behave. Instead, we might want to think of ourselves as *Data Picassos*. Data preparation is often done through a series of data deconstructions -- much like making a collage. We take bits and pieces from various places and then put them together to make something coherent. This also sits nicely with out previous discussion on code golf.
+
+Therefore, we need to 
 
 
-
-# Summarizing And Grouping
-
-If we recall, we already saw a little bit of grouping and merging (if you don't, you might remember that mess with aggregate). Given that we already saw aggregate, we will just dive right into the tidyverse.
-
-## dplyr
-
-Grouping data and comparing various summary statistics by group is a common task. Sometimes it is just a means of exploration and sometimes it will actually answer the question. No matter the need, you will likely find it quite simple.
-
-```{r}
-mtcars %>% 
-  summarize(meanMPG = mean(mpg), 
-            meanSD = sd(mpg))
-```
-
-
-You can even summarize all of your variables in handy way.
-
-```{r}
-mtcars %>% 
-  summarize_all(funs(mean, sd), na.rm = TRUE)
-```
-
-Because we are dealing with the tidyverse, variable selection is included.
-
-```{r}
-mtcars %>% 
-  summarize_at(vars(starts_with("c")), 
-               funs(mean, sd), na.rm = TRUE)
-```
-
-
-Combining group_by with summarize welcomes even more power to summarize data.
-
-
-```{r}
-mtcars %>% 
-  group_by(am) %>% 
-  summarize(meanMPG = mean(mpg), 
-            sdMPG = sd(mpg))
-```
-
-
-You are not limited to single group_by statements!
-
-## Your Turn
-
-Group and plot
 
 
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
@@ -815,15 +910,15 @@ Learning just a little and being able to use them in a variety of settings is mo
 
 ## stringr
 
-What is the difference between sub and gsub?
+What is the difference between <span class="func">sub</span> and <span class="func">gsub</span>?
 
-What is the difference between grep and grepl?
+What is the difference between <span class="func">grep</span> and <span class="func">grepl</span>?
 
 Why did grep just return a bunch of numbers?
 
 What does the following do: "^\\s+|\\s+$"
 
-For the love of all that is good, what does regexpr() do?
+For the love of all that is good, what does <span class="func">regexpr</span> do?
 
 These are just a few of the questions that will come up when working with strings in base R.
 
@@ -854,7 +949,7 @@ str_replace_all(string = realComments, pattern = "(hack)",
 
 We now have consistent argument order and very clear names. 
 
-Clear names and consistent arguments aside, stringr also simplifies some previously cumbersome processes.
+Clear names and consistent arguments aside, <span class="pack">stringr</span> also simplifies some previously cumbersome processes.
 
 ```{r}
 matchedComments = regexpr(pattern = "love|like|enjoy", 
@@ -864,7 +959,7 @@ regmatches(x = realComments, m = matchedComments)
 
 ```
 
-This becomes the following with stringr:
+This becomes the following with <span class="pack">stringr</span>:
 
 ```{r}
 str_extract_all(string = realComments, 
@@ -889,6 +984,15 @@ Whenever we use joins we are generally looking for exact matches. In reality, we
 
 Fuzzy joins allow us to use string distance metrics to join non-matching strings together.
 
+We are going to need <span class="pack">fuzzyjoin</span>:
+
+```{r, eval = FALSE}
+install.packages('devtools')
+
+devtools::install_github("dgrtwo/fuzzyjoin")
+```
+
+
 ## String Distances
 
 Not including spelling mistakes, there are many different ways to represent words; this is especially true when we are discussing companies.
@@ -897,7 +1001,7 @@ Would AG Edwards and A.G. Edwards join? Of course not! They are the same company
 
 We have learned enough about string cleaning to know that we could tidy that one up, but what about something more subtle, like AG Edward and AG Edwards. 
 
-We can use the adist function to figure out the distance between these two strings.
+We can use the <span class="func">adist</span> function to figure out the distance between these two strings.
 
 ```{r}
 string1 = "AG Edward"
@@ -907,7 +1011,7 @@ string2 = "AG Edwards"
 adist(x = string1, y = string2)
 ```
 
-The adist function uses generalized edit distance as the metric. This does things like calculate the number of characters that need to be inserted, deleted, or substituted to make a match. 
+The <span class="func">adist</span> function uses generalized edit distance as the metric. This does things like calculate the number of characters that need to be inserted, deleted, or substituted to make a match. 
 
 If we are merging, generalized edit distance might not give use the level of granularity that we need for minimizing.
 
@@ -959,7 +1063,7 @@ stringdist("safeway", "subway", method = "jw")
 
 I think we can imagine the consequences of using metrics like soundex or Jaccard distance to join strings together.
 
-So, is there a good time to use something like soundex: sure. If you find yourself needing to find possible word matches
+So, is there a good time to use something like soundex: sure. If you find yourself needing to find any possible word matches
 
 ## Fuzzy Joins
 
@@ -1027,8 +1131,26 @@ mdy(date3)
 ```
 
 
-### hms
+There is some really great stuff in <span class="pack">lubridate</span>. For instance, if you need to get time intervals:
 
+```{r}
+
+exactAge = function(birthday, 
+                    value = c("second", "minute", "hour", "day", 
+                              "week", "month", "year")) {
+  age = interval(ymd(birthday), ymd(Sys.Date()))  
+  
+  time_length(age, value)
+}
+
+```
+
+Run that and give it your birthday in "YEAR-MO-DY" format. While it might be goofy at first glance, can we think of anything practical for it?
+
+
+
+
+There is a similar package, <span class="pack">hms</span>, for dealing with time.
 
 
 ## Lists
@@ -1086,6 +1208,9 @@ Functions are simply objects that act upon other objects.
 This is a simple function:
 
 ```{r, eval = FALSE}
+
+fido = seq(1, 10, by = 2)
+
 sum(fido)
 ```
 

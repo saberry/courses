@@ -838,34 +838,55 @@ With that knowledge, can we map the various combinations of all.x and all.y?
 ## Left
 
 ```{r, eval = FALSE}
-left_join()
+merge1 = haven::read_dta("https://www3.nd.edu/~sberry5/data/merge1Company.dta")
+
+sasExample = haven::read_sas("https://www3.nd.edu/~sberry5/data/wciklink_gvkey.sas7bdat")
+
+leftTest = left_join(merge1, sasExample, by = "gvkey")
 ```
 
+
+If we want to join on multiple columns, we could provide a character vector:
+
+```{r, eval = FALSE}
+leftTestMultiple = left_join(merge1, sasExample, by = c("gvkey", "coname"))
+```
+
+
+If our names don't match, we need to provide both:
+
+```{r, eval = FALSE}
+leftTestEqual = left_join(merge1, sasExample, by = c("gvkey", 
+                                                "coname", 
+                                                "datadate" = "DATADATE1"))
+```
+
+How did this one work? Always check your data!
 
 ## Right
 
 ```{r, eval = FALSE}
-right_join()
+rightTest = right_join(merge1, sasExample, by = c("gvkey"))
 ```
 
 ## Inner
 
 ```{r, eval = FALSE}
-inner_join()
+innerTest = inner_join(merge1, sasExample, by = c("gvkey"))
 ```
 
 
 ## Semi
 
 ```{r, eval = FALSE}
-semi_join()
+semiTest = semi_join(merge1, sasExample, by = c("gvkey"))
 ```
 
 
 ## Full
 
 ```{r, eval = FALSE}
-full_join()
+fullTest = full_join(merge1, sasExample, by = c("gvkey"))
 ```
 
 
@@ -874,7 +895,7 @@ full_join()
 I didn't mention the anti join before! It does exactly what it sounds like -- it finds the things that don't match. A natural curiousity is the potential purpose for such a function. Can anyone think of anything?
 
 ```{r, eval = FALSE}
-anti_join()
+antiTest = anti_join(merge1, sasExample, by = c("gvkey"))
 ```
 
 
@@ -882,9 +903,12 @@ anti_join()
 
 This is a point where we should revisit the term data wrangling. It makes sense conceptually, but it casts a certain mental image that might be limiting. What we have seen up to this point should make it abundantly clear that we are in control of our data -- this sits nicely with wrangling. What might not be so clear is the artistically forceful way that we sometimes need to make our data behave. Instead, we might want to think of ourselves as *Data Picassos*. Data preparation is often done through a series of data deconstructions -- much like making a collage. We take bits and pieces from various places and then put them together to make something coherent. This also sits nicely with out previous discussion on code golf.
 
-Therefore, we need to 
+Therefore, we need to learn to accept a default frame of reference that allows us to break things down into smaller pieces. We are not bound to any monolith. 
 
 
+![](http://www.muralmosaic.com/Cochrane/grid.jpg)
+
+Keep this concept of *data collaging* in your mind.
 
 
 # String Cleaning {.tabset .tabset-fade .tabset-pills}
@@ -904,8 +928,6 @@ Some regular expressions are very easy to understand (once you know what they me
 Others take some intense trial and error: \\(*[0-9]{3}.*[0-9]{3}.*[0-9]{4}
 
 Learning just a little and being able to use them in a variety of settings is most helpful.
-
-
 
 
 ## stringr

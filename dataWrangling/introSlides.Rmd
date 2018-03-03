@@ -1,6 +1,9 @@
 ---
 title: "Data Wrangling With R"
-output: revealjs::revealjs_presentation
+output:
+  revealjs::revealjs_presentation:
+    css: documentCSS.css
+    theme: night
 ---
 
 ```{r setup, include=FALSE}

@@ -43,7 +43,7 @@ With all of the glowing praise for the <span class="pack">tidyverse</span>, we a
 
 # Some Demonstrations {.tabset .tabset-fade .tabset-pills}
 
-## Table
+## Summary Tables
 
 ```{r}
 
@@ -174,12 +174,10 @@ The <span class="func">read.table()</span> function gives you added flexibility 
 
 Examine the following file from SDC and read it in properly:
 
-```{r sdcFile}
-
-```
+<a href="https://www3.nd.edu/~sberry5/data/sdcTest.txt">SDC Wackiness</a>
 
 
-At time, you will get data in some proprietary format. That is when you need to turn to other places.
+At times, you will get data in some proprietary format. That is when you need to turn to other places.
 
 ## Excel
 
@@ -188,17 +186,19 @@ readxl::read_excel(path = "folder/fileName")
 ```
 
 
+What do we know about Excel workbooks?
+
 ## SAS
 
 ```{r, eval = FALSE}
-haven::read_sas(data_file = "folder/fileName.sas7dbat")
+haven::read_sas(data_file = "https://www3.nd.edu/~sberry5/data/wciklink_gvkey.sas7bdat")
 ```
 
 
 ## Stata
 
 ```{r, eval = FALSE}
-haven::read_dta(file = "folder/fileName.dta")
+haven::read_dta(file = "https://www3.nd.edu/~sberry5/data/stataExample.dta")
 ```
 
 ## SPSS
@@ -206,7 +206,8 @@ haven::read_dta(file = "folder/fileName.dta")
 We often see the -99 added as the missing value in SPSS (of course, there is no way that -99 would ever be an actual value, right?).
 
 ```{r, eval = FALSE}
-haven::read_spss(file = "folder/fileName.sav", user_na = "-99")
+haven::read_spss(file = "https://www3.nd.edu/~sberry5/data/spssExample.sav", 
+                 user_na = "-99")
 ```
 
 
@@ -373,6 +374,9 @@ highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_film
 
 Do be careful, though, because we can have some issues in function masking and <span class="func">pluck</span> from <span class="pack">purrr</span> does something very different than <span class="func">pluck</span> from <span class="pack">dplyr</span>.
 
+
+Someone try it and tell me what happens!
+
 # Selecting {.tabset .tabset-fade .tabset-pills}
 
 ## Base
@@ -473,6 +477,21 @@ HolzingerSwineford1939 %>%
 
 ## Your Turn!
 
+1.  Use that Stata test file.
+
+2.  Grab every lvi, effect, leader, and cred variable
+
+3.  Use summary to understand your data.
+
+4.  Now, just keep every lvi variable.
+
+5.  Use a corrplot to see relationships.
+
+    - corrplot needs a correlation matrix (use cor)
+
+```{r, eval = FALSE}
+install.packages("corrplot")
+```
 
 
 # Subsetting/Filtering {.tabset .tabset-fade .tabset-pills}
@@ -531,7 +550,15 @@ mtcars %>%
 
 ## Your Turn
 
+For now, we are going to stick with that stataExample data. 
 
+1.  Select the same variables, but also include Rater.
+
+2.  Filter the data on Rater -- check the values and filter both ways.
+
+3.  Now check those correlations again!
+
+4.  Throw the Gender variable in and filter on that.
 
 # New Variables and Recoding {.tabset .tabset-fade .tabset-pills}
 

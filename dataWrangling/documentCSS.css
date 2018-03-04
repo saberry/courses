@@ -32,3 +32,32 @@ pre:not([class]) {
     background-color: #000;
     border: 1px solid #ecf0f1;
 }
+
+.pack {
+   color: firebrick;
+}
+
+.func {
+   color: #ff5500;
+}
+
+.neonBlue {
+   color: #4F8EF7;
+   text-shadow: 1px 0px 20px #E64093;
+}
+
+.reveal .progress span {
+    display: none;
+}
+
+.reveal .playback {
+    display: none;
+}
+
+.reveal .controls {
+    display: none !important;
+}
+
+.reveal h1 {
+  font-size: 1.5em;
+}

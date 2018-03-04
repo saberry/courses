@@ -1,7 +1,12 @@
 ---
 title: | 
   | Data Wrangling With R
+  | ITAO 70810
   | Course Overview
+  
+author: |
+  | Seth Berry
+  | seth.berry@nd.edu
 output:
   html_document:
     theme: flatly
@@ -14,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-During the next four days, we are going to cover a significant amount of data wrangling. While we will not cover every single data wrangling technique, we will cover enough that you should feel confident when tricky data situation land on you lap. We will be using R and RStudio to do our work during the week. With regard to data, we will be using built-in data and data from other sources for our demonstrations and exercises.  
+During the next four days, we are going to cover a significant amount of data wrangling. While we will not cover every single data wrangling technique, we will cover enough that you should feel confident when tricky data situation land on you lap. We will be using R and RStudio to do our work during the week. With regard to data, we will be using built-in data and data from other sources for our demonstrations and exercises. You might even have some data of your own that you want to bring in to work on -- I support this 100%.
  
 
 ## Getting The Most From The Week
@@ -24,11 +29,11 @@ As previously noted, we will cover many techniques in this course. I am here mer
 > Wrangling...wrangling...wrangling's a verb.  
 > Wrangling is a doing word.
 
-The more you interact with the code, the more you will understand how it works and how you can combine functions to make data bend to your will. Work alone, in groups, ask me for help, or anything else to play with the material.
+The more you interact with the code, the more you will understand how it works and how you can combine functions to make data bend to your will. Work alone, in groups, ask me for help, or anything else to play with the material -- just interact with it!
 
 ## Assessment
 
-At the end of every day, you will be given one data wrangling problem -- you will not need to provide any code for these assignments. Instead, your mission is to explain how you would solve the wrangling problem. Coding is very important and you will be doing plenty of it, but a big part of data wrangling is creating the mental map for what you are doing and how you are going to get there.
+At the end of every day, you will be given one data wrangling problem -- you will not need to provide any code for these assignments. Instead, your mission is to explain (using the parlance of our times) how you would solve the wrangling problem. Coding is very important and you will be doing plenty of it, but a big part of data wrangling is creating the mental map for what you are doing and how you are going to get there.
 
 Your job is to explain how to get from here:
 
@@ -40,6 +45,8 @@ To here:
 ![](http://i.pinimg.com/736x/a8/56/17/a85617ee1a02495037456d753f15b80f--most-beautiful-puzzles.jpg)
 
 Use these daily checks to start practicing how to build your mental data wrangling palace.
+
+These daily checks are absolutely necessary and mandatory.
 
 While not, strictly speaking, an assessment, our last day together is going to be a hackathon. You will get into groups of 2 to 5 people, choose one of three datasets, cobble it into some shape, and give a three minute presentation. The probability of some breakfast treat appearing is incredibly close to 1.  
 
@@ -53,7 +60,7 @@ While not, strictly speaking, an assessment, our last day together is going to b
 
 - New variable creation and recoding
 
-- R Markdown introduction
+- Presentation and reproducibility
 
 ## Day 2
 

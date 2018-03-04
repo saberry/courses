@@ -17,18 +17,6 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FAL
 ```
 
 
-# Our Purpose
-
-We are going to learn how to wrangle data, but to what end? Wrangling purely for the sake of it is exceedingly rare and certainly useless. 
-
-In all of our examples, we are going to do the following:
-
-1.  Import
-2.  Tweak
-3.  Visualize
-
-We are going to see examples in a few different ways: namely <span class="pack"></span>base R and <span class="pack"></span>tidyverse.
-
 # The Tidyverse
 
 ```{r, echo = FALSE}
@@ -109,7 +97,7 @@ ggplot(plotDat, aes(x = cut, y = n)) +
   theme_minimal()
 ```
 
-This is somewhat tricky code. We have to create a new object with the oft-muddy <span class="func">aggregate</span> and reset a column name (by magic number, no less). 
+This is somewhat tricky code. We have to create a new object with the oft-muddy <span class="func">aggregate</span> and reset a column name (by magic number in an index, no less). 
 
 This can be made much easier with <span class="pack">dplyr</span>:
 
@@ -141,19 +129,6 @@ mtcars %>%
 
 You will often notice that a <span class="pack">dplyr</span> chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
 
-## Your Turn
-
-1.  Read in the following data:
-    - Try <span class="func">read.csv()</span>
-2.  Make a quick plot
-    - Follow the ggplot stuff we just saw
-3.  Tweak
-4.  Replot
-
-## Curves
-
-![Curves Ahead](http://www.firstsign.com/Shared/Images/Product/Right-Winding-Road-Traffic-sign-W1-5R-30-clone/W1-5R_winding-road_S-curve_right_left_right_arrow_firstsign_com.jpg)
-
 
 # Data Import {.tabset .tabset-fade .tabset-pills}
 
@@ -174,11 +149,39 @@ Is the same as:
 read.delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment")
 ```
 
-The <span class="func">read.table()</span> function gives you added flexibility to specify the delimiter (these can be semicolons, periods, or any number of odd things). 
+The <span class="func">read.table()</span> function gives you added flexibility to specify many different parameters. 
 
-Examine the following file from SDC and read it in properly:
+Examine the following file from SDC Platinum and read it in properly:
 
 <a href="https://www3.nd.edu/~sberry5/data/sdcTest.txt">SDC Wackiness</a>
+
+How did you do?
+
+Did you notice anything about these files? They are not really very big, but they might have taken a little bit of time to read in. There have been times where people have commented that R is too slow on the read side. If you find you files are not being read quickly enough, you can try a few alternatives: <span class="pack">readr</span> <span class="pack">data.table</span>
+
+Try the following:
+
+```{r, eval = FALSE}
+readrTest = readr::read_delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
+                              delim = "\t")
+```
+
+
+```{r, eval = FALSE}
+dtTest = data.table::fread("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
+                           sep = "\t")
+```
+
+
+That SDC file that might have taken a few minutes will now take just a few seconds:
+
+```{r, eval = FALSE}
+sdc = readr::read_delim("https://www3.nd.edu/~sberry5/data/sdcTest.txt", 
+                        delim = "^")
+```
+
+
+Pretty awesome, right?
 
 
 At times, you will get data in some proprietary format. That is when you need to turn to other places.
@@ -190,7 +193,7 @@ readxl::read_excel(path = "folder/fileName")
 ```
 
 
-What do we know about Excel workbooks?
+What do we know about Excel workbooks? Check out the help on <span class="pack">readxl</span> and let me know our path forward.
 
 ## SAS
 
@@ -258,7 +261,8 @@ There are a few JSON-reading packages in R, but jsonlite tends to work pretty we
 
 ###optionsDataBrief
 
-jsonlite::read_json(path = )
+jsonTest = jsonlite::read_json(path = "https://www3.nd.edu/~sberry5/data/optionsDataBrief.json", 
+                                simplifyVector = TRUE)
 ```
 
 
@@ -641,26 +645,118 @@ We won't have any big end-of-day wrap exercises to do today. Instead, we are goi
 
 We already saw some <span class="pack">ggplot2</span>, but let's take a few minutes to dive into a bit more.
 
-Just like everything else in the <span class="pack">tidyverse</span>, <span class="pack">ggplot2</span> provides a clear and consistent grammar, except the focus is on data visualization. With <span class="pack">ggplot2</span>, we can stack layer after layer into the plotting space to help 
+Just like everything else in the <span class="pack">tidyverse</span>, <span class="pack">ggplot2</span> provides a clear and consistent grammar, except the focus is on data visualization. With <span class="pack">ggplot2</span>, we can stack layer after layer into the plotting space to help visualize our data.
+
+Let's take a look at some good <span class="pack">ggplot2</span> layering:
+
+```{r}
+library(ggplot2)
+
+library(lavaan)
+
+testData = HolzingerSwineford1939
+
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point()
+```
+
+Next, we can add some color:
+
+```{r}
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75)
+```
+
+Now, we can add a smooth line:
+
+```{r}
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75) + 
+  geom_smooth()
+```
+
+And we can look at small multiples:
+
+```{r}
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75) + 
+  geom_smooth() +
+  facet_grid(~ sex)
+```
+
+Let's get those silly grey boxes out of there:
+
+```{r}
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75) + 
+  geom_smooth() +
+  facet_grid(~ sex) +
+  theme_minimal()
+```
+
+
+Perhaps add a better color scheme:
+
+```{r}
+ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75) + 
+  geom_smooth() +
+  facet_grid(~ sex) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Dark2")
+```
+
+
+We could keep going forever and tweak anything that you could imagine (labels, ticks, etc.), but this should give you a pretty good idea about what you can do with regard to static plots.
+
+Oh...but we don't have to stick with just static plots. We can use the <span class="pack">plotly</span> package to make our ggplot object interactive.
+
+```{r}
+library(plotly)
+
+radPlot = ggplot(testData, aes(x7, ageyr)) +
+  geom_point(aes(color = as.factor(grade)), alpha = .75) + 
+  geom_smooth() +
+  facet_grid(~ sex) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Dark2")
+
+ggplotly(radPlot)
+
+```
+
+You can also build plots with <span class="pack">plotly</span>, but we will save that for another day in the future.
 
 ## DT
 
-The <span class="pack">DT</span> package let's you create interactive data tables (they are JS data tables)
+Visualizations are great and they often tell a better story than tables. Sometimes, though, you want to give people a glimpse of the data. The <span class="pack">DT</span> package let's you create interactive data tables (they are JS data tables). 
+
+You could give people the entire data to explore:
+
+```{r}
+library(DT)
+
+datatable(testData)
+
+```
+
+
+You can also use the <span class="broom">DT</span> package to tidy your summaries into a nice dataframe:
+
+```{r}
+lm(x7 ~ ageyr + school, data = testData) %>% 
+  broom::tidy() %>% 
+  mutate_if(is.numeric, round, 4) %>% 
+  datatable()
+```
+
+
+We don't want to get too far ahead of ourselves here -- we will see more places to use this tomorrow.
 
 ## R Markdown & Knitr
 
-If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> 
+Do you have a moment to hear the good word of Donald Knuth? If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> 
 
-# Day 1 Wrap
+# Day 1 Thought Question
 
-We covered a pretty good chunk of stuff today: importing, filtering, and subsetting. 
 
-While none of this stuff was super fancy, the introduction to dplyr will serve us well going forward. 
-
-As an end of the day exercise, let's do the following:
-
-1.  Read this data:
-
-2.  Keep observations with x or y.
-
-3.  Keep only the following variables:

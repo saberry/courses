@@ -4,6 +4,7 @@ output:
   revealjs::revealjs_presentation:
     css: documentCSS.css
     theme: night
+    center: true
 ---
 
 ```{r setup, include=FALSE}
@@ -14,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Data wrangling is potentially comprised of many different tasks.
 
-At the end of the day, we are trying to create rectangles.
+At the end of the day, we are trying to create data rectangles.
 
 ## {data-background="https://assets.mubi.com/images/film/18159/image-w856.jpg?1445924140"}
 
@@ -22,17 +23,15 @@ At the end of the day, we are trying to create rectangles.
 
 ## {data-background="http://wpmedia.o.canada.com/2014/06/martin-tata9.jpg"}
 
-## Why are you here?
+## Why Are You Here?
 
-## Embed a web page as a background {data-background-iframe="https://www.youtube.com/watch?v=_UQsqFiyw9k"}
+Let's watch this <a href="https://www.youtube.com/watch?v=_UQsqFiyw9k">video</a> together.
 
 ## 
 
 If you have used R before, you can completely ignore me for the next few minutes. 
 
   - Wait for the special signal to return your attention!
-
-Instead of peaking ahead or browsing the internet, feel free to listen to these tunes:
 
 
 ## Basics: Quickly
@@ -86,9 +85,9 @@ ySD = sd(y)
 ```
 
 
-## Combinging Function
+## Combining Function
 
-We can also combined functions!
+We can also combine functions!
 
 ```{r}
 
@@ -125,7 +124,7 @@ Case matters:
 
   -  thisName != ThisName != this_name
   
-## our Packages
+## Our Packages
 
 These are the packages that you will need:
 

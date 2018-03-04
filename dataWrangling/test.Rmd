@@ -1,0 +1,22 @@
+---
+title: | 
+      | Practical Data Wrangling With R
+      | Complete
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
+```
+
+
+```{r, child = 'dayOne.Rmd'}
+```
+
+```{r, child = 'dayTwo.Rmd'}
+```

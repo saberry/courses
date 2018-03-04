@@ -19,3 +19,16 @@ pre {
     border: 1px solid #cccccc;
     border-radius: 4px;
 }
+
+pre:not([class]) {
+    background-color: #000;
+}
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+    background-color: #000;
+    border: 1px solid #ecf0f1;
+}

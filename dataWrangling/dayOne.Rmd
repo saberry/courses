@@ -1,0 +1,648 @@
+---
+title: | 
+      | Practical Data Wrangling With R
+      | Day One
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+---
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
+```
+
+
+# Our Purpose
+
+We are going to learn how to wrangle data, but to what end? Wrangling purely for the sake of it is exceedingly rare and certainly useless. 
+
+In all of our examples, we are going to do the following:
+
+1.  Import
+2.  Tweak
+3.  Visualize
+
+We are going to see examples in a few different ways: namely <span class="pack"></span>base R and <span class="pack"></span>tidyverse.
+
+# The Tidyverse
+
+```{r, echo = FALSE}
+tidyverse::tidyverse_logo()
+```
+
+
+We are going to be working around in the <span class="pack">tidyverse</span> for a good chunk of our time together. The whole point of the <span class="pack">tidyverse</span> is to offer a grammer of verbs. It is going to help us in a lot of the situations that we are going to be seeing.
+
+Another great feature of the <span class="pack">tidyverse</span> is the pipe: <span class="func">%>%</span>
+
+It does the same thing as the Unix |, but | in R is an or operator. 
+
+With all of the glowing praise for the <span class="pack">tidyverse</span>, we are still going to see some <span class="pack">base</span> R. Sometimes, it will demonstrate great reasons for using the <span class="pack">tidyverse</span>. In other situations, it will help you to not be afraid to use it when situations arise.
+
+
+# Some Demonstrations {.tabset .tabset-fade .tabset-pills}
+
+## Summary Tables
+
+```{r}
+
+library(ggplot2)
+
+plotDat = aggregate(diamonds$cut, by = list(cut = diamonds$cut), FUN = length)
+
+colnames(plotDat)[2] = "n"
+
+plotDat
+```
+
+## Visual
+
+```{r}
+ggplot(plotDat, aes(x = cut, y = n)) +
+  geom_point(aes(size = n)) +
+  theme_minimal()
+```
+
+## (Im)Proper Plotting
+
+Look at <span class="func">help(mtcars)</span> and check out the variables. Can you spot what is wrong with this plot?
+
+```{r}
+ggplot(mtcars, aes(x = wt, y = mpg, color = am)) + 
+  geom_point() +
+  theme_minimal()
+```
+
+
+## Proper Plotting
+
+The plot below is likely better.
+
+```{r}
+library(dplyr)
+
+mtcars$amFactor = as.factor(mtcars$am) 
+
+ggplot(mtcars, aes(x = wt, y = mpg, color = amFactor)) + 
+  geom_point() +
+  theme_minimal()
+```
+
+
+## Pipes: Making Life Easier
+
+
+Recall some of the things that we just saw:
+
+```{r, eval = FALSE}
+plotDat = aggregate(diamonds$cut, by = list(cut = diamonds$cut), FUN = length)
+
+colnames(plotDat)[2] = "n"
+
+ggplot(plotDat, aes(x = cut, y = n)) +
+  geom_point(aes(size = n)) +
+  theme_minimal()
+```
+
+This is somewhat tricky code. We have to create a new object with the oft-muddy <span class="func">aggregate</span> and reset a column name (by magic number, no less). 
+
+This can be made much easier with <span class="pack">dplyr</span>:
+
+```{r}
+diamonds %>% 
+  group_by(cut) %>% 
+  summarize(n = n()) %>% 
+  ggplot(., aes(x = cut, y = n)) +
+  geom_point(aes(size = n)) +
+  theme_minimal()
+  
+```
+
+It isn't a reduction in lines, but it is certainly clearer and follows a more logical thought process. This is the whole point of the <span class="pack">tidyverse</span> (and <span class="pack">dplyr</span> specifically) -- allowing you to write how you would explain the process. 
+
+As an added bonus, we don't need to create a bunch of different objects to do something simple.
+
+We can see that <span class="pack">dplyr</span> will also make the plot for am easier.
+
+```{r}
+mtcars %>% 
+  mutate(am = as.factor(am)) %>%  
+  ggplot(., aes(x = wt, y = mpg, color = am)) + 
+  geom_point() +
+  theme_minimal()
+```
+
+## On Code Golf
+
+You will often notice that a <span class="pack">dplyr</span> chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
+
+## Your Turn
+
+1.  Read in the following data:
+    - Try <span class="func">read.csv()</span>
+2.  Make a quick plot
+    - Follow the ggplot stuff we just saw
+3.  Tweak
+4.  Replot
+
+## Curves
+
+![Curves Ahead](http://www.firstsign.com/Shared/Images/Product/Right-Winding-Road-Traffic-sign-W1-5R-30-clone/W1-5R_winding-road_S-curve_right_left_right_arrow_firstsign_com.jpg)
+
+
+# Data Import {.tabset .tabset-fade .tabset-pills}
+
+Importing data is often the easiest part (never too hard to import a nice .csv). Sometimes, though, we need some other strategies.
+
+## Delimited Files
+
+Frequently, you will see nicely delimited text files that are not .csv files -- these are often tab-delimited file, but they can take other forms. 
+
+```{r, eval = FALSE}
+read.table("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
+           header = TRUE, sep = "\t")
+```
+
+Is the same as:
+
+```{r, eval = FALSE}
+read.delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment")
+```
+
+The <span class="func">read.table()</span> function gives you added flexibility to specify the delimiter (these can be semicolons, periods, or any number of odd things). 
+
+Examine the following file from SDC and read it in properly:
+
+<a href="https://www3.nd.edu/~sberry5/data/sdcTest.txt">SDC Wackiness</a>
+
+
+At times, you will get data in some proprietary format. That is when you need to turn to other places.
+
+## Excel
+
+```{r, eval = FALSE}
+readxl::read_excel(path = "folder/fileName")
+```
+
+
+What do we know about Excel workbooks?
+
+## SAS
+
+```{r, eval = FALSE}
+haven::read_sas(data_file = "https://www3.nd.edu/~sberry5/data/wciklink_gvkey.sas7bdat")
+```
+
+
+## Stata
+
+```{r, eval = FALSE}
+haven::read_dta(file = "https://www3.nd.edu/~sberry5/data/stataExample.dta")
+```
+
+## SPSS
+
+We often see the -99 added as the missing value in SPSS (of course, there is no way that -99 would ever be an actual value, right?).
+
+```{r, eval = FALSE}
+haven::read_spss(file = "https://www3.nd.edu/~sberry5/data/spssExample.sav", 
+                 user_na = "-99")
+```
+
+
+## HTML
+
+Depending on your needs, reading an html table into R is getting to be too easy.
+
+```{r, eval = FALSE}
+library(rvest)
+
+cpi = read_html("http://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/") %>% 
+  html_table(fill = TRUE)
+```
+
+
+Things might get a bit tricky:
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE)
+```
+
+What is the return of this call?
+
+
+## rio
+
+For many of these tasks, you can just use the <span class="pack">rio</span> package -- you give it the file and it will do the rest!
+
+```{r, eval = FALSE}
+rio::import("folder/file")
+```
+
+
+## Nested Structures
+
+#### JSON
+
+Web-based graphics started getting popular not too long ago. Generally, stats people were not using them, but web developer-type folks were. They needed a structure that would work well for the web and interact with their JavaScript-based graphics -- thus, JavaScript Object Notation (JSON) was born. You will see JSON come out of many web-based interfaces. 
+
+There are a few JSON-reading packages in R, but jsonlite tends to work pretty well.
+
+```{r, eval = FALSE}
+
+###optionsDataBrief
+
+jsonlite::read_json(path = )
+```
+
+
+This is a very simple form of JSON. We are going to see a hairier verson of this data soon. 
+
+#### JSON Dangers
+
+There is JSON and then there is JSON. You might find yourself some interesting data and want to bring it in, but an error happens and you have no idea why the read_json function is telling you that the file is not JSON. 
+
+Not all JSON is pure JSON! When that is the case, you will need to create pure JSON.
+
+```{r amazonExample}
+
+```
+
+
+## XML
+
+It is getting to be a bit less common (still prevalent), but XML (eXtensible Markup Language) is another type of nested structure common on the web.
+
+```{r, eval = FALSE}
+xml2::read_xml()
+```
+
+## Mass Reading
+
+Everything we just learned is great and you will use them all in your data wrangling missions.
+
+Fortunately (or unfortunately, depending on how you look at it), it is not the whole story -- you will frequently be reading in many files of the same time.
+
+If you have two files, you might be able to get away with brute force:
+
+```{r, eval = FALSE}
+# DO NOT RUN:
+
+myData1 = read.csv("test.csv")
+
+myData2 = read.csv("test2.csv")
+```
+
+Would you want to do this for 5 files? What about 100? Or 1000? I will answer it for you: no!
+
+The chunks below introduce some very important functions. We are going to see <span class="func">lapply</span> again -- it is important that you learn to love the apply family!
+
+```{r, eval = FALSE}
+# DO NOT RUN:
+
+allFiles = list.files(path = "", all.files = TRUE, full.names = TRUE, 
+                      recursive = TRUE, include.dirs = FALSE)
+
+allFilesRead = lapply(allFiles, function(x) read.csv(x, stringsAsFactors = FALSE))
+
+allData = do.call("rbind", allFilesRead)
+```
+
+
+You can also use <span class="pack">rio</span>:
+
+```{r, eval = FALSE}
+# DO NOT RUN:
+
+rio::import_list("", rbind = TRUE)
+```
+
+
+## Your Turn
+
+1.  Take a look at this file:
+2.  Determine how it should be read in.
+3.  Summarize the data.
+4.  Visualize the data in any way you wish!
+
+
+
+# The Grammar Of Data
+
+One of the major aims of the <span class="pack">tidyverse</span> is to provide a clear and consistent grammar to data manipulation. This is helpful when diving deeper into the weeds. 
+
+Do you remember this?
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE)
+```
+
+What did we get out of this? It was a big list of data frames. If we are looking for only one thing and we know that it is the first thing, we have some options:
+
+
+```{r, eval = FALSE}
+highest = highest[[1]]
+```
+
+
+This is great for keeping the object at first and then plucking out what we want. If you want the whole thing to be together, though, we have even more options:
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>% 
+  `[[`(1)
+```
+
+
+And now we see why R mystifies people. What does is that bit of nonsense at the end. It is really just an index shortcut. Once you know how to use it, it is great; however, it will make you shake your head if you see it in the wild without knowing about it first.
+
+This is where the benefit of <span class="pack">tidyverse</span> becomes clear. 
+
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>%
+  magrittr::extract2(1)
+```
+
+
+Or...
+
+
+```{r, eval = FALSE}
+highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE) %>%
+  purrr::pluck(1)
+```
+
+Do be careful, though, because we can have some issues in function masking and <span class="func">pluck</span> from <span class="pack">purrr</span> does something very different than <span class="func">pluck</span> from <span class="pack">dplyr</span>.
+
+
+Someone try it and tell me what happens!
+
+# Selecting {.tabset .tabset-fade .tabset-pills}
+
+## Base
+
+There are many ways to select variables with <span class="pack">base</span> R:
+
+```{r, eval = FALSE}
+mtcars[, c(1:5, 7:8)]
+
+keepers = c("mpg", "cyl", "disp", "hp", "drat", "qsec", "vs")
+
+mtcars[, keepers]
+
+mtcars[, c("mpg", grep("^c", names(mtcars), values = TRUE))]
+```
+
+
+You can also drop variables:
+
+```{r}
+mtcars[, -c(1:2)]
+
+dropVars = c("vs", "drat")
+
+mtcars[, !(names(mtcars) %in% dropVars)]
+```
+
+Issues?
+
+For starters, the magic numbers are a no-go. The keepers lines could work, but would be a pain if we had a lot of variables. 
+
+Let's check this wacky stuff out where we want all variables that start with "age" and variables that likely represent questions (x1, x2, x3, ...):
+
+```{r}
+library(lavaan)
+
+testData = HolzingerSwineford1939
+
+names(testData)
+
+keepers = c(grep("^age", names(testData), value = TRUE), 
+            paste("x", 1:9, sep = ""))
+
+testData = testData[, keepers]
+
+```
+
+
+Not only do we have another regular expression, but we also have this paste line to create variable names. It seems like too much work to do something simple!
+
+While not beautiful, these are perfectly valid ways to do this work. I have such sights to show you, but don't forget about this stuff -- you never know when you might need to use it.
+
+## dplyr
+
+We have already seen a bit of <span class="pack">dplyr</span>, but we are going to dive right into some of the functions now.
+
+In base R, we have to do some chanting to select our variables. With <span class="pack">dplyr</span>, we can just use <span class="func">select</span>: 
+
+```{r}
+mtcars %>% 
+  select(mpg, cyl, am)
+```
+
+
+We can also drop variables with the <span class="func">-</span>:
+
+```{r}
+mtcars %>% 
+  select(-vs)
+```
+
+
+We also have several helper functions that we can use:
+
+```{r}
+HolzingerSwineford1939 %>% 
+  select(num_range("x", 1:9), starts_with("age"), 
+         matches("^s.*.l$"))
+```
+
+
+#### Not Important, But Helpful
+
+Changing variable position in R is a pain:
+
+```{r}
+head(HolzingerSwineford1939[, c(1, 7:15, 2:6)])
+```
+
+
+
+```{r}
+HolzingerSwineford1939 %>% 
+  select(id, starts_with("x"), everything()) %>% 
+  head()
+```
+
+
+## Your Turn!
+
+1.  Use that Stata test file.
+
+2.  Grab every lvi, effect, leader, and cred variable
+
+3.  Use summary to understand your data.
+
+4.  Now, just keep every lvi variable.
+
+5.  Use a corrplot to see relationships.
+
+    - corrplot needs a correlation matrix (use cor)
+
+```{r, eval = FALSE}
+install.packages("corrplot")
+```
+
+
+# Subsetting/Filtering {.tabset .tabset-fade .tabset-pills}
+
+One of the more frequent tasks is related to filtering/subsetting your data. You often want to impose some types of rules on your data (e.g., US only, date ranges).
+
+## Base
+
+R gives us all the ability in the world to filter data.
+
+```{r}
+summary(mtcars[mtcars$mpg < mean(mtcars$mpg), ])
+```
+
+Unless you know exactly what you are doing, this is a bit hard to read -- you might be asking yourself what the comma means and why there is nothing after it.
+
+
+## dplyr
+
+When we use <span class="func">filter</span>, we are specifying what it is that we want to keep.
+
+Filter this or that:
+
+```{r}
+mtcars %>% 
+  filter(cyl == 4 | cyl == 8) %>% 
+  summary()
+```
+
+Filter this and that:
+
+```{r}
+mtcars %>% 
+  filter(cyl == 4 & mpg > 25) %>% 
+  summary()
+```
+
+Filter this out:
+
+```{r}
+mtcars %>% 
+  filter(cyl != 4) %>% 
+  summary()
+```
+
+
+
+Naturally, it can also take a function
+
+```{r}
+mtcars %>% 
+  filter(mpg < mean(mpg)) %>% 
+  summary()
+```
+
+
+## Your Turn
+
+For now, we are going to stick with that stataExample data. 
+
+1.  Select the same variables, but also include Rater.
+
+2.  Filter the data on Rater -- check the values and filter both ways.
+
+3.  Now check those correlations again!
+
+4.  Throw the Gender variable in and filter on that.
+
+# New Variables and Recoding {.tabset .tabset-fade .tabset-pills}
+
+## Base
+
+Adding a new variable in <span class="pack">base</span> R is as easy as the following:
+
+```{r}
+mtcars$roundedMPG = round(mtcars$mpg)
+```
+
+## dplyr
+
+If, however, we want to do things in a tidy chunk, we need to use <span class="func">mutate</span>.
+
+```{r}
+mtcars = mtcars %>% 
+  mutate(roundedMPG = round(mpg))
+```
+
+
+There is also <span class="func">transmute</span>. Can anyone venture a guess as to what it might do?
+
+## Base Recoding
+
+You will need to recode variables at some point. Depending on the nature of the recode it can be easy (e.g., to reverse code a scale, you just subtract every value by max value + 1).
+
+You will need to do some more elaborate stuff:
+
+```{r, eval = FALSE}
+
+mtcars$mpgLoHi = 0
+
+mtcars$mpgLoHi[mtcars$mpg > median(mtcars$mpg)] = 1
+```
+
+
+```{r, eval = FALSE}
+mtcars$mpgLoHi = ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+```
+
+These are pretty good ways to do recoding of this nature, but what about this:
+
+```{r, eval = FALSE}
+mtcars$vs[which(mtcars$vs == 0)] = "v"
+
+mtcars$vs[which(mtcars$vs == 1)] = "s"
+```
+
+
+Or this:
+
+```{r, eval = FALSE}
+mtcars$vs = ifelse(mtcars$vs == 0, "v", "s")
+```
+
+
+## dplyr recoding
+
+```{r, eval = FALSE}
+recode(mtcars$vs, `0` = "v", `1` = "s")
+```
+
+
+# Day 1 Wrap
+
+We covered a pretty good chunk of stuff today: importing, filtering, and subsetting. 
+
+While none of this stuff was super fancy, the introduction to dplyr will serve us well going forward. 
+
+As an end of the day exercise, let's do the following:
+
+1.  Read this data:
+
+2.  Keep observations with x or y.
+
+3.  Keep only the following variables:

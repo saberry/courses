@@ -633,6 +633,24 @@ recode(mtcars$vs, `0` = "v", `1` = "s")
 ```
 
 
+# Communication
+
+We won't have any big end-of-day wrap exercises to do today. Instead, we are going to learn just a few cool things.
+
+## ggplot2
+
+We already saw some <span class="pack">ggplot2</span>, but let's take a few minutes to dive into a bit more.
+
+Just like everything else in the <span class="pack">tidyverse</span>, <span class="pack">ggplot2</span> provides a clear and consistent grammar, except the focus is on data visualization. With <span class="pack">ggplot2</span>, we can stack layer after layer into the plotting space to help 
+
+## DT
+
+The <span class="pack">DT</span> package let's you create interactive data tables (they are JS data tables)
+
+## R Markdown & Knitr
+
+If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> 
+
 # Day 1 Wrap
 
 We covered a pretty good chunk of stuff today: importing, filtering, and subsetting. 

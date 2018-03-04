@@ -1,0 +1,95 @@
+---
+title: "Item Response Theory"
+author: "Behavioral Data Science"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Item Response Theory And Factor Analysis
+
+Last week, we learned about latent variables and how we can use factor analysis to construct measures for assessing latent traits. While we are still dealing in the world of latent variables, we are taking a new approach to measuring those latent variables -- Item Response Theory (IRT). While both allow us to measure a person's level of a latent trait, IRT gives us the power to understand the person and the items. We can recall that factor analysis falls under the broader heading of Classical Test Theory (CTT) -- the name is a clear indication that the focus is on the test as a whole, not individual items. 
+
+In addition to this broadened understanding, IRT has a different focus from a measurement perspective than factor analysis. Perhaps most important is the notion of measurement error in IRT. In factor analysis, measurement error is assumed to be consistent across each item; this is not the case for IRT.
+
+## Dichotomous And Polytomous Models
+
+Before we dive into some of the more important parts of IRT, it is important to draw some distinctions between two broad families of models: dichotomous and polytomous. A dichotomous model can best be thought of in testing situations where a correct answer exists (you either get the question correct or not, so the outcome is dichotomous). With that knowledge, you might have already guessed what the polytomous model entails -- items that have ordered responses with no clear correct choices (Likert response options would be a good example). Polytomous models include such models as the graded response model and the partial credit model.
+
+We will see how these models behave differently as we continue discussing the different parts of IRT models.
+
+## Ability
+
+In IRT, we talk a person's ability; essentially it is the level of the latent variable that possess. In the parlance of psychometrics, ability is denoted as $\theta$. The $\theta$ scale is standardized with a mean of 0 and tends to go from -4 to 4 (while this is generally seen, it might not always be the case). 
+
+## Different Parameters
+
+The ability to explore individual items within IRT is based upon three different parameters: location, discrimination, and psuedoguessing. We can incorporate any of those parameters into our model. First, though, we need to understand what those parameters mean.
+
+### Location
+
+In IRT, the location parameter (denoted as $\\b_i$) described the difficulty of the item. If we are talking about a testing situation (e.g., a math or science test), the meaning of $\\b_i$ is nearly self-evident -- it is simply the probability of a correct response to the question in a dichotomous model and the probability of moving from one category to another in polytomous models (the level of passing from one category to the next is called a *threshold*).
+
+Let's look at some examples from the *ltm* documentation of different item locations.
+
+```{r}
+library(ltm)
+
+fit <- rasch(LSAT, constraint = cbind(ncol(LSAT) + 1, 1))
+
+plot(fit, type = "ICC")
+
+```
+
+
+The resulting plot is what is known as an *Item Characteristic Curve*. It contains a lot of information, but we are only going to pay attention to the location right now. Without any prior knowledge, which of the labelled curves would say represents the most difficult item? If you said "3" (the green line), then you are absolutely correct. When we look at the location of an item in an ICC graph, we are looking for its placement along the x-axis around its middle point (i.e., find the middle of a curve and draw a line straight down -- the farther to the right, the more difficult the item). With item 3, we can see that it takes someone with slightly more than average ability to have a better than chance probability of responding correctly.  
+
+
+### Discrimination
+
+Item discrimination, the $a_i$ parameter, demonstrates the likelihood of people with varying degrees of ability to respond correctly.
+
+Let's take a look at our ICC again:
+
+```{r}
+plot(fit, type = "ICC")
+```
+
+
+If we pay attention to item 3 again, we see that a person with very low ability ($\theta = -4$) has nearly a probability of 0 to respond correctly, someone with average ability ($\theta = 0$) has around a 50-50 chance of responding correctly, and high ability people ($\theta = 4$) have nearly 100% chance of responding correctly. We would definitely say that item 3 discriminates between different ability levels pretty well. Which item might not discriminate too well? Without doubt, you said item 1, and you would be correct. While people at lower ability levels have less chance of responding correctly to item 1, we can see that a probability of 1 is obtained pretty soon after crossing $\theta = 0$. So while item 1 may provide a bit of discrimination at the lower end of $\theta$, it does nothing when dealing average or more. This provides even more evidence as to why item 3 is such a good item -- it discriminates very well along every point of $\theta$
+
+So, we have a pretty good idea that item 3 is the most difficult item and the most discriminating item. This, hopefully, provides a demonstration on why IRT models are so powerful -- we can compare individual items to people (on the same scales, no less).
+
+### Guessing
+
+The third parameter, $c_i$, is the psuedoguessing parameter. Even the blind squirrel finds a nut and $c_i$ accounts for this. Essentially, the guessing parameter offers a slight penalty for the chance of guessing a correct answer.
+
+
+# Models And Parameters
+
+## 1PL
+
+Now that we know what our parameters mean, we can start putting them into models. The one parameter logistic model (1PL) only estimates item difficulty ($b_i$). It assumes that all items discriminate equally and that all items have the same guessing parameter. 
+
+With some minor differences, you will often see the 1PL and Rasch model used interchangibly.
+
+## 2PL
+
+The two parameter logistic model (2PL) adds the discrimination parameter, $a_i$, into the model.
+
+## 3PL
+
+The three parameter logistic model (3PL) adds in the guessing parameter, $c_i$. You might wonder how in the world a guessing parameter is added! If someone could guess the correct answer (think about a multiple choice test), would the probability of a correct answer ever be 0? I would think not. So, $c_i$ just includes a lower-bound asymtote. 
+
+With all of these parameters, the probability of a correct response can be expressed as follows: $$p_i(\theta) = c_i + \frac{1 - c_i}{1 + e^{-a_i(\theta - b_i)} }$$
+
+# Scoring
+
+Scoring in IRT models works a bit differently than scoring in CTT. 
+
+## Scores
+
+An element common to both IRT and CTT is the *true score*, $true_{score} = observed_{score} + e$. The distinction rests in how they treat $e$ -- CTT assumes that error is the same for everyone and IRT allows for error to vary freely.

@@ -1,0 +1,95 @@
+---
+title: "Mixed Models"
+author: "Behavioral Data Science"
+date: "March 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## A Standard Linear Model
+
+You have learned about linear models before! So let's check this model out:
+
+```{r}
+library(lme4)
+
+slimSleep <- lm(Reaction ~ Days, data = sleepstudy)
+
+summary(slimSleep)
+```
+
+We can look at the results of this model and we can clearly see that the number of days that someone is awake has a clear and definite effect on reaction times.
+
+Let's look at the following plot:
+
+```{r}
+library(ggplot2)
+
+ggplot(sleepstudy, aes(Days, Reaction)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+
+And look at that regression line! There is no doubt that something major is going on here. Right?
+
+Let's take a quick look at our data:
+
+```{r}
+head(sleepstudy, 11)
+```
+
+What is going on here? What is this subject stuff all about? Do you remember that whole thing about independent observations? Do you think these are independent observations?
+
+
+Let's take a look at our data from another angle:
+
+```{r}
+ggplot(sleepstudy, aes(Days, Reaction)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap( ~ Subject) +
+  theme_minimal()
+```
+
+
+When we look at a regression fit for every individual person, we see some interesting patterns emerge: some have pretty flat relationships, some are a bit more sloped, and one person even has a negative trend. Another interesting thing to mention is each individual's reaction time on day 0 -- they are all different.
+
+## Nesting, Hierarchies, And Multiple Levels
+
+The sleepstudy data gives us a great glimpse into data issues related to nesting -- we have observations nested within individual (any repeated measurement is going to be a nested data situation). We have situations where we have individuals nested within groups (think employees in departments within an organization) and we have situations where those nests go even deeper (people nested within units, within larger groups, within an organization).
+
+When we have such data, how do we deal with it?
+
+## Multilevel Models
+
+Mixed models (also called hierarchical linear models, multilevel models, and mixed effects models -- depending on context and data) can model this information in a much better fashion than our standard linear model.
+
+Let's use the lmer function from lme4 to make an attempt at better modeling our data:
+
+```{r}
+randomSlope <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy) 
+
+summary(randomSlope)
+```
+
+You likely noticed the weird part added to that model. The first part of our model is nothing different and this is what would constitute a *fixed effect*, an effect that works for everyone. The next part of the model would specify the *random effect*, an effect that can vary in some way. In this particular model, we are allowing each individual to have a random intercept. We saw in the previous plot that everybody starts with very different reaction times. 
+
+First, let's take a peak at the fixed effects portion of the model. You will notice that they match the coefficients from our standard linear model. Neat, right? There is a change in our standard errors, though. This makes sense, especially for our intercept, as we have allowed it to vary across the individuals instead of justing looking at the mean intercept.
+
+We also have a random effect, individual intercepts, to explore. A big thing to examine there is the variance. This is essentially indicating the magnitude of individual change in reaction time.
+
+
+By adding this random intercept, we have developed a model that tells us the average effect of days on reaction time, with each participant's intercept allowed to vary. Are there any other interesting things that we might allow to vary? What about the effect of days on an individual?
+
+```{r}
+daysSubject <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy) 
+
+summary(daysSubject)
+```
+
+Our fixed effects coefficients remain the same and we still get a random intercept per subject, but now we can also see the random effect of Days on subject. If we compare the coefficient of Days (10.467) to the random effect of Days on subjects (35.07), we can see that Days has a greater effect on individuals.  

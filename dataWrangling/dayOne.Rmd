@@ -24,7 +24,7 @@ tidyverse::tidyverse_logo()
 ```
 
 
-We are going to be working around in the <span class="pack">tidyverse</span> for a good chunk of our time together. The whole point of the <span class="pack">tidyverse</span> is to offer a grammer of verbs. It is going to help us in a lot of the situations that we are going to be seeing.
+We are going to be working around in the <span class="pack">tidyverse</span> for a good chunk of our time together. The whole point of the <span class="pack">tidyverse</span> is to offer a grammar of verbs. It is going to help us in a lot of the situations that we are going to be seeing.
 
 Another great feature of the <span class="pack">tidyverse</span> is the pipe: <span class="func">%>%</span>
 
@@ -33,7 +33,7 @@ It does the same thing as the Unix |, but | in R is an or operator.
 With all of the glowing praise for the <span class="pack">tidyverse</span>, we are still going to see some <span class="pack">base</span> R. Sometimes, it will demonstrate great reasons for using the <span class="pack">tidyverse</span>. In other situations, it will help you to not be afraid to use it when situations arise.
 
 
-# Some Demonstrations {.tabset .tabset-fade .tabset-pills}
+# Some Demonstrations 
 
 ## Summary Tables
 
@@ -41,7 +41,8 @@ With all of the glowing praise for the <span class="pack">tidyverse</span>, we a
 
 library(ggplot2)
 
-plotDat = aggregate(diamonds$cut, by = list(cut = diamonds$cut), FUN = length)
+plotDat = aggregate(diamonds$cut, by = list(cut = diamonds$cut), 
+                    FUN = length)
 
 colnames(plotDat)[2] = "n"
 
@@ -130,13 +131,13 @@ mtcars %>%
 You will often notice that a <span class="pack">dplyr</span> chunk might take a few more lines to work through than base R alone -- don't consider this as a bad thing. There will be many times in this course and in your potential work that you might think that you need to use as few lines as possible. Resist this temptation. Sometime you need to break something up into many lines and create new objects -- this ability is exactly why we use R!
 
 
-# Data Import {.tabset .tabset-fade .tabset-pills}
+# Data Import 
 
 Importing data is often the easiest part (never too hard to import a nice .csv). Sometimes, though, we need some other strategies.
 
 ## Delimited Files
 
-Frequently, you will see nicely delimited text files that are not .csv files -- these are often tab-delimited file, but they can take other forms. 
+Frequently, you will see nicely delimited text files that are not .csv files -- these are often tab-delimited files, but they can take other forms. 
 
 ```{r, eval = FALSE}
 read.table("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
@@ -157,31 +158,37 @@ Examine the following file from SDC Platinum and read it in properly:
 
 How did you do?
 
-Did you notice anything about these files? They are not really very big, but they might have taken a little bit of time to read in. There have been times where people have commented that R is too slow on the read side. If you find you files are not being read quickly enough, you can try a few alternatives: <span class="pack">readr</span> <span class="pack">data.table</span>
+Did you notice anything about these files? They are not really very big, but they might have taken a little bit of time to read in. There have been times where people have commented that R is too slow on the read side. If you find you files are not being read quickly enough, you can try a few alternatives: <span class="pack">readr</span> and <span class="pack">data.table</span>
 
 Try the following:
 
 ```{r, eval = FALSE}
-readrTest = readr::read_delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
-                              delim = "\t")
+library(readr)
+
+readrTest = read_delim("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
+                       delim = "\t")
 ```
 
 
 ```{r, eval = FALSE}
-dtTest = data.table::fread("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
-                           sep = "\t")
+library(data.table)
+
+dtTest = fread("https://download.bls.gov/pub/time.series/ce/ce.data.42a.RetailTrade.Employment", 
+               sep = "\t")
 ```
 
 
 That SDC file that might have taken a few minutes will now take just a few seconds:
 
 ```{r, eval = FALSE}
-sdc = readr::read_delim("https://www3.nd.edu/~sberry5/data/sdcTest.txt", 
-                        delim = "^")
+sdc = read_delim("https://www3.nd.edu/~sberry5/data/sdcTest.txt", 
+                 delim = "^")
 ```
 
 
 Pretty awesome, right?
+
+While <span class="pack">readr</span> works wonderfully on the read and write side, <span class="pack">data.table</span> is great for wrangling data that is a bit on the big side and is all together blazing fast. However, it does not shy away from confusing syntax and weird conventions. With that in mind, we won't be using it in this class, but do keep it in the back of your mind.  
 
 
 At times, you will get data in some proprietary format. That is when you need to turn to other places.
@@ -255,18 +262,17 @@ rio::import("folder/file")
 
 Web-based graphics started getting popular not too long ago. Generally, stats people were not using them, but web developer-type folks were. They needed a structure that would work well for the web and interact with their JavaScript-based graphics -- thus, JavaScript Object Notation (JSON) was born. You will see JSON come out of many web-based interfaces. 
 
+<a href="https://www3.nd.edu/~sberry5/data/optionsDataBrief.json">This</a> is what JSON looks like.
+
 There are a few JSON-reading packages in R, but jsonlite tends to work pretty well.
 
 ```{r, eval = FALSE}
-
-###optionsDataBrief
-
 jsonTest = jsonlite::read_json(path = "https://www3.nd.edu/~sberry5/data/optionsDataBrief.json", 
                                 simplifyVector = TRUE)
 ```
 
 
-This is a very simple form of JSON. We are going to see a hairier verson of this data soon. 
+This is a very simple form of JSON. We are going to see a hairier version of this data in the coming days. 
 
 #### JSON Dangers
 
@@ -278,14 +284,6 @@ Not all JSON is pure JSON! When that is the case, you will need to create pure J
 
 ```
 
-
-## XML
-
-It is getting to be a bit less common (still prevalent), but XML (eXtensible Markup Language) is another type of nested structure common on the web.
-
-```{r, eval = FALSE}
-xml2::read_xml()
-```
 
 ## Mass Reading
 
@@ -326,14 +324,6 @@ You can also use <span class="pack">rio</span>:
 
 rio::import_list("", rbind = TRUE)
 ```
-
-
-## Your Turn
-
-1.  Take a look at this file:
-2.  Determine how it should be read in.
-3.  Summarize the data.
-4.  Visualize the data in any way you wish!
 
 
 
@@ -386,12 +376,14 @@ highest = read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_film
   purrr::pluck(1)
 ```
 
+Both functions are doing the same thing and with slightly different names, but it is crystal-clear what they are doing.
+
 Do be careful, though, because we can have some issues in function masking and <span class="func">pluck</span> from <span class="pack">purrr</span> does something very different than <span class="func">pluck</span> from <span class="pack">dplyr</span>.
 
 
 Someone try it and tell me what happens!
 
-# Selecting {.tabset .tabset-fade .tabset-pills}
+# Selecting 
 
 ## Base
 
@@ -465,7 +457,7 @@ mtcars %>%
 
 We also have several helper functions that we can use:
 
-```{r}
+```{r, eval = FALSE}
 HolzingerSwineford1939 %>% 
   select(num_range("x", 1:9), starts_with("age"), 
          matches("^s.*.l$"))
@@ -495,7 +487,7 @@ HolzingerSwineford1939 %>%
 
 2.  Grab every lvi, effect, leader, and cred variable
 
-3.  Use summary to understand your data.
+3.  Use <span class="func">summary</span> to understand your data.
 
 4.  Now, just keep every lvi variable.
 
@@ -504,11 +496,17 @@ HolzingerSwineford1939 %>%
     - corrplot needs a correlation matrix (use cor)
 
 ```{r, eval = FALSE}
+# Just to give you an idea about how it works!
+
 install.packages("corrplot")
+
+data.frame(x = rnorm(10), y = rnorm(10)) %>% 
+  cor() %>% 
+  corrplot()
 ```
 
 
-# Subsetting/Filtering {.tabset .tabset-fade .tabset-pills}
+# Subsetting/Filtering 
 
 One of the more frequent tasks is related to filtering/subsetting your data. You often want to impose some types of rules on your data (e.g., US only, date ranges).
 
@@ -527,7 +525,7 @@ Unless you know exactly what you are doing, this is a bit hard to read -- you mi
 
 When we use <span class="func">filter</span>, we are specifying what it is that we want to keep.
 
-Filter this or that:
+Keep this or that:
 
 ```{r}
 mtcars %>% 
@@ -535,7 +533,7 @@ mtcars %>%
   summary()
 ```
 
-Filter this and that:
+Keep this and that:
 
 ```{r}
 mtcars %>% 
@@ -574,7 +572,7 @@ For now, we are going to stick with that stataExample data.
 
 4.  Throw the Gender variable in and filter on that.
 
-# New Variables and Recoding {.tabset .tabset-fade .tabset-pills}
+# New Variables and Recoding 
 
 ## Base
 
@@ -636,6 +634,28 @@ mtcars$vs = ifelse(mtcars$vs == 0, "v", "s")
 recode(mtcars$vs, `0` = "v", `1` = "s")
 ```
 
+## Your Turn!
+
+1.  For the sake of demonstration, select only the first 10 lvi variables and everything else.
+
+2.  Keep only observations with Rater == 0. 
+
+3.  Assume that the first 5 lvi variables (01 through 05) are scores for one assessment and the next five (06 through 10) are scores for another assessment.
+
+4.  Create two new variables to capture the mean of those scores.
+
+  - You will need to use the <span class="func">rowwise</span> function ahead of mutate.
+  
+  - You can use the <span class="func">mean</span> function, but you will have to wrap the variables in <span class="func">c()</span>
+
+
+```{r, eval = FALSE}
+# Just to help you along!
+
+data.frame(x = rnorm(10), y = rnorm(10)) %>% 
+  rowwise() %>% 
+  mutate(test = mean(c(x, y)))
+```
 
 # Communication
 
@@ -643,7 +663,7 @@ We won't have any big end-of-day wrap exercises to do today. Instead, we are goi
 
 ## ggplot2
 
-We already saw some <span class="pack">ggplot2</span>, but let's take a few minutes to dive into a bit more.
+We already saw some <span class="pack">ggplot2</span>, but let's take a few minutes to dive into it a bit more.
 
 Just like everything else in the <span class="pack">tidyverse</span>, <span class="pack">ggplot2</span> provides a clear and consistent grammar, except the focus is on data visualization. With <span class="pack">ggplot2</span>, we can stack layer after layer into the plotting space to help visualize our data.
 
@@ -727,13 +747,15 @@ ggplotly(radPlot)
 
 You can also build plots with <span class="pack">plotly</span>, but we will save that for another day in the future.
 
+Learning to use <span class="pack">ggplot2</span> will pay great dividends -- there is absolutely **nothing** better for creating visualizations. There is even a whole group of packages that do nothing but add stuff into it.
+
 ## DT
 
 Visualizations are great and they often tell a better story than tables. Sometimes, though, you want to give people a glimpse of the data. The <span class="pack">DT</span> package let's you create interactive data tables (they are JS data tables). 
 
 You could give people the entire data to explore:
 
-```{r}
+```{r, eval = FALSE}
 library(DT)
 
 datatable(testData)
@@ -741,9 +763,9 @@ datatable(testData)
 ```
 
 
-You can also use the <span class="broom">DT</span> package to tidy your summaries into a nice dataframe:
+You can also use the <span class="broom">DT</span> package to tidy your summaries into a nice data frame:
 
-```{r}
+```{r, eval = FALSE}
 lm(x7 ~ ageyr + school, data = testData) %>% 
   broom::tidy() %>% 
   mutate_if(is.numeric, round, 4) %>% 
@@ -755,8 +777,12 @@ We don't want to get too far ahead of ourselves here -- we will see more places 
 
 ## R Markdown & Knitr
 
-Do you have a moment to hear the good word of Donald Knuth? If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> 
+Do you have a moment to hear the good word of Donald Knuth? If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> are here to help you out. The slides you saw earlier and even the document you are seeing now are all done with R Markdown. It is my hope that you will also use R Markdown for your presentations on Thursday.
 
 # Day 1 Thought Question
+
+Since we used the Stata stuff, let's keep rolling with that. The *Rater* variable indicates whether the person is a supervisor (0) or a subordinate (3). Since this data comes from a bigger set, this coding might make sense -- it makes no sense for the data at hand. I don't believe that you would ever do this, but someone wants the *leader_age* variable discretized into two groups -- below or at the mean and above the mean. The same goes with *leader_tenure* and *leader_experience*. In addition to these changes, someone is nervous about having both *raterNum* and *leaderID* available in the data; they are requesting that at least one of them be removed.
+
+We have a few distinct issues to address within this data -- what would you propose that we do?
 
 

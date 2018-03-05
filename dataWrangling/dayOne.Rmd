@@ -195,8 +195,11 @@ At times, you will get data in some proprietary format. That is when you need to
 
 ## Excel
 
+Download the following Excel file: https://www3.nd.edu/~sberry5/data/excelTest.xlsx
+
+
 ```{r, eval = FALSE}
-readxl::read_excel(path = "folder/fileName")
+readxl::read_excel(path = "")
 ```
 
 
@@ -280,8 +283,26 @@ There is JSON and then there is JSON. You might find yourself some interesting d
 
 Not all JSON is pure JSON! When that is the case, you will need to create pure JSON.
 
-```{r amazonExample}
+Look at this file: https://www3.nd.edu/~sberry5/data/reviews_Musical_Instruments_5.json
 
+It looks like JSON, but...
+
+```{r, eval = FALSE}
+jsonlite::validate("https://www3.nd.edu/~sberry5/data/reviews_Musical_Instruments_5.json")
+```
+
+If we would want to read that in as true JSON, we would need to do some work:
+
+```{r, eval = FALSE}
+musicalInstruments = readLines("https://www3.nd.edu/~sberry5/data/reviews_Musical_Instruments_5.json")
+
+musicalInstruments = paste(unlist(lapply(musicalInstruments, function(x) {
+  paste(x, ",", sep = "")
+})), collapse = "")
+
+musicalInstruments = paste("[", musicalInstruments, "]", sep = "")
+
+musicalInstruments = gsub("},]", "}]", musicalInstruments)
 ```
 
 

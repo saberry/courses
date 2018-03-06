@@ -134,7 +134,7 @@ These are the packages that you will need:
 ```{r, eval = FALSE}
 install.packages(c("tidyverse", "rio", 
                    "jsonlite", "psych", 
-                   "lavaan" "reshape", 
+                   "lavaan", "reshape", 
                    "reshape2", "stringdist"))
 ```
 

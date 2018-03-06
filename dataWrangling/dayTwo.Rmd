@@ -66,7 +66,19 @@ You are not limited to single <span class="func">group_by statements</span>!
 
 ## Your Turn
 
-Group and plot
+1.  Use the stataData again:
+
+```{r, eval = FALSE}
+stataExample = haven::read_dta(file = "https://www3.nd.edu/~sberry5/data/stataExample.dta")
+```
+
+2.  Check out the data names and find ones that might be suitable for grouping.
+
+    - Gender, leaderID, and a few others might stick out
+    
+3.  Pick a variable to summarize and some type of summary statistic.
+
+    - mean() and sd() are both easy, but be mindful of NAs
 
 # Reshaping 
 
@@ -205,6 +217,9 @@ While we won't dive into it, the <span class="pack">splitstackshape</span> packa
 
 ## Your Turn
 
+
+
+
 # Merging 
 
 Now we are playing with power! Having multiple datasets in memory is one of R's strong points (not everything can manage such a modern feat). Once you get out there, this becomes important.
@@ -324,7 +339,7 @@ sasExample = "https://www3.nd.edu/~sberry5/data/wciklink_gvkey.sas7bdat"
 ```
 
 1.  Read those files in appropriately (look at the file extensions...or rio).
-2.  Start merging them together.
+2.  Start merging them together in any way that you can.
 
 Chained merges look like this:
 
@@ -347,11 +362,13 @@ On more than just occasion, you will want to bring data together in a "stacked" 
 Imagine you have two data files that look exactly alike with regard to column names, but the values are different. This is when we could use a row bind:
 
 ```{r, eval = FALSE}
-data1 = test
+data2003 = read.csv("https://www3.nd.edu/~sberry5/data/c2003_a.csv")
 
-data2 = test2
+data2004 = read.csv("https://www3.nd.edu/~sberry5/data/c2004_a.csv")
+
+# data2013 = read.csv("https://www3.nd.edu/~sberry5/data/")
   
-complete = rbind(test, test2)
+complete = rbind(data2003, data2004)
 
 ```
 
@@ -517,6 +534,21 @@ names(testDF2) = stringr::str_replace_all(names(testDF2), "\\.|_|\\W", "")
 ```
 
 
+
+Let's add another year into some data that we already saw:
+
+```{r, eval = FALSE}
+data2003 = read.csv("https://www3.nd.edu/~sberry5/data/c2003_a.csv")
+
+data2004 = read.csv("https://www3.nd.edu/~sberry5/data/c2004_a.csv")
+
+data2013 = read.csv("https://www3.nd.edu/~sberry5/data/")
+  
+complete = rbind(data2003, data2004, data2013)
+
+```
+
+Does everything still look good?
 
 # Github
 

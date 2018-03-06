@@ -68,7 +68,7 @@ You are not limited to single <span class="func">group_by statements</span>!
 
 Group and plot
 
-# Reshaping {.tabset .tabset-fade .tabset-pills}
+# Reshaping 
 
 Now, things are going to get weird.
 
@@ -205,7 +205,7 @@ While we won't dive into it, the <span class="pack">splitstackshape</span> packa
 
 ## Your Turn
 
-# Merging {.tabset .tabset-fade .tabset-pills}
+# Merging 
 
 Now we are playing with power! Having multiple datasets in memory is one of R's strong points (not everything can manage such a modern feat). Once you get out there, this becomes important.
 
@@ -356,7 +356,7 @@ complete = rbind(test, test2)
 ```
 
 
-What if our rows were the same, but we wanted to add some columns?
+What if our rows were the same, but we wanted to add some columns? You said cbind, no doubt!
 
 ## Data Wrangling?
 
@@ -370,7 +370,7 @@ Therefore, we need to learn to accept a default frame of reference that allows u
 Keep this concept of *data collaging* in your mind.
 
 
-# String Cleaning {.tabset .tabset-fade .tabset-pills}
+# String Cleaning 
 
 Data has strings...it is a simple fact of modern data.
 
@@ -529,12 +529,6 @@ git config --global user.name "saberry"
 
 git config --global user.email "seth.berry@nd.edu"
 ```
-
-# Day 2 Wrap
-
-Good times all around today! We got into some pretty meaty issue on data wrangling. Reshaping can be a real challenge to your future wrangling tasks and joining/merging can give you fits if you don't really check your data.
-
-If there is anything to really take away from today is regex. It might seem like you may never use it, but you will find places to use it. Really take some time to play with it.
 
 
 # Day 2 Thought Question

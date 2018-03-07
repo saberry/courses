@@ -1,0 +1,50 @@
+---
+title: "Clustering"
+author: "Behavioral Data Science"
+date: "March 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+There is no shortage of ways to cluster data. We can think of several large classes of cluster analyses.
+
+Two of the bigger divisions are hard clustering and fuzzy clustering. Hard clustering algorithms assign observations to a specific cluster, whereas fuzzy clustering algorithms are probablistic in nature (i.e., an observation has a certain probability to belonging to any one cluster).
+
+
+
+## Centroid Clustering
+
+Centroid clustering is based upon distances around some centroid (maybe a mean). 
+
+
+
+### k-means
+
+```{r}
+library(lavaan)
+
+testData = HolzingerSwineford1939 %>% 
+  select(starts_with("x"))
+  
+
+kmeansTest = kmeans(testData, 2)
+
+plot(testData, col = kmeansTest$cluster)
+```
+
+
+### medoids
+
+```{r}
+library(cluster)
+
+pamTest = pam(testData, k = 2)
+```
+
+
+
+## Distribution Clustering
+

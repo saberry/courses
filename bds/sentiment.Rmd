@@ -1,0 +1,31 @@
+---
+title: "Sentiment Analysis"
+author: "Behavioral Data Science"
+date: "March 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Words As Data
+
+Words are everywhere. Believe it or not, you are reading words right now! Given our penchant for taking things and making numbers out of them, you are probably already guessing that we can somehow make words tell a story with numbers. If that is what you are guessing, then you are absolutely correct.
+
+## Processing Text
+
+Before we can even begin to dive into analyzing text, we must first process the text. Processing text involves several steps that will be combined in various ways, depending on what we are trying to accomplish.
+
+### Stemming
+
+### Stop Words
+
+### Character Removal
+
+## Text Processing Tools
+
+There are several R packages that will help us process text.
+
+## Sentiment Analysis
+

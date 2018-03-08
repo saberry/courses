@@ -1,0 +1,81 @@
+---
+title: "Latent Class Analysis"
+author: "Behavioral Data Science"
+date: "March 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Can There Really Be More Latent Stuff?
+
+We have covered a big slice of models that deal with some type of latent structure. Latent class analysis (LCA) differs from what we have previously seen. In factor analysis, for example, we are finding the latent variables that give cause to the measured items. LCA, on the other hand, attempts to use variables to find latent classes of people. For example, if we have variables regarding race, gender, education, and employment status, can we find naturally occuring groups that cluster together?
+
+## LCA
+
+LCA has definite conceptual relationships to cluster analysis and factor analysis. From a technical standpoint, however, they are different. While we saw that certain variable types work better for different types of cluster analyses, categorical variables are the only variables that can be used in LCA (e.g., it could not use raw age -- you would unfortuantely need to discretize it first).
+
+### poLCA
+
+Let's try models with 1 through 5 latent classes.
+
+```{r}
+library(poLCA)
+
+library(dplyr)
+
+data("starwars")
+
+lcaDat = starwars %>% 
+  mutate(hair_color = as.factor(hair_color), 
+         skin_color = as.factor(skin_color), 
+         eye_color = as.factor(eye_color), 
+         gender = as.factor(gender), 
+         homeworld = as.factor(homeworld), 
+         species = as.factor(species))
+
+lcaFormula = cbind(hair_color, eye_color) ~ 1
+
+lcaMod1 = poLCA(lcaFormula, lcaDat, 1)
+
+lcaMod2 = poLCA(lcaFormula, lcaDat, 2)
+
+lcaMod3 = poLCA(lcaFormula, lcaDat, 3)
+
+lcaMod4 = poLCA(lcaFormula, lcaDat, 4)
+
+lcaMod5 = poLCA(lcaFormula, lcaDat, 5)
+```
+
+When we look at the output, we see that we get the probability of each level within the variable (e.g., the 12 levels of hair color) belonging to one of the latent classes. We also get the estimated class population shares and the predicted class membership. Those seem like they are intuitively similar, and they are, but with a key difference: the estimate class population shares are more descriptive of what we actually have and the predicted class memberships are the predictions of what we should have based upon the model.
+
+We also get some model fit indices and these are all interpretted as they would normally be interpretted. We are looking for the lowest possible AIC and BIC.
+
+### mclust
+
+You remember our friend, mclust, right? We used it for our clustering last week. Not only can it handle the clustering we saw last week, but we can also use it for some expanded forms of latent class analysis with continuous variables. Remember, that it uses mixture distributions, so we can really throw a lot of different variables types at it.
+
+```{r}
+library(mclust)
+
+data("starwars")
+
+mclustDat = starwars %>% 
+  mutate(hair_color = as.factor(hair_color), 
+         skin_color = as.factor(skin_color), 
+         eye_color = as.factor(eye_color), 
+         gender = as.factor(gender), 
+         homeworld = as.factor(homeworld), 
+         species = as.factor(species)) %>% 
+  dplyr::select(height, mass) %>% 
+  na.omit()
+  
+
+
+bicTest = mclust::mclustBIC(mclustDat, G = 2:5)
+
+mclustRes = Mclust(mclustDat, G = 4, modelNames = "EII")
+```
+

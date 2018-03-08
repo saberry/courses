@@ -15,11 +15,14 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FAL
 ```
 
 
-```{r, child = 'dayOne.Rmd'}
+```{r, child = 'basics.Rmd'}
 ```
 
-```{r, child = 'dayTwo.Rmd'}
+```{r, child = "dayOne.Rmd"}
 ```
 
-```{r, child = 'dayThree.Rmd'}
+```{r, child = "dayTwo.Rmd"}
+```
+
+```{r, child = "dayThree.Rmd"}
 ```

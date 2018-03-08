@@ -538,13 +538,17 @@ names(testDF2) = stringr::str_replace_all(names(testDF2), "\\.|_|\\W", "")
 Let's add another year into some data that we already saw:
 
 ```{r, eval = FALSE}
-data2003 = read.csv("https://www3.nd.edu/~sberry5/data/c2003_a.csv")
+data2003 = readr::read_csv("https://www3.nd.edu/~sberry5/data/c2003_a.csv")
 
-data2004 = read.csv("https://www3.nd.edu/~sberry5/data/c2004_a.csv")
+data2004 = readr::read_csv("https://www3.nd.edu/~sberry5/data/c2004_a.csv")
 
-data2013 = read.csv("https://www3.nd.edu/~sberry5/data/")
+data2013 = readr::read_csv("https://www3.nd.edu/~sberry5/data/c2013_a.csv")
   
-complete = rbind(data2003, data2004, data2013)
+complete = rbind(data2003, data2004)
+
+## This will cause an error because of variable names!
+
+complete = rbind(complete, data2013)
 
 ```
 

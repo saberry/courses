@@ -17,34 +17,90 @@ Two of the bigger divisions are hard clustering and fuzzy clustering. Hard clust
 
 ## Centroid Clustering
 
-Centroid clustering is based upon distances around some centroid (maybe a mean). 
+Centroid clustering is based upon distances around some centroid (maybe a mean). Many centroid models tend to produce hard clustering by nature.
 
+Careful attention needs to be paid to your data when clustering. Are they variables that naturally contain mean? If so, a k-means clustering might work well.
 
+### Determining Factor Numbers
 
-### k-means
+There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
 
 ```{r}
 library(lavaan)
 
+library(dplyr)
+
 testData = HolzingerSwineford1939 %>% 
   select(starts_with("x"))
-  
 
+kTest = NbClust::NbClust(testData, method = "kmeans")
+
+```
+
+We are going to get a lot of information from the NbClust function, but a majority rule for number of clusters is the most helpful.
+
+With our proposed number of clusters, let's turn to some models.
+
+### k-means
+
+Let's run a k-mean model with our test data.
+
+```{r}
 kmeansTest = kmeans(testData, 2)
 
+kmeansTest
+```
+
+Our output provides some very useful information. First, we see the cluster means for each item across the two cluster. These give us a pretty good idea of the "location" for each of the clusters and helps us to start to get an idea for what these cluster look like. 
+
+Next, we see our clustering vector. This tells us to which cluster each observation was assigned. 
+
+We can also take a look at the bivariate plots.
+
+```{r}
 plot(testData, col = kmeansTest$cluster)
 ```
 
 
+And a plot based upon the first two components of a PCA:
+
+```{r}
+cluster::clusplot(testData, kmeansTest$cluster)
+```
+
+
+The k-means cluster is great and widely used. But, it can be picky about data (it really likes data without extreme values) and it can have different results based upon item ordering (because of the cluster assignment process).
+
 ### medoids
+
+To circumvent the issue within k-means, we can partition around medoids. Whereas our centroid can be an arbitrary value that gets observations clustered around it, a medoid is an actual observation within the data that then gets other observations clustered around it.
 
 ```{r}
 library(cluster)
 
-pamTest = pam(testData, k = 2)
+pamTest = cluster::pam(testData, k = 2)
 ```
 
+We can see very similar output, but we get the actual observations that represent the medoids. 
 
+
+```{r}
+cluster::clusplot(testData, pamTest$clustering)
+```
 
 ## Distribution Clustering
+
+## Hierarchical Clustering
+
+Everything we have seen to this point needs some type of work to know how many clusters to find. 
+
+Conversely, hiearchical clustering will clusters without any input:
+
+```{r}
+hieararchicalTest = cluster::agnes(testData)
+```
+
+```{r}
+plot(hieararchicalTest)
+```
 

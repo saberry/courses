@@ -19,7 +19,11 @@ Before we can even begin to dive into analyzing text, we must first process the 
 
 ### Stemming
 
+Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. What if we remove the suffixes? Now we have something that is equivalent in meaning and in a string sense. This is what setmming 
+
 ### Stop Words
+
+Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed.
 
 ### Character Removal
 

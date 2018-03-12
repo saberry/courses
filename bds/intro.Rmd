@@ -1,0 +1,52 @@
+---
+title: | 
+      | Introduction To 
+      | Behavioral Data Science
+author: "Behavioral Data Science"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What Is Behavioral Data?
+
+
+
+### What Behavioral Data Is Not
+
+## Hypotheses And Data
+
+Someone of potentially historical note once said something to the effect of, "My music is my passion and my passion is my music". So to are hypotheses and data. 
+
+## Analyzing Behavioral Data
+
+Think back to your linear models course. Do you remember examining adjusted $R^2$? It is one of the more popular measures of how well a particular model explains the data (adjusted $R^2$ is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. If, however, we are trying to predict/explain what someone does (i.e., a particular behavior), what are the chances that we will obtain high adjusted $R^2$? Probably not very high, right? People are messy and often unpredictable, so achieving huge $R^2$ values is unlikely. This is not to suggest that we should accept an $R^2$ of .00001 as important (note -- it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an $R^2$ around .2. That means that we have taken one of nature's sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.
+
+## Data Structures
+
+## Data Types
+
+We see many different types of data when working with behavioral data, well beyond what we typically think about with our different levels of measurement (nominal, ordinal, interval, and ratio). 
+
+### Attitudinal Data
+
+Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*). How many response options are there -- 3, 5, 7, or more?
+
+### Censored Data
+We might run into data that is *censored*. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been *discretized* -- a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like "<25", "25-35", "36-45", "46-55", and "55+". When people have an age of "<25", we have left censored data -- we don't know how far to the "left" the value actually is, we just know that it is somewhere under 25. For our observations with "55+", we have right censored data -- we don't know how far to the right the value actually is. 
+
+### Hierarchical Data
+
+Also known has multilevel or nested data, *hierarchical* data is best defined by a classical example -- we could have students, nested within classrooms, nested within schools, nested within districts, and so on. 
+
+### Text
+
+
+
+## Data Sources
+
+Data is everywhere. 
+
+## More Data Issues

@@ -97,7 +97,7 @@ library(mice)
 
 imputedData = mice(testData, m = 20, maxit = 20, 
                    method = c("cart", "cart", "", "", "", 
-                              "", "", "", ""))
+                              "", "", "", ""), print = FALSE)
 
 imputedData
 
@@ -112,7 +112,6 @@ Now, we have 20 imputed data sets that went through 20 iterations that we can pe
 fit1 = with(data = imputedData, exp = lm(mass ~ height))
 ```
 
-
 And we can then pool those results together:
 
 ```{r}
@@ -120,23 +119,6 @@ pool(fit1)
 ```
 
 How different are these pooled coefficients compared to our previous coefficients? The pooled are certainly a bit stronger, but not terribly so. 
-
-### Amelia
-
-The Amelia package takes a different approach to multiple imputation -- it uses the Expectation-Maximization (EM) algorithm (we will be learning more about that in a few weeks).
-
-Let's see how it compared to mice.
-
-```{r, eval = FALSE}
-library(Amelia)
-
-imputedDataAmelia = amelia(testData, m = 5, 
-                           noms = c("hair_color", "skin_color", 
-                                    "eye_color", "gender", "homeworld", 
-                                    "species"))
-```
-
-
 
 ## Missing Or Sparse
 

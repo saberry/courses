@@ -88,7 +88,92 @@ We can see very similar output, but we get the actual observations that represen
 cluster::clusplot(testData, pamTest$clustering)
 ```
 
+
+If we look at both plots, we can notice some definite differences in cluster assignment when we are getting towards the 0s.
+
+```{r}
+par(mfrow = c(1, 2))
+
+cluster::clusplot(testData, pamTest$clustering, main = "PAM")
+
+cluster::clusplot(testData, kmeansTest$cluster, main = ("KMeans"))
+```
+
+
+
 ## Distribution Clustering
+
+Sometimes referred to as model-based clustering, distribution clustering allows us to model variables that have mixed distributions (maybe a mixture of normal distributions or a normal distribution and something else).
+
+```{r, echo = FALSE}
+N     = 1000              # this is how many data you want
+probs = c(.3,.8)          # these are *cumulative* probabilities; since they 
+                          #   necessarily sum to 1, the last would be redundant
+dists = runif(N)          # here I'm generating random variates from a uniform
+                          #   to select the relevant distribution
+
+# this is where the actual data are generated, it's just some if->then
+#   statements, followed by the normal distributions you were interested in
+data = vector(length=N)
+for(i in 1:N){
+  if(dists[i]<probs[1]){
+    data[i] = rnorm(1, mean=0, sd=1)
+  } else if(dists[i]<probs[2]){
+    data[i] = rnorm(1, mean=10, sd=1)
+  } else {
+    data[i] = rnorm(1, mean=3, sd=.1)
+  }
+}
+
+plot(density(data))
+```
+
+If your data have a mixture of normals or you just want the actual distribution of your data to drive the clustering, then these distribution clustering algorithms will offer better solutions. Furthermore, they are better suited for clustering items that might have a latent structure.
+
+Given that we are using our data's distributions, we need to do another check on the number of clusters. Not only will we get a good number of clusters, but we will also get the clustering shapes that best fit our data.
+
+```{r}
+library(mclust)
+
+bicTest = mclustBIC(testData)
+
+bicTest
+```
+
+We see that a two cluster solution might work well, but what does VEE mean? It means that our mixture is ellipsoidal in shape with equal volume and orientation. Check the mclustModelNames function for all names.
+
+Let's take a peak at it:
+
+```{r}
+mclustTest = Mclust(testData, 2, modelNames = "VEE")
+
+
+mclustTest
+```
+
+We can see our clustering table looks a lot different than our previous methods.
+
+Now, let's look at our clustering center:
+
+```{r}
+mclustTest$parameters$mean
+```
+
+
+
+```{r}
+plot(mclustTest, what = "classification")
+```
+
+
+We can also look at the components graph (like we saw earlier):
+
+```{r}
+coordProj(testData, parameters = mclustTest$parameters, z = mclustTest$z)
+```
+
+
+Do you notice anything different? The shape of the clustering is a bit different, yes, but there is something else -- some of the observations are marked with a 
 
 ## Hierarchical Clustering
 
@@ -103,4 +188,5 @@ hieararchicalTest = cluster::agnes(testData)
 ```{r}
 plot(hieararchicalTest)
 ```
+
 

@@ -1,0 +1,405 @@
+---
+title: | 
+      | Data Wrangling With R
+      | Day Three
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+---
+
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
+```
+
+
+# Day 3
+
+# Fuzzy Joins {.tabset .tabset-fade .tabset-pills}
+
+We have seen joins and some character work, but now we are going to combine them into one world.
+
+Whenever we use joins we are generally looking for exact matches. In reality, we get about 50/50.
+
+Fuzzy joins allow us to use string distance metrics to join non-matching strings together.
+
+We are going to need <span class="pack">fuzzyjoin</span>:
+
+```{r, eval = FALSE}
+install.packages('devtools')
+
+devtools::install_github("dgrtwo/fuzzyjoin")
+```
+
+
+## String Distances
+
+Not including spelling mistakes, there are many different ways to represent words; this is especially true when we are discussing companies.
+
+Would AG Edwards and A.G. Edwards join? Of course not! They are the same company, but not the same words.
+
+We have learned enough about string cleaning to know that we could tidy that one up, but what about something more subtle, like AG Edward and AG Edwards. 
+
+We can use the <span class="func">adist</span> function to figure out the distance between these two strings.
+
+```{r}
+string1 = "AG Edward"
+
+string2 = "AG Edwards"
+
+adist(x = string1, y = string2)
+```
+
+The <span class="func">adist</span> function uses generalized edit distance as the metric. This does things like calculate the number of characters that need to be inserted, deleted, or substituted to make a match. 
+
+If we are merging, generalized edit distance might not give use the level of granularity that we need for minimizing.
+
+
+Let's try out a few different strings below.
+
+```{r}
+library(stringdist)
+
+string3 = "A G Edwards"
+
+stringdist(string1, string2, method = "jw")
+
+stringdist(string2, string3, method = "jw")
+
+stringdist(string1, string3, method = "jw")
+```
+
+And compare them to our standard edit distance:
+
+```{r}
+adist(c(string1, string2, string3))
+```
+
+We can see that we get a little more fine scoring with the Jaro-Winker distance.
+
+
+Now let's take a gander at Jaccard's distance:
+
+```{r}
+stringdist(string1, string2, method = "jaccard")
+
+stringdist(string2, string3, method = "jaccard")
+
+stringdist(string1, string3, method = "jaccard")
+```
+
+
+You might be wondering why we need much granularity. Consider what happens between Safeway and Subway:
+
+```{r}
+stringdist("safeway", "subway", method = "soundex")
+
+stringdist("safeway", "subway", method = "jaccard")
+
+stringdist("safeway", "subway", method = "jw")
+
+```
+
+I think we can imagine the consequences of using metrics like soundex or Jaccard distance to join strings together.
+
+So, is there a good time to use something like soundex: sure. If you find yourself needing to find any possible word matches
+
+## Fuzzy Joins
+
+
+Let's use these files:
+
+```{r, eval = FALSE}
+library(data.table)
+
+fuzzyJoinClients = fread("https://www3.nd.edu/~sberry5/data/fuzzyJoinClients.csv")
+
+fuzzyJoinCompustat = fread("https://www3.nd.edu/~sberry5/data/fuzzyJoinCompustat.csv")
+```
+
+We are going to merge on "TIENAME" and "Company Name", but they need some work.
+
+```{r}
+fuzzyJoinClients$TIENAME = tolower(fuzzyJoinClients$TIENAME)
+
+fuzzyJoinCompustat$Company.Name = tolower(fuzzyJoinCompustat$Company.Name)
+```
+
+
+
+Let's try to merge them normally:
+
+```{r, eval = FALSE}
+standardJoin = left_join(fuzzyJoinClients, fuzzyJoinCompustat, 
+                         by = c("TIENAME" = "Company Name"))
+```
+
+
+
+
+# Tips & Tricks {.tabset .tabset-fade .tabset-pills}
+
+## Row/Group Indices
+
+When you are doing some type of data wrangling tasks (especially when things need grouped or merged), you might find a row or group index to be helpful.
+
+```{r}
+carsID = mtcars %>% 
+  mutate(rowID = 1:nrow(mtcars)) %>% 
+  group_by(cyl) %>% 
+  mutate(groupID = 1:n())
+```
+
+
+## Dates and Times
+
+### lubridate
+
+Another glorius thing that will happen to you is working with dates -- they tend to be a pain.
+
+```{r}
+Sys.Date()
+
+format(Sys.Date(), "%m-%d-%Y")
+```
+
+And you get things like this:
+
+```{r}
+date1 = "12012018"
+
+date2 = "20180112"
+
+date3 = "12-01-2018"
+
+date4 = "12/01/2018"
+```
+
+If you had to merge data based upon these dates, you would be in trouble.
+
+You could, naturally, use some of the string cleaning stuff that we learned to tear them apart and then re-arrange them in a consistent manner.
+
+```{r}
+dateStrings = strsplit(date3, split = "-")
+
+paste(dateStrings[[1]][3], 
+      dateStrings[[1]][2], dateStrings[[1]][1], 
+      sep = "-")
+```
+
+
+If we wanted to go down the path of that previous chunk, we would need to pass the whole thing into an lapply.
+
+Or...we can just do this:
+
+```{r}
+library(lubridate)
+
+mdy(date3)
+```
+
+
+There is some really great stuff in <span class="pack">lubridate</span>. For instance, if you need to get time intervals:
+
+```{r}
+
+exactAge = function(birthday, 
+                    value = c("second", "minute", "hour", "day", 
+                              "week", "month", "year")) {
+  age = interval(ymd(birthday), ymd(Sys.Date()))  
+  
+  time_length(age, value)
+}
+
+```
+
+Run that and give it your birthday in "YEAR-MO-DY" format. While it might be goofy at first glance, can we think of anything practical for it?
+
+
+
+
+There is a similar package, <span class="pack">hms</span>, for dealing with time.
+
+
+## Lists
+
+Lists are just a part of life at this point. You will see lists of data frames and you will see columns within data frames that contain lists.
+
+If you recall our previous look at JSON, you will see that there is a variable that actually contains a list.
+
+We also saw our starwars example:
+
+```{r}
+glimpse(starwars)
+```
+
+
+There would be a few ways to tackle such an enterprise:
+
+```{r}
+movies = unique(unlist(starwars$films))
+
+starwars = starwars %>% 
+  mutate(revengeSith = ifelse(grepl(movies[grep("Sith", movies)], films), 
+                              1, 0))
+```
+
+
+
+```{r}
+
+library(tidyr)
+
+data(starwars)
+
+starwars = starwars %>% 
+  unnest(films) %>% 
+  mutate(id = 1:nrow(.)) %>% 
+  spread(key = films, value = films) %>% 
+  group_by(name) %>% 
+  fill(12:18, .direction = "up") %>% 
+  fill(12:18, .direction = "down") %>% 
+  slice(1)
+```
+
+
+
+Let's turn back to the ticket option JSON data:
+
+```{r}
+library(jsonlite)
+
+jsonWhole = read_json("https://www3.nd.edu/~sberry5/data/optionsDataComplete.json", 
+                      simplifyVector = TRUE)
+```
+
+What do we do with the list variable?
+
+```{r}
+spreadData = lapply(1:nrow(jsonWhole), function(x) {
+  
+  res = jsonWhole$teamTiers[[x]] %>% 
+    reshape2::melt(.) %>% 
+    reshape2::dcast(., value ~ tierShortName + variable) %>% 
+    select(-value) %>% 
+    summarize_all(sum, na.rm = TRUE)
+  
+  return(res)
+}) %>% 
+  data.table::rbindlist(., fill = TRUE)
+```
+
+And now, we can bind everything back up:
+
+```{r}
+jsonWhole = cbind(jsonWhole, spreadData) %>% 
+  select(-teamTiers)
+```
+
+
+
+# Back To The Basics {.tabset .tabset-fade .tabset-pills}
+
+## Functions
+
+I genuinely hope you learned a lot from our time together; however, if you only learn one thing, I hope that you feel empowered to write your own functions. For all of R's greatness, writing your own functions is what really makes it work so well. 
+
+You might not feel like you can write a function -- we all feel that way at some point. You can!
+
+Functions are simply objects that act upon other objects. 
+
+This is a simple function:
+
+```{r, eval = FALSE}
+
+fido = seq(1, 10, by = 2)
+
+sum(fido)
+```
+
+
+```{r, eval = FALSE}
+meanFunction = function(x) {
+  xLength = length(x)
+  
+  res = sum(x) / xLength
+  
+  return(res)
+}
+```
+
+Specify what you are passing into the function (x above).
+
+R already has a built-in mean() function, but now you know how easy it is to do such things.
+
+When working on data manipulation tasks, functions become very useful because you will find yourself doing the same thing a lot. 
+
+-- If you find yourself doing something more than twice, write a function!
+
+## Your Turn
+
+1.  Create a vector of something.
+
+Something like the following:
+
+```{r}
+x = 1:5
+
+# or...
+
+x = c(1:4, 6)
+```
+
+2.  Tweak your vector in some fashion:
+
+```{r}
+x = x + 1
+```
+
+
+3.  Create a simple function to do something to your vector:  
+
+Maybe try a series of math operations.
+
+```{r}
+testFunc = function(x) {
+  res = sum(x * 3)
+  return(res)
+}
+```
+
+
+## Apply Family
+
+We have seen a lot of different things over the last few hours together. The final bit of wisdom to pass along is the apply family. The apply family (lapply, sapply, mapply, etc.) allows you to pass a function over something like a list and then return something predictable. 
+
+```{r}
+testNames = c("Jack", "Jill", "Frank", "Steve", "Harry", "Lloyd")
+
+sapply(testNames, function(x) paste(x, "went over the hill", sep = " "))
+```
+
+The sapply function will return a vector -- what do you think an lapply will return? mapply?
+
+Now that is a bit of a goofy example. Since R is vectorized, we would have gotten the same result just by pasting our testNames vector to the string. But, a more realistic situation is as follows:
+
+
+
+```{r}
+starwarsShips = unique(unlist(starwars$starships))
+
+shipRider = lapply(starwarsShips, function(x) {
+  
+  riders = starwars$name[which(grepl(x, starwars$starships))]
+  
+  res = data.frame(ship = x, 
+                   riders = riders)
+  
+  return(res)
+})
+```
+

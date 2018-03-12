@@ -10,23 +10,37 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## What Is Behavioral Data?
 
+# Week 1
 
+## Person-centric Data
 
-### What Behavioral Data Is Not
+Data from the people, about the people! Person-centric data covers a broad range of potential forms and sources. It might be survey data with attitudinal variables, purchase history, number of visits to the doctor's office, number of alcoholic drinks had during the last seven days, internet browsing behavior, or even Tweets. If we start to consider all of the data that we see, it becomes clear that a great deal of data is person-centric.
 
-## Hypotheses And Data
+Not all data fits into this notion of person-centricity. We often find financial data (think end of day trading) that really does not fit into our notion of person-centric data. Even though this type of stock-flavored financial data does not really fit, the amount of money a person spends certainly does. Furthermore, much public data exists for municipal entities, such as county assessors. It might seem like a properties record is not person-centric, we could build data that tracks a person's property buying/selling -- we would certainly look at such data and consider it to be behavioral in nature.
 
-Someone of potentially historical note once said something to the effect of, "My music is my passion and my passion is my music". So to are hypotheses and data. 
+## Where Do We Go?
 
-## Analyzing Behavioral Data
+What do we do with person-centric, behavioral data? In general, we want to predict behavior in some way! To predict behavior, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.
+
+### Analyzing Behavioral Data
 
 Think back to your linear models course. Do you remember examining adjusted $R^2$? It is one of the more popular measures of how well a particular model explains the data (adjusted $R^2$ is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. If, however, we are trying to predict/explain what someone does (i.e., a particular behavior), what are the chances that we will obtain high adjusted $R^2$? Probably not very high, right? People are messy and often unpredictable, so achieving huge $R^2$ values is unlikely. This is not to suggest that we should accept an $R^2$ of .00001 as important (note -- it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an $R^2$ around .2. That means that we have taken one of nature's sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.
 
-## Data Structures
 
-## Data Types
+## Data Wrangling
+
+
+*Link to dataWranglingPrimer.html*
+
+## Ethical Considerations
+
+When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people's privacy? 
+
+# Week 2
+
+
+## Data Types And Structures
 
 We see many different types of data when working with behavioral data, well beyond what we typically think about with our different levels of measurement (nominal, ordinal, interval, and ratio). 
 
@@ -41,12 +55,48 @@ We might run into data that is *censored*. While it might sound like something e
 
 Also known has multilevel or nested data, *hierarchical* data is best defined by a classical example -- we could have students, nested within classrooms, nested within schools, nested within districts, and so on. 
 
+### Repeated Measures
+
+Repeated measures can be thought of in the same way as longitudinal data -- we are measuring the same thing for a person for an extended period of time. If you want, you can even think of it as nested data; the time-based observations are nested within an individual.
+
+
 ### Text
 
+Welcome to the now! With people generating volume after volume of text, we have many questions that we can explore. 
+
+## Sources Of Data
+
+### Surveys
+
+### Client-side Paradata/Metadata
+
+### Records
+
+### Social Media
+
+## More Data Wrangling
+
+*Link to dataWranglingPrimer.html*
+
+## Ethical Considerations
 
 
-## Data Sources
+# Week 3
 
-Data is everywhere. 
+## Data Exploration
+
+Although we have identified our hypotheses and gotten our data into shape, that does not mean that we should just go right into 
+
+
+## The Hypothesis-Data Consistency Link
+
+> “A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines. With consistency a great soul has simply nothing to do. He may as well concern himself with his shadow on the wall. Speak what you think now in hard words, and to-morrow speak what to-morrow thinks in hard words again, though it contradict every thing you said to-day. — 'Ah, so you shall be sure to be misunderstood.' — Is it so bad, then, to be misunderstood? Pythagoras was misunderstood, and Socrates, and Jesus, and Luther, and Copernicus, and Galileo, and Newton, and every pure and wise spirit that ever took flesh. To be great is to be misunderstood.” 
+
+Emerson's (Ralph Waldo, not Keith) beautiful words are great if we are trying to expand our minds and engage in learning in general. One place that we cannot use this, however, is in connecting our data and hypotheses. If we have hypotheses about data, we had better have the data to test those hypotheses. While this may seem intuitive, behavioral data can often present unforeseen challenges. For example, you might be given some data full of attitudinal measures and someone has some ideas about relationships they want to test. If said person is not fully in the know about how to construct and test hypotheses, he/she might come to you wanting to test hypotheses that do not make sense given the data (maybe they want to "say" something about a scale that is not really measured by the scale).  
+
+
+
+
+## Ethical Considerations
 
 ## More Data Issues

@@ -27,9 +27,86 @@ Some words do us very little good: articles, prepistions, and very high frequenc
 
 ### Character Removal
 
+In addition to whole words, sometimes symbols need to be removed.
+
 ## Text Processing Tools
 
-There are several R packages that will help us process text.
+There are several R packages that will help us process text. The **tm** package is popular and automates most of our work.
 
 ## Sentiment Analysis
 
+Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written something.
+
+Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
+
+Let's take a peak at some simple sentiment analysis.
+
+### Simple Sentiment
+
+Let's consider the following statements:
+
+
+```{r}
+
+library(tidytext)
+
+library(dplyr)
+
+statement = "I dislike programming, but I really love R."
+
+tokens = data_frame(text = statement) %>% 
+  unnest_tokens(tbl = ., output = word, input = text)
+
+tokens
+```
+
+From there, we get every individual token.
+
+Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.
+
+```{r}
+library(tidyr)
+
+tokens %>%
+  inner_join(get_sentiments("bing")) %>% # pull out only sentiment words
+  count(sentiment) %>% # count the # of positive & negative words
+  spread(sentiment, n, fill = 0) %>% # made data wide rather than narrow
+  mutate(sentiment = positive - negative)
+```
+
+When we use Bing's dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment.
+
+Do you think that disklike and love are of the same magnitude?
+
+```{r}
+tokens %>%
+  inner_join(get_sentiments("afinn"))
+```
+
+Now this looks a bit more interesting! "Love" has a stronger positive polarity than "dislike" has negative polarity. So, we could guess that we would have some positive sentiment.
+
+```{r}
+tokens %>%
+  inner_join(get_sentiments("afinn")) %>% 
+  summarize(n = nrow(.), sentSum = sum(score)) %>% 
+  mutate(sentiment = sentSum / n)
+```
+
+While these provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.
+
+For example, it is probably fair to say that "really love" is stronger than just "love". We might want to switch over to some techniques that explore n-grams (chunks of words) to calculate sentiment.
+
+
+### Smarter Sentiment Analysis
+
+When we use sentiment analysis that is aware of context, valence, modifiers, and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
+
+We will use the *vader* sentiment library, but many more available.
+
+```{r}
+library(sentimentr); library(lexicon); library(magrittr)
+
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)
+```
+
+We can see that we get a much different sentiment score when we include more information within the sentence.

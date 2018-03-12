@@ -565,8 +565,3 @@ git config --global user.name "saberry"
 
 git config --global user.email "seth.berry@nd.edu"
 ```
-
-
-# Day 2 Thought Question
-
-I have given you several different files of the financial stripe, each with a "cik" field that would presumably be used to match the files together in a way that keeps every columns from both data sets. Unfortunately, though, you notice one file's unique id field contains leading zeros. How would you handle this entire task?

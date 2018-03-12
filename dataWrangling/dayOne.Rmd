@@ -800,10 +800,4 @@ We don't want to get too far ahead of ourselves here -- we will see more places 
 
 Do you have a moment to hear the good word of Donald Knuth? If you want to work in a reproducible fashion <span class="rmarkdown">base</span> and <span class="pack">knitr</span> are here to help you out. The slides you saw earlier and even the document you are seeing now are all done with R Markdown. It is my hope that you will also use R Markdown for your presentations on Thursday.
 
-# Day 1 Thought Question
-
-Since we used the Stata stuff, let's keep rolling with that. The *Rater* variable indicates whether the person is a supervisor (0) or a subordinate (3). Since this data comes from a bigger set, this coding might make sense -- it makes no sense for the data at hand. I don't believe that you would ever do this, but someone wants the *leader_age* variable discretized into two groups -- below or at the mean and above the mean. The same goes with *leader_tenure* and *leader_experience*. In addition to these changes, someone is nervous about having both *raterNum* and *leaderID* available in the data; they are requesting that at least one of them be removed.
-
-We have a few distinct issues to address within this data -- what would you propose that we do?
-
 

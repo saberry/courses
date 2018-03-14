@@ -1,0 +1,75 @@
+---
+title: "Recommender Systems"
+author: "Behavioral Data Science"
+date: "March 13, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Package Installation
+
+```{r}
+install.packages("recommenderlab")
+install.packages("recosystem")
+
+
+devtools::install_github("tarashnot/SlopeOne")
+devtools::install_github("tarashnot/SVDApproximation")
+```
+
+
+https://rpubs.com/tarashnot/recommender_comparison
+## Recommender Systems Types
+
+### Content-based
+
+### Collaborative Filtering
+
+#### User-based
+
+#### Item-based
+
+## Example
+
+### Data Prep
+
+```{r}
+library(recosystem)
+
+data(ratings, package = "SVDApproximation")
+
+set.seed(1001)
+
+dataPart = caret::createDataPartition(ratings, p = .7, list = TRUE)
+
+in_train <- rep(TRUE, nrow(ratings))
+in_train[sample(1:nrow(ratings), size = round(0.2 * length(unique(ratings$user)), 0) * 5)] <- FALSE
+
+ratings_train <- ratings[which(in_train == TRUE), ]
+
+ratings_test <- ratings[which(in_train == FALSE), ]
+
+write.table(ratings_train, file = "trainset.txt", sep = " ", row.names = FALSE, col.names = FALSE)
+
+write.table(ratings_test, file = "testset.txt", sep = " ", row.names = FALSE, col.names = FALSE)
+
+r = Reco()
+
+opts <- r$tune(train_data = data_file("trainset.txt"), opts = list(dim = c(1:20), lrate = c(0.05),
+                                           nthread = 2, niter = 200, verbose = FALSE))
+
+r$train("trainset.txt", opts = c(opts$min, nthread = 4, niter = 500, verbose = FALSE))
+
+outfile = tempfile()
+
+r$predict("testset.txt", outfile)
+  
+scores_real <- read.table("testset.txt", header = FALSE, sep = " ")$V3
+scores_pred <- scan(outfile)
+  
+rmse_mf <- sqrt(mean((scores_real-scores_pred) ^ 2))
+```
+

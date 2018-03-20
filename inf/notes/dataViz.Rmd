@@ -1,0 +1,904 @@
+---
+title: "Data Visualization"
+author: "Seth Berry"
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    highlight: zenburn
+    css: documentCSS.css
+    center: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_knit$set(animation.fun = knitr::hook_scianimator)
+library(ggplot2); library(lazerhawk); library(plotly); library(dygraphs)
+library(dplyr); library(gganimate); library(ggthemes)
+
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+```
+
+# Purpose
+
+## Exploration
+
+Testing hypotheses is a critical part of the scientific process.
+
+But...you need to understand your data first.
+
+- What are some relationships, how are variables distributed, etc.
+
+Visualizing your data can go a long way to helping you explore your data.
+
+## Preattentive Processing
+
+We pick up on visual cues much quicker than reading (i.e., what catches our eye).
+
+- That is why entire disciplines are devoted to visual processing.
+
+Some things hit us pretty quickly:
+
+> - color - hue & intensity
+
+> - shape
+
+> - space/density
+
+> - line width & orientation
+
+> - size
+
+## Preattentive Processing In Action
+
+```{r, fig.height = 5.5, fig.width = 10.5, fig.align="center"}
+library(dplyr)
+
+preProDat = data.frame(x = rep(1:5, each = 10), y = rep(5:1, times = 10))
+
+preProDat = subset(preProDat, x != 2 | y != 2)
+
+singlePoint = data.frame(x = rep(2, 10), y = rep(2, 10))
+
+singleColor = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4) +
+  geom_point(data = singlePoint, aes(x, y), color = "red", size = 4) +
+  theme_light() +
+  ggtitle("Color")
+
+multiColor = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4, color = "#ff884d") +
+  geom_point(data = singlePoint, aes(x, y), color = "#b33b00", size = 4) +
+  theme_light() +
+  ggtitle("Saturation")
+
+singleShape = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4) +
+  geom_point(data = singlePoint, aes(x, y), shape = 15, size = 4) +
+  theme_light() +
+  ggtitle("Shape")
+
+singleSize = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4) +
+  geom_point(data = singlePoint, aes(x, y), size = 6) +
+  theme_light() +
+  ggtitle("Size")
+
+singleDensity = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4) +
+  geom_jitter(data = singlePoint, aes(x, y), size = 4, width = .25, height = .25) +
+  theme_light() +
+  ggtitle("Density")
+
+singleOrientation = ggplot(preProDat, aes(x, y)) + 
+  geom_point(size = 4, shape = 124) +
+  geom_point(data = singlePoint, aes(x, y), size = 4, shape = 92) +
+  theme_light() +
+  ggtitle("Orientation")
+
+multiplot(singleColor, multiColor, singleShape, singleSize, 
+                        singleDensity, singleOrientation, cols = 3)
+
+```
+
+
+
+## Correlation Matrix
+
+```{r}
+library(DT); library(broom)
+
+carCor = cor(mtcars[, 1:8])
+
+knitr::kable(round(carCor, 2))
+```
+
+
+## Corrplot
+
+```{r, fig.height=5.5, fig.width=9, fig.align="center"}
+corrplot::corrplot.mixed(carCor, lower = "number", upper = "square", order = "hclust")
+```
+
+## Heat Map
+
+```{r, fig.height=5.5, fig.width=9, fig.align="center"}
+carCor = as.data.frame(carCor) %>% 
+  mutate(item = row.names(carCor)) %>% 
+  tidyr::gather(key = key, value = corrVal, -item)
+
+hotCor = ggplot(carCor, aes(item, key, fill = corrVal)) +
+  geom_raster() +
+  scale_y_discrete(limits = rev(levels(as.factor(carCor$key)))) +
+  scale_fill_gradient2(low = "#3d52a1", mid = "#ffffff", high = "#ae1c3e") +
+  theme_trueMinimal()
+
+ggplotly(hotCor)
+```
+
+## Inference
+
+Currently, most journals "need" to see test statistics to know if there is a relationship.
+
+- The golden *p*-value is the driver of science!
+
+Not everything needs a test statistic to tell you that a real relationship exists (or not).
+
+## Interocular Traumatic Impact
+
+```{r, fig.width = 10, fig.align="center"}
+formula1 = y ~ x
+
+lmPlot = ggplot(mpg, aes(cty, hwy)) +
+  geom_point(alpha = .75) +
+  geom_smooth(method = "lm", formula = formula1, se = TRUE, color = "#44aa99") +
+  # ggpmisc::stat_poly_eq(aes(label = ..adj.rr.label..), formula = formula1, 
+  #                       parse = TRUE, hjust = -3) +
+  theme_bw()
+
+lmPlot2 = ggplot(mpg, aes(displ, hwy)) +
+  geom_point(alpha = .75) +
+  geom_smooth(method = "lm", se = TRUE, color = "#44aa99") +
+  #geom_smooth(se = FALSE, color = "blue", span = .5) +
+  #geom_smooth(method = "gam", formula = y ~ splines::bs(x, 4), se = FALSE, color = "#cc6677") +
+  # ggpmisc::stat_poly_eq(aes(label = ..adj.rr.label..), formula = formula1, 
+  #                       parse = TRUE, hjust = -3) +
+  theme_bw()
+
+multiplot(lmPlot, lmPlot2, cols = 2)
+
+```
+
+
+
+## Maybe A Better Fit
+
+```{r, fig.align = "center", fig.height = 5.5, fig.width = 10}
+formula1 = y ~ x
+formula2 = y ~ splines::bs(x, 4)
+
+gamFitPlot = ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = formula1, se = FALSE, color = "#44aa99") +
+  #geom_smooth(se = FALSE, color = "blue", span = .5) +
+  geom_smooth(method = "gam", formula = formula2, se = FALSE, color = "#cc6677") +
+  # ggpmisc::stat_poly_eq(aes(label = ..adj.rr.label..), formula = formula2, 
+  #                       parse = TRUE, color = "#cc6677", hjust = -5) +
+  # ggpmisc::stat_poly_eq(aes(label = ..adj.rr.label..), formula = formula1, 
+  #                       parse = TRUE, color = "#44aa99", label.y.npc = .9, hjust = -5) +
+  theme_bw()
+
+ggplotly(gamFitPlot)
+
+```
+
+
+
+# Principles And Properties
+
+
+
+## What Was And What Should Never Be
+
+```{r, fig.height=5.5, fig.width=10}
+excelExample = ggplot(mtcars, aes(factor(cyl), fill = factor(am))) +
+  geom_bar(position = "dodge") +
+  theme_excel() + 
+  scale_fill_excel() +
+  ggtitle("Excel 2003")
+
+pieExample = ggplot(mtcars, aes(x = factor(1), fill = factor(cyl))) +
+  geom_bar(width = 1) +
+  theme_void() +
+  scale_fill_excel() +
+  coord_polar(theta = "y") +
+  ggtitle("This Ain't No Data\nThis Ain't No Disco")
+
+tenRing = ggplot(mtcars, aes(x = factor(1), fill = factor(cyl))) +
+  geom_bar(width = 1) +
+  theme_void() +
+  scale_fill_excel() +
+  coord_polar() +
+  ggtitle("The 10-ring Is Too Big")
+
+
+df = data.frame(
+  variable = c("Nom", "nom"),
+  value = c(20, 80)
+)
+
+pacMan = ggplot(df, aes(x = "", y = value, fill = variable)) +
+  geom_bar(width = 1, stat = "identity") +
+  scale_fill_manual(values = c("yellow", "black")) +
+  coord_polar("y", start = pi / 3) +
+  theme_void() +
+  labs(title = "Wickham's\nPac-Man")
+
+multiplot(excelExample, pacMan, tenRing, pieExample, cols = 2)
+
+```
+
+
+
+## Color
+
+Color is generally used for the following:
+
+- Groups
+
+- Intensity
+
+
+Only use color when it is actually doing something to aid interpretation.
+
+
+```{r, fig.width = 10, fig.height= 3, fig.align="center"}
+no = ggplot(mpg, aes(class)) + 
+  geom_bar(aes(fill = class)) +
+  theme_trueMinimal() +
+  ggtitle("No") +
+  guides(fill = FALSE) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = .5))
+
+better = ggplot(mpg, aes(class)) + 
+  geom_bar(fill = "#9ECAE1") +
+  theme_trueMinimal() +
+  ggtitle("Better") +
+  theme(axis.text.x = element_text(angle = 90, vjust = .5))
+
+multiplot(no, better, cols = 2)
+
+```
+
+
+
+## Color - Groups
+
+```{r, fig.height = 6, fig.width = 10, fig.align="center"}
+ggplot(mpg, aes(factor(class), fill = factor(cyl))) +
+  geom_bar(position = "dodge") +
+  theme_bw() + 
+  scale_fill_ptol()
+  
+```
+
+
+## Color - Intensity
+
+```{r, fig.align="center"}
+
+ggplot(faithfuld, aes(waiting, eruptions, fill = density)) + 
+  geom_raster(interpolate = TRUE) + 
+  scale_fill_gradient(low = "#f2f0f7", high = "#4a1486") + 
+  theme_trueMinimal()
+
+```
+
+
+## Color - Brewer Palettes
+
+```{r, fig.height=6, fig.width=10, fig.align="center"}
+RColorBrewer::display.brewer.all()
+```
+
+
+## Color - Tol Palettes
+
+```{r, fig.height=6, fig.width=10, fig.align="center"}
+scales::show_col(ptol_pal() (6))
+```
+
+
+## Color - Few Palettes
+
+<div class="columns-2">
+
+```{r, fig.height=5, fig.width=5}
+scales::show_col(few_pal("light")(6))
+```
+
+```{r, fig.height=5, fig.width=5}
+scales::show_col(few_pal("dark")(6))
+```
+
+
+</div>
+
+
+## Size
+
+Much like color, size can convey very distinct ideas:
+
+- Value size
+
+- Frequency
+
+You need to be very explicit to which you are referring!
+
+
+## Size
+
+
+```{r, fig.height=5, fig.width=10, fig.align="center"}
+valSize = ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(aes(size = qsec), color = "#117777", alpha = .5) + 
+  theme_trueMinimal()
+
+countSize = ggplot(mpg, aes(class, as.factor(cyl))) +
+  geom_count(color = "#117777") +
+  scale_size_area(breaks = c(1, 10, 20, 30)) +
+  theme_bw()
+
+multiplot(valSize, countSize, cols = 2)
+
+```
+
+
+
+## Shape
+
+Shape is a bit more limited than color and size.
+
+- It really only helps to denote group membership.
+
+  - And only does well when things are sparse.
+
+## Shape - Linetypes {.flexbox .vcenter}
+
+```{r}
+df = data.frame(
+  x = rep(1:10, 4), 
+  y = 1:40,
+  group = rep(c("a", "b", "c", "d"),
+  each = 10)
+)
+
+ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, group=group)) +
+  geom_line(aes(linetype = group), color = "#781c81", size = 1.25) +
+  theme_bw()
+```
+
+## Where We Have Trouble...
+
+
+```{r, fig.height=5, fig.width=9, fig.align="center"}
+df = data.frame(
+  x = rep(1:10, 4), 
+  y = sin(1:40),
+  group = rep(c("a", "b", "c", "d"),
+  each = 10)
+)
+
+badNews = ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, group=group)) +
+  geom_line(aes(linetype = group), color = "#781c81", size = 1.25) +
+  theme_bw() +
+  ggtitle("Um....What?")
+
+slightlyBetter = ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, color = group)) +
+  geom_line(size = 1.25, alpha = .75) +
+  theme_bw() +
+  scale_color_ptol() +
+  ggtitle("Better...Marginally")
+
+multiplot(badNews, slightlyBetter, cols = 2)
+```
+
+
+## Shape - Points
+
+```{r, fig.align="center"}
+ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(aes(shape = factor(cyl)), size = 4) +
+  theme_bw()
+```
+
+
+## Alpha
+
+> - No, we are not talking about Cronbach.
+
+> - We probably all know about the RGB color model.
+
+> - But...did you know that it can have a fourth channel?
+
+> - Alpha!
+
+> - Alpha is essentially transparency.
+
+> - - 0 is completely translucent
+
+## How Does Alpha Help
+
+We are frequently fortunate enough to have a considerable amount of data.
+
+Depending on what type of plotting we want to do, we could run into problems very quickly.
+
+
+<!-- ## Test {.flexbox .vcenter} -->
+
+<!-- ```{r, fig.height=4, fig.width=4, fig.show='animate', fig.path="img//"} -->
+<!-- df = data.frame(x = rnorm(5000), y = rnorm(5000)) -->
+
+<!-- # df = as.data.frame(sapply(df, rep.int, times = 3)) -->
+<!-- # -->
+<!-- # df$alphaValue = rep(c(0, .5, .1), each = 5000) -->
+
+<!-- ggplot(df, aes(x, y)) + -->
+<!--   geom_point() + -->
+<!--   theme_trueMinimal() -->
+
+<!-- ggplot(df, aes(x, y)) + -->
+<!--   geom_point(alpha = .5) + -->
+<!--   theme_trueMinimal() -->
+
+<!-- ggplot(df, aes(x, y)) + -->
+<!--   geom_point(alpha = .1) + -->
+<!--   theme_trueMinimal() -->
+
+<!-- ggplot(df, aes(x, y)) + -->
+<!--   geom_point(alpha = .075) + -->
+<!--   theme_trueMinimal() -->
+
+<!-- ``` -->
+
+
+## Alpha
+
+
+```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'}
+alpha0 = ggplot(diamonds, aes(carat, price)) +
+  geom_point() +
+  theme_bw() +
+  ggtitle("Alpha = 1")
+  
+alpha5 = ggplot(diamonds, aes(carat, price)) +
+  geom_point(alpha = .5) +
+  theme_bw() +
+  ggtitle("Alpha = .5")
+
+alpha1 = ggplot(diamonds, aes(carat, price)) +
+  geom_point(alpha = .1) +
+  theme_bw() +
+  ggtitle("Alpha = .1")
+
+alpha01 = ggplot(diamonds, aes(carat, price)) +
+  geom_point(alpha = .01) +
+  theme_bw() +
+  ggtitle("Alpha = .01")
+
+
+multiplot(alpha0, alpha5, alpha1, alpha01, cols = 4)  
+```
+
+## Test
+
+```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'}
+alpha01 = ggplot(mtcars, aes(mpg, hp, frame = cyl)) +
+  geom_point(alpha = .5) +
+  theme_bw()
+
+gganimate::gganimate(alpha01)
+```
+
+![](test.gif)
+
+## Jitter
+
+If you have ever held a jumping bean or drank too much coffee, you might already know about jitter.
+
+Jitter is useful if we have some minor overplotting issues.
+
+- It would not be a good fix for what we just saw.
+
+```{r, fig.height=3.8, fig.width=10}
+ggplot(diamonds, aes(carat, price)) +
+  geom_jitter() +
+  theme_bw() +
+  ggtitle("I Told You It Wouldn't Work")
+```
+
+
+
+## Looks Pretty Clear... {.flexbox .vcenter}
+
+```{r, fig.height=5.5, fig.width=9}
+ggplot(mpg, aes(as.factor(cyl), hwy)) + 
+  geom_point() + 
+  theme_bw()
+```
+
+
+## After Jittering {.flexbox .vcenter}
+  
+```{r, fig.height=5.5, fig.width=9}
+ggplot(mpg, aes(as.factor(cyl), hwy)) + 
+  geom_jitter(width = 0.4, height = 0) + 
+  theme_bw()
+```
+
+
+## An Alternative {.flexbox .vcenter}
+
+```{r, fig.height=5.5, fig.width=9}
+ggplot(mpg, aes(as.factor(cyl), hwy)) + 
+  geom_boxplot(fill = "#ff5500") + 
+  theme_bw() 
+```
+
+
+## Other Ideas
+
+```{r, fig.height=5.5, fig.width=10, fig.align="center"}
+
+sizedPlot = ggplot(mpg, aes(as.factor(cyl), hwy)) + 
+  geom_count(alpha = .75) + 
+  theme_bw() +
+  ggtitle("Size")
+
+densityEst = ggplot(mpg, aes(hwy, fill = as.factor(cyl))) + 
+  geom_density(alpha = .5) + 
+  theme_bw() +
+  scale_color_ptol() +
+  ggtitle("Density Estimation")
+
+multiplot(sizedPlot, densityEst, cols = 2)
+
+```
+
+
+## Small Multiples/Faceting
+
+We often want to compare a plot over several different levels. 
+
+We have already seen ways to use color and other items to make groups distinct.
+
+If you want to be daring, though, there are other methods.
+
+## Small Multiples/Faceting {.flexbox .vcenter}
+
+```{r, fig.height=5.5, fig.width=9}
+ggplot(mpg, aes(displ, hwy)) + geom_point() +
+  facet_grid(. ~ cyl) + theme_bw()
+```
+
+
+## Multiple Relationships -- Very Powerful {.flexbox .vcenter}
+
+```{r, fig.height=5.5, fig.width=10}
+ggplot(mpg, aes(displ, cty)) + 
+  geom_count(alpha = .3) +
+  geom_rug(position = "jitter") +
+  facet_grid(drv ~ cyl) + 
+  theme_bw()
+```
+
+
+## Combining Features
+
+We just saw a glimpse about how we can use multiple principles to convey information.
+
+ - We had a two-variable facet, size, and density estimates.
+
+```{r, fig.height=3, fig.width=4.75}
+
+ggplot(diamonds, aes(carat, price)) +
+  geom_point(alpha = .1) +
+  geom_rug() +
+  theme_trueMinimal() +
+  ggtitle("Uninformative Margins")
+
+
+p = ggplot(diamonds, aes(carat, price)) +
+  geom_point(alpha = .1) +
+  theme_trueMinimal() +
+  ggtitle("Informative Margins")
+
+ggExtra::ggMarginal(p)
+
+
+```
+
+
+## Combining Features {.flexbox .vcenter}
+
+```{r}
+ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(aes(size = qsec, color = as.factor(cyl), shape = as.factor(gear))) + 
+  geom_rug(position = "jitter") +
+  theme_bw() + 
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ am)
+```
+
+
+## Other Combinations
+
+```{r, fig.align="center"}
+p = ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point() + 
+  geom_rug(position = "jitter") +
+  theme_bw()
+
+ggExtra::ggMarginal(p, type = "boxplot")
+```
+
+
+# Tips (And Maybe Tricks)
+
+## Grid Lines
+
+The default is always some version of "No".
+
+```{r, fig.width = 10, fig.align = "center"}
+full = ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(size = 4) +
+  theme(panel.grid.major = element_line(color = "black", size = 1), 
+        panel.grid.minor = element_line(color = "black", size = 1), 
+        panel.background = element_rect(fill = "white")) +
+  ggtitle("Is It A Map?\nMaybe Graphing Paper?")
+
+slim = ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(size = 4) +
+  theme_bw() +
+  ggtitle("Better")
+
+none = ggplot(mtcars, aes(wt, mpg)) + 
+  geom_point(size = 4) +
+  theme_trueMinimal() +
+  ggtitle("Data!")
+
+multiplot(full, slim, none, cols = 3)
+
+```
+
+
+
+## When To Use Grid Lines
+
+Use for:
+
+- Large plots
+- Make differences clear
+- Comparing values on categorical scales
+- Narrowing focus
+
+When you do use them, they should be very faint.
+
+
+## Large Plots
+
+```{r, fig.width = 10, fig.height = 5.75}
+noLines = ggplot(economics, aes(date, unemploy)) +
+  geom_line() +
+  theme_trueMinimal() +
+  ggtitle("Maybe Tough To Follow")
+
+lightLines = ggplot(economics, aes(date, unemploy)) +
+  geom_line() +
+  theme_light() +
+  ggtitle("Pretty Clear")
+
+multiplot(noLines, lightLines)
+
+```
+
+
+## Make Differences Clearer
+
+```{r, fig.width = 10, fig.height = 5.75}
+noLines = ggplot(mpg, aes(class, hwy)) +
+  geom_boxplot() +
+  theme_trueMinimal() +
+  coord_flip() +
+  ggtitle("Hard To Judge Differences")
+
+
+lightLines = ggplot(mpg, aes(class, hwy)) +
+  geom_boxplot() +
+  theme_light() +
+  coord_flip() +
+  ggtitle("Easier")
+
+multiplot(noLines, lightLines, cols = 2)
+
+```
+
+
+## Comparing Categorical Scale
+
+```{r, fig.width = 10, fig.height = 5.5}
+df = data.frame(
+  x = c(cos(1:10), sin(rep(1:10, 2)), cos(1:10)), 
+  y = 1:40,
+  group = rep(c("a", "b", "c", "d"),
+  each = 10)
+)
+
+noLines = ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, group=group)) +
+  geom_line(aes(color = group), size = 1.25) +
+  theme_trueMinimal() +
+  scale_color_ptol() +
+  ggtitle("Hard To Compare Groups")
+
+lightLines = ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, group=group)) +
+  geom_line(aes(color = group), size = 1.25) +
+  theme_light() +
+  scale_color_ptol() +
+  ggtitle("Infinitely Easier")
+
+multiplot(noLines, lightLines)
+```
+
+
+
+## Narrowing Focus
+
+```{r, fig.width = 10, fig.height = 6}
+noLines = ggplot(mpg, aes(hwy, cty)) +
+  geom_point(alpha = .5) +
+  theme_trueMinimal() +
+  ggtitle("Finding Chunks Is Tricky")
+
+lightLines = ggplot(mpg, aes(hwy, cty)) +
+  geom_point(alpha = .5) +
+  theme_light() +
+  ggtitle("Pretty Easy Here")
+
+multiplot(noLines, lightLines)
+```
+
+
+## Interactivity
+
+Given the confines of publishing, we cannot always default to interactive visualization.
+
+- There are journals and outlets making progress on this front!
+
+  - Journal of Computational and Graphical Statistics anyone?
+
+However, it is a great place to start when exploring data.
+
+- It is also great for disseminating information on the web.
+
+## Making Old Trouble Disappear
+
+Grid lines...who needs them?
+
+```{r, fig.align = "center", fig.width = 10}
+noLines = ggplot(mpg, aes(hwy, cty)) +
+  geom_point(aes(text = paste(manufacturer, model, sep = " ")), alpha = .5) +
+  theme_trueMinimal()
+
+ggplotly(noLines)
+```
+
+
+## We All Remember This Monster
+
+```{r, fig.align="center"}
+df = data.frame(
+  x = rep(1:10, 4), 
+  y = sin(1:40),
+  group = rep(c("a", "b", "c", "d"),
+  each = 10)
+)
+
+df = tidyr::spread(df, group, y)
+
+library(dygraphs)
+
+dygraph(df) %>%
+  dyLegend(show = "onmouseover") %>%
+  dyHighlight(highlightSeriesBackgroundAlpha = .2,
+              hideOnMouseOut = FALSE,
+              highlightSeriesOpts = list(strokeWidth = 4)) %>%
+  dyAxis("x", drawGrid = FALSE) %>% 
+  dyAxis("y", drawGrid = FALSE) %>% 
+  dyCSS("dygraphLegend.css")
+
+
+```
+
+
+## The Clutter Is Strong With This One
+
+```{r, fig.align="center"}
+tooMuch = ggplot(mpg, aes(factor(class), fill = factor(cyl))) +
+  geom_bar(position = "dodge") +
+  theme_bw() + 
+  scale_fill_ptol()
+  
+ggplotly(tooMuch)
+```
+
+
+## Still A Better Version
+
+```{r}
+countSize = ggplot(mpg, aes(class, as.factor(cyl))) +
+  geom_count(color = "#117777") +
+  scale_size_area(breaks = c(1, 10, 20, 30)) +
+  theme_bw()
+
+ggplotly(countSize)
+```
+
+
+
+## Important People
+
+Mike Bostok -- D3
+
+Cynthia Brewer -- Color Brewer
+
+William Cleveland -- Pioneer (Citation Champ)
+
+Stephen Few -- All Things Viz
+
+Michael Friendly -- Psychologist and Viz Expert
+
+Paul Tol -- Physicist and Viz Expert
+
+Edward Tufte -- Information Display
+
+Hadley Wickham -- Reigning Data Science Heavyweight Champion
+
+Leland Wilkinson -- The Grammar of Graphics
+
+# Shiny Demo
+
+# Thanks!

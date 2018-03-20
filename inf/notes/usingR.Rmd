@@ -1,0 +1,344 @@
+---
+title: "Learning R"
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    highlight: zenburn
+    css: documentCSS.css
+    center: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, comment = "")
+```
+
+## Why We Start At R
+
+```{r, echo = FALSE, eval = TRUE}
+fortunes::fortune(which = 52)
+```
+
+
+## Words Of Wisdom
+
+```{r, echo = FALSE, eval = TRUE}
+fortunes::fortune(which = 108)
+
+fortunes::fortune(which = 323)
+```
+
+
+## More
+
+```{r, echo = FALSE, eval = TRUE}
+fortunes::fortune(which = 370)
+```
+
+
+## Hard To Argue
+
+```{r, echo = FALSE, eval = TRUE}
+fortunes::fortune(which = 168)
+```
+
+## What You Need To Know
+
+R is an object-oriented statistical programming language.
+
+```{r}
+assortedNumbers = 15:30
+```
+
+```{r}
+assortedNumbers[5]
+```
+
+R is vectorized.
+
+```{r}
+(assortedNumbers + 20) * 5
+```
+
+Others would need a loop...
+
+```{r}
+res = 1:length(assortedNumbers)
+
+for(i in 1:length(assortedNumbers)){
+  res[i] = (assortedNumbers[i] + 20) * 5
+}
+```
+
+
+## Reading Data
+
+There are more than a few ways to read data into R:
+
+- <span class="func">read.csv()</span> -- Most common
+
+- <span class="func">read.table()</span>
+
+- <span class="func">read.delim()</span>
+
+Sometimes people will give you data in special forms (.sav, .dta, .sas7bdat, etc.) and this is where haven and readxl have you covered.
+
+  - You probably should not associate with folks who send you such files -- they are not to be trusted.
+
+## Reading Data
+
+Try this:
+
+```{r}
+testData = read.csv("http://www3.nd.edu/~sberry5/bball.csv")
+```
+
+
+## Getting Packages
+
+R comes with several great packages.
+
+- <span class="pack">base</span>, by itself, is more powerful than most other programs
+
+There is also a massive eco-system around R and CRAN is the official repository.
+
+```{r, eval = FALSE}
+install.packages("dplyr")
+
+library(dplyr)
+```
+
+
+## Object Types
+
+At the data level, we are usually dealing with data frames or a matrix.
+
+A data frame contains mixed data.
+
+A matrix is all the same.
+
+We often encounter lists, but we will save that for later.
+
+## R Is So Hard...(Followed By Tears)
+
+Sure it is, but so was walking before you knew how to do it.
+
+This is a linear model:
+
+```{r}
+testModel = lm(mpg ~ hp + wt, data = mtcars)
+```
+
+Compare this simple line of code to that of a graphical interface and we can talk about which is faster and easier to follow.
+
+And a summary:
+
+```{r}
+summary(mtcars)
+```
+
+##
+
+### Python
+
+```{r, eval = FALSE}
+from sklearn import datasets, linear_model
+
+regr = linear_model.LinearRegression()
+
+# Two steps to get X and Y
+
+regr.fit(X, Y)
+```
+
+
+### SAS
+
+```{r, eval = FALSE}
+proc reg;
+  model mpg=hp wt;
+run;
+```
+
+
+### SPSS
+```{r, eval = FALSE}
+regression/dependent mpg/enter hp wt.
+```
+
+### Stata
+
+```{r, eval = FALSE}
+regress mpg hp wt
+```
+
+
+
+## Handy Functions
+
+We can look at the structure of our data with <span class="func">str()</span>.
+
+All of the column names can be checked with <span class="func">names()</span>.
+
+Getting a table view is easy with <span class="func">View()</span>.
+
+The previously-seen <span class="func">summary()</span> can summarize your data and other objects.
+
+You will see <span class="func">c()</span> all the time; it combines things into a vector.
+
+The <span class="func">$</span> is one way to extract variables from a data frame.
+
+- dat[, 'varName'] is another.
+
+You might make very good friends with <span class="func">sink()</span>.
+
+## A Little Less Conversation...
+
+Now it is your turn!
+
+Use the built-in mtcars data and inspect it.
+
+## Helpful RStudio Hints
+
+F1 *should* show the help files for any function.
+
+F2 shows the function code.
+
+Ctrl + Enter runs code.
+
+Ctrl + Shift + P runs whatever you ran before, but with changes.
+
+Ctrl + I indents your code.
+
+Shift + Alt + K for everything
+
+TAB...TAB...TAB
+
+
+## Creating Your Own Functions
+
+"If you are going to do something more than twice, just write a function." -- Michael Clark
+
+R, unlike many others, makes function writing far too easy.
+
+```{r}
+myFirstFunction = function(x) {
+  resSum = sum(x)
+  res = resSum / length(x)
+  return(res)
+}
+```
+
+## Power Is Good...
+
+As you continue your pursuit of statistical excellence, you will write functions.
+
+```{r}
+really = function(x){
+  apply(x, 2, function(x) {
+    sum(x) / length(x)
+  })
+}
+```
+
+
+## But Sometimes Painful
+
+There was no reason to write such a function, when R already has one.
+
+```{r}
+colMeans()
+```
+
+It is a total "noob" mistake that even the most well-known researchers make.
+
+- Don't feel bad when you do it.
+
+## Combining Functions
+
+You can *almost* infinitely chain functions with R.
+
+- This is assuming that they are things that can chain without error.
+
+```{r}
+log(colMeans(mtcars[which(mtcars$cyl == 6), ]))
+```
+
+- Not that this particular bit of code is something you would ever need to do.
+
+
+
+## A Modern Approach
+
+We just saw a little bit of <span class="pack">base</span>.
+
+- We all loved it, I know.
+
+But now, let's check out what the <span class="pack">dplyr</span> package is all about.
+
+
+```{r}
+library(dplyr)
+?dplyr
+```
+
+## dplyr
+
+The <span class="pack">dplyr</span> package is part of the *tidyverse*.
+
+At its core, it is providing a "grammar for data manipulation".
+
+It utilizes a piping function (<span class="func">%>%</span>) to chain statements.
+
+- The <span class="func">%>%</span> comes from <span class="pack">magrittr</span>
+
+## Inside Out
+
+You probably remember this:
+
+```{r}
+log(colMeans(mtcars[which(mtcars$cyl == 6), ]))
+```
+
+Again, we read this from the inside out.
+
+## Maybe More Sense?
+
+Contrast with the following:
+
+```{r}
+library(dplyr)
+
+mtcars %>% 
+  filter(cyl == 6) %>% 
+  colMeans() %>% 
+  log()
+```
+
+## Some Other Assorted Fun
+
+```{r}
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarize(n = n(), 
+            meanMPG = mean(mpg), 
+            sdMPG = sd(mpg))
+```
+
+```{r}
+mtcars %>% 
+  group_by(am) %>% 
+  mutate(wtRaw = wt * 1000) %>% 
+  select(-wt) %>% 
+  summarize_all(mean)
+```
+
+
+## I Have Talked Long Enough
+
+Engage in some <span class="pack">dplyr</span> fun for yourself.
+
+Let's keep using the mtcars data and do the following:
+
+1.  Pick a grouping variable(s) (am, cyl, gears) -- <span class="func">group_by</span>
+2.  Create a new variable -- <span class="func">mutate</span>
+3.  Create some type of summary

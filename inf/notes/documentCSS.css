@@ -1,0 +1,63 @@
+body {
+    font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 15px;
+    line-height: 1.42857143;
+    color: #f1f1f1;
+    background-color: #000;
+}
+
+pre {
+    display: block;
+    padding: 10px;
+    margin: 0 0 10.5px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    word-break: break-all;
+    word-wrap: break-word;
+    color: #f1f1f1;
+    background-color: #000;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+}
+
+pre:not([class]) {
+    background-color: #000;
+}
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+    background-color: #000;
+    border: 1px solid #ecf0f1;
+}
+
+.pack {
+   color: firebrick;
+}
+
+.func {
+   color: #ff5500;
+}
+
+.neonBlue {
+   color: #4F8EF7;
+   text-shadow: 1px 0px 20px #E64093;
+}
+
+.reveal .progress span {
+    display: none;
+}
+
+.reveal .playback {
+    display: none;
+}
+
+.reveal .controls {
+    display: none !important;
+}
+
+.reveal h1 {
+  font-size: 1.5em;
+}

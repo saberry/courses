@@ -333,6 +333,15 @@ mtcars %>%
 ```
 
 
+## New Variables
+
+```{r}
+mtcars = mtcars %>% 
+  mutate(amFactor = as.factor(am), 
+         hpCentered = scale(hp, center = TRUE, scale = FALSE))
+```
+
+
 ## I Have Talked Long Enough
 
 Engage in some <span class="pack">dplyr</span> fun for yourself.

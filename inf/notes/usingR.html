@@ -744,6 +744,12 @@ mtcars <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">select</span>(<span class="op">-</span>wt) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">summarize_all</span>(mean)</code></pre></div>
 </section>
+<section id="new-variables" class="slide level2">
+<h2>New Variables</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mtcars =<span class="st"> </span>mtcars <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">amFactor =</span> <span class="kw">as.factor</span>(am), 
+         <span class="dt">hpCentered =</span> <span class="kw">scale</span>(hp, <span class="dt">center =</span> <span class="ot">TRUE</span>, <span class="dt">scale =</span> <span class="ot">FALSE</span>))</code></pre></div>
+</section>
 <section id="i-have-talked-long-enough" class="slide level2">
 <h2>I Have Talked Long Enough</h2>
 <p>Engage in some <span class="pack">dplyr</span> fun for yourself.</p>

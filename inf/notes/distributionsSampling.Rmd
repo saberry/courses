@@ -1,0 +1,61 @@
+---
+title: |
+      | Distributions
+      | Sampling
+      | Probability
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Normal Distribution
+
+The normal distribution should not be too much of a mystery to us.
+
+```{r}
+library(ggplot2)
+
+set.seed(1001)
+
+population = data.frame(population = rnorm(n = 1000000, mean = 0, sd = 1))
+
+regions = data.frame(sdPlus1 = mean(population$population) + sd(population$population), 
+                     sdMinus1 = mean(population$population) - sd(population$population), 
+                     sdPlus2 = mean(population$population) + (2 * sd(population$population)), 
+                     sdMinus2 = mean(population$population) - (2 * sd(population$population)), 
+                     sdPlus3 = mean(population$population) + (3 * sd(population$population)), 
+                     sdMinus3 = mean(population$population) - (3 * sd(population$population)))
+
+ggplot(population, aes(population)) +
+  geom_density() +
+  theme_minimal()
+
+```
+
+
+If we are observing a population that is normally distributed, we can know some things about it: the mean and the standard deviation. We also know that the mean, median, and mode are all the same. 
+
+There is also a convenient rule: the 68-95-99.7 rule. This rule dictates that 68% of the distribution is contained within $\pm1\sigma$, 95% is contained within $\pm2\sigma$, and 99.7% is contained within $\pm3\sigma$. It is not functionally part of the rule, but 99.99% is contained under $\pm4\sigma$.
+
+```{r}
+ggplot(population, aes(population)) +
+  geom_density() +
+  geom_vline(xintercept = regions$sdPlus1, color = "red") +
+  geom_vline(xintercept = regions$sdMinus1, color = "red") +
+  geom_vline(xintercept = regions$sdPlus2, color = "blue") +
+  geom_vline(xintercept = regions$sdMinus2, color = "blue") +
+  geom_vline(xintercept = regions$sdPlus3, color = "green") +
+  geom_vline(xintercept = regions$sdMinus3, color = "green") +
+  theme_minimal()
+```
+
+
+The normal distribution is important, as many things are naturally normally distributed.
+
+## Sampling
+
+In most circumstances, we are not going to be able to get to the population. To that end, we often need to get a sample from the population. 
+
+## Probability

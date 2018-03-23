@@ -19,11 +19,62 @@ Before we can even begin to dive into analyzing text, we must first process the 
 
 ### Stemming
 
-Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. What if we remove the suffixes? Now we have something that is equivalent in meaning and in a string sense. This is what setmming 
+Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. We have a string with 6, 4, and 7 characters, respectively.
+
+What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "jump"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
+
+Let's take a look to see how this works (you will need to install "tm" and "SnowballC" first):
+
+```{r}
+jumpingStrings = c("jump", "jumping", "jumped", "jumper")
+
+tm::stemDocument(jumpingStrings)
+```
+
+
+We got exactly what we expected, right? You might have noticed that "jumper" did not get stemmed. Do you have any idea why? Let's think through it together. "Jump", "jumping", and "jumped" are all verbs related to the act of jumping. "Jumper", on the other hand, is a person who jumps -- it is a noun. Martin Porter's stemming algorithm works incredibly well!
+
+Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document -- this is know as a document-term matrix. If we know that "jump", "jumping", and "jumped" all refer to the same thing, we want it just represented once within our document-term matrix.
+
+Shall we take a look?
+
+```{r}
+library(tm)
+
+documents = c("I like to jump.", 
+              "I have jumped my whole life.", 
+              "Jumping is in my blood.", 
+              "I am a jumper.")
+
+documentsCorp = tm::SimpleCorpus(VectorSource(documents))
+
+documentsDTM = DocumentTermMatrix(documentsCorp)
+
+inspect(documentsDTM)
+```
+
+We can see that without stemming, we have 9 terms (things like "I", "a", and "to" get removed automatically). Let's do some stemming now:
+
+```{r}
+documentsStemmed = stemDocument(documents)
+
+documentsStemmed
+```
+
+And now the document-term matrix:
+```{r}
+stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
+
+stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
+
+inspect(stemmedDocDTM)
+```
+
+If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.
 
 ### Stop Words
 
-Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed.
+Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own.
 
 ### Character Removal
 

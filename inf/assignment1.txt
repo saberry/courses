@@ -1,0 +1,60 @@
+##########################
+### Advanced Inference ###
+###   Homework 1       ###
+##########################
+
+2 points per task for 10 total points
+
+# Task 1 #
+
+Read in the following data: "https://www3.nd.edu/~sberry5/data/allReviews.RData"
+
+You will need to download the data and then read it in with the following:
+
+load("folder/allReviews.RData")
+
+The object is called "allReviews".
+
+Engage in some data exploration by using different summary functions. 
+In addition to the summary() function, the describe functions from the psych and Hmisc packages are great (but for slightly different purposes). 
+
+
+# Task 2 #
+
+How do those variables look? Do they appear to all make sense? Are there any extreme values? Are any of them coded in such a way that don't make sense? Discuss anything interesting that you found.
+
+Be sure to use the str() function or the glimpse() function from dplyr to check the structure of the data.
+
+# Task 3 #
+
+Pick at least 3 variables for which you want to explore relationships. Given any issues you found in Task 2, convert variables as needed with as.factor (forces a variable into a factor), as.numeric (forces a variable into a numeric), or anything else that you deem necessary (e.g., create new variables with mutate). 
+
+# Task 4 #
+
+Using the ggplot2 package, create some visualizations. The structure of a ggplot object is as follows:
+
+ggplot(yourData, aes(x = variableOnX, y = variableOnY)) + 
+geom_point()
+
+
+If you want to add some type of grouped function (by color, for instance), you might do something like this:
+
+ggplot(yourData, aes(x = variableOnX, y = variableOnY, color = variableToColor)) + 
+geom_point()
+
+
+Once you have produced a visualization, explain what it means. Naturally, good viz doesn't need explanation, but let's do it regardless!
+
+# Task 5 #
+
+Apophenia is real...
+
+Using the inferviz package (devtools::install_github('saberry/qualtricsR')), use the simViz function to see how well you actually do in finding an actual relationship.
+
+First, pick two new variables for relationship exploration -- make sure that you have not seen them before.
+
+When you run it the first time, keep the distractors argument at the default value. When asked if you want to see the real data select 1 (No). Now try it with more distractors (maybe 5 or 6).
+
+How did you do? Where you able to spot the real relationship or were you fooled by your basic human need for pattern finding?
+
+Discuss what you think this means.

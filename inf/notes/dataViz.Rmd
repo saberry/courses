@@ -1,6 +1,5 @@
 ---
 title: "Data Visualization"
-author: "Seth Berry"
 output:
   revealjs::revealjs_presentation:
     theme: night
@@ -345,9 +344,9 @@ scales::show_col(ptol_pal() (6))
 
 ## Color - Few Palettes
 
-<div class="columns-2">
 
-```{r, fig.height=5, fig.width=5}
+
+```{r, fig.height=5, fig.width=5, echo = FALSE, eval = FALSE}
 scales::show_col(few_pal("light")(6))
 ```
 
@@ -355,8 +354,6 @@ scales::show_col(few_pal("light")(6))
 scales::show_col(few_pal("dark")(6))
 ```
 
-
-</div>
 
 
 ## Size
@@ -459,7 +456,7 @@ ggplot(mtcars, aes(wt, mpg)) +
 
 > - Alpha is essentially transparency.
 
-> - - 0 is completely translucent
+> - 0 is completely translucent
 
 ## How Does Alpha Help
 
@@ -499,7 +496,7 @@ Depending on what type of plotting we want to do, we could run into problems ver
 ## Alpha
 
 
-```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'}
+```{r, fig.height=5.5, fig.width=10, fig.align="center"}
 alpha0 = ggplot(diamonds, aes(carat, price)) +
   geom_point() +
   theme_bw() +
@@ -524,17 +521,16 @@ alpha01 = ggplot(diamonds, aes(carat, price)) +
 multiplot(alpha0, alpha5, alpha1, alpha01, cols = 4)  
 ```
 
-## Test
+<!-- ## Test -->
 
-```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'}
-alpha01 = ggplot(mtcars, aes(mpg, hp, frame = cyl)) +
-  geom_point(alpha = .5) +
-  theme_bw()
+<!-- ```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'} -->
+<!-- alpha01 = ggplot(mtcars, aes(mpg, hp, frame = cyl)) + -->
+<!--   geom_point(alpha = .5) + -->
+<!--   theme_bw() -->
 
-gganimate::gganimate(alpha01)
-```
+<!-- gganimate::gganimate(alpha01) -->
+<!-- ``` -->
 
-![](test.gif)
 
 ## Jitter
 
@@ -641,15 +637,17 @@ ggplot(diamonds, aes(carat, price)) +
   theme_trueMinimal() +
   ggtitle("Uninformative Margins")
 
+```
 
+
+##
+```{r, fig.height=3, fig.width=4.75}
 p = ggplot(diamonds, aes(carat, price)) +
   geom_point(alpha = .1) +
   theme_trueMinimal() +
   ggtitle("Informative Margins")
 
 ggExtra::ggMarginal(p)
-
-
 ```
 
 
@@ -804,13 +802,7 @@ multiplot(noLines, lightLines)
 
 ## Interactivity
 
-Given the confines of publishing, we cannot always default to interactive visualization.
-
-- There are journals and outlets making progress on this front!
-
-  - Journal of Computational and Graphical Statistics anyone?
-
-However, it is a great place to start when exploring data.
+Interactive graphics are a great place to start exploring data.
 
 - It is also great for disseminating information on the web.
 
@@ -898,7 +890,3 @@ Edward Tufte -- Information Display
 Hadley Wickham -- Reigning Data Science Heavyweight Champion
 
 Leland Wilkinson -- The Grammar of Graphics
-
-# Shiny Demo
-
-# Thanks!

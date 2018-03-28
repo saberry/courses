@@ -1,0 +1,106 @@
+---
+title: |
+      | Visual
+      | Inference
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
+```
+
+## Testing Hypotheses
+
+We have talked about the purposes of visualization: exploration and inference. When we are thinking about inference in a visual sense, we tend to think about seeing patterns that support our hypotheses. In the coming weeks, we are going to talk about statistical models that assist in inference. We can also create inferential tests (think *p*-values) with visualization.
+
+## An Easy One{.tabset .tabset-fade .tabset-pills}
+
+### Hypotheses
+Let's generate a hypothesis about our good old mtcars data.
+
+For one, we might say that we would anticipate that as horsepower increases, the number of miles per gallon decreases. This seems like a reasonable proposition and one that we can test with visual inference. 
+
+### Inferential Strength
+Consider the following:
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+inferviz::simViz(mtcars, mpg, hp, 
+                 distractors = 7, answer = FALSE)
+```
+
+### Reality
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+library(ggplot2)
+
+ggplot(mtcars, aes(mpg, hp)) +
+  geom_point() +
+  theme_bw()
+```
+
+
+## More Challenging {.tabset .tabset-fade .tabset-pills}
+
+Let's maybe consider some more challenging data.
+
+```{r}
+reviewData = read.csv("http://www.nd.edu/~sberry5/data/allReviews.csv")
+```
+
+### Hypotheses
+
+Let's propose that a relationship exists between the number of words written and the overall review.
+
+### Inference
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+inferviz::simViz(reviewData, rating, wordCount, 
+                 distractors = 7, answer = FALSE)
+```
+
+### Reality
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+ggplot(reviewData, aes(rating, wordCount)) +
+  geom_point() +
+  theme_bw()
+```
+
+
+## One Final Example {.tabset .tabset-fade .tabset-pills}
+
+Now, let's use some hedge fund data:
+
+```{r}
+hedgeData = read.csv("http://www.nd.edu/~sberry5/data/hedgeFundTest.csv")
+```
+
+### Hypothesis
+
+When we look at our data, we see a few variables:
+
+```{r}
+names(hedgeData)
+```
+
+
+Let's propose that as the net asset value (nav) goes up, a vendor's valuation will also go up (vendorVal).
+
+### Inference
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+inferviz::simViz(hedgeData, nav, vendorVal, 
+                 distractors = 7, answer = FALSE)
+```
+
+### Reality
+
+```{r, fig.height=9, fig.width=9, fig.pos="center"}
+ggplot(hedgeData, aes(nav, vendorVal)) +
+  geom_point() +
+  theme_bw()
+```

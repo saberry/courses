@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "", results = )
 ```
 
 ## Words As Data
@@ -134,7 +134,7 @@ While this is certainly a contrived example and would need addition robustness t
 
 There are several R packages that will help us process text. The **tm** package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
 
-```{r}
+```{r, eval = FALSE}
 
 documents = c("I like to jump.", 
               "I have jumped my whole life.", 
@@ -294,7 +294,7 @@ readability(statementTokens)
 ```
 
 ```{r}
-
+lex.div(statementTokens)
 ```
 
 

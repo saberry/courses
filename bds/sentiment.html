@@ -134,20 +134,163 @@ $(document).ready(function () {
 <p>Before we can even begin to dive into analyzing text, we must first process the text. Processing text involves several steps that will be combined in various ways, depending on what we are trying to accomplish.</p>
 <div id="stemming" class="section level3">
 <h3>Stemming</h3>
-<p>Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. What if we remove the suffixes? Now we have something that is equivalent in meaning and in a string sense. This is what setmming</p>
+<p>Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. We have a string with 6, 4, and 7 characters, respectively.</p>
+<p>What if we remove the suffixes, “ed” and “ing” – we are left with three instances of “jump”? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.</p>
+<p>Let’s take a look to see how this works (you will need to install “tm” and “SnowballC” first):</p>
+<pre class="r"><code>jumpingStrings = c(&quot;jump&quot;, &quot;jumping&quot;, &quot;jumped&quot;, &quot;jumper&quot;)
+
+tm::stemDocument(jumpingStrings)</code></pre>
+<pre><code>[1] &quot;jump&quot;   &quot;jump&quot;   &quot;jump&quot;   &quot;jumper&quot;</code></pre>
+<p>We got exactly what we expected, right? You might have noticed that “jumper” did not get stemmed. Do you have any idea why? Let’s think through it together. “Jump”, “jumping”, and “jumped” are all verbs related to the act of jumping. “Jumper”, on the other hand, is a person who jumps – it is a noun. Martin Porter’s stemming algorithm works incredibly well!</p>
+<p>Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document – this is know as a document-term matrix. If we know that “jump”, “jumping”, and “jumped” all refer to the same thing, we want it just represented once within our document-term matrix.</p>
+<p>Shall we take a look?</p>
+<pre class="r"><code>library(tm)
+
+documents = c(&quot;I like to jump.&quot;, 
+              &quot;I have jumped my whole life.&quot;, 
+              &quot;Jumping is in my blood.&quot;, 
+              &quot;I am a jumper.&quot;)
+
+documentsCorp = tm::SimpleCorpus(VectorSource(documents))
+
+documentsDTM = DocumentTermMatrix(documentsCorp)
+
+inspect(documentsDTM)</code></pre>
+<pre><code>&lt;&lt;DocumentTermMatrix (documents: 4, terms: 9)&gt;&gt;
+Non-/sparse entries: 9/27
+Sparsity           : 75%
+Maximal term length: 7
+Weighting          : term frequency (tf)
+Sample             :
+    Terms
+Docs blood have jump jumped jumper jumping life like whole
+   1     0    0    1      0      0       0    0    1     0
+   2     0    1    0      1      0       0    1    0     1
+   3     1    0    0      0      0       1    0    0     0
+   4     0    0    0      0      1       0    0    0     0</code></pre>
+<p>We can see that without stemming, we have 9 terms (things like “I”, “a”, and “to” get removed automatically). Let’s do some stemming now:</p>
+<pre class="r"><code>documentsStemmed = stemDocument(documents)
+
+documentsStemmed</code></pre>
+<pre><code>[1] &quot;I like to jump.&quot;            &quot;I have jump my whole life.&quot;
+[3] &quot;Jump is in my blood.&quot;       &quot;I am a jumper.&quot;            </code></pre>
+<p>And now the document-term matrix:</p>
+<pre class="r"><code>stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
+
+stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
+
+inspect(stemmedDocDTM)</code></pre>
+<pre><code>&lt;&lt;DocumentTermMatrix (documents: 4, terms: 7)&gt;&gt;
+Non-/sparse entries: 9/19
+Sparsity           : 68%
+Maximal term length: 6
+Weighting          : term frequency (tf)
+Sample             :
+    Terms
+Docs blood have jump jumper life like whole
+   1     0    0    1      0    0    1     0
+   2     0    1    1      0    1    0     1
+   3     1    0    1      0    0    0     0
+   4     0    0    0      1    0    0     0</code></pre>
+<p>If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.</p>
+<p>This is going to be especially important for next week’s topic: topic models.</p>
 </div>
 <div id="stop-words" class="section level3">
 <h3>Stop Words</h3>
-<p>Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed.</p>
+<p>Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don’t have to do this on your own – a great many dictionaries exist that contain words ready for removal.</p>
+<pre class="r"><code>tm::stopwords(&quot;en&quot;)</code></pre>
+<pre><code>  [1] &quot;i&quot;          &quot;me&quot;         &quot;my&quot;         &quot;myself&quot;     &quot;we&quot;        
+  [6] &quot;our&quot;        &quot;ours&quot;       &quot;ourselves&quot;  &quot;you&quot;        &quot;your&quot;      
+ [11] &quot;yours&quot;      &quot;yourself&quot;   &quot;yourselves&quot; &quot;he&quot;         &quot;him&quot;       
+ [16] &quot;his&quot;        &quot;himself&quot;    &quot;she&quot;        &quot;her&quot;        &quot;hers&quot;      
+ [21] &quot;herself&quot;    &quot;it&quot;         &quot;its&quot;        &quot;itself&quot;     &quot;they&quot;      
+ [26] &quot;them&quot;       &quot;their&quot;      &quot;theirs&quot;     &quot;themselves&quot; &quot;what&quot;      
+ [31] &quot;which&quot;      &quot;who&quot;        &quot;whom&quot;       &quot;this&quot;       &quot;that&quot;      
+ [36] &quot;these&quot;      &quot;those&quot;      &quot;am&quot;         &quot;is&quot;         &quot;are&quot;       
+ [41] &quot;was&quot;        &quot;were&quot;       &quot;be&quot;         &quot;been&quot;       &quot;being&quot;     
+ [46] &quot;have&quot;       &quot;has&quot;        &quot;had&quot;        &quot;having&quot;     &quot;do&quot;        
+ [51] &quot;does&quot;       &quot;did&quot;        &quot;doing&quot;      &quot;would&quot;      &quot;should&quot;    
+ [56] &quot;could&quot;      &quot;ought&quot;      &quot;i'm&quot;        &quot;you're&quot;     &quot;he's&quot;      
+ [61] &quot;she's&quot;      &quot;it's&quot;       &quot;we're&quot;      &quot;they're&quot;    &quot;i've&quot;      
+ [66] &quot;you've&quot;     &quot;we've&quot;      &quot;they've&quot;    &quot;i'd&quot;        &quot;you'd&quot;     
+ [71] &quot;he'd&quot;       &quot;she'd&quot;      &quot;we'd&quot;       &quot;they'd&quot;     &quot;i'll&quot;      
+ [76] &quot;you'll&quot;     &quot;he'll&quot;      &quot;she'll&quot;     &quot;we'll&quot;      &quot;they'll&quot;   
+ [81] &quot;isn't&quot;      &quot;aren't&quot;     &quot;wasn't&quot;     &quot;weren't&quot;    &quot;hasn't&quot;    
+ [86] &quot;haven't&quot;    &quot;hadn't&quot;     &quot;doesn't&quot;    &quot;don't&quot;      &quot;didn't&quot;    
+ [91] &quot;won't&quot;      &quot;wouldn't&quot;   &quot;shan't&quot;     &quot;shouldn't&quot;  &quot;can't&quot;     
+ [96] &quot;cannot&quot;     &quot;couldn't&quot;   &quot;mustn't&quot;    &quot;let's&quot;      &quot;that's&quot;    
+[101] &quot;who's&quot;      &quot;what's&quot;     &quot;here's&quot;     &quot;there's&quot;    &quot;when's&quot;    
+[106] &quot;where's&quot;    &quot;why's&quot;      &quot;how's&quot;      &quot;a&quot;          &quot;an&quot;        
+[111] &quot;the&quot;        &quot;and&quot;        &quot;but&quot;        &quot;if&quot;         &quot;or&quot;        
+[116] &quot;because&quot;    &quot;as&quot;         &quot;until&quot;      &quot;while&quot;      &quot;of&quot;        
+[121] &quot;at&quot;         &quot;by&quot;         &quot;for&quot;        &quot;with&quot;       &quot;about&quot;     
+[126] &quot;against&quot;    &quot;between&quot;    &quot;into&quot;       &quot;through&quot;    &quot;during&quot;    
+[131] &quot;before&quot;     &quot;after&quot;      &quot;above&quot;      &quot;below&quot;      &quot;to&quot;        
+[136] &quot;from&quot;       &quot;up&quot;         &quot;down&quot;       &quot;in&quot;         &quot;out&quot;       
+[141] &quot;on&quot;         &quot;off&quot;        &quot;over&quot;       &quot;under&quot;      &quot;again&quot;     
+[146] &quot;further&quot;    &quot;then&quot;       &quot;once&quot;       &quot;here&quot;       &quot;there&quot;     
+[151] &quot;when&quot;       &quot;where&quot;      &quot;why&quot;        &quot;how&quot;        &quot;all&quot;       
+[156] &quot;any&quot;        &quot;both&quot;       &quot;each&quot;       &quot;few&quot;        &quot;more&quot;      
+[161] &quot;most&quot;       &quot;other&quot;      &quot;some&quot;       &quot;such&quot;       &quot;no&quot;        
+[166] &quot;nor&quot;        &quot;not&quot;        &quot;only&quot;       &quot;own&quot;        &quot;same&quot;      
+[171] &quot;so&quot;         &quot;than&quot;       &quot;too&quot;        &quot;very&quot;      </code></pre>
+<p>Removing stopwords takes little effort!</p>
+<pre class="r"><code>documents = c(&quot;I like to jump.&quot;, 
+              &quot;I have jumped my whole life.&quot;, 
+              &quot;Jumping is in my blood.&quot;, 
+              &quot;I am a jumper.&quot;)
+
+tm::removeWords(documents, words = stopwords(&quot;en&quot;))</code></pre>
+<pre><code>[1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
+[3] &quot;Jumping    blood.&quot;      &quot;I   jumper.&quot;           </code></pre>
+<p>We can even include custom stopwords:</p>
+<pre class="r"><code>tm::removeWords(documents, words = c(&quot;blood&quot;, stopwords(&quot;en&quot;)))</code></pre>
+<pre><code>[1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
+[3] &quot;Jumping    .&quot;           &quot;I   jumper.&quot;           </code></pre>
 </div>
-<div id="character-removal" class="section level3">
-<h3>Character Removal</h3>
-<p>In addition to whole words, sometimes symbols need to be removed.</p>
+<div id="regular-expressions" class="section level3">
+<h3>Regular Expressions</h3>
+<p>Stemming and stopword removal will go a long way to helping us process and clean our text. There are times, however, when you need complete control over what you remove. You might need to remove punctuation and other symbols, in addition to a wide array of things that come up in typical analyses (emoticons and wacky encoding characters!). When those cases pop up, you might need to make use of regular expressions to help. You should have already learned about regular expressions, but be prepared to circle back to them constantly when engaging in any matter of data science shenanigans!</p>
+<p>Many text processors will deal with hyphenated words. If, however, your data is coming from the web, then what looks like a hyphen might not really be a hyphen!</p>
+<pre class="r"><code>exampleStrings = c(&quot;This is a regularly-occuring hyphen&quot;, 
+                   &quot;This is something that more closely--resembles a manually-produced em dash&quot;, 
+                   &quot;This is something that came from the darkest recesses of ill—conceived web design&quot;)</code></pre>
+<p>We can turn to our regular expression to see what we can do:</p>
+<pre class="r"><code>gsub(pattern = &quot;-&quot;, replacement = &quot; &quot;, exampleStrings)</code></pre>
+<pre><code>[1] &quot;This is a regularly occuring hyphen&quot;                                              
+[2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
+[3] &quot;This is something that came from the darkest recesses of ill—conceived web design&quot;</code></pre>
+<p>Using gsub and just specifying a regular “-” will remove just about everything, except for whatever is in the last sentence. What is it? It looks like a hyphen, but it is not. To remove it, we will need to get creative:</p>
+<pre class="r"><code>gsub(pattern = &quot;(?!\\w)\\S&quot;, &quot; &quot;, exampleStrings, perl = TRUE)</code></pre>
+<pre><code>[1] &quot;This is a regularly occuring hyphen&quot;                                              
+[2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
+[3] &quot;This is something that came from the darkest recesses of ill conceived web design&quot;</code></pre>
+<p>By using some pattern matching, we are able to get out everything between words, no matter what it might be. This particular little bit of regex is using what is known as a negative lookahead. We have our main expression, the non-space character, \S. Next, we put an expression in front of our main expression (this is the chunk in the parenthesis that starts with “?!”). When we read this, we would say, “don’t match any word characters and then find non-whitespace characters.”</p>
+<p>While this is certainly a contrived example and would need addition robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.</p>
 </div>
 </div>
 <div id="text-processing-tools" class="section level2">
 <h2>Text Processing Tools</h2>
-<p>There are several R packages that will help us process text. The <strong>tm</strong> package is popular and automates most of our work.</p>
+<p>There are several R packages that will help us process text. The <strong>tm</strong> package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.</p>
+<pre class="r"><code>documents = c(&quot;I like to jump.&quot;, 
+              &quot;I have jumped my whole life.&quot;, 
+              &quot;Jumping is in my blood.&quot;, 
+              &quot;I am a jumper.&quot;)
+
+documentCorp = SimpleCorpus(VectorSource(documents))
+
+stopWordRemoval = function(x) {
+  removeWords(x, stopwords(&quot;en&quot;))
+}
+
+textPrepFunctions = list(content_transformer(tolower), 
+                         removePunctuation,
+                         stemDocument,
+                         stopWordRemoval,
+                         removeNumbers,
+                         stripWhitespace)
+
+tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)</code></pre>
 </div>
 <div id="sentiment-analysis" class="section level2">
 <h2>Sentiment Analysis</h2>
@@ -159,33 +302,33 @@ $(document).ready(function () {
 <p>Let’s consider the following statements:</p>
 <pre class="r"><code>library(tidytext)
 
-library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>statement = &quot;I dislike programming, but I really love R.&quot;
+library(dplyr)
+
+statement = &quot;I dislike programming, but I really love R.&quot;
 
 tokens = data_frame(text = statement) %&gt;% 
   unnest_tokens(tbl = ., output = word, input = text)
 
 tokens</code></pre>
-<pre><code>## # A tibble: 8 x 1
-##   word       
-##   &lt;chr&gt;      
-## 1 i          
-## 2 dislike    
-## 3 programming
-## 4 but        
-## 5 i          
-## 6 really     
-## 7 love       
-## 8 r</code></pre>
-<p>From there, we get every individual token.</p>
+<pre><code># A tibble: 8 x 1
+  word       
+  &lt;chr&gt;      
+1 i          
+2 dislike    
+3 programming
+4 but        
+5 i          
+6 really     
+7 love       
+8 r          </code></pre>
+<p>From there, we get every individual <em>token</em>. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, <em>n</em>-grams). While we won’t dive into them too deeply, <em>n</em>-grams are also interesting. Just like our typical notion of <em>n</em>, an <em>n</em>-gram is an <em>n</em> length group of words. We can set <em>n</em> to be anything, but we would typically look at 2-gram and 3-grams chunks.</p>
+<pre class="r"><code>tokenizers::tokenize_ngrams(statement, n = 2)</code></pre>
+<pre><code>[[1]]
+[1] &quot;i dislike&quot;           &quot;dislike programming&quot; &quot;programming but&quot;    
+[4] &quot;but i&quot;               &quot;i really&quot;            &quot;really love&quot;        
+[7] &quot;love r&quot;             </code></pre>
+<p>These are helpful for looking at frequently occuring combinations of words. They are also going to be helpful for us in just a bit.</p>
+<p>Now back to the matter at hand.</p>
 <p>Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.</p>
 <pre class="r"><code>library(tidyr)
 
@@ -194,49 +337,441 @@ tokens %&gt;%
   count(sentiment) %&gt;% # count the # of positive &amp; negative words
   spread(sentiment, n, fill = 0) %&gt;% # made data wide rather than narrow
   mutate(sentiment = positive - negative)</code></pre>
-<pre><code>## Joining, by = &quot;word&quot;</code></pre>
-<pre><code>## # A tibble: 1 x 3
-##   negative positive sentiment
-##      &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1     1.00     1.00         0</code></pre>
+<pre><code># A tibble: 1 x 3
+  negative positive sentiment
+     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+1     1.00     1.00         0</code></pre>
 <p>When we use Bing’s dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment.</p>
-<p>Do you think that disklike and love are of the same magnitude?</p>
+<p>Do you think that disklike and love are of the same magnitude? If I had to make a wild guess, I might say that love is stronger than dislike. Let’s switch out our sentiment library to get something with a little better notion of polarity magnitute.</p>
 <pre class="r"><code>tokens %&gt;%
   inner_join(get_sentiments(&quot;afinn&quot;))</code></pre>
-<pre><code>## Joining, by = &quot;word&quot;</code></pre>
-<pre><code>## # A tibble: 2 x 2
-##   word    score
-##   &lt;chr&gt;   &lt;int&gt;
-## 1 dislike    -2
-## 2 love        3</code></pre>
+<pre><code># A tibble: 2 x 2
+  word    score
+  &lt;chr&gt;   &lt;int&gt;
+1 dislike    -2
+2 love        3</code></pre>
 <p>Now this looks a bit more interesting! “Love” has a stronger positive polarity than “dislike” has negative polarity. So, we could guess that we would have some positive sentiment.</p>
+<p>If we divide the sum of our word sentiments by the number of words within the dictionary, we should get an idea of our sentences overall sentiment.</p>
 <pre class="r"><code>tokens %&gt;%
   inner_join(get_sentiments(&quot;afinn&quot;)) %&gt;% 
   summarize(n = nrow(.), sentSum = sum(score)) %&gt;% 
   mutate(sentiment = sentSum / n)</code></pre>
-<pre><code>## Joining, by = &quot;word&quot;</code></pre>
-<pre><code>## # A tibble: 1 x 3
-##       n sentSum sentiment
-##   &lt;int&gt;   &lt;int&gt;     &lt;dbl&gt;
-## 1     2       1     0.500</code></pre>
-<p>While these provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.</p>
-<p>For example, it is probably fair to say that “really love” is stronger than just “love”. We might want to switch over to some techniques that explore n-grams (chunks of words) to calculate sentiment.</p>
+<pre><code># A tibble: 1 x 3
+      n sentSum sentiment
+  &lt;int&gt;   &lt;int&gt;     &lt;dbl&gt;
+1     2       1     0.500</code></pre>
+<p>Our sentiment of .5 tells us that our sentence is positive, even if only slightly so.</p>
+<p>While these simple sentiment analyses provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.</p>
+<p>For example, it is probably fair to say that “really love” is stronger than just “love”. We might want to switch over to some techniques that consider <em>n</em>-grams and other text features to calculate sentiment.</p>
 </div>
 <div id="smarter-sentiment-analysis" class="section level3">
 <h3>Smarter Sentiment Analysis</h3>
-<p>When we use sentiment analysis that is aware of context, valence, modifiers, and adversative statements (“but,…”, “however,…”), we get a better idea about the real sentiment of the text.</p>
-<p>We will use the <em>vader</em> sentiment library, but many more available.</p>
-<pre class="r"><code>library(sentimentr); library(lexicon); library(magrittr)</code></pre>
-<pre><code>## 
-## Attaching package: 'magrittr'</code></pre>
-<pre><code>## The following object is masked from 'package:tidyr':
-## 
-##     extract</code></pre>
-<pre class="r"><code>sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)</code></pre>
-<pre><code>##    element_id sentence_id word_count sentiment
-## 1:          1           1          8  3.145211</code></pre>
-<p>We can see that we get a much different sentiment score when we include more information within the sentence.</p>
+<p>When we use sentiment analysis that is aware of context, valence (“love” is stronger than “like”), modifiers (e.g., “really love”), and adversative statements (“but,…”, “however,…”), we get a better idea about the real sentiment of the text.</p>
+<p>We will use the <em>vader</em> sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame!</p>
+<p>Before we engage in our whole sentiment analysis, let’s take a look at a few things.</p>
+<p>Here is the dictionary that <em>vader</em> will use.</p>
+<pre class="r"><code>lexicon::hash_sentiment_vadar</code></pre>
+<pre><code>              x    y
+   1:       aas  2.5
+   2:      aayf  2.7
+   3:   abandon -1.9
+   4: abandoned -2.0
+   5: abandoner -1.9
+  ---               
+7232:      ywia  2.5
+7233:    zealot -1.9
+7234:   zealots -0.8
+7235:   zealous  0.5
+7236:       zzz -1.2</code></pre>
+<p>You might want to use View() to get a complete look at what is happening in there.</p>
+<p>We should also take a peak at our valence shifters:</p>
+<pre class="r"><code>lexicon::hash_valence_shifters</code></pre>
+<pre><code>              x y
+  1: absolutely 2
+  2:      acute 2
+  3:    acutely 2
+  4:      ain't 1
+  5:       aint 1
+ ---             
+136:    whereas 4
+137:      won't 1
+138:       wont 1
+139:   wouldn't 1
+140:    wouldnt 1</code></pre>
+<p>With all of that out of the way, let’s get down to the matter at hand:</p>
+<pre class="r"><code>library(sentimentr); library(lexicon); library(magrittr)
+
+statement = &quot;I dislike programming, but I really love R.&quot;
+
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)</code></pre>
+<pre><code>   element_id sentence_id word_count sentiment
+1:          1           1          8  3.145211</code></pre>
+<p>We can see that we get a much different sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial “but” that will downweight whatever is in the initial phrase and then we will have the amplified (from “really”) sentiment of “love” (with a weight of 3.2 in our dictionary).</p>
+<p>With all of this together, we get a much better idea about the sentiment of our text.</p>
 </div>
+</div>
+<div id="other-text-fun" class="section level2">
+<h2>Other Text Fun</h2>
+<p>Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.</p>
+<p>The “koRpus” package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).</p>
+<p>We need to tokenize our text in a manner that will please koRpus.</p>
+<pre class="r"><code>library(koRpus)
+
+statementTokens = tokenize(statement, format = &quot;obj&quot;, lang = &quot;en&quot;)
+
+statementTokens</code></pre>
+<pre><code>        token      tag lemma lttr       wclass                        desc
+1           I word.kRp          1         word         Word (kRp internal)
+2     dislike word.kRp          7         word         Word (kRp internal)
+3 programming word.kRp         11         word         Word (kRp internal)
+4           ,     ,kRp          1        comma        Comma (kRp internal)
+5         but word.kRp          3         word         Word (kRp internal)
+6           I word.kRp          1         word         Word (kRp internal)
+7      really word.kRp          6         word         Word (kRp internal)
+8        love word.kRp          4         word         Word (kRp internal)
+9          R. abbr.kRp          2 abbreviation Abbreviation (kRp internal)
+  stop stem
+1   NA   NA
+2   NA   NA
+3   NA   NA
+4   NA   NA
+5   NA   NA
+6   NA   NA
+7   NA   NA
+8   NA   NA
+9   NA   NA</code></pre>
+<pre class="r"><code>readability(statementTokens)</code></pre>
+<pre><code>
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |================                                                 |  25%
+  |                                                                       
+  |================================                                 |  50%
+  |                                                                       
+  |=================================================                |  75%
+  |                                                                       
+  |=================================================================| 100%</code></pre>
+<pre><code>
+Automated Readability Index (ARI)
+  Parameters: default 
+       Grade: 2.59 
+
+
+Coleman-Liau
+  Parameters: default 
+         ECP: 64% (estimted cloze percentage)
+       Grade: 5.49 
+       Grade: 5.49 (short formula)
+
+
+Danielson-Bryan
+  Parameters: default 
+         DB1: 6.76 
+         DB2: 57.38 
+       Grade: 7-8 
+
+
+Dickes-Steiwer's Handformel
+  Parameters: default 
+         TTR: 0.88 
+       Score: 43.49 
+
+
+Easy Listening Formula
+  Parameters: default 
+      Exsyls: 3 
+       Score: 3 
+
+
+Farr-Jenkins-Paterson
+  Parameters: default 
+          RE: 60.3 
+       Grade: 8-9 
+
+
+Flesch Reading Ease
+  Parameters: en (Flesch) 
+          RE: 61.24 
+       Grade: 8-9 
+
+
+Flesch-Kincaid Grade Level
+  Parameters: default 
+       Grade: 6.71 
+         Age: 11.71 
+
+
+Gunning Frequency of Gobbledygook (FOG)
+  Parameters: default 
+       Grade: 13.2 
+
+
+FORCAST
+  Parameters: default 
+       Grade: 10.62 
+         Age: 15.62 
+
+
+Fucks' Stilcharakteristik
+       Score: 34 
+       Grade: 5.83 
+
+
+Linsear Write
+  Parameters: default 
+  Easy words: 75 
+  Hard words: 25 
+       Grade: 5 
+
+
+Läsbarhetsindex (LIX)
+  Parameters: default 
+       Index: 33 
+      Rating: easy 
+       Grade: &lt; 5 
+
+
+Neue Wiener Sachtextformeln
+  Parameters: default 
+       nWS 1: 6.5 
+       nWS 2: 7.02 
+       nWS 3: 7.82 
+       nWS 4: 7.29 
+
+
+Readability Index (RIX)
+  Parameters: default 
+       Index: 2 
+       Grade: 6 
+
+
+Simple Measure of Gobbledygook (SMOG)
+  Parameters: default 
+       Grade: 11.21 
+         Age: 16.21 
+
+
+Strain Index
+  Parameters: default 
+       Index: 3.9 
+
+
+Kuntzsch's Text-Redundanz-Index
+  Parameters: default 
+ Short words: 5 
+ Punctuation: 2 
+     Foreign: 0 
+       Score: -17.11 
+
+
+Tuldava's Text Difficulty Formula
+  Parameters: default 
+       Index: 3.38 
+
+
+Wheeler-Smith
+  Parameters: default 
+       Score: 30 
+       Grade: 4 
+
+Text language: en </code></pre>
+<pre class="r"><code>lex.div(statementTokens)</code></pre>
+<pre><code>Language: &quot;en&quot;
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |========                                                         |  12%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%
+
+  |                                                                       
+  |                                                                 |   0%
+  |                                                                       
+  |=================================================================| 100%</code></pre>
+<pre><code>
+Total number of tokens: 8
+Total number of types:  7
+
+Type-Token Ratio
+   TTR: 0.88 
+
+TTR characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    0.8     0.8     0.8     0.8     0.8     0.8 
+   SD
+ NA
+
+
+Herdan's C
+   C: 0.94 
+
+C characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.8614  0.8614  0.8614  0.8614  0.8614  0.8614 
+   SD
+ NA
+
+
+Guiraud's R
+   R: 2.47 
+
+R characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.789   1.789   1.789   1.789   1.789   1.789 
+   SD
+ NA
+
+
+Carroll's CTTR
+   CTTR: 1.75 
+
+CTTR characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.265   1.265   1.265   1.265   1.265   1.265 
+   SD
+ NA
+
+
+Uber Index
+   U: 14.06 
+
+U characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  5.041   5.041   5.041   5.041   5.041   5.041 
+   SD
+ NA
+
+
+Summer's S
+   S: 1.65 
+
+S characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.417   1.417   1.417   1.417   1.417   1.417 
+   SD
+ NA
+
+
+Yule's K
+   K: 312.5 
+
+K characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    800     800     800     800     800     800 
+   SD
+ NA
+
+
+Maas' Indices
+       a: 0.27 
+    lgV0: 2.4 
+   lgeV0: 5.52 
+
+Relative vocabulary growth (first half to full text)
+       a: 0 
+    lgV0: 0.6 
+      V': 0 (0 new types every 100 tokens)
+
+Maas Indices characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.4454  0.4454  0.4454  0.4454  0.4454  0.4454 
+   SD
+ NA
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.185   1.185   1.185   1.185   1.185   1.185 
+   SD
+ NA
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.729   2.729   2.729   2.729   2.729   2.729 
+   SD
+ NA
+
+
+HD-D
+          HD-D: 7
+          ATTR: 0.17
+   Sample size: 42 
+
+HD-D characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      4       4       4       4       4       4 
+   SD
+ NA
+
+
+Measure of Textual Lexical Diversity
+                MTLD: 17.92
+   Number of factors: 0.45
+         Factor size: 0.72
+    SD tokens/factor: 0 (all factors)
+                      0 (complete factors only)
+
+MTLD characteristics:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+      7       7       7       7       7       7 
+   SD
+ NA</code></pre>
+</div>
+<div id="do-me-a-favor" class="section level2">
+<h2>Do Me A Favor</h2>
+<p>There are some hushed words about employer reviews on the web. Why don’t you take a look at them and see what you can find out.</p>
 </div>
 
 

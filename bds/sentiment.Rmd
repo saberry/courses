@@ -72,17 +72,93 @@ inspect(stemmedDocDTM)
 
 If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.
 
+This is going to be especially important for next week's topic: topic models.
+
 ### Stop Words
 
-Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own.
+Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own -- a great many dictionaries exist that contain words ready for removal.
 
-### Character Removal
+```{r}
+tm::stopwords("en")
+```
 
-In addition to whole words, sometimes symbols need to be removed.
+
+Removing stopwords takes little effort!
+
+```{r}
+documents = c("I like to jump.", 
+              "I have jumped my whole life.", 
+              "Jumping is in my blood.", 
+              "I am a jumper.")
+
+tm::removeWords(documents, words = stopwords("en"))
+
+```
+
+We can even include custom stopwords:
+
+```{r}
+tm::removeWords(documents, words = c("blood", stopwords("en")))
+```
+
+
+### Regular Expressions
+
+Stemming and stopword removal will go a long way to helping us process and clean our text. There are times, however, when you need complete control over what you remove. You might need to remove punctuation and other symbols, in addition to a wide array of things that come up in typical analyses (emoticons and wacky encoding characters!). When those cases pop up, you might need to make use of regular expressions to help. You should have already learned about regular expressions, but be prepared to circle back to them constantly when engaging in any matter of data science shenanigans!
+
+Many text processors will deal with hyphenated words. If, however, your data is coming from the web, then what looks like a hyphen might not really be a hyphen!
+
+```{r}
+exampleStrings = c("This is a regularly-occuring hyphen", 
+                   "This is something that more closely--resembles a manually-produced em dash", 
+                   "This is something that came from the darkest recesses of ill—conceived web design")
+```
+
+We can turn to our regular expression to see what we can do:
+
+```{r}
+gsub(pattern = "-", replacement = " ", exampleStrings)
+```
+
+Using gsub and just specifying a regular "-" will remove just about everything, except for whatever is in the last sentence. What is it? It looks like a hyphen, but it is not. To remove it, we will need to get creative:
+
+```{r}
+gsub(pattern = "(?!\\w)\\S", " ", exampleStrings, perl = TRUE)
+```
+
+By using some pattern matching, we are able to get out everything between words, no matter what it might be. This particular little bit of regex is using what is known as a negative lookahead. We have our main expression, the non-space character, \\S. Next, we put an expression in front of our main expression (this is the chunk in the parenthesis that starts with "?!"). When we read this, we would say, "don't match any word characters and then find non-whitespace characters."
+
+While this is certainly a contrived example and would need addition robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.
 
 ## Text Processing Tools
 
-There are several R packages that will help us process text. The **tm** package is popular and automates most of our work.
+There are several R packages that will help us process text. The **tm** package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
+
+```{r}
+
+documents = c("I like to jump.", 
+              "I have jumped my whole life.", 
+              "Jumping is in my blood.", 
+              "I am a jumper.")
+
+documentCorp = SimpleCorpus(VectorSource(documents))
+
+stopWordRemoval = function(x) {
+  removeWords(x, stopwords("en"))
+}
+
+textPrepFunctions = list(content_transformer(tolower), 
+                         removePunctuation,
+                         stemDocument,
+                         stopWordRemoval,
+                         removeNumbers,
+                         stripWhitespace)
+
+tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
+```
+
+
+
 
 ## Sentiment Analysis
 
@@ -111,7 +187,15 @@ tokens = data_frame(text = statement) %>%
 tokens
 ```
 
-From there, we get every individual token.
+From there, we get every individual *token*. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, *n*-grams). While we won't dive into them too deeply, *n*-grams are also interesting. Just like our typical notion of *n*, an *n*-gram is an *n* length group of words. We can set *n* to be anything, but we would typically look at 2-gram and 3-grams chunks.
+
+```{r}
+tokenizers::tokenize_ngrams(statement, n = 2)
+```
+
+These are helpful for looking at frequently occuring combinations of words. They are also going to be helpful for us in just a bit.
+
+Now back to the matter at hand.
 
 Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.
 
@@ -127,7 +211,7 @@ tokens %>%
 
 When we use Bing's dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment.
 
-Do you think that disklike and love are of the same magnitude?
+Do you think that disklike and love are of the same magnitude? If I had to make a wild guess, I might say that love is stronger than dislike. Let's switch out our sentiment library to get something with a little better notion of polarity magnitute.
 
 ```{r}
 tokens %>%
@@ -136,6 +220,8 @@ tokens %>%
 
 Now this looks a bit more interesting! "Love" has a stronger positive polarity than "dislike" has negative polarity. So, we could guess that we would have some positive sentiment.
 
+If we divide the sum of our word sentiments by the number of words within the dictionary, we should get an idea of our sentences overall sentiment.
+
 ```{r}
 tokens %>%
   inner_join(get_sentiments("afinn")) %>% 
@@ -143,21 +229,75 @@ tokens %>%
   mutate(sentiment = sentSum / n)
 ```
 
-While these provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.
+Our sentiment of .5 tells us that our sentence is positive, even if only slightly so.
 
-For example, it is probably fair to say that "really love" is stronger than just "love". We might want to switch over to some techniques that explore n-grams (chunks of words) to calculate sentiment.
+While these simple sentiment analyses provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.
+
+For example, it is probably fair to say that "really love" is stronger than just "love". We might want to switch over to some techniques that consider *n*-grams and other text features to calculate sentiment.
 
 
 ### Smarter Sentiment Analysis
 
-When we use sentiment analysis that is aware of context, valence, modifiers, and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
+When we use sentiment analysis that is aware of context, valence ("love" is stronger than "like"), modifiers (e.g., "really love"), and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
 
-We will use the *vader* sentiment library, but many more available.
+We will use the *vader* sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame!
+
+Before we engage in our whole sentiment analysis, let's take a look at a few things.
+
+Here is the dictionary that *vader* will use.
+
+```{r}
+lexicon::hash_sentiment_vadar
+```
+
+You might want to use View() to get a complete look at what is happening in there.
+
+We should also take a peak at our valence shifters:
+
+```{r}
+lexicon::hash_valence_shifters
+```
+
+With all of that out of the way, let's get down to the matter at hand:
 
 ```{r}
 library(sentimentr); library(lexicon); library(magrittr)
 
+statement = "I dislike programming, but I really love R."
+
 sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)
 ```
 
-We can see that we get a much different sentiment score when we include more information within the sentence.
+We can see that we get a much different sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really") sentiment of "love" (with a weight of 3.2 in our dictionary).
+
+With all of this together, we get a much better idea about the sentiment of our text.
+
+## Other Text Fun
+
+Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.
+
+The "koRpus" package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
+
+We need to tokenize our text in a manner that will please koRpus.
+
+```{r}
+library(koRpus)
+
+statementTokens = tokenize(statement, format = "obj", lang = "en")
+
+statementTokens
+```
+
+
+```{r}
+readability(statementTokens)
+```
+
+```{r}
+
+```
+
+
+## Do Me A Favor
+
+There are some hushed words about employer reviews on the web. Why don't you take a look at them and see what you can find out. 

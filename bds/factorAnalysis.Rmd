@@ -58,12 +58,17 @@ testFA
 Determining the appropriate number of factors in an exploratory factor analysis can be complex. How many might theory dictate? Is there a strong theory at all? In an exploratory setting, it is helpful to conduct something called a parallel analysis (PA). PA is a Monte Carlo simulation that takes into account the number of items and rows within your data and then produces a random matrix of the same shape.
 
 ```{r}
-
 psych::fa.parallel(testData)
 ```
 
+This is the most automated way of finding a potentially suitable number of factors. If some theory exists, you can also use that information to guide your factor numbers. 
+
 
 ## Rotation
+
+In some previous courses, you learned about PCA and eigenvalues/eigenvectors. You might remember how we rotate axes to try to get our components to fit together better. Generally, PCA forces an orthogonal rotation -- in other words, the vertices will always maintain 90s. Factor analysis, will allow for orthogonal rotations, but also oblique rotations (the vertices can go above or below 90). While pictures certainly help, there is something very important at play here. As you remember 
+
+
 
 ```{r}
 orthRotation = fa(r = testData, nfactors = 2, rotate = "varimax")

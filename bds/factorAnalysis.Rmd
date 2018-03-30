@@ -63,12 +63,21 @@ psych::fa.parallel(testData)
 
 This is the most automated way of finding a potentially suitable number of factors. If some theory exists, you can also use that information to guide your factor numbers. 
 
+While you will often get some different results, you can also use the nfactors function:
+
+```{r, eval = FALSE}
+testData %>% 
+  na.omit() %>% 
+  cor() %>% 
+  psych::nfactors()
+```
+
 
 ## Rotation
 
-In some previous courses, you learned about PCA and eigenvalues/eigenvectors. You might remember how we rotate axes to try to get our components to fit together better. Generally, PCA forces an orthogonal rotation -- in other words, the vertices will always maintain 90s. Factor analysis, will allow for orthogonal rotations, but also oblique rotations (the vertices can go above or below 90). While pictures certainly help, there is something very important at play here. As you remember 
+In some previous courses, you learned about PCA and eigenvalues/eigenvectors. You might remember how we rotate axes to try to get our components to fit together better. Generally, PCA forces an orthogonal rotation -- in other words, the vertices will always maintain 90s. Factor analysis, will allow for orthogonal rotations, but also oblique rotations (the vertices can go above or below 90). While pictures certainly help, there is something very important at play here. As you remember from PCA, an orthogonal rotation would hold that the factors (or components) are not correlated. For components, this makes sense. For our scale, however, would you guess that the items being analzyed are not correlated? By using an oblique rotation, we are allowing the factors to be as correlated as necessary.
 
-
+Our rotations, though not terribly different, will produce different loading patterns.
 
 ```{r}
 orthRotation = fa(r = testData, nfactors = 2, rotate = "varimax")
@@ -80,11 +89,19 @@ orthRotation
 obliqueRotation
 ```
 
+We can see that our oblique rotation produces a correlation of .34 between the two factors. I will leave it up to you to determine if that is a strong enough correlation to warrant an orthogonal rotation. An orthogonal rotation, while limiting the correlation between factors, does produce "cleaner" results. If the factors are not correlated, we can interpret each one in isolation. In an oblique rotation with correlated factors, we have to interpret the factors simultaneously and consider how items loading on multiple factors behave. 
 
 ## Factor Loadings
 
 We can think of factor loadings as the correlation between an item and a factor -- they are interpreted in this manner.
 
+Let's take a peak at the factor loadings of our oblique solution from above:
+
+```{r}
+obliqueRotation$loadings
+```
+
+We can see that our output is hiding values of small magnitude (refer to the previous results for all values). We can read these very much in the same way that we read correlations. For factor 1 (MR1 in the output), we see that items C1 through C5 load pretty strongly (with A4 having a weak loading). So, someone who offers a high response on C5 might have lower values of whatever latent trait is being measured, while they might have high values of the latent trait if they respond with a higher value on question C2.
 
 ## Factor Scoring
 
@@ -100,25 +117,28 @@ testData = testData %>%
 ```
 
 
-Do those aggregate scores tell the complete truth? Remember how we just talked about loadings? The factor loadings are essentially telling us how much the variable is related to the factor. If we use a simple aggregate score, is that relationship captured? I am afraid not; aggregate scores are going to give the same weight to every item, regardless of how highly it loads on any given factor.
+Do those aggregate scores tell the complete truth? Remember how we just talked about loadings? The factor loadings are essentially telling us how much the variable is related to the factor. If we use a simple aggregate score, is that relationship captured? I am afraid not; aggregate scores are going to give the same weight to every item, regardless of how highly it loads on any given factor. What about cross-loadings? This type of aggregate scoring would completely ignore them!
 
 Instead, we can use factor scores. There are several different types of factor scores that we can compute, but we are going to compute Thurstone scores. 
 
 Thurstone score are incredibly easy to produce by hand, so let's give it a try.
 
-To compute those score, we need to produce a correlation matrix of our observed scores. For simplicity, let's just work with the five items representing agreeableness.
+To compute those score, we need to produce a correlation matrix of our observed scores. For simplicity, let see what a one factor model would look like.
 
 ```{r}
-agreeCorrs = testData %>% 
-  select(starts_with("A", ignore.case = FALSE)) %>% 
-  cor(., use = "pairwise")
+agreeDat = bfi %>% 
+  select(starts_with("A", ignore.case = FALSE))
+
+agreeCorrs = cor(agreeDat, use = "pairwise")
 ```
 
 
 Then, we need to get the loadings from our factor analysis results:
 
 ```{r}
-agreeLoadings = obliqueRotation$loadings[1:5, 2]
+agreeFA = fa(agreeCorrs, rotate = "promax", scores = "regression")
+
+agreeLoadings = agreeFA$loadings[1:5, 1]
 ```
 
 Now, we have everything that we need: item loadings, item correlations, and observed scores.
@@ -133,9 +153,8 @@ w = solve(agreeCorrs, agreeLoadings)
 Finally, we center and scale the observed data, and do matrix multiplication for the product w that we just found:
 
 ```{r}
-agreeScaled = testData %>% 
-  select(starts_with("A", ignore.case = FALSE)) %>% 
-  scale()
+agreeScaled = agreeDat %>% 
+  scale(., center = TRUE, scale = TRUE)
 
 facScores = agreeScaled %*% w
 
@@ -143,4 +162,83 @@ head(facScores)
 ```
 
 
+We can check these against those returned from our results:
+
+```{r}
+head(predict(agreeFA, agreeDat))
+```
+
+Now, let's see how well those scores are correlated with simple aggregate scores.
+
+```{r}
+simpleScores = agreeDat %>% 
+  mutate(simpleScore = rowMeans(.))
+```
+
+```{r}
+cor(facScores[, 1], simpleScores$simpleScore, use = "complete")
+```
+
+We can see that the scores are certainly correlated, but the factor scores are likely closer to *true scores*.
+
 ## Reliability
+
+Factor analysis falls under a broader notion of what is called *Classical Testing Theory* (CTT). In CTT, the notion of reliability is of supreme importance. Reliability is most easily defined as being able to produce the same result from a measure. If I give you the same measure a few months apart and you score similarly on both measures, then we are likely dealing with a reliable test. It is important to note that reliable is not the same as valid. Validity, with regard to measurement, is knowing that our measure is measuring what we intend it to measure (e.g., our measure of likelihood to engage in whistleblowing is actually measuring a person's likelihood to blow the whistle). A measure can be reliable without being valid -- remember it just has to produce the same results time after time. 
+
+Assessing reliability is generally an easy task. The most simple version of reliability, is Cronbach's measure of internal consistency, or $\alpha$. Cronbach's $\alpha$ is simply the best split-half correlation within a measure (internal consistency means that the whole measure is reliable within itself). 
+
+Getting $\alpha$ is easy enough:
+
+```{r}
+psych::alpha(agreeDat, check.keys = TRUE)
+```
+
+We get a fair chunk of output, but let's just focus on the "std.alpha" value of .71. By most "rules-of-thumb", anything of .7 is acceptable for general purpose use. If we were wanting to make very important decisions with our measure, we might look for something approaching or exceeding .9. 
+
+You likely noticed the "check.keys = TRUE" arguement -- alpha is bound by test length and item correlations. In a case where some items are negatively correlated, that will greatly reduce our $\alpha$ coefficient. Let's try it for ourselves:
+
+```{r}
+psych::alpha(agreeDat)
+```
+
+Very different, right?
+
+Let's calculate it on our own. We will need to recode our negatively correlated variable (A1) first.
+
+```{r}
+
+agreeDatRecode = agreeDat %>% 
+  mutate(A1 = abs(A1-7)) # This recodes our scale direction
+
+nvar <- length(agreeDatRecode)
+
+# This computes the covariance matrix of our data.
+
+C <- cov(agreeDatRecode, use = "complete.obs")
+
+n <- dim(C)[2]
+
+total <- rowMeans(agreeDatRecode, na.rm = TRUE)
+
+# The tr function is just adding everything on the 
+# diagonal from our covariance matrix.
+
+alpha.raw <- (1 - psych::tr(C)/sum(C)) * (n/(n - 1))
+```
+
+How did we do? We perfectly replicated our raw alpha value from the output. This is an easy example, but more elaborate ones don't take much more effort. 
+
+We did all of this to say that $\alpha$ helps us to know how consistent a one factor measure is within itself. In many circumstances where you find yourself with a unidimensional factor structure, $\alpha$ will be more than sufficient for convincing people that your scale is reliable (weaknesses aside).
+
+There are, however, many other forms of reliability ($\alpha$ is based off of something else called the Kuder-Richardson 20). One popular and conceptually helpful form of reliability is McDonald's $\omega$. McDonald's $\omega$ is well-suited for hierarchical factor structures, in which you might have various subscales that assess something bigger. 
+
+Earlier, we played with the bfi data. Let's return to that, but with a hypothesis that the 5 factors of the bfi are actually subfactors of some larger latent personality variable.
+
+```{r}
+bfiSubFactors = bfi %>% 
+  select(-gender, -education, -age)
+
+psych::omega(bfiSubFactors, nfactors = 5, rotate = "promax")
+
+```
+

@@ -1,0 +1,455 @@
+---
+title: "The General Linear Model"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+## glm...not GLM
+
+The general linear model is one of the foundations of statistics.
+
+The most important thing that you need to know is that it comprises three major techniques:
+
+> - Regression
+
+> - T-tests
+
+> - ANOVA
+
+> - Guess what!
+
+## Assumptions
+
+Linear relationship
+
+- Pretty clear
+
+Multivariate normality
+
+- Remember -- this is not on the raw variables but on the residuals
+
+Little multicollinearity
+
+- Predictors need to be independent from each other
+
+No auto-correlations
+
+- Observations are independent from previous observations
+
+Homoscedasticity
+
+- Equal errors along the regression line
+
+## Assumptions
+
+Assumptions are very important.
+
+They are not, however, statistical death sentences.
+
+
+## Assumptions According To Gelman
+
+1.  Validity
+
+2.  Linearity
+
+3.  Independence of errors
+
+4.  Equal variance of errors
+
+5.  Normality of errors
+
+
+## Modern Approaches
+
+> - Has anyone ever heard to transform your variables to make them normal?
+
+> - What about dropping outliers?
+
+> - Neither belongs in modern statistics
+
+
+## Rules Of Thumb
+
+> - How many people do you need?
+
+> - 20 records per predictor...
+
+> - Not happening here!
+
+> - We will use a more appropriate approach.
+
+## Power Analysis
+
+Do you want to melt most people's brains?
+
+>-  Don't use rules of thumb!
+
+>-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
+
+## Power Analysis
+
+We need three of the following parameters:
+
+>-  Effect size
+
+>-  Sample size
+
+>-  Significance level
+
+>-  Power
+
+>-  We **should** always be doing this *a priori*
+
+>-  Sometimes, it is fun to be a "statistical coroner"
+
+## Effect Sizes
+
+We won't get too deep here, just know that it is a way to determine the difference between groups.
+
+- It's an improvement of *p*-values alone.
+
+Cohen's *d* is likely the most common.
+
+Let theory be your guide.
+
+> - Be realistic!
+
+## Power
+
+Power is ability to detect an effect.
+
+- In NHST words, we are trying to determine if we correctly reject the null hypothesis.
+
+- Type I errors: Reject a true $H_{o}$ (false positive)
+
+- Type II errors: Reject a false $H_{o}$ (false negative)
+
+>- Which is more dangerous?
+
+## Putting It All Together
+
+Let's use the <span class="func">pwr</span> package.
+
+```{r}
+library(pwr)
+
+pwr.f2.test(u = 1, v = NULL, f2 = .05, power = .8)
+
+```
+
+In the function: 
+
+- u is the numerator df (*k* - 1)
+
+- v is the denominator df (*n* - *k*) 
+
+- f2 is signficance level
+
+- \(\Pi = 1 -\beta\)
+
+- \(\beta = Type\,II_{prob}\)
+
+
+## Your Turn!
+
+Use various values to do an *a priori* power analyses.
+
+How does the proposed sample size change as the number of predictors goes up?
+
+What if you tweak the significance level?
+
+What about power?
+
+
+## Different Test, Different Power Tests
+
+We just did a test for a linear regression model.
+
+Here is one for a *t*-test:
+
+```{r}
+tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8, 
+                    type= "two.sample", alternative = "greater")
+
+plot(tPower)
+```
+
+
+## Congratulations
+
+>-  Your knowledge now far exceeds most professionals!
+
+# Regression
+
+## Do You Know...OLS
+
+Linear regression is likely the singular most important statistic.
+
+
+## A Demonstration
+
+```{r}
+# predictors and response
+N = 100 # sample size
+k = 2   # number of desired predictors
+X = matrix(rnorm(N*k), ncol=k)  
+y = -.5 + .2*X[,1] + .1*X[,2] + rnorm(N, sd=.5)  # increasing N will get estimated values closer to these
+
+dfXy = data.frame(X,y)
+
+plot(dfXy$y, dfXy$X1)
+```
+
+
+```{r}
+lmfuncLS = function(par, X, y){
+  # arguments- par: parameters to be estimated; X: predictor matrix with intercept 
+  # column, y: response
+  
+  # setup
+  beta = par                                   # coefficients
+  
+  # linear predictor
+  LP = X%*%beta                                # linear predictor
+  mu = LP                                      # identity link
+  
+  # calculate least squares loss function
+  L = crossprod(y-mu)
+}
+```
+
+```{r}
+
+X = cbind(1, X)
+
+init = c(1, rep(0, ncol(X)))
+
+names(init) = c('sigma2', 'intercept','b1', 'b2')
+```
+
+
+```{r}
+optlmLS = optim(par = init[-1], fn = lmfuncLS, 
+                X = X, y = y, control = list(reltol = 1e-8))
+
+optlmLS$par
+```
+
+
+```{r}
+modlm = lm(y~., dfXy)
+
+summary(modlm)
+```
+
+
+```{r}
+# Example
+QRX = qr(X)
+Q = qr.Q(QRX) # Orthogonal matrix
+R = qr.R(QRX) # Upper triangle
+Bhat = solve(R) %*% crossprod(Q, y)
+qr.coef(QRX, y)
+```
+
+
+```{r}
+coefs = solve(t(X)%*%X) %*% t(X)%*%y
+```
+
+
+## Important Terms
+
+There are a few important terms to keep in mind:
+
+>-  Coefficients
+
+>-  Standard Errors
+
+>-  Residuals
+
+## Goodness Of Fit
+
+>- $R^2$
+
+>-  *F*-tests
+
+## $R^2$
+
+Variance accounted for by the predictors.
+
+- Adjusted $R^2$ is just a penalized version.
+
+\(R^2 = 1 -\frac {SS_{res}} {SS_{tot}}\)
+
+Sums of squares play a very important roll in all of this.
+
+>-  Don't worry about know how to compute them.
+
+>-  Just know that they are important
+
+
+## Let's Just Get On With It
+
+```{r, eval = TRUE}
+basicExample = lm(mpg ~ wt + qsec, data = mtcars)
+summary(basicExample)
+```
+
+## What Does This Mean For Me?
+
+The intercept is the fitted value of mpg when everything else is equal to 0.
+
+The coefficient for "wt" is saying that for every unit increase in pounds, mpg goes down by -5.
+
+- Holding qsec constant
+
+The coefficient for "qsec" is saying that for every unit increase in time, mpg goes up by ~1.
+
+- Holding wt constant
+
+What do these patterns mean?
+
+Do they make sense?
+
+## Let's See How This Holds Up
+
+${mpg} = \alpha + \beta_{1} wt_{t} + \beta_{2}  qsec_{t} + \epsilon$
+
+```{r}
+basicExample$coefficients['(Intercept)'] + 
+  basicExample$coefficients['wt'] * mtcars$wt[1] +
+  basicExample$coefficients['qsec'] * mtcars$qsec[1]
+
+
+mtcars$mpg[1]
+```
+
+
+
+# T-tests
+
+## What Are They Good For
+
+You can use a *t*-test to test differences between two groups.
+
+There are two general forms of the *t*-test:
+
+>-  Independent
+
+>-  Paired
+
+## Our Focus
+
+We are going to focus mostly on comparing independent samples.
+
+Unless you are going to be doing experimental work, you will probably not need to use paired tests.
+
+Furthermore, you probably won't ever really need to compare a sample to the population (requires you to know $\mu$)
+
+## Tails
+
+Like many other tests, the *t*-test can be tested with either one tail or two tails.
+
+Alternative hypotheses can be any one of the following:
+
+- $\neq$
+
+- $>$
+
+- $<$
+
+
+What is the difference?
+
+>-  Do you want to look like you know what you are doing or not?
+
+## One Or Two
+
+In all seriousness, let's consider the following plot:
+
+```{r, eval = TRUE}
+hist(rnorm(100000))
+```
+
+
+## Let's Give It A Try
+
+```{r}
+t.test(mtcars$mpg ~ mtcars$am, alternative = "two.sided")
+```
+
+Try it with different values for alternative and with var.equal = TRUE
+
+
+## Multiple Tests
+
+When conducting *t*-tests, you will often encounter the need to do a lot of them.
+
+This leads to inflated rates of Type I errors
+
+Many corrections exist:
+
+- Bonferroni
+
+- Tukey
+
+- Scheffé
+
+# Analysis Of Variance
+
+## ANOVA
+
+ANOVA is a lot like a *t*-test, but you can have more than two groups.
+
+## Trying It Out
+
+```{r}
+anovaTest = aov(mpg ~ as.factor(gear), data = mtcars, projections = TRUE)
+summary(anovaTest)
+coefficients(anovaTest)
+```
+
+
+Remember:
+
+\(F = \frac {explained\,variance} {unexplained\,variance}\)
+
+## Contrasts
+
+One interesting "advantage" of an ANOVA is that it gives you the ability to plan contrasts.
+
+- You can do the same thing in a linear model!
+
+Contrasts allow you to specify how to compare the different groups.
+
+>-  Treatment/simple contrasts
+
+>-  Helmert
+
+>-  Sum
+
+
+# What To Do?
+
+## Which Is The Appropriate Method?
+
+Hopefully, we can see that these are all *essentially* identical.
+
+We need to think about what exactly we are doing:
+
+- Are we predicting something?
+
+- Are we concerned about group differences?
+
+- Do we want to be limited?
+
+- Are we doing experimental work?

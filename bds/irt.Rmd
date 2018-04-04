@@ -5,7 +5,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 
@@ -92,4 +92,50 @@ Scoring in IRT models works a bit differently than scoring in CTT.
 
 ## Scores
 
-An element common to both IRT and CTT is the *true score*, $true_{score} = observed_{score} + e$. The distinction rests in how they treat $e$ -- CTT assumes that error is the same for everyone and IRT allows for error to vary freely.
+An element common to both IRT and CTT is the *true score*, $true_{score} = observed_{score} + e$. The distinction rests in how they treat $e$ -- CTT assumes that error is the same for everyone and IRT allows for error to vary freely across people.
+
+## Different Measurement Levels
+
+So far, we have discussed models that are largely dealing with dichotomous variables (largely incorrect and correct). These are aptly names dichotomous models. However, we know that not all measures have a binary response. If we have multiple response options (perhaps a Likert response option format), then we need to use a polytomous model. One common model is the Graded Response Model (GRM). 
+
+The GRM is used with the express purpose of ordinal, polytomous response options.
+
+Let's take a look:
+
+```{r}
+library(psych)
+
+library(dplyr)
+
+testData = bfi %>% 
+  dplyr::select(starts_with("C")) %>% 
+  na.omit()
+
+grmMod = ltm::grm(testData)
+
+summary(grmMod)
+
+```
+
+In our summary output, we see coefficients for each item (C1:C5). These coefficients detail the *thresholds* for moving from one response level to the next (we also see the discrimination value). 
+
+Just like our dichotomous models, we can also see our item characteristic curves and an item information curve.
+
+```{r, fig.height=9, fig.width=9}
+
+par(mfrow = c(3, 2))
+
+plot(grmMod, type = "ICC")
+
+plot(grmMod, type = "IIC")
+```
+
+We can see that these are very different looking ICC plots then what we saw before. Remember, that we are dealing with different models here. Instead of the probabililty of incorrect or correct, we are now dealing with the probability of moving from one response category to the next. To that end, each item's ICC has a curve for each response option over ability. If we look at the ICC for C1, we can see that someone offering a response of 1 on the scale would have a higher probability of having a lower ability. Conversely, someone offering a response of 6 would have a higher probability of being high ability.
+
+We can also get item operation characteristic curves:
+
+```{r, fig.height=9, fig.width=9}
+par(mfrow = c(3, 2))
+
+plot(grmMod, type = "OCCu")
+```

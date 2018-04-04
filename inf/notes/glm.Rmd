@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 
 ## glm...not GLM
 
-The general linear model is one of the foundations of statistics.
+The general linear model is one of the foundations of statistical inference.
 
 The most important thing that you need to know is that it comprises three major techniques:
 
@@ -23,7 +23,6 @@ The most important thing that you need to know is that it comprises three major 
 
 > - ANOVA
 
-> - Guess what!
 
 ## Assumptions
 
@@ -31,13 +30,34 @@ Linear relationship
 
 - Pretty clear
 
+```{r, echo = FALSE}
+x = rnorm(1000)
+
+y = x + rnorm(1000)
+
+plot(x, y)
+```
+
+
 Multivariate normality
 
 - Remember -- this is not on the raw variables but on the residuals
 
+```{r}
+testMod = lm(y ~ x)
+
+hist(testMod$residuals)
+```
+
+
 Little multicollinearity
 
 - Predictors need to be independent from each other
+
+```{r}
+plot(rnorm(100), rnorm(100))
+```
+
 
 No auto-correlations
 
@@ -45,7 +65,13 @@ No auto-correlations
 
 Homoscedasticity
 
-- Equal errors along the regression line
+- Equal errors along the fitted values
+
+
+```{r}
+plot(testMod$fitted.values, testMod$residuals)
+```
+
 
 ## Assumptions
 

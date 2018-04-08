@@ -1,0 +1,293 @@
+---
+title: "glm2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Factor Variables
+
+Let's see if there might be anything interesting going on with the region variable:
+
+```{r}
+library(dplyr)
+
+happy %>% 
+  group_by(Region) %>% 
+  summarize(meanHappy = mean(Happiness.Score))
+```
+
+
+```{r}
+happy = read.csv("http://nd.edu/~sberry5/data/happy.csv")
+
+factorTest = lm(Happiness.Score ~ Region, data = happy)
+```
+
+These are called treatment contrasts. If you want to change the treatment, try something like the following:
+
+```{r}
+factorTest2 = lm(Happiness.Score ~ relevel(happy$Region, ref = "North America"), 
+                 data = happy)
+```
+
+
+# Interactions
+
+```{r}
+twoVars = lm(Happiness.Score ~ Freedom + Health..Life.Expectancy., data = happy)
+
+summary(twoVars)
+```
+
+
+Let's explore interactions (moderation to some). 
+
+```{r}
+intMod = lm(Happiness.Score ~ Freedom * Health..Life.Expectancy., data = happy)
+
+summary(intMod)
+```
+
+
+The interpretation of our main effects don't really change. We see, though, that our interaction has some lovely stars -- this requires interpretation. 
+
+The effect of Freedom on Happiness increases by 7 units for every unit increase in life expectancy. If life expectancy is at 0, the slope between freedom and happiness -2.07. 
+
+# Prediction
+
+
+# T-tests
+
+## What Are They Good For
+
+You can use a *t*-test to test differences between two groups.
+
+There are two general forms of the *t*-test:
+  
+- Independent
+
+- Paired
+
+## Our Focus
+
+We are going to focus mostly on comparing independent samples.
+
+Unless you are going to be doing experimental work, you will probably not need to use paired tests.
+
+Furthermore, you probably won't ever really need to compare a sample to the population (requires you to know $\mu$)
+
+## Tails
+
+Like many other tests, the *t*-test can be tested with either one tail or two tails.
+
+Alternative hypotheses can be any one of the following:
+
+- $\neq$
+
+- $>$
+
+- $<$
+
+
+What is the difference?
+
+>-  Do you want to look like you know what you are doing or not?
+
+## One Or Two
+
+In all seriousness, let's consider the following plot:
+  
+  ```{r, eval = TRUE}
+hist(rnorm(100000))
+```
+
+
+## Let's Give It A Try
+
+```{r}
+t.test(mtcars$mpg ~ mtcars$am, alternative = "two.sided")
+```
+
+Try it with different values for alternative and with var.equal = TRUE
+
+
+## Multiple Tests
+
+When conducting *t*-tests, you will often encounter the need to do a lot of them.
+
+This leads to inflated rates of Type I errors
+
+Many corrections exist:
+  
+- Bonferroni
+
+- Tukey
+
+- Scheffé
+
+# Analysis Of Variance
+
+## ANOVA
+
+ANOVA is a lot like a *t*-test, but you can have more than two groups.
+
+## Trying It Out
+
+```{r}
+anovaTest = aov(mpg ~ as.factor(gear), data = mtcars, projections = TRUE)
+summary(anovaTest)
+coefficients(anovaTest)
+```
+
+
+Remember:
+  
+  \(F = \frac {explained\,variance} {unexplained\,variance}\)
+
+## Contrasts
+
+One interesting "advantage" of an ANOVA is that it gives you the ability to plan contrasts.
+
+- You can do the same thing in a linear model!
+  
+  Contrasts allow you to specify how to compare the different groups.
+
+>-  Treatment/simple contrasts
+
+>-  Helmert
+
+>-  Sum
+
+
+# What To Do?
+
+## Which Is The Appropriate Method?
+
+Hopefully, we can see that these are all *essentially* identical.
+
+We need to think about what exactly we are doing:
+  
+  - Are we predicting something?
+  
+  - Are we concerned about group differences?
+  
+  - Do we want to be limited?
+  
+  - Are we doing experimental work?
+  
+  
+  
+## Rules Of Thumb
+
+> - How many people do you need?
+
+> - 20 records per predictor...
+
+> - Not happening here!
+
+> - We will use a more appropriate approach.
+
+## Power Analysis
+
+Do you want to melt most people's brains?
+
+>-  Don't use rules of thumb!
+
+>-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
+
+## Power Analysis
+
+We need three of the following parameters:
+
+>-  Effect size
+
+>-  Sample size
+
+>-  Significance level
+
+>-  Power
+
+>-  We **should** always be doing this *a priori*
+
+>-  Sometimes, it is fun to be a "statistical coroner"
+
+## Effect Sizes
+
+We won't get too deep here, just know that it is a way to determine the difference between groups.
+
+- It's an improvement of *p*-values alone.
+
+Cohen's *d* is likely the most common.
+
+Let theory be your guide.
+
+> - Be realistic!
+
+## Power
+
+Power is ability to detect an effect.
+
+- In NHST words, we are trying to determine if we correctly reject the null hypothesis.
+
+- Type I errors: Reject a true $H_{o}$ (false positive)
+
+- Type II errors: Reject a false $H_{o}$ (false negative)
+
+>- Which is more dangerous?
+
+## Putting It All Together
+
+Let's use the <span class="func">pwr</span> package.
+
+```{r}
+library(pwr)
+
+pwr.f2.test(u = 1, v = NULL, f2 = .05, power = .8)
+
+```
+
+In the function: 
+
+- u is the numerator df (*k* - 1)
+
+- v is the denominator df (*n* - *k*) 
+
+- f2 is signficance level
+
+- \(\Pi = 1 -\beta\)
+
+- \(\beta = Type\,II_{prob}\)
+
+
+## Your Turn!
+
+Use various values to do an *a priori* power analyses.
+
+How does the proposed sample size change as the number of predictors goes up?
+
+What if you tweak the significance level?
+
+What about power?
+
+
+## Different Test, Different Power Tests
+
+We just did a test for a linear regression model.
+
+Here is one for a *t*-test:
+
+```{r}
+tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8, 
+                    type= "two.sample", alternative = "greater")
+
+plot(tPower)
+```
+
+
+## Congratulations
+
+>-  Your knowledge now far exceeds most professionals!
+  

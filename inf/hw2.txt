@@ -1,0 +1,17 @@
+Employee turnover is an important issue for all organization, but it is a problem for some organizations. In our data, we have the number of days employed (daysEmployed) in the last 365 days. Anyone who worked less than 365 days, quit. You will notice that very few employees actually stuck around all year. 
+
+Task 1
+
+How many people were employed for the entire duration?
+
+Task 2
+
+What variables might explain the number of days employed? Formulate and specify your hypotheses. 
+
+Task 3
+
+Use the lm function to test your hypotheses and report your findings. 
+
+Task 4
+
+Explore the data a little bit more. Produce one visualization and explain the relationship.

@@ -5,10 +5,11 @@ output:
     theme: flatly
     highlight: zenburn
     css: documentCSS.css
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE, fig.height = 9, fig.width = 9, comment = "")
 ```
 
 ## glm...not GLM
@@ -17,31 +18,32 @@ The general linear model is one of the foundations of statistical inference.
 
 The most important thing that you need to know is that it comprises three major techniques:
 
-> - Regression
+#### Regression
 
-> - T-tests
+#### *t*-tests
 
-> - ANOVA
+#### ANOVA
 
 
 ## Assumptions
 
-Linear relationship
+As with nearly all statistical tests, the general linear model has some assumptions built into it for proper inference.
 
-- Pretty clear
+- Linear relationship 
 
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 x = rnorm(1000)
 
 y = x + rnorm(1000)
+
+xyDat = data.frame(x = x, y = y)
 
 plot(x, y)
 ```
 
 
-Multivariate normality
+- Multivariate normality
 
-- Remember -- this is not on the raw variables but on the residuals
 
 ```{r}
 testMod = lm(y ~ x)
@@ -50,22 +52,15 @@ hist(testMod$residuals)
 ```
 
 
-Little multicollinearity
+- Little multicollinearity
 
-- Predictors need to be independent from each other
 
 ```{r}
 plot(rnorm(100), rnorm(100))
 ```
 
 
-No auto-correlations
-
-- Observations are independent from previous observations
-
-Homoscedasticity
-
-- Equal errors along the fitted values
+- Homoscedasticity
 
 
 ```{r}
@@ -73,14 +68,15 @@ plot(testMod$fitted.values, testMod$residuals)
 ```
 
 
-## Assumptions
+- No auto-correlations
 
-Assumptions are very important.
 
-They are not, however, statistical death sentences.
+Assumptions are very important. They are not, however, statistical death sentences.
 
 
 ## Assumptions According To Gelman
+
+Andrew Gelman has proposed the following assumptions for the modern linear regression:
 
 1.  Validity
 
@@ -93,60 +89,700 @@ They are not, however, statistical death sentences.
 5.  Normality of errors
 
 
-## Modern Approaches
+### Modern Approaches
 
-> - Has anyone ever heard to transform your variables to make them normal?
+Speaking of *modern*, let's get a few things out of the way:
 
-> - What about dropping outliers?
+We won't be transforming variables for the sake of it!
 
-> - Neither belongs in modern statistics
+We won't be dropping outliers!
 
 
+## Regression
+
+#### Do You Know...OLS
+
+Linear regression is likely the most important statistical technique.
+
+Let's look at the following plot:
+
+```{r}
+library(ggplot2)
+
+ggplot(xyDat, aes(x, y)) +
+  geom_point(alpha = .75) +
+  theme_minimal()
+
+
+```
+
+
+To perform our regression analysis, we need to make a line pass through the data to satisfy the following conditions:
+
+1.  It has to pass through the mean of *x*.
+
+2.  It has to pass through the mean of *y*.
+
+3.  The slope of the line needs to minimize the distance between the line and observations.
+
+Here is a plot with all of those points marked.
+
+```{r}
+library(dplyr)
+
+datSummary = xyDat %>% 
+  summarize_all(mean)
+
+xyMod = lm(y ~ x, data = xyDat)
+
+xyModDat = data.frame(resid = xyMod$fitted.values, 
+                      fit = xyMod$model$x)
+
+ggplot(xyDat, aes(x, y)) +
+  geom_point(alpha = .75) +
+  geom_point(data = datSummary, mapping = aes(x, y), color = "#ff5501", size = 5) +
+  geom_hline(yintercept = datSummary$y, linetype = "dashed", color = "#ff5501") +
+  geom_vline(xintercept = datSummary$x, linetype = "dashed", color = "#ff5501") +
+  theme_minimal()
+
+
+```
+
+
+With those identified, we can fit a line through those points.
+
+```{r}
+ggplot(xyDat, aes(x, y)) +
+  geom_point(alpha = .75) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_point(data = datSummary, mapping = aes(x, y), color = "#ff5501", size = 5) +
+  geom_hline(yintercept = datSummary$y, linetype = "dashed", color = "#ff5501") +
+  geom_vline(xintercept = datSummary$x, linetype = "dashed", color = "#ff5501") +
+  theme_minimal()
+
+```
+
+## Points and Lines
+
+Now that we have these points and lines, what can we make of them? The goal of our regression model is to account for the variation in the dependent variable with the predictor variable. To that end, we have three different types of variation in our model:
+
+1.  Total variation in *y*
+
+2.  Explained variation in *y*
+
+3.  Residual
+
+
+```{r}
+variancePlot = ggplot(xyDat, aes(x, y)) +
+  geom_point(alpha = .75) +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_point(data = datSummary, mapping = aes(x, y), color = "#ff5501", size = 5) +
+  geom_hline(yintercept = datSummary$y, linetype = "dashed", color = "#ff5501") +
+  geom_vline(xintercept = datSummary$x, linetype = "dashed", color = "#ff5501") +
+  geom_segment(data = xyModDat, mapping = aes(xend = fit, yend = resid), linetype = "dashed") +
+  theme_minimal()
+
+
+plotly::ggplotly(variancePlot)
+```
+
+
+
+
+## Important Terms
+
+There are a few important terms to keep in mind:
+
+-  Coefficients
+
+-  Standard Errors
+
+-  Residuals
+
+## Goodness Of Fit
+
+- $R^2$
+
+-  *F*-tests
+
+### $R^2$
+
+
+Proportion of total explained variation.
+
+Sums of squares play a very important roll in all of this.
+
+$$\Sigma(y_i-\bar{y})^2 = \Sigma(\hat{y}-\bar{y})^2 + \Sigma(y - \hat{y})^2 $$
+
+If we divide the explained sum of squares ($\Sigma(\hat{y}-\bar{y})^2$) by the total sum of squares part of the equation ($\Sigma(y_i-\bar{y})^2$), we will get the $r^2$:
+
+$$r^2 = \frac {\Sigma(\hat{y}-\bar{y})^2}{\Sigma(y_i-\bar{y})^2}$$
+
+It can alternatively be expressed as:
+
+\(R^2 = 1 -\frac {\Sigma(y - \hat{y})^2} {\Sigma(y_i-\bar{y})^2}\)
+
+If you have a bivariate model, it is literally $r^2$
+
+
+```{r}
+totalSS = sum((xyMod$model$y - mean(xyMod$model$y))^2)
+
+explainedSS = sum((xyMod$fitted.values - mean(xyMod$model$y))^2)
+
+residualSS = sum((xyMod$model$y - xyMod$fitted.values)^2)
+
+r2 = explainedSS / totalSS
+
+```
+
+### *F*-test
+
+The *F*-test is used to determine whether the amount of variation explained is not due to chance. It is essentially testing whether our $r^2$ is "significant".
+
+Our *F* is calculated as follows:
+
+$$F = \frac {(\Sigma(y - \hat{y})^2)/v-1} {(\Sigma(\hat{y}-\bar{y})^2)/n-2} $$
+
+We already know most of this, the top part has the residual sums of squares and the bottom part is the explained sums of squares. *v* is the number of variables and *n* is the sample size.
+
+```{r}
+fStat = (residualSS / 1) / (explainedSS / (nrow(xyDat) - 2))
+```
+
+
+### *t*-test
+
+We use the *t*-test to determine if the slope of our line is different than zero. We are essentially testing each of our $\beta$ (coefficients) for significant slope.
+
+## For Real
+
+```{r, eval = TRUE}
+
+happy = read.csv("http://www.nd.edu/~sberry5/data/happy.csv", strip.white = TRUE)
+
+basicExample = lm(Happiness.Score ~ Economy..GDP.per.Capita., data = happy)
+
+summary(basicExample)
+```
+
+### What Does This Mean For Me?
+
+The intercept is the fitted value of Happiness.Score when everything else is equal to 0.
+
+The coefficient for "Economy.GDP" is saying that for every unit increase in GDP, the average change in the mean of Happiness goes up ~2.21 units.
+
+
+Let's add another term to our model:
+
+```{r}
+twoPredictors = lm(Happiness.Score ~ Economy..GDP.per.Capita. + Generosity, data = happy)
+
+summary(twoPredictors)
+
+```
+
+With another term in the model, our coefficient for GDP has changed to 2.22
+
+- This is holding generosity constant.
+
+Generosity has a coefficient of 1.70.
+
+- Holding GDP constant.
+
+What do these patterns mean?
+
+Do they make sense?
+
+## Let's See How This Holds Up
+
+${mpg} = \alpha + \beta_{1} gdp_{t} + \beta_{2}  generosity_{t} + \epsilon$
+
+```{r}
+twoPredictors$coefficients['(Intercept)'] + 
+  twoPredictors$coefficients['Economy..GDP.per.Capita.'] * happy$Economy..GDP.per.Capita.[1] +
+  twoPredictors$coefficients['Generosity'] * happy$Generosity[1]
+
+
+happy$Happiness.Score[1]
+```
+
+
+## Visual Diagnostics
+
+Using the plot method for our linear model will give us 4 very informative plots.
+
+```{r}
+par(mfrow = c(2, 2))
+
+plot(twoPredictors)
+```
+
+
+The "Residuals vs Fitted" plot is showing us our linear relationships -- it should appear random!
+
+The "Normal Q-Q" plot is giving us an idea about our multivariate normality (normally-distributed) -- the points should hug the line.
+
+The "Scale-Location" plot is similar to our "Residuals vs Fitted" plot, but is best for homoscedasticity detection -- again, random is great!
+
+Finally, "Residuals vs Leverage" shows us observations exhibiting a high degree of leverage on our regression.
+
+## A Demonstration
+
+```{r}
+# predictors and response
+N = 100 # sample size
+k = 2   # number of desired predictors
+X = matrix(rnorm(N*k), ncol=k)  
+y = -.5 + .2*X[,1] + .1*X[,2] + rnorm(N, sd=.5)  # increasing N will get estimated values closer to these
+
+dfXy = data.frame(X,y)
+
+plot(dfXy$y, dfXy$X1)
+```
+
+### Long Form
+
+```{r}
+lmfuncLS = function(par, X, y){
+  # arguments- par: parameters to be estimated; X: predictor matrix with intercept 
+  # column, y: response
+  
+  # setup
+  beta = par                                   # coefficients
+  
+  # linear predictor
+  LP = X%*%beta                                # linear predictor
+  mu = LP                                      # identity link
+  
+  # calculate least squares loss function
+  L = crossprod(y-mu)
+}
+```
+
+```{r}
+X = cbind(1, X)
+
+init = c(1, rep(0, ncol(X)))
+
+names(init) = c('sigma2', 'intercept','b1', 'b2')
+```
+
+
+```{r}
+optlmLS = optim(par = init[-1], fn = lmfuncLS, 
+                X = X, y = y, control = list(reltol = 1e-8))
+
+optlmLS$par
+```
+
+
+```{r}
+modlm = lm(y~., dfXy)
+
+summary(modlm)
+```
+
+
+### QR Decomposition
+
+```{r}
+QRX = qr(X)
+Q = qr.Q(QRX) # Orthogonal matrix
+R = qr.R(QRX) # Upper triangle
+Bhat = solve(R) %*% crossprod(Q, y)
+qr.coef(QRX, y)
+```
+
+### Pure Matrix Multiplication
+
+```{r}
+coefs = solve(t(X)%*%X) %*% t(X)%*%y
+```
+
+
+# Factor Variables
+
+Let's see if there might be anything interesting going on with the gender variable:
+
+```{r}
+library(dplyr)
+
+crimeScore = read.csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+
+genderScores = crimeScore %>% 
+  group_by(SEX_CODE_CD) %>% 
+  summarize(meanScore = mean(SSL_SCORE))
+
+genderScores
+```
+
+
+```{r}
+factorTest = lm(SSL_SCORE ~ SEX_CODE_CD, data = crimeScore)
+
+summary(factorTest)
+```
+
+These are called treatment contrasts. If you want to change the treatment, try something like the following:
+
+```{r}
+factorTest2 = lm(SSL_SCORE ~ relevel(crimeScore$SEX_CODE_CD, ref = "X"), 
+                 data = crimeScore)
+
+summary(factorTest2)
+```
+
+
+No matter the reference category, we are allowing our intercept to differ for each level of the factor variable.
+
+# Ordered Factors
+
+
+```{r}
+library(dplyr)
+
+summary(as.factor(crimeScore$AGE_CURR))
+
+crimeScore$AGE_CURR[which(crimeScore$AGE_CURR == "")] = NA
+
+crimeScore = crimeScore %>% 
+  mutate(ageRec = relevel(AGE_CURR, ref = "less than 20"), 
+         ageRec = as.ordered(ageRec))
+```
+
+
+
+If we include an ordered factor in our model, we might get a surprising result:
+
+```{r}
+
+orderedMod = lm(SSL_SCORE ~ ageRec, data = crimeScore)
+
+summary(orderedMod)
+```
+
+
+What R is returning is an orthogonal polynomial contrast.  We are dealing with k-1 higher-order approximations of the trends of the variable (linear, quadratic, cubic, ^4, etc.).  So in our model, we are looking at the effects of each trend level on our dependent variable.
+
+```{r, echo = FALSE}
+
+options(scipen = 999)
+
+library(ggplot2)
+
+library(dplyr)
+
+testCoef = coefficients(lm(SSL_SCORE ~ ageRec, data = crimeScore))
+
+C = contr.poly(7)
+
+linearContrast = data.frame(meanScore = c(testCoef[1] + testCoef[2] * C[1, 1], 
+                      testCoef[1] + testCoef[2] * C[2, 1],
+                      testCoef[1] + testCoef[2] * C[3, 1], 
+                     testCoef[1] + testCoef[2] * C[4, 1], 
+                     testCoef[1] + testCoef[2] * C[5, 1], 
+                     testCoef[1] + testCoef[2] * C[6, 1], 
+                     testCoef[1] + testCoef[2] * C[7, 1]), 
+                     ageRec = c("less than 20", "20-30", "30-40", 
+                             "40-50", "50-60", "60-70", "70-80"))
+
+quadraticContrast = data.frame(meanScore = c(testCoef[1] + testCoef[3] * C[1, 2], 
+                      testCoef[1] + testCoef[3] * C[2, 2],
+                      testCoef[1] + testCoef[3] * C[3, 2], 
+                     testCoef[1] + testCoef[3] * C[4, 2], 
+                     testCoef[1] + testCoef[3] * C[5, 2], 
+                     testCoef[1] + testCoef[3] * C[6, 2], 
+                     testCoef[1] + testCoef[3] * C[7, 2]), 
+                     ageRec = c("less than 20", "20-30", "30-40", 
+                             "40-50", "50-60", "60-70", "70-80"))
+
+cubicContrast = data.frame(meanScore = c(testCoef[1] + testCoef[4] * C[1, 3], 
+                      testCoef[1] + testCoef[4] * C[2, 3],
+                      testCoef[1] + testCoef[4] * C[3, 3], 
+                     testCoef[1] + testCoef[4] * C[4, 3], 
+                     testCoef[1] + testCoef[4] * C[5, 3], 
+                     testCoef[1] + testCoef[4] * C[6, 3], 
+                     testCoef[1] + testCoef[4] * C[7, 3]), 
+                     ageRec = c("less than 20", "20-30", "30-40", 
+                             "40-50", "50-60", "60-70", "70-80"))
+
+quarticContrast = data.frame(meanScore = c(testCoef[1] + testCoef[5] * C[1, 4], 
+                      testCoef[1] + testCoef[5] * C[2, 4],
+                      testCoef[1] + testCoef[5] * C[3, 4], 
+                     testCoef[1] + testCoef[5] * C[4, 4], 
+                     testCoef[1] + testCoef[5] * C[5, 4], 
+                     testCoef[1] + testCoef[5] * C[6, 4], 
+                     testCoef[1] + testCoef[5] * C[7, 4]), 
+                     ageRec = c("less than 20", "20-30", "30-40", 
+                             "40-50", "50-60", "60-70", "70-80"))
+
+plotDat = crimeScore %>% 
+  dplyr::select(SSL_SCORE, ageRec) %>% 
+  group_by(ageRec) %>% 
+  summarize(meanScore = mean(SSL_SCORE)) %>% 
+  na.omit()
+
+ggplot(plotDat, aes(ageRec, meanScore, group = 1)) +
+  geom_point(size = 3, color = "#e41a1c") + # Red
+  geom_point(data = linearContrast, aes(y = meanScore, group = 1, color = "#377eb8")) + # Blue
+  geom_line(data = linearContrast, aes(y = meanScore, group = 1, color = "#377eb8")) +
+  geom_point(data = quadraticContrast, aes(y = meanScore, group = 1, color = "#4daf4a")) + # Green
+  geom_line(data = quadraticContrast, aes(y = meanScore, group = 1, color = "#4daf4a")) +
+  geom_point(data = cubicContrast, aes(y = meanScore, group = 1, color = "#984ea3")) + # Purple
+  geom_line(data = cubicContrast, aes(y = meanScore, group = 1, color = "#984ea3")) +
+  geom_point(data = quarticContrast, aes(y = meanScore, group = 1, color = "#ff7f00")) + # Orange 
+  geom_line(data = quarticContrast, aes(y = meanScore, group = 1, color = "#ff7f00")) +
+  scale_color_identity("Line.Color", labels=c("Linear", "Quadratic", "Cubic", "Quartic"), guide="legend") +
+  theme_minimal()
+```
+
+Here is a better example:
+
+```{r, echo = FALSE}
+
+options(scipen = 999)
+
+library(ggplot2); library(dplyr)
+
+testCoef = coefficients(lm(price ~ cut, data = diamonds))
+
+testCoef
+
+C = contr.poly(5)
+
+linearContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[2] * C[1, 1], 
+                      testCoef[1] + testCoef[2] * C[2, 1],
+                      testCoef[1] + testCoef[2] * C[3, 1], 
+                     testCoef[1] + testCoef[2] * C[4, 1], 
+                     testCoef[1] + testCoef[2] * C[5, 1]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+quadraticContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[3] * C[1, 2], 
+                      testCoef[1] + testCoef[3] * C[2, 2],
+                      testCoef[1] + testCoef[3] * C[3, 2], 
+                     testCoef[1] + testCoef[3] * C[4, 2], 
+                     testCoef[1] + testCoef[3] * C[5, 2]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+cubicContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[4] * C[1, 3], 
+                      testCoef[1] + testCoef[4] * C[2, 3],
+                      testCoef[1] + testCoef[4] * C[3, 3], 
+                     testCoef[1] + testCoef[4] * C[4, 3], 
+                     testCoef[1] + testCoef[4] * C[5, 3]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+quarticContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[5] * C[1, 4], 
+                      testCoef[1] + testCoef[5] * C[2, 4],
+                      testCoef[1] + testCoef[5] * C[3, 4], 
+                     testCoef[1] + testCoef[5] * C[4, 4], 
+                     testCoef[1] + testCoef[5] * C[5, 4]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+plotDat = diamonds %>% 
+  dplyr::select(price, cut) %>% 
+  group_by(cut) %>% 
+  summarize(meanPrice = mean(price))
+
+ggplot(plotDat, aes(cut, meanPrice, group = 1)) +
+  geom_point(size = 3, color = "#e41a1c") + # Red
+  geom_point(data = linearContrast, aes(y = meanPrice, group = 1), color = "#377eb8") + # Blue
+  geom_line(data = linearContrast, aes(y = meanPrice, group = 1), color = "#377eb8") +
+  geom_point(data = quadraticContrast, aes(y = meanPrice, group = 1), color = "#4daf4a") + # Green
+  geom_line(data = quadraticContrast, aes(y = meanPrice, group = 1), color = "#4daf4a") +
+  geom_point(data = cubicContrast, aes(y = meanPrice, group = 1), color = "#984ea3") + # Purple
+  geom_line(data = cubicContrast, aes(y = meanPrice, group = 1), color = "#984ea3") +
+  geom_point(data = quarticContrast, aes(y = meanPrice, group = 1), color = "#ff7f00") + # Orange 
+  geom_line(data = quarticContrast, aes(y = meanPrice, group = 1), color = "#ff7f00") +
+  theme_minimal()
+```
+
+From looking at the visualization, we can see how these different "approximations" can fit the data pretty well.
+
+
+
+Converting them to numeric will entail a careful theoretical examination of the question at hand and the nature of the ordinal categories, but you get the nice and easier numeric interpretation that comes along with the numeric.  Converting them to factors leads us to the treatment contrasts that we used earlier.
+
+
+# Interactions
+
+```{r}
+twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(twoVars)
+```
+
+
+Let's explore interactions (moderation to some). 
+
+```{r}
+intMod = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(intMod)
+```
+
+
+The interpretation of our main effects don't really change. 
+
+Despite not being significant, we would interpret our interaction here to mean that as either weapons arrests or narcotics arrests increases, the score increases by .73
+
+```{r}
+crimeScoreGender = crimeScore %>% 
+  filter(SEX_CODE_CD != "X") %>%
+  select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT)
+
+intMod2 = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD, data = crimeScoreGender)
+
+summary(intMod2)
+```
+
+Compared to women, men's score increases by 19.25 on average for each weapons arrest.
+
+Sometimes it helps to see what is going on with a plot
+
+```{r}
+library(effects)
+
+modEffects = effect("WEAPONS_ARR_CNT*SEX_CODE_CD", intMod2)
+
+plot(modEffects)
+```
+
+
+# T-tests
+
+## What Are They Good For
+
+You can use a *t*-test to test differences between two groups.
+
+There are two general forms of the *t*-test:
+  
+- Independent
+
+- Paired
+
+## Our Focus
+
+We are going to focus mostly on comparing independent samples.
+
+Unless you are going to be doing experimental work, you will probably not need to use paired tests.
+
+Furthermore, you probably won't ever really need to compare a sample to the population (requires you to know $\mu$)
+
+## Tails
+
+Like many other tests, the *t*-test can be tested with either one tail or two tails.
+
+Alternative hypotheses can be any one of the following:
+
+- $\neq$
+
+- $>$
+
+- $<$
+
+
+What is the difference?
+
+-  Are you specifying the direction of your hypothesis or not?
+
+## One Or Two
+
+In all seriousness, let's consider the following plot:
+  
+  ```{r, eval = TRUE}
+hist(rnorm(100000))
+```
+
+
+## Let's Give It A Try
+
+```{r}
+
+t.test(crimeScoreGender$SSL_SCORE ~ crimeScoreGender$SEX_CODE_CD, 
+       alternative = "two.sided")
+```
+
+Try it with different values for alternative and with var.equal = TRUE
+
+
+# Analysis Of Variance
+
+## ANOVA
+
+ANOVA is a lot like a *t*-test, but you can have more than two groups.
+
+## Trying It Out
+
+```{r}
+anovaTest = aov(SSL_SCORE ~ as.factor(ageRec), data = crimeScore, projections = TRUE)
+summary(anovaTest)
+
+```
+
+
+We now know that differences exist, but which groups are different?
+
+We use Tukey's Honestly Significant Difference test:
+
+```{r}
+TukeyHSD(anovaTest)
+```
+
+
+
+# What To Do?
+
+## Which Is The Appropriate Method?
+
+Hopefully, we can see that these are all *essentially* identical.
+
+We need to think about what exactly we are doing:
+  
+  - Are we predicting something?
+  
+  - Are we concerned about group differences?
+  
+  - Do we want to be limited?
+  
+  - Are we doing experimental work?
+  
+  
+  
 ## Rules Of Thumb
 
-> - How many people do you need?
+20 records per predictor...
 
-> - 20 records per predictor...
-
-> - Not happening here!
-
-> - We will use a more appropriate approach.
+- Not happening here!
 
 ## Power Analysis
 
 Do you want to melt most people's brains?
 
->-  Don't use rules of thumb!
+-  Don't use rules of thumb!
 
->-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
+-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
 
 ## Power Analysis
 
 We need three of the following parameters:
 
->-  Effect size
+-  Effect size
 
->-  Sample size
+-  Sample size
 
->-  Significance level
+-  Significance level
 
->-  Power
+-  Power
 
->-  We **should** always be doing this *a priori*
+We **should** always be doing this *a priori*
 
->-  Sometimes, it is fun to be a "statistical coroner"
-
-## Effect Sizes
-
-We won't get too deep here, just know that it is a way to determine the difference between groups.
-
-- It's an improvement of *p*-values alone.
-
-Cohen's *d* is likely the most common.
-
-Let theory be your guide.
-
-> - Be realistic!
+-  Sometimes, it is fun to be a "statistical coroner"
 
 ## Power
 
@@ -183,6 +819,7 @@ In the function:
 
 - \(\beta = Type\,II_{prob}\)
 
+Power is typically set at .8, because it represents a 4 to 1 trade between Type II and Type I errors.
 
 ## Your Turn!
 
@@ -211,271 +848,8 @@ plot(tPower)
 
 ## Congratulations
 
->-  Your knowledge now far exceeds most professionals!
-
-# Regression
-
-## Do You Know...OLS
-
-Linear regression is likely the singular most important statistic.
-
-
-## A Demonstration
-
-```{r}
-# predictors and response
-N = 100 # sample size
-k = 2   # number of desired predictors
-X = matrix(rnorm(N*k), ncol=k)  
-y = -.5 + .2*X[,1] + .1*X[,2] + rnorm(N, sd=.5)  # increasing N will get estimated values closer to these
-
-dfXy = data.frame(X,y)
-
-plot(dfXy$y, dfXy$X1)
-```
-
-
-```{r}
-lmfuncLS = function(par, X, y){
-  # arguments- par: parameters to be estimated; X: predictor matrix with intercept 
-  # column, y: response
+-  Your knowledge now far exceeds most professionals!
   
-  # setup
-  beta = par                                   # coefficients
-  
-  # linear predictor
-  LP = X%*%beta                                # linear predictor
-  mu = LP                                      # identity link
-  
-  # calculate least squares loss function
-  L = crossprod(y-mu)
-}
-```
 
-```{r}
 
-X = cbind(1, X)
 
-init = c(1, rep(0, ncol(X)))
-
-names(init) = c('sigma2', 'intercept','b1', 'b2')
-```
-
-
-```{r}
-optlmLS = optim(par = init[-1], fn = lmfuncLS, 
-                X = X, y = y, control = list(reltol = 1e-8))
-
-optlmLS$par
-```
-
-
-```{r}
-modlm = lm(y~., dfXy)
-
-summary(modlm)
-```
-
-
-```{r}
-# Example
-QRX = qr(X)
-Q = qr.Q(QRX) # Orthogonal matrix
-R = qr.R(QRX) # Upper triangle
-Bhat = solve(R) %*% crossprod(Q, y)
-qr.coef(QRX, y)
-```
-
-
-```{r}
-coefs = solve(t(X)%*%X) %*% t(X)%*%y
-```
-
-
-## Important Terms
-
-There are a few important terms to keep in mind:
-
->-  Coefficients
-
->-  Standard Errors
-
->-  Residuals
-
-## Goodness Of Fit
-
->- $R^2$
-
->-  *F*-tests
-
-## $R^2$
-
-Variance accounted for by the predictors.
-
-- Adjusted $R^2$ is just a penalized version.
-
-\(R^2 = 1 -\frac {SS_{res}} {SS_{tot}}\)
-
-Sums of squares play a very important roll in all of this.
-
->-  Don't worry about know how to compute them.
-
->-  Just know that they are important
-
-
-## Let's Just Get On With It
-
-```{r, eval = TRUE}
-basicExample = lm(mpg ~ wt + qsec, data = mtcars)
-summary(basicExample)
-```
-
-## What Does This Mean For Me?
-
-The intercept is the fitted value of mpg when everything else is equal to 0.
-
-The coefficient for "wt" is saying that for every unit increase in pounds, mpg goes down by -5.
-
-- Holding qsec constant
-
-The coefficient for "qsec" is saying that for every unit increase in time, mpg goes up by ~1.
-
-- Holding wt constant
-
-What do these patterns mean?
-
-Do they make sense?
-
-## Let's See How This Holds Up
-
-${mpg} = \alpha + \beta_{1} wt_{t} + \beta_{2}  qsec_{t} + \epsilon$
-
-```{r}
-basicExample$coefficients['(Intercept)'] + 
-  basicExample$coefficients['wt'] * mtcars$wt[1] +
-  basicExample$coefficients['qsec'] * mtcars$qsec[1]
-
-
-mtcars$mpg[1]
-```
-
-
-
-# T-tests
-
-## What Are They Good For
-
-You can use a *t*-test to test differences between two groups.
-
-There are two general forms of the *t*-test:
-
->-  Independent
-
->-  Paired
-
-## Our Focus
-
-We are going to focus mostly on comparing independent samples.
-
-Unless you are going to be doing experimental work, you will probably not need to use paired tests.
-
-Furthermore, you probably won't ever really need to compare a sample to the population (requires you to know $\mu$)
-
-## Tails
-
-Like many other tests, the *t*-test can be tested with either one tail or two tails.
-
-Alternative hypotheses can be any one of the following:
-
-- $\neq$
-
-- $>$
-
-- $<$
-
-
-What is the difference?
-
->-  Do you want to look like you know what you are doing or not?
-
-## One Or Two
-
-In all seriousness, let's consider the following plot:
-
-```{r, eval = TRUE}
-hist(rnorm(100000))
-```
-
-
-## Let's Give It A Try
-
-```{r}
-t.test(mtcars$mpg ~ mtcars$am, alternative = "two.sided")
-```
-
-Try it with different values for alternative and with var.equal = TRUE
-
-
-## Multiple Tests
-
-When conducting *t*-tests, you will often encounter the need to do a lot of them.
-
-This leads to inflated rates of Type I errors
-
-Many corrections exist:
-
-- Bonferroni
-
-- Tukey
-
-- Scheffé
-
-# Analysis Of Variance
-
-## ANOVA
-
-ANOVA is a lot like a *t*-test, but you can have more than two groups.
-
-## Trying It Out
-
-```{r}
-anovaTest = aov(mpg ~ as.factor(gear), data = mtcars, projections = TRUE)
-summary(anovaTest)
-coefficients(anovaTest)
-```
-
-
-Remember:
-
-\(F = \frac {explained\,variance} {unexplained\,variance}\)
-
-## Contrasts
-
-One interesting "advantage" of an ANOVA is that it gives you the ability to plan contrasts.
-
-- You can do the same thing in a linear model!
-
-Contrasts allow you to specify how to compare the different groups.
-
->-  Treatment/simple contrasts
-
->-  Helmert
-
->-  Sum
-
-
-# What To Do?
-
-## Which Is The Appropriate Method?
-
-Hopefully, we can see that these are all *essentially* identical.
-
-We need to think about what exactly we are doing:
-
-- Are we predicting something?
-
-- Are we concerned about group differences?
-
-- Do we want to be limited?
-
-- Are we doing experimental work?

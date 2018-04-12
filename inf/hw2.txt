@@ -2,15 +2,15 @@ Employee turnover is an important issue for all organization, but it is a proble
 
 Task 1
 
-How many people were employed for the entire duration?
+How many people were employed for the entire duration (i.e., how many were there for all 365 days)?
 
 Task 2
 
-What variables might explain the number of days employed? Formulate and specify your hypotheses. 
+What variables might explain the number of days employed? Formulate, specify, and report your hypotheses. 
 
 Task 3
 
-Use the lm function to test your hypotheses and report your findings. 
+Use one of the functions that will cover glm techniques (lm for a linear regression model, t.test for a t-test, or aov for an anova) to test your hypotheses and report your findings. 
 
 Task 4
 

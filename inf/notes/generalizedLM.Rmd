@@ -1,0 +1,327 @@
+---
+title: "Generalized Linear Models"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+
+# On Centering
+
+Let's return to our crime data and one of our models:
+
+```{r}
+crimeScore = readr::read_csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+```
+
+
+Let's look at the summary of a few variables:
+
+```{r}
+library(dplyr)
+
+crimeScore %>% 
+  select(SSL_SCORE, WEAPONS_ARR_CNT, NARCOTICS_ARR_CNT) %>% 
+  summary()
+```
+
+We see a minimum of 1 for both weapons and narcotics, a mean of 1.2 for weapons, and a mean of 2.06 for narcotics.
+
+
+```{r}
+twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(twoVars)
+```
+
+
+If we mean center our predictors, we have a meaningful intercept!
+
+```{r}
+crimeScore %>% 
+  mutate(weaponsCenter = WEAPONS_ARR_CNT - mean(WEAPONS_ARR_CNT, na.rm = TRUE), 
+         narcCenter = NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, na.rm = TRUE)) %>% 
+  lm(SSL_SCORE ~ weaponsCenter + narcCenter, data = .) %>% 
+  summary()
+  
+```
+
+We can now say that at mean values of weapons and narcotics arrest, the SSL_SCORE is 319.
+
+You don't have to center on just means -- you can choose whatever value might be meaningful.
+
+
+# Generalized Linear Models
+
+What a wonderful circular definition!
+
+- GLM is telling you exactly what it is within the title.
+
+But, how is it generalized?
+
+## Distributions...
+
+Remember how linear models really enjoy the whole Gaussian distribution scene?
+
+- Not all data follows a Gaussian distribution.
+
+So, we need a way to incorporate different distributions of the dv into our model.
+
+Distributions cannot do it alone!
+
+## And Link Functions
+
+From a theoretical perspective, link functions are tricky to get your head around.
+
+- Find the exponential of the response's density function and derive the canonical link function...
+
+From a conceptual perspective, all they are doing is allowing the linear predictor to "link" to a distribution function's mean.
+
+- If you know a distribution's canonical link function, that is all the deeper you will probably every need.
+
+
+## Linear Regression
+
+We already saw linear regression.
+
+A linear regression deals with real numbers between $-\infty$ to $\infty$ in the dependent variable.
+
+It is the most vanilla within the GLM.
+
+- Gaussian distribution with an "identity" link function
+
+## In R
+
+```{r}
+lmTest = glm(SSL_SCORE ~ WEAPONS_ARR_CNT, data = crimeScore, family = gaussian)
+
+summary(lmTest)
+```
+
+We see a lot of the same information, but we have a new model fit statistic to look at: deviance.
+
+Deviance is *badness*. The null deviance is telling us how well our dependent variable is predicted by a model with only the intercept -- this is generally the case with all null models.
+
+Our model, captured in the residual deviance, showed a marked decrease in deviance with very little lost in degrees of freedom.
+
+We can test it with the following:
+
+```{r}
+1 - pchisq(lmTest$deviance, lmTest$df.residual)
+```
+
+
+The value of AIC is not really interpretable -- it is used only for model comparison.
+
+```{r}
+confint(lmTest)
+```
+
+
+### A Quick Aside On CIs
+
+Confidence intervals express that 95% of samples will contain the true value, which we can never really know.
+
+They are not related to the probability of a result being correct.
+
+"Doesn't contain 0" does not apply to everything.
+
+## Logistic Regression
+
+Logistic regression is substantially different than linear regression.
+
+- It is also a bit confusing, because it is named after its link function.
+
+Instead of that nice continuous dv, we are dealing with a binomial distribution.
+
+- 0's and 1's as responses.
+
+
+```{r}
+kickstarter = readr::read_csv("https://www.nd.edu/~sberry5/data/kickstarter.csv")
+
+kickstarter = kickstarter %>% 
+  filter(state == "successful" | state == "failed") %>% 
+  mutate(state = ifelse(state == "successful", 1, 0))
+```
+
+
+```{r}
+library(ggplot2)
+
+ggplot(kickstarter, aes(state)) +
+  geom_density() +
+  theme_minimal()
+```
+
+
+## In R
+
+```{r}
+logTest = glm(state ~ backers, data = kickstarter, 
+              family = binomial)
+```
+
+We are now dealing with log odds in the coefficients.
+
+- For every unit increase in backers, the log odds of a campaign being funded is  ~.03.
+
+```{r}
+summary(logTest)
+```
+
+# Some Logistic Grounding
+
+## Log Odds
+
+As its default, R produces the log odds for the regression coefficient in a logistic model. 
+
+The odds portion of this is the probability.  We can look at the relationship between the probability, odds, and log odds.
+
+```{r}
+probabilityList = c(.001, .01, .15, .2, 
+                    .25, .3, .35, .4, .45, 
+                    .5, .55, .6, .65, .7, 
+                    .75, .8, .85, .9)
+```
+
+
+We have our list of probabilities (always between 0 and 1).  Now, let's write a function to convert them to odds. We will use the $\\p\, / 1 - p$ equation.
+
+```{r}
+oddsConversion = function(p) {
+  res = p / (1 - p)
+  return(res)
+}
+
+odds = oddsConversion(probabilityList)
+
+plot(probabilityList, odds)
+```
+
+Now, we can convert them to log odds:
+
+```{r}
+plot(odds, log(odds))
+```
+
+
+### The Intercept
+
+The intercept is offering the log odds of a campaign with 0 backers being funded -- converting this back to probability (just adding the exponentiation into solving back to probability), we get the following:
+
+```{r}
+exp(coef(logTest)["(Intercept)"]) / (1 + exp(coef(logTest)["(Intercept)"]))
+```
+
+We are dealing with a pretty small probability that a campaign with 0 backers could be successful.
+
+### The Predictor
+
+Recall that the coefficient in log odds for the backers was .02645174.
+
+Let's start at the median value of backers:
+
+```{r}
+median(kickstarter$backers)
+```
+
+Now, let's solve our equation for that one.
+
+```{r}
+medLogit = logTest$coefficients["(Intercept)"] + 
+  (logTest$coefficients["backers"] * median(kickstarter$backers))
+
+names(medLogit) = NULL
+
+medLogit
+```
+
+
+Let's do the same thing for the next sequential value of HP:
+
+```{r}
+medLogitPlus1 = logTest$coefficients["(Intercept)"] + 
+  (logTest$coefficients["backers"] * (median(kickstarter$backers) + 1))
+
+names(medLogitPlus1) = NULL
+
+medLogitPlus1
+```
+
+Now we have two sequential conditional logits that we can subtract from each other:
+
+```{r}
+backersCoef = medLogitPlus1 - medLogit
+
+backersCoef
+```
+
+This is exactly the coefficient that we got from the model. If we exponentiate the log odds, we are "unlogging" it to get the odds ratio that we saw eariler (just plain old odds at this point):
+
+```{r}
+exp(backersCoef)
+```
+
+For every unit increase in backer, we have a 2% increase in the odds that the campaign will be successful. These odds are stacking as we increase (see the plot below). When we look at the odds, anything above 1 is in favor of moving from the "0" category to the "1" category, whereas anything below 1 is in favor of not moving from the "0".  From a technical question perspective, this makes absolute sense -- we would expect that having more backers contributes to a better chance of funding.
+
+## Putting It Together (Hopefully)
+
+When we do our linear model, we are trying to predict the response -- not the case with logistic regression.  Instead we are trying to predict the probability of going from 0 to 1 (not funded to funded).  So, normal plots that we might usually create with linear models will do us no good here.
+
+First, we need to make our predicitions and put them back into the data:
+
+```{r}
+library(dplyr)
+
+kickstarter = kickstarter %>% 
+  mutate(predictedProbs = predict(logTest, type = "response"))
+```
+
+The predict() function is how we get the predictions from any model.  Do note the type arguement with the "response" specification; this ensures that we are using the type of response particular to the model.
+
+Now, we can plot it:
+
+```{r}
+
+kickstarter %>% 
+  filter(backers < 1000) %>% 
+  ggplot(., aes(backers, predictedProbs)) +
+  geom_line(size = 1.5) +
+  theme_minimal()
+```
+
+For our data, once you start to get above 250 backers, there is a probablity of 1 that it will be successful.
+
+If we wanted to apply new data to our model, we would also use the predict() function, but give it new data.
+
+
+## Cautions About Logistic Regression
+
+Bivariate relationships are really important for logistic models.
+
+- Empty cells can wreck a model.
+
+Your model needs to see some dispersion of values over the bivariate tables.
+
+- Otherwise, you get what is known as separation (perfect prediction over some levels)
+
+Logistic regression requires a larger sample size than what a linear regression needs.
+
+- The "exact test" is a small sample alternative.
+
+## A Big "Gotcha"
+
+$R^2$ does not apply to a logistic regression.
+
+- There are many pseudo-$R^2$, but they really do not mean the same thing as in linear regression.
+
+- You might be asked for them and many people present them.
+

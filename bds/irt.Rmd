@@ -23,7 +23,7 @@ We will see how these models behave differently as we continue discussing the di
 
 ## Ability
 
-In IRT, we talk a person's ability; essentially it is the level of the latent variable that possess. In the parlance of psychometrics, ability is denoted as $\theta$. The $\theta$ scale is standardized with a mean of 0 and tends to go from -4 to 4 (while this is generally seen, it might not always be the case). 
+In IRT, we talk a person's ability; essentially it is the level of the latent variable that a person possesses. In the parlance of psychometrics, ability is denoted as $\theta$. The $\theta$ scale is standardized with a mean of 0 and tends to go from -4 to 4 (while this is generally seen, it might not always be the case). 
 
 ## Different Parameters
 
@@ -33,33 +33,42 @@ The ability to explore individual items within IRT is based upon three different
 
 In IRT, the location parameter (denoted as $\\b_i$) described the difficulty of the item. If we are talking about a testing situation (e.g., a math or science test), the meaning of $\\b_i$ is nearly self-evident -- it is simply the probability of a correct response to the question in a dichotomous model and the probability of moving from one category to another in polytomous models (the level of passing from one category to the next is called a *threshold*).
 
-Let's look at some examples from the *ltm* documentation of different item locations.
+Let's look at some examples from the *mirt* documentation of different item locations. The *ltm* package is also a great package for IRT models.
 
 ```{r}
+library(mirt)
+
 library(ltm)
 
-fit <- rasch(LSAT, constraint = cbind(ncol(LSAT) + 1, 1))
+# The model arguement set to 1 means we are just looking
+# at a one factor model.
 
-plot(fit, type = "ICC")
+fit1PL <- mirt(LSAT, model = 1, itemtype = "Rasch")
+
+plot(fit1PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE)
 
 ```
 
 
-The resulting plot is what is known as an *Item Characteristic Curve*. It contains a lot of information, but we are only going to pay attention to the location right now. Without any prior knowledge, which of the labelled curves would say represents the most difficult item? If you said "3" (the green line), then you are absolutely correct. When we look at the location of an item in an ICC graph, we are looking for its placement along the x-axis around its middle point (i.e., find the middle of a curve and draw a line straight down -- the farther to the right, the more difficult the item). With item 3, we can see that it takes someone with slightly more than average ability to have a better than chance probability of responding correctly.  
+The resulting plot is what is known as an *Item Characteristic Curve*. It contains a lot of information, but we are only going to pay attention to the location right now. Without any prior knowledge, which of the labelled curves would say represents the most difficult item? If you said "3" (the black line), then you are absolutely correct. When we look at the location of an item in an ICC graph, we are looking for its placement along the x-axis around its middle point (i.e., find the middle of a curve and draw a line straight down -- the farther to the right, the more difficult the item). With item 3, we can see that it takes someone with slightly more than average ability to have a better than chance probability of responding correctly.  
 
 
 ### Discrimination
 
 Item discrimination, the $a_i$ parameter, demonstrates the likelihood of people with varying degrees of ability to respond correctly.
 
-Let's take a look at our ICC again:
+Let's specify a slightly different model and take a look at our ICC again:
 
 ```{r}
-plot(fit, type = "ICC")
+fit2PL <- mirt(LSAT, model = 1, itemtype = "2PL")
+
+plot(fit2PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE)
 ```
 
 
-If we pay attention to item 3 again, we see that a person with very low ability ($\theta = -4$) has nearly a probability of 0 to respond correctly, someone with average ability ($\theta = 0$) has around a 50-50 chance of responding correctly, and high ability people ($\theta = 4$) have nearly 100% chance of responding correctly. We would definitely say that item 3 discriminates between different ability levels pretty well. Which item might not discriminate too well? Without doubt, you said item 1, and you would be correct. While people at lower ability levels have less chance of responding correctly to item 1, we can see that a probability of 1 is obtained pretty soon after crossing $\theta = 0$. So while item 1 may provide a bit of discrimination at the lower end of $\theta$, it does nothing when dealing average or more. This provides even more evidence as to why item 3 is such a good item -- it discriminates very well along every point of $\theta$
+In our last model, we saw that all of the items had the exact same curve -- this is no longer the case. If we pay attention to item 3 again, we see that a person with very low ability ($\theta = -4$) has nearly a probability of 0 to respond correctly, someone with average ability ($\theta = 0$) has around a 50-50 chance of responding correctly, and high ability people ($\theta = 4$) have nearly 100% chance of responding correctly. We would definitely say that item 3 discriminates between different ability levels pretty well (we will see if it is the most discriminating item later). Which item might not discriminate too well? Without doubt, you said item 1, and you would be correct. While people at lower ability levels have less chance of responding correctly to item 1, we can see that a probability of 1 is obtained pretty soon after crossing $\theta = 0$. So while item 1 may provide a bit of discrimination at the lower end of $\theta$, it does nothing when dealing average or more. This provides even more evidence as to why item 3 is such a good item -- it discriminates very well along every point of $\theta$
 
 So, we have a pretty good idea that item 3 is the most difficult item and the most discriminating item. This, hopefully, provides a demonstration on why IRT models are so powerful -- we can compare individual items to people (on the same scales, no less).
 
@@ -74,7 +83,7 @@ The third parameter, $c_i$, is the psuedoguessing parameter. Even the blind squi
 
 Now that we know what our parameters mean, we can start putting them into models. The one parameter logistic model (1PL) only estimates item difficulty ($b_i$). It assumes that all items discriminate equally and that all items have the same guessing parameter. 
 
-With some minor differences, you will often see the 1PL and Rasch model used interchangibly.
+Although some minor differences, you will often see the 1PL and Rasch model used interchangibly.
 
 ## 2PL
 
@@ -84,15 +93,50 @@ The two parameter logistic model (2PL) adds the discrimination parameter, $a_i$,
 
 The three parameter logistic model (3PL) adds in the guessing parameter, $c_i$. You might wonder how in the world a guessing parameter is added! If someone could guess the correct answer (think about a multiple choice test), would the probability of a correct answer ever be 0? I would think not. So, $c_i$ just includes a lower-bound asymtote. 
 
+```{r}
+fit3PL = mirt(LSAT, model = 1, itemtype = "3PL")
+
+plot(fit3PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE)
+```
+
+If we compare the ICC plots we saw for the 1PL and 2PL earlier, we see a a significant difference between the lower asymptote.
+
+```{r}
+par(mfrow = c(1, 3))
+
+plot(fit1PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE, main = "1PL")
+
+plot(fit2PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE, main = "2PL")
+
+plot(fit3PL, type = 'trace', which.items = 1:5, 
+     facet_items = FALSE, main = "3PL")
+```
+
+While we see that the probability for a low ability individual obtaining a correct answer for item 3 is still very low, it has improved slightly.
+
 With all of these parameters, the probability of a correct response can be expressed as follows: $$p_i(\theta) = c_i + \frac{1 - c_i}{1 + e^{-a_i(\theta - b_i)} }$$
+
 
 # Scoring
 
 Scoring in IRT models works a bit differently than scoring in CTT. 
 
-## Scores
-
 An element common to both IRT and CTT is the *true score*, $true_{score} = observed_{score} + e$. The distinction rests in how they treat $e$ -- CTT assumes that error is the same for everyone and IRT allows for error to vary freely across people.
+
+We can see the factor scores returned from our model:
+
+```{r}
+facScores = fscores(fit3PL)
+
+head(facScores)
+
+summary(facScores)
+
+```
+
 
 ## Different Measurement Levels
 
@@ -111,31 +155,20 @@ testData = bfi %>%
   dplyr::select(starts_with("C")) %>% 
   na.omit()
 
-grmMod = ltm::grm(testData)
+grmMod = mirt(testData, model = 1, itemtype = "graded")
 
-summary(grmMod)
+coef(grmMod, simplify = TRUE, IRTpars = TRUE)
 
 ```
 
-In our summary output, we see coefficients for each item (C1:C5). These coefficients detail the *thresholds* for moving from one response level to the next (we also see the discrimination value). 
+In our coefficient output, we see coefficients for each item (b1:b5). These coefficients detail the *thresholds* for moving from one response level to the next (we also see the discrimination value). 
 
-Just like our dichotomous models, we can also see our item characteristic curves and an item information curve.
+Just like our dichotomous models, we can also see our item characteristic curves.
 
 ```{r, fig.height=9, fig.width=9}
 
-par(mfrow = c(3, 2))
-
-plot(grmMod, type = "ICC")
-
-plot(grmMod, type = "IIC")
+plot(grmMod, type = 'trace', which.items = 1:5, 
+     facet_items = TRUE, main = "GRM")
 ```
 
 We can see that these are very different looking ICC plots then what we saw before. Remember, that we are dealing with different models here. Instead of the probabililty of incorrect or correct, we are now dealing with the probability of moving from one response category to the next. To that end, each item's ICC has a curve for each response option over ability. If we look at the ICC for C1, we can see that someone offering a response of 1 on the scale would have a higher probability of having a lower ability. Conversely, someone offering a response of 6 would have a higher probability of being high ability.
-
-We can also get item operation characteristic curves:
-
-```{r, fig.height=9, fig.width=9}
-par(mfrow = c(3, 2))
-
-plot(grmMod, type = "OCCu")
-```

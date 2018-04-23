@@ -1,0 +1,179 @@
+---
+title: "Mixed Models"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+## Packages
+
+We will need the following:
+
+```{r}
+install.packages(c("lme4", "lmerTest", "merTools"))
+```
+
+
+## Terminology
+
+While the specifics of each model might take some time to get our heads all the way around, the terminology has been pretty clear -- no more. You will hear "mixed models", "mixed effects models", "hiearchical linear models", "nested models", and/or "multilevel models"; these are all slight variations on a common theme. For the sake of our work here, we will keep it at mixed models. Within our mixed model, we have an addiitonal source of cloudiness: fixed and random effects. The random effects don't pose much of an issue (we will define it later), but fixed effects have 4 different definitions depending upon whom you ask. For the sake of simplicity (again), we are going to consider fixed effects as an effect on the individual unit of analysis. This will all start to make sense once we take a look at the models.
+
+## Standard Linear Model
+
+For the sake of conceptual grounding, let's go back to our standard linear model:
+
+```{r}
+library(dplyr)
+
+library(ggplot2)
+
+healthData = readr::read_csv("inf/healthViolationsDistances.csv")
+
+# healthData = healthData %>% 
+#   filter(!(is.na(SCORE)), 
+#          grepl("2017", `RECORD DATE`))
+
+healthData = healthData[which(grepl("American|Asian|Chinese|Indian|Mexican|Pizza|Thai|Vietnam", 
+                                    healthData$`CUISINE DESCRIPTION`)), ]
+
+healthData$BORO = as.factor(healthData$BORO)
+
+healthData$cuisine = as.factor(healthData$`CUISINE DESCRIPTION`)
+
+healthData = healthData %>% 
+  filter(dohDistanceMeter < 25000)
+
+lmTest = lm(SCORE ~ dohDistanceMeter, data = healthData)
+
+ggplot(healthData, aes(SCORE, dohDistanceMeter)) +
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+We have our standard output here. As before, our intercept is the average score when there is zero distance between the restuarant and county court house and our coefficient for distance is telling us that for every mile increase in distance, we are increasing our score by some tiny amount. We know that we are ignoring some information within our model, namely the clustering that occurs based upon cuisine and/or burough. 
+
+
+```{r}
+ggplot(healthData, aes(SCORE, dohDistanceMeter, group = BORO)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap( ~ BORO)
+```
+
+
+## Random Intercepts Model
+
+Let's include burough in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The **lme4** package will make this very easy:
+
+```{r}
+library(lme4)
+
+riMod = lmer(SCORE ~ dohDistanceMeter + (1|BORO), data = healthData)
+```
+
+Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. 
+
+The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The *|* specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
+
+We should probably check out the summary:
+
+```{r}
+summary(riMod)
+```
+
+We have our standard output and we can see that the coefficient have not changed, but we do see some change in our standard errors -- by integrating information about the groups, we are getting a better sense of how much uncertainty our model contains at the global average level.
+
+What is missing from this bit of output: *p*-values! Estimating *p*-values in a mixed model is exceedingly difficult because of varying group sizes, complete sample *n*, and how those relate to reference distributions. If you need something that will help, you can get confidence intervals in the same way that you would anything else:
+
+```{r}
+confint(riMod)
+```
+
+We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon BORO after getting the information from our fixed effects. We can compare the standard deviation for BORO to the coefficient for for dohDistanceMeter -- Borough is contributing to more variability within Scores than distance. We can also add the variance components and divide by the random effects variance to get its variance account for.
+
+```{r}
+library(merTools)
+
+plotREsim(REsim(riMod))
+```
+
+If you *really* want to see *p*-values, you can get them easily:
+
+```{r}
+
+riModP = lmerTest::lmer(SCORE ~ dohDistanceMeter + (1|BORO), data = healthData)
+
+summary(riModP)
+
+```
+
+Let's add some more information to our model. As we dive into our data, we will notice that we also have cuisine groupings. We can add this additional grouping into our model:
+
+```{r}
+clusterMod = lmer(SCORE ~ dohDistanceMeter + (1|cuisine) + (1|BORO), data = healthData)
+```
+
+This is often called a cross-classified model. 
+
+```{r}
+summary(clusterMod)
+```
+
+```{r}
+
+plotREsim(REsim(clusterMod))
+```
+
+If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, becasue now we have a few competing hypotheses.
+
+Let's do a bit of data processing first.
+
+```{r}
+timeReviewed = healthDataGrouped %>% 
+  group_by(nameLocation) %>% 
+  summarize(n = n()) %>% 
+  filter(n > 10)
+
+reviewedRest = healthDataGrouped[which(healthDataGrouped$nameLocation %in% timeReviewed$nameLocation), ]
+```
+
+
+```{r}
+observationMod = lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest)
+```
+
+In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. 
+
+```{r}
+reviewedRest %>% 
+  arrange(nameLocation, observation) %>% 
+  head(., 250) %>% 
+ggplot(., aes(observation, SCORE, group = nameLocation)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap( ~ nameLocation) +
+  theme_minimal()
+```
+
+## Hierarchical Models
+
+Let's check out how some chain restaurants do within the boroughs. 
+
+```{r}
+chainFood = healthDataGrouped %>% 
+  filter(DBA == "BURGER KING" |
+           DBA == "MCDONALD'S" | 
+           DBA == "PIZZA HUT" |
+           DBA == "SUBWAY")
+```
+
+```{r}
+hierMod = lme4::lmer(SCORE ~ observation + (1|BORO/DBA), data = chainFood)
+```
+
+```{r}
+
+plotREsim(REsim(hierMod))
+```

@@ -155,6 +155,18 @@ testData = bfi %>%
   dplyr::select(starts_with("C")) %>% 
   na.omit()
 
+library(ggridges)
+library(viridis)
+library(ggplot2)
+
+testData %>% 
+  tidyr::gather(key = question, value = score) %>% 
+  ggplot(., aes(score, question, fill = ..x..)) +
+  geom_density_ridges_gradient() +
+  scale_fill_viridis(option = "B") +
+  theme_minimal()
+
+
 grmMod = mirt(testData, model = 1, itemtype = "graded")
 
 coef(grmMod, simplify = TRUE, IRTpars = TRUE)

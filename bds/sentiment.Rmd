@@ -162,7 +162,7 @@ tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
 
 ## Sentiment Analysis
 
-Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written something.
+Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written something: Amazon and Yelp reviews, Course Instructor feedback forms, and song lyrics.
 
 Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
 

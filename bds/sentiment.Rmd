@@ -158,11 +158,29 @@ tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
 ```
 
 
+Once you get your text tidied up, you can produce some visualizations!
+
+```{r}
+library(tidytext)
+
+library(wordcloud2)
+
+load("N:/R/texasexecutions/Data_Files/Working/RData/txExecutionsPublish_20150401.RData")
+
+txExecutions %>% 
+  select(correctedStatements, inmateNumber) %>% 
+  unnest_tokens(word, correctedStatements) %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(n > 25) %>% 
+  na.omit() %>% 
+  wordcloud2(shape = "cardioid")
+```
 
 
 ## Sentiment Analysis
 
-Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written something: Amazon and Yelp reviews, Course Instructor feedback forms, and song lyrics.
+Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written/said something (product reviews, song lyrics, final statements).
 
 Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
 
@@ -271,6 +289,28 @@ sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)
 We can see that we get a much different sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really") sentiment of "love" (with a weight of 3.2 in our dictionary).
 
 With all of this together, we get a much better idea about the sentiment of our text.
+
+
+### Example Text
+
+While the text that we have used so far serves its purpose as an example quite well, we can always take a look at other written words.
+
+Let's consider the following data:
+
+```{r}
+
+txExecutions = txExecutions %>% 
+  select(inmateNumber, correctedStatements) %>% 
+  filter(inmateNumber == 529|
+           inmateNumber == 843|
+           inmateNumber == 714)
+  
+
+statementSentiment = sentiment(get_sentences(txExecutions), 
+                               polarity_dt = lexicon::hash_sentiment_vadar)
+```
+
+![](conDens.png)
 
 ## Other Text Fun
 

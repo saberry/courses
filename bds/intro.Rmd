@@ -8,6 +8,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
 ```
 
 
@@ -17,19 +19,87 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Data from the people, about the people! Person-centric data covers a broad range of potential forms and sources. It might be survey data with attitudinal variables, purchase history, number of visits to the doctor's office, number of alcoholic drinks had during the last seven days, internet browsing behavior, or even Tweets. If we start to consider all of the data that we see, it becomes clear that a great deal of data is person-centric.
 
-Not all data fits into this notion of person-centricity. We often find financial data (think end of day trading) that really does not fit into our notion of person-centric data. Even though this type of stock-flavored financial data does not really fit, the amount of money a person spends certainly does. Furthermore, much public data exists for municipal entities, such as county assessors. It might seem like a properties record is not person-centric, we could build data that tracks a person's property buying/selling -- we would certainly look at such data and consider it to be behavioral in nature.
+Not all data fits into this notion of person-centricity. We often find financial data (think end of day trading) that really does not fit into our notion of person-centric data. Even though this type of stock-flavored financial data does not really fit, the amount of money a person spends certainly does. Furthermore, much public data exists for municipal entities, such as county assessors. It might seem like a properties record is not person-centric, but we could build data that tracks a person's property buying/selling -- we would certainly look at such data and consider it to be behavioral in nature.
 
 ## Where Do We Go?
 
 What do we do with person-centric, behavioral data? In general, we want to predict behavior in some way! To predict behavior, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.
 
+This will be a theme that is revisted during our time together. Just so that you can start to fully get your head around hypotheses, let's take the first try at a little game.
+
+I am noticing that visitors to my site spend less time on one page compared to other pages. Here is what that data might look like:
+
+```{r, echo = FALSE}
+visitorData = data.frame(visitorID = c(1, 1, 1, 2, 2, 3, 3, 3, 3), 
+                         pageID = c("a", "b", "c", "a", "b", "a", 
+                                    "b", "c", "d"), 
+                         secondsOnPage = rnorm(9, mean = 15, sd = 4))
+```
+
+
+```{r}
+knitr::kable(visitorData)
+```
+
+I have a visitor identification number, a page identifier, and the number of seconds each user spent on a given page. Do I have data that would allow me to test if there is a difference in the amount of time that people spend on a page? I certainly do! With the data that you see, could I determine exactly why there might be differences in time on page? I would say rather unlikely with the provided data. We always need to make sure that we are not speaking beyond our data!
+
+This was just a demo version of the game -- you will unlock more difficult levels as we progress. 
+
 ### Analyzing Behavioral Data
 
-Think back to your linear models course. Do you remember examining adjusted $R^2$? It is one of the more popular measures of how well a particular model explains the data (adjusted $R^2$ is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. If, however, we are trying to predict/explain what someone does (i.e., a particular behavior), what are the chances that we will obtain high adjusted $R^2$? Probably not very high, right? People are messy and often unpredictable, so achieving huge $R^2$ values is unlikely. This is not to suggest that we should accept an $R^2$ of .00001 as important (note -- it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an $R^2$ around .2. That means that we have taken one of nature's sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.
+Think back to your linear models course. Do you remember examining adjusted $R^2$? It is one of the more popular measures of how well a particular model explains the data (adjusted $R^2$ is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. Students come from a variety of statistical traditions have been taught a great many "thresholds" for acceptable $R^2$ values -- anywhere from .4 to .7 can be mentioned all in the span of a few seconds. If, however, we are trying to explain what someone does (i.e., a particular behavior), what are the chances that we will obtain such adjusted $R^2$ values? Probably not very high, right? People are messy and often unpredictable, so achieving huge $R^2$ values is unlikely. 
+
+Does a small $R^2$ mean that your model is garbage&#8253; Of course not! A small $R^2$ does absolutely nothing to take away from the relationships between your predictor variables and your outcome. A low $R^2$ might mean that you have more error in your prediction, but there are still better ways of figuring that out than just looking at one value and giving up.
+
+This is not to suggest that we should accept an $R^2$ of .000001 as the most predictive model in the world (note -- it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an $R^2$ around .2. That means that we have taken one of nature's sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.
 
 
 ## Data Wrangling
 
+Person-centric data comes in many different flavors. 
+
+There is the classic cross-sectional wide format (tends towards a vanilla taste):
+
+```{r, echo = FALSE}
+classicWide = data.frame(id = 1:5, 
+                         satisfaction = sample(1:7, 5, replace = TRUE), 
+                         leftTip = sample(0:1, 5, replace = TRUE))
+```
+
+```{r}
+knitr::kable(classicWide)
+```
+
+
+We also have repeated measures:
+
+```{r}
+repeatedMeasures = data.frame(id = rep(1:3, each = 3),
+                              observation = rep(1:3, 3),
+                              satisfaction = sample(1:7, 9, replace = TRUE), 
+                              leftTip = sample(0:1, 9, replace = TRUE))
+```
+
+
+We also have key-value pairs:
+
+```{r}
+repeatedMeasures %>% 
+  tidyr::gather(key = variable, value = value) %>% 
+  knitr::kable(.)
+```
+
+
+And then from there, we can start to do combinations:
+
+```{r}
+repeatedMeasures %>% 
+    tidyr::gather(key = variable, value = value, -id) %>% 
+  knitr::kable(.)
+```
+
+
+All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization. No matter the need, don't be afraid to shape your data in a way that conforms to your needs. 
 
 *Link to dataWranglingPrimer.html*
 
@@ -48,8 +118,46 @@ We see many different types of data when working with behavioral data, well beyo
 
 Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*). How many response options are there -- 3, 5, 7, or more?
 
+When dealing with such attitudinal data, we might see data that takes any of the following forms:
+
+```{r}
+library(magrittr)
+data.frame(agreementNumeric = 1:5, 
+           agreementOrdered = ordered(1:5, labels = c("Strongly disagree", 
+                                                      "Disagree", "Neither disagree nor agree", 
+                                                      "Agree", "Strongly agree")), 
+           agreementCharacter = c("Strongly disagree", 
+                                                      "Disagree", "Neither disagree nor agree", 
+                                                      "Agree", "Strongly agree")) %T>%
+  glimpse() %>% 
+  summary()
+```
+
+This is where data familiarization becomes important, always take note of variable types.
+
 ### Censored Data
 We might run into data that is *censored*. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been *discretized* -- a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like "<25", "25-35", "36-45", "46-55", and "55+". When people have an age of "<25", we have left censored data -- we don't know how far to the "left" the value actually is, we just know that it is somewhere under 25. For our observations with "55+", we have right censored data -- we don't know how far to the right the value actually is. 
+
+```{r, echo = FALSE}
+data.frame(ageCategory = c("<25", "25-35", "36-45", "46-55", "55+"), 
+           censored = c("Left censored", "Uncensored", "Uncensored", 
+                        "Uncensored", "Right censored")) %>% 
+  knitr::kable()
+```
+
+While we won't be diving into them, tobit models are one such way for dealing with censored dependent variables.
+
+The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting -- the philandeering partners could have engaged in more affairs after data was collected. 
+
+```{r}
+library(AER)
+
+fm.tobit <- tobit(affairs ~ age + yearsmarried + religiousness,
+                   right = 12, data = Affairs)
+
+summary(fm.tobit)
+```
+
 
 ### Hierarchical Data
 

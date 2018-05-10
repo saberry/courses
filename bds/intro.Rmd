@@ -99,13 +99,48 @@ repeatedMeasures %>%
 ```
 
 
-All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization. No matter the need, don't be afraid to shape your data in a way that conforms to your needs. 
+All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions). 
+
+```{r}
+library(ggplot2)
+datTest = data.frame(id = as.factor(1:3),
+           satisfaction1 = sample(1:7, 3, replace = TRUE), 
+           satisfaction2 = sample(1:7, 3, replace = TRUE), 
+           satisfaction3 = sample(1:7, 3, replace = TRUE))
+knitr::kable(datTest)
+```
+
+If we want to show a person's survey responses, we need to do some reshaping:
+
+```{r}
+datTest %>% 
+  tidyr::gather(key = variable, value = value, -id) %>% 
+  ggplot(., aes(id, value, color = variable)) +
+  geom_point(alpha = .5, size = 3) +
+  theme_minimal()
+```
+
+
+See if you can reproduce the data and visualization!
+
+No matter the need, don't be afraid to shape your data in a way that conforms to *your* needs. Always remember that you are in control of your data -- your data is not in control of you!
 
 *Link to dataWranglingPrimer.html*
 
 ## Ethical Considerations
 
 When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people's privacy? 
+
+This becomes even more important when sharing data. Look at the following data and think about whether or not it could be shared as is:
+
+```{r}
+data.frame(age = sample(18:35, 5, replace = TRUE), 
+           gender = sample(c("male", "female"), 5, replace = TRUE), 
+           department = sample(c("cs", "hr", "it"), 5, replace = TRUE), 
+           score = sample(50:100, 5)) 
+```
+
+There are not any personal identifiers here, so we are good to share away...right? Let's pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data.
 
 # Week 2
 
@@ -116,7 +151,7 @@ We see many different types of data when working with behavioral data, well beyo
 
 ### Attitudinal Data
 
-Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*). How many response options are there -- 3, 5, 7, or more?
+Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). How many response options are there -- 3, 5, 7, or more? 
 
 When dealing with such attitudinal data, we might see data that takes any of the following forms:
 
@@ -127,13 +162,16 @@ data.frame(agreementNumeric = 1:5,
                                                       "Disagree", "Neither disagree nor agree", 
                                                       "Agree", "Strongly agree")), 
            agreementCharacter = c("Strongly disagree", 
-                                                      "Disagree", "Neither disagree nor agree", 
-                                                      "Agree", "Strongly agree")) %T>%
+                                  "Disagree", "Neither disagree nor agree", 
+                                  "Agree", "Strongly agree"), 
+           pseudoLikert = c("Not at all", "A little", "Some", "A lot", "Very much")) %T>%
   glimpse() %>% 
   summary()
 ```
 
-This is where data familiarization becomes important, always take note of variable types.
+This is where data familiarization becomes important -- always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.
+
+With the data as it is in its current form, think about what you might like to do with it. Would you like to plot or create a correlation matrix? Can you make that happen? Data processing becomes very important when working through any survey-based data.
 
 ### Censored Data
 We might run into data that is *censored*. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been *discretized* -- a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like "<25", "25-35", "36-45", "46-55", and "55+". When people have an age of "<25", we have left censored data -- we don't know how far to the "left" the value actually is, we just know that it is somewhere under 25. For our observations with "55+", we have right censored data -- we don't know how far to the right the value actually is. 
@@ -147,16 +185,45 @@ data.frame(ageCategory = c("<25", "25-35", "36-45", "46-55", "55+"),
 
 While we won't be diving into them, tobit models are one such way for dealing with censored dependent variables.
 
-The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting -- the philandeering partners could have engaged in more affairs after data was collected. 
+The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting -- the philandeering partners could have engaged in more affairs after data was collected. To that end, we need to account for right censoring.
 
 ```{r}
 library(AER)
 
-fm.tobit <- tobit(affairs ~ age + yearsmarried + religiousness,
+fm.tobit = tobit(affairs ~ age + yearsmarried + religiousness,
                    right = 12, data = Affairs)
 
 summary(fm.tobit)
 ```
+
+#### *Special Note On Discretization*
+
+If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, "But response rates...blah...blah...blah", or "We have to make it easy." Consider the following data:
+
+```{r}
+data.frame(age = c("<25", "25-35", "36-45", 
+                   "36-45", "46-55", "55+")) %>% 
+  knitr::kable(.)
+```
+
+You have 6 respondents -- what is the mean age of those respondents? I have no idea and neither do you! If you allow data to be collected this way, you are immediately imposing limits on what you might do with that data in the future. Someone will likely say, "Just take the middle point of the range and call that the response."  
+
+```{r}
+data.frame(age = c(25, 30, 40, 40, 50, 55)) %T>% 
+  print(.) %>% 
+  summarize(mean(age))
+```
+
+Great.~ We have an average now. What if the actual ages were as follows:
+
+```{r}
+data.frame(age = c(22, 30, 36, 45, 51, 72)) %T>% 
+  print(.)
+```
+
+What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for yourself: is 18 year old you the same as 24 year old you? 
+
+And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standar linear regresion, they are going to be really confused when you show them more than 1 intercept! 
 
 
 ### Hierarchical Data

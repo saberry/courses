@@ -7,7 +7,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
 
 library(dplyr)
 ```
@@ -187,8 +187,10 @@ While we won't be diving into them, tobit models are one such way for dealing wi
 
 The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting -- the philandeering partners could have engaged in more affairs after data was collected. To that end, we need to account for right censoring.
 
-```{r}
+```{r, echo = TRUE}
 library(AER)
+
+data("Affairs")
 
 fm.tobit = tobit(affairs ~ age + yearsmarried + religiousness,
                    right = 12, data = Affairs)

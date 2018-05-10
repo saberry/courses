@@ -129,19 +129,470 @@ Behavioral Data Science</div></h1>
 <h1>Week 1</h1>
 <div id="person-centric-data" class="section level2">
 <h2>Person-centric Data</h2>
+<p>Data from the people, about the people! Person-centric data covers a broad range of potential forms and sources. It might be survey data with attitudinal variables, purchase history, number of visits to the doctor’s office, number of alcoholic drinks had during the last seven days, internet browsing behavior, or even Tweets. If we start to consider all of the data that we see, it becomes clear that a great deal of data is person-centric.</p>
+<p>Not all data fits into this notion of person-centricity. We often find financial data (think end of day trading) that really does not fit into our notion of person-centric data. Even though this type of stock-flavored financial data does not really fit, the amount of money a person spends certainly does. Furthermore, much public data exists for municipal entities, such as county assessors. It might seem like a properties record is not person-centric, but we could build data that tracks a person’s property buying/selling – we would certainly look at such data and consider it to be behavioral in nature.</p>
 </div>
-<div id="finding-behavioral-data" class="section level2">
-<h2>Finding Behavioral Data</h2>
+<div id="where-do-we-go" class="section level2">
+<h2>Where Do We Go?</h2>
+<p>What do we do with person-centric, behavioral data? In general, we want to predict behavior in some way! To predict behavior, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.</p>
+<p>This will be a theme that is revisted during our time together. Just so that you can start to fully get your head around hypotheses, let’s take the first try at a little game.</p>
+<p>I am noticing that visitors to my site spend less time on one page compared to other pages. Here is what that data might look like:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">visitorID</th>
+<th align="left">pageID</th>
+<th align="right">secondsOnPage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">a</td>
+<td align="right">18.42795</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">b</td>
+<td align="right">22.93030</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">c</td>
+<td align="right">21.94450</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">a</td>
+<td align="right">13.69806</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">b</td>
+<td align="right">15.87481</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">a</td>
+<td align="right">14.48358</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">b</td>
+<td align="right">11.61779</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">c</td>
+<td align="right">13.77550</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">d</td>
+<td align="right">14.71553</td>
+</tr>
+</tbody>
+</table>
+<p>I have a visitor identification number, a page identifier, and the number of seconds each user spent on a given page. Do I have data that would allow me to test if there is a difference in the amount of time that people spend on a page? I certainly do! With the data that you see, could I determine exactly why there might be differences in time on page? I would say rather unlikely with the provided data. We always need to make sure that we are not speaking beyond our data!</p>
+<p>This was just a demo version of the game – you will unlock more difficult levels as we progress.</p>
+<div id="analyzing-behavioral-data" class="section level3">
+<h3>Analyzing Behavioral Data</h3>
+<p>Think back to your linear models course. Do you remember examining adjusted <span class="math inline">\(R^2\)</span>? It is one of the more popular measures of how well a particular model explains the data (adjusted <span class="math inline">\(R^2\)</span> is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. Students come from a variety of statistical traditions have been taught a great many “thresholds” for acceptable <span class="math inline">\(R^2\)</span> values – anywhere from .4 to .7 can be mentioned all in the span of a few seconds. If, however, we are trying to explain what someone does (i.e., a particular behavior), what are the chances that we will obtain such adjusted <span class="math inline">\(R^2\)</span> values? Probably not very high, right? People are messy and often unpredictable, so achieving huge <span class="math inline">\(R^2\)</span> values is unlikely.</p>
+<p>Does a small <span class="math inline">\(R^2\)</span> mean that your model is garbage‽ Of course not! A small <span class="math inline">\(R^2\)</span> does absolutely nothing to take away from the relationships between your predictor variables and your outcome. A low <span class="math inline">\(R^2\)</span> might mean that you have more error in your prediction, but there are still better ways of figuring that out than just looking at one value and giving up.</p>
+<p>This is not to suggest that we should accept an <span class="math inline">\(R^2\)</span> of .000001 as the most predictive model in the world (note – it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an <span class="math inline">\(R^2\)</span> around .2. That means that we have taken one of nature’s sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.</p>
 </div>
-<div id="section" class="section level2">
-<h2></h2>
 </div>
 <div id="data-wrangling" class="section level2">
 <h2>Data Wrangling</h2>
+<p>Person-centric data comes in many different flavors.</p>
+<p>There is the classic cross-sectional wide format (tends towards a vanilla taste):</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="right">satisfaction</th>
+<th align="right">leftTip</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">5</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">3</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>We also have repeated measures:</p>
+<p>We also have key-value pairs:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">variable</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">id</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">id</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">id</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">id</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">id</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">id</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">id</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">id</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">id</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">satisfaction</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">satisfaction</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">satisfaction</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">satisfaction</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">satisfaction</td>
+<td align="right">6</td>
+</tr>
+<tr class="even">
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>And then from there, we can start to do combinations:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">variable</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">observation</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">observation</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">observation</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">satisfaction</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">satisfaction</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">satisfaction</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">satisfaction</td>
+<td align="right">3</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">satisfaction</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">satisfaction</td>
+<td align="right">6</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="left">leftTip</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">leftTip</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<p>All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">id</th>
+<th align="right">satisfaction1</th>
+<th align="right">satisfaction2</th>
+<th align="right">satisfaction3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">4</td>
+<td align="right">6</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">4</td>
+<td align="right">4</td>
+<td align="right">2</td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">2</td>
+<td align="right">5</td>
+<td align="right">2</td>
+</tr>
+</tbody>
+</table>
+<p>If we want to show a person’s survey responses, we need to do some reshaping:</p>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAABklBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZrY6AAA6OgA6Ojo6OmY6OpA6ZmY6ZpA6ZrY6kJA6kLY6kNs6xmQ9sU0+sk4/y2lNTU1NTW5NTY5Nbm5Nbo5NbqtNjshmAABmADpmOgBmOjpmOpBmZgBmZjpmZmZmZpBmkGZmkJBmkLZmkNtmtttmtv9uTU1ubk1ubm5ubo5ujqtujshuq+R10pF5tXJ9und/3JuDr/qGmuOHm+SItP+OTU2Obk2Obm6Oq6uOq8iOq+SOyOSOyP+QOgCQOjqQZjqQZmaQkDqQkGaQkLaQtraQttuQ2/+mw/Wpptarbk2rbm6rjm6ryOSr5P+uq9uwzf+2ZgC2Zjq2kDq2kGa2kJC2tra2ttu229u22/+2///Ijk3Ijm7Iq27IyKvI5P/I///bkDrbkGbbtmbbtpDbtrbbttvb27bb29vb2//b///kq27kyI7kyKvk///r6+vysKz1k4z5mJH7urb/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T///+xRbRoAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3djZ9cB3kd4BHIWkxjly+PKOCKNmmTIjXhIxiwSRNwnEKBOAG8hiTGosXCphQb7EAly3bt1f7fna93d2al1a7ODB7euc/z+8XSju5K4+PDyZ25M6PRIQCR0bbvAEBXBhQgZEABQgYUIGRAAUIGFCBkQAFCBhQgZEABQgYUIGRAAUIGFCBkQAFCBrS88ca270FfssvJrjUDWhQ5J7uc7FozoEWRc7LLya41A1oUOSe7nOxaM6BFkXOyy8muNQNaFDknu5zsWjOgRZFzssvJrjUDWhQ5J7uc7FozoEWRc7LLya41A1oUOSe7nOxaM6BFkXOyy8muNQNaFDknu5zsWjOgRZFzssvJrjUDWhQ5J7uc7FozoEWRc7LLya41A1oUOSe7nOxaM6BFkXOyy8muNQNaFDknu5zsWjOgRZFzssvJrjUDWhQ5J7uc7FozoEWRc7LLya41A1oUOSe7nOxaM6BFkXOyy8muNQNaFDknu5zsWjOgRZFzssvJrjUDWhQ5J7uc7FozoEWRc7LLya41A1oUOSe7nOxaM6BFkXOyy8muNQNaFDknu5zsWjOgC4997GOPPbbtO9GVEcjJrjUDOvPYY0986UtPPGFCM0YgJ7vWwgG989Nr4/G/+8Zm78vWTObzidmAmtCMEcjJrrVsQN95ajzzhQ3fm+2YzmcN6GRCt313GjICOdm1Fg3onWfHn/rZ4Z3/Ob78g03fn20woOsyAjnZtRYN6K3xJ1+a/vja+DMbvTPbMd/PowG1oA/OCORk11oyoJMT0G9u/I5sjwFdmxHIya61ZEDfe2p+ArobFvt5PKAW9IEZgZzsWksG9O1rn3791/91PP7U90/+yhsNfexLJ31s23cJutjABrUWDug/zq/Cf/HEr2z7v2bCgEJsEyPUWTKgt6YvYHr98M5Pd+IqvIfw6/O/o5zsWgsHdH7qeX0XrsIb0PUZgZzsWssewi/OPKdPhm727myDq/BrMwI52bWWDejiKvzRT1ozoGszAjnZtZa9DnRxBnprvAtnoN6JtDYjkJNda9E7keq5z+t3XYZvyYCuywjkZNdaNKBvXxt//me7chX+0Kcxrc0I5GTXWvZpTLeuzV4Genln3tHp80DXYgRysmst/DzQd/5xMqF/8bPN3pet8on0azACOdm15hPpiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ttkBfQMYko3uR0POQIsu5GSXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsG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" width="672" /></p>
+<p>See if you can reproduce the data and visualization!</p>
+<p>No matter the need, don’t be afraid to shape your data in a way that conforms to <em>your</em> needs. Always remember that you are in control of your data – your data is not in control of you!</p>
 <p><em>Link to dataWranglingPrimer.html</em></p>
 </div>
 <div id="ethical-considerations" class="section level2">
 <h2>Ethical Considerations</h2>
+<p>When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people’s privacy?</p>
+<p>This becomes even more important when sharing data. Look at the following data and think about whether or not it could be shared as is:</p>
+<pre><code>  age gender department score
+1  31 female         it    70
+2  22 female         it    62
+3  19 female         hr    53
+4  31 female         it    79
+5  18   male         cs    88</code></pre>
+<p>There are not any personal identifiers here, so we are good to share away…right? Let’s pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data.</p>
 </div>
 </div>
 <div id="week-2" class="section level1">
@@ -151,18 +602,184 @@ Behavioral Data Science</div></h1>
 <p>We see many different types of data when working with behavioral data, well beyond what we typically think about with our different levels of measurement (nominal, ordinal, interval, and ratio).</p>
 <div id="attitudinal-data" class="section level3">
 <h3>Attitudinal Data</h3>
-<p>Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured – are they traditional Likert response options (<em>strongly disagree</em> to <em>strongly agree</em>). How many response options are there – 3, 5, 7, or more?</p>
+<p>Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured – are they traditional Likert response options (<em>strongly disagree</em> to <em>strongly agree</em>) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). How many response options are there – 3, 5, 7, or more?</p>
+<p>When dealing with such attitudinal data, we might see data that takes any of the following forms:</p>
+<pre><code>Observations: 5
+Variables: 4
+$ agreementNumeric   &lt;int&gt; 1, 2, 3, 4, 5
+$ agreementOrdered   &lt;ord&gt; Strongly disagree, Disagree, Neither disagr...
+$ agreementCharacter &lt;fct&gt; Strongly disagree, Disagree, Neither disagr...
+$ pseudoLikert       &lt;fct&gt; Not at all, A little, Some, A lot, Very much</code></pre>
+<pre><code> agreementNumeric                   agreementOrdered
+ Min.   :1        Strongly disagree         :1      
+ 1st Qu.:2        Disagree                  :1      
+ Median :3        Neither disagree nor agree:1      
+ Mean   :3        Agree                     :1      
+ 3rd Qu.:4        Strongly agree            :1      
+ Max.   :5                                          
+                  agreementCharacter     pseudoLikert
+ Agree                     :1        A little  :1    
+ Disagree                  :1        A lot     :1    
+ Neither disagree nor agree:1        Not at all:1    
+ Strongly agree            :1        Some      :1    
+ Strongly disagree         :1        Very much :1    
+                                                     </code></pre>
+<p>This is where data familiarization becomes important – always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.</p>
+<p>With the data as it is in its current form, think about what you might like to do with it. Would you like to plot or create a correlation matrix? Can you make that happen? Data processing becomes very important when working through any survey-based data.</p>
 </div>
 <div id="censored-data" class="section level3">
 <h3>Censored Data</h3>
 <p>We might run into data that is <em>censored</em>. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been <em>discretized</em> – a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like “&lt;25”, “25-35”, “36-45”, “46-55”, and “55+”. When people have an age of “&lt;25”, we have left censored data – we don’t know how far to the “left” the value actually is, we just know that it is somewhere under 25. For our observations with “55+”, we have right censored data – we don’t know how far to the right the value actually is.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">ageCategory</th>
+<th align="left">censored</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">&lt;25</td>
+<td align="left">Left censored</td>
+</tr>
+<tr class="even">
+<td align="left">25-35</td>
+<td align="left">Uncensored</td>
+</tr>
+<tr class="odd">
+<td align="left">36-45</td>
+<td align="left">Uncensored</td>
+</tr>
+<tr class="even">
+<td align="left">46-55</td>
+<td align="left">Uncensored</td>
+</tr>
+<tr class="odd">
+<td align="left">55+</td>
+<td align="left">Right censored</td>
+</tr>
+</tbody>
+</table>
+<p>While we won’t be diving into them, tobit models are one such way for dealing with censored dependent variables.</p>
+<p>The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting – the philandeering partners could have engaged in more affairs after data was collected. To that end, we need to account for right censoring.</p>
+<pre class="r"><code>library(AER)
+
+data(&quot;Affairs&quot;)
+
+fm.tobit = tobit(affairs ~ age + yearsmarried + religiousness,
+                   right = 12, data = Affairs)
+
+summary(fm.tobit)</code></pre>
+<pre><code>
+Call:
+tobit(formula = affairs ~ age + yearsmarried + religiousness, 
+    right = 12, data = Affairs)
+
+Observations:
+         Total  Left-censored     Uncensored Right-censored 
+           601            451            112             38 
+
+Coefficients:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)   -0.30266    3.04944  -0.099   0.9209    
+age           -0.23709    0.11150  -2.126   0.0335 *  
+yearsmarried   0.92957    0.19594   4.744 2.09e-06 ***
+religiousness -2.59303    0.58544  -4.429 9.46e-06 ***
+Log(scale)     2.45733    0.08253  29.777  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Scale: 11.67 
+
+Gaussian distribution
+Number of Newton-Raphson Iterations: 4 
+Log-likelihood: -661.8 on 5 Df
+Wald-statistic: 36.75 on 3 Df, p-value: 5.1855e-08 </code></pre>
+<div id="special-note-on-discretization" class="section level4">
+<h4><em>Special Note On Discretization</em></h4>
+<p>If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, “But response rates…blah…blah…blah”, or “We have to make it easy.” Consider the following data:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">age</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">&lt;25</td>
+</tr>
+<tr class="even">
+<td align="left">25-35</td>
+</tr>
+<tr class="odd">
+<td align="left">36-45</td>
+</tr>
+<tr class="even">
+<td align="left">36-45</td>
+</tr>
+<tr class="odd">
+<td align="left">46-55</td>
+</tr>
+<tr class="even">
+<td align="left">55+</td>
+</tr>
+</tbody>
+</table>
+<p>You have 6 respondents – what is the mean age of those respondents? I have no idea and neither do you! If you allow data to be collected this way, you are immediately imposing limits on what you might do with that data in the future. Someone will likely say, “Just take the middle point of the range and call that the response.”</p>
+<pre><code>  age
+1  25
+2  30
+3  40
+4  40
+5  50
+6  55</code></pre>
+<pre><code>  mean(age)
+1        40</code></pre>
+<p>Great.~ We have an average now. What if the actual ages were as follows:</p>
+<pre><code>  age
+1  22
+2  30
+3  36
+4  45
+5  51
+6  72</code></pre>
+<pre><code>  age
+1  22
+2  30
+3  36
+4  45
+5  51
+6  72</code></pre>
+<p>What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for yourself: is 18 year old you the same as 24 year old you?</p>
+<p>And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standar linear regresion, they are going to be really confused when you show them more than 1 intercept!</p>
+</div>
 </div>
 <div id="hierarchical-data" class="section level3">
 <h3>Hierarchical Data</h3>
 <p>Also known has multilevel or nested data, <em>hierarchical</em> data is best defined by a classical example – we could have students, nested within classrooms, nested within schools, nested within districts, and so on.</p>
 </div>
+<div id="repeated-measures" class="section level3">
+<h3>Repeated Measures</h3>
+<p>Repeated measures can be thought of in the same way as longitudinal data – we are measuring the same thing for a person for an extended period of time. If you want, you can even think of it as nested data; the time-based observations are nested within an individual.</p>
+</div>
 <div id="text" class="section level3">
 <h3>Text</h3>
+<p>Welcome to the now! With people generating volume after volume of text, we have many questions that we can explore.</p>
+</div>
+</div>
+<div id="sources-of-data" class="section level2">
+<h2>Sources Of Data</h2>
+<div id="surveys" class="section level3">
+<h3>Surveys</h3>
+</div>
+<div id="client-side-paradatametadata" class="section level3">
+<h3>Client-side Paradata/Metadata</h3>
+</div>
+<div id="records" class="section level3">
+<h3>Records</h3>
+</div>
+<div id="social-media" class="section level3">
+<h3>Social Media</h3>
 </div>
 </div>
 <div id="more-data-wrangling" class="section level2">
@@ -177,26 +794,17 @@ Behavioral Data Science</div></h1>
 <h1>Week 3</h1>
 <div id="data-exploration" class="section level2">
 <h2>Data Exploration</h2>
+<p>Although we have identified our hypotheses and gotten our data into shape, that does not mean that we should just go right into</p>
 </div>
 <div id="the-hypothesis-data-consistency-link" class="section level2">
 <h2>The Hypothesis-Data Consistency Link</h2>
 <blockquote>
 <p>“A foolish consistency is the hobgoblin of little minds, adored by little statesmen and philosophers and divines. With consistency a great soul has simply nothing to do. He may as well concern himself with his shadow on the wall. Speak what you think now in hard words, and to-morrow speak what to-morrow thinks in hard words again, though it contradict every thing you said to-day. — ‘Ah, so you shall be sure to be misunderstood.’ — Is it so bad, then, to be misunderstood? Pythagoras was misunderstood, and Socrates, and Jesus, and Luther, and Copernicus, and Galileo, and Newton, and every pure and wise spirit that ever took flesh. To be great is to be misunderstood.”</p>
 </blockquote>
-</div>
-<div id="analyzing-behavioral-data" class="section level2">
-<h2>Analyzing Behavioral Data</h2>
-<p>Think back to your linear models course. Do you remember examining adjusted <span class="math inline">\(R^2\)</span>? It is one of the more popular measures of how well a particular model explains the data (adjusted <span class="math inline">\(R^2\)</span> is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. If, however, we are trying to predict/explain what someone does (i.e., a particular behavior), what are the chances that we will obtain high adjusted <span class="math inline">\(R^2\)</span>? Probably not very high, right? People are messy and often unpredictable, so achieving huge <span class="math inline">\(R^2\)</span> values is unlikely. This is not to suggest that we should accept an <span class="math inline">\(R^2\)</span> of .00001 as important (note – it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an <span class="math inline">\(R^2\)</span> around .2. That means that we have taken one of nature’s sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.</p>
+<p>Emerson’s (Ralph Waldo, not Keith) beautiful words are great if we are trying to expand our minds and engage in learning in general. One place that we cannot use this, however, is in connecting our data and hypotheses. If we have hypotheses about data, we had better have the data to test those hypotheses. While this may seem intuitive, behavioral data can often present unforeseen challenges. For example, you might be given some data full of attitudinal measures and someone has some ideas about relationships they want to test. If said person is not fully in the know about how to construct and test hypotheses, he/she might come to you wanting to test hypotheses that do not make sense given the data (maybe they want to “say” something about a scale that is not really measured by the scale).</p>
 </div>
 <div id="ethical-considerations-2" class="section level2">
 <h2>Ethical Considerations</h2>
-</div>
-<div id="data-structures" class="section level2">
-<h2>Data Structures</h2>
-</div>
-<div id="data-sources" class="section level2">
-<h2>Data Sources</h2>
-<p>Data is everywhere.</p>
 </div>
 <div id="more-data-issues" class="section level2">
 <h2>More Data Issues</h2>

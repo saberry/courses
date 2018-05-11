@@ -215,7 +215,7 @@ summary(fm.tobit)
 
 #### *Special Note On Discretization*
 
-If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, "But response rates...blah...blah...blah", or "We have to make it easy.", or "Think of the children." Consider the following data:
+If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, "But response rates...blah...blah...blah", or, "We have to make it easy.", or, "Think of the children." Consider the following data:
 
 ```{r, echo = FALSE}
 data.frame(age = c("<25", "25-35", "36-45", 
@@ -240,17 +240,17 @@ data.frame(age = c(22, 30, 36, 45, 51, 72)) %T>%
 
 What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for your ownself: is 18 year old you the same as 24 year old you? 
 
-And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standar linear regresion, they are going to be really confused when you show them more than 1 intercept! 
+And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standard linear regression, they are going to be really confused when you show them more than 1 intercept! 
 
-Remember, it is okay to make things easy on people, but give them some credit. Most people know how old they are -- if they won't tell you their exact age, they probably won't tell you the range either. 
+Remember, it is okay to make things easy on people, but give them some credit. Most people know how old they are -- if they won't tell you their exact age, they probably won't be inclined to tell you the range either. 
 
 ### Hierarchical Data
 
 Also known has multilevel or nested data, *hierarchical* data is best defined by a classical example -- we could have students, nested within classrooms, nested within schools, nested within districts, and so on.
 
-Here is what that data might look like:
+Here is what some nested data might look like:
 
-```{r}
+```{r, echo = FALSE}
 data.frame(id = 1:15,
            subgroup = rep(1:5, each = 3), 
            group = rep(1:3, each = 5))
@@ -264,10 +264,41 @@ Depending on your needs, this structure can be utilized in your analyses (we are
 
 Repeated measures can be thought of in the same way as longitudinal data -- we are measuring the same thing for a person for an extended period of time. If you want, you can even think of it as nested data; the time-based observations are nested within an individual.
 
+Here is how that data will typically look:
 
+```{r}
+data.frame(id = rep(1:3, each = 3), 
+           observation = rep(1:3, each = 3), 
+           responseTimeSeconds = sample(1:5, 9, replace = TRUE))
+```
+
+This data shows us 3 different people, each with 3 different observations. 
 ### Text
 
-Welcome to the now! With people generating volume after volume of text, we have many questions that we can explore. 
+Welcome to the now! With people generating volume after volume of text, we have many questions that we can explore.
+
+We can also have a bit of exploratory fun!
+
+```{r, echo = FALSE}
+library(wordcloud2)
+
+presidentialTweets = c("The highly anticipated meeting between Kim Jong Un and myself will take place in Singapore on June 12th. We will both try to make it a very special moment for World Peace!", 
+                       "Senator Cryin’ Chuck Schumer fought hard against the Bad Iran Deal, even going at it with President Obama, & then Voted AGAINST it! Now he says I should not have terminated the deal - but he doesn’t really believe that! Same with Comey. Thought he was terrible until I fired him!", 
+                       "The Failing New York Times criticized Secretary of State Pompeo for being AWOL (missing), when in fact he was flying to North Korea. Fake News, so bad!", 
+                       "The Fake News is working overtime. Just reported that, despite the tremendous success we are having with the economy & all things else, 91% of the Network News about me is negative (Fake). Why do we work so hard in working with the media when it is corrupt? Take away credentials?", 
+                       "The Iran Deal is defective at its core. If we do nothing, we know what will happen. In just a short time, the world’s leading state sponsor of terror will be on the cusp of acquiring the world’s most dangerous weapons")
+
+presidentialTweets %>% 
+  tokenizers::tokenize_words(., strip_numeric = TRUE, 
+                             stopwords = tm::stopwords("SMART")) %>%
+  unlist() %>% 
+  tm::stemDocument(.) %>% 
+  table(.) %>% 
+  as.data.frame(.) %>% 
+  wordcloud2(., shape = "pentagon")
+```
+
+You can likely imagine the source.
 
 ## Sources Of Data
 

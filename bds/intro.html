@@ -134,65 +134,19 @@ Behavioral Data Science</div></h1>
 </div>
 <div id="where-do-we-go" class="section level2">
 <h2>Where Do We Go?</h2>
-<p>What do we do with person-centric, behavioral data? In general, we want to predict behavior in some way! To predict behavior, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.</p>
+<p>What do we do with person-centric, behavioral data? In general, we want to predict or explain behavior in some way! To do that, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.</p>
 <p>This will be a theme that is revisted during our time together. Just so that you can start to fully get your head around hypotheses, let’s take the first try at a little game.</p>
 <p>I am noticing that visitors to my site spend less time on one page compared to other pages. Here is what that data might look like:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="right">visitorID</th>
-<th align="left">pageID</th>
-<th align="right">secondsOnPage</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">a</td>
-<td align="right">18.42795</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">b</td>
-<td align="right">22.93030</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">c</td>
-<td align="right">21.94450</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">a</td>
-<td align="right">13.69806</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="left">b</td>
-<td align="right">15.87481</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">a</td>
-<td align="right">14.48358</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">b</td>
-<td align="right">11.61779</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">c</td>
-<td align="right">13.77550</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">d</td>
-<td align="right">14.71553</td>
-</tr>
-</tbody>
-</table>
+<pre><code>  visitorID pageID secondsOnPage
+1         1      a     17.858902
+2         1      b     12.494159
+3         1      c     14.272119
+4         2      a      7.232004
+5         2      b     12.530497
+6         3      a     13.399872
+7         3      b     14.723096
+8         3      c     13.457081
+9         3      d     12.238232</code></pre>
 <p>I have a visitor identification number, a page identifier, and the number of seconds each user spent on a given page. Do I have data that would allow me to test if there is a difference in the amount of time that people spend on a page? I certainly do! With the data that you see, could I determine exactly why there might be differences in time on page? I would say rather unlikely with the provided data. We always need to make sure that we are not speaking beyond our data!</p>
 <p>This was just a demo version of the game – you will unlock more difficult levels as we progress.</p>
 <div id="analyzing-behavioral-data" class="section level3">
@@ -200,399 +154,170 @@ Behavioral Data Science</div></h1>
 <p>Think back to your linear models course. Do you remember examining adjusted <span class="math inline">\(R^2\)</span>? It is one of the more popular measures of how well a particular model explains the data (adjusted <span class="math inline">\(R^2\)</span> is noted as how much variance in the dependent variable is explained by the predictor variables in the equation). We traditionally are pushed towards looking for very high values. Students come from a variety of statistical traditions have been taught a great many “thresholds” for acceptable <span class="math inline">\(R^2\)</span> values – anywhere from .4 to .7 can be mentioned all in the span of a few seconds. If, however, we are trying to explain what someone does (i.e., a particular behavior), what are the chances that we will obtain such adjusted <span class="math inline">\(R^2\)</span> values? Probably not very high, right? People are messy and often unpredictable, so achieving huge <span class="math inline">\(R^2\)</span> values is unlikely.</p>
 <p>Does a small <span class="math inline">\(R^2\)</span> mean that your model is garbage‽ Of course not! A small <span class="math inline">\(R^2\)</span> does absolutely nothing to take away from the relationships between your predictor variables and your outcome. A low <span class="math inline">\(R^2\)</span> might mean that you have more error in your prediction, but there are still better ways of figuring that out than just looking at one value and giving up.</p>
 <p>This is not to suggest that we should accept an <span class="math inline">\(R^2\)</span> of .000001 as the most predictive model in the world (note – it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an <span class="math inline">\(R^2\)</span> around .2. That means that we have taken one of nature’s sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.</p>
+<p>With that aside on <span class="math inline">\(R^2\)</span> out of the way, we can think more generally about analyzing behavioral data (that is why we are here). The Behavioral Sciences have a rich tradition of interesting analyses: from experimental design to causal models and all points in between. When dealing with behavioral data, we are frequently looking at some type of latent variables; these are constructs we think exist, but have no way to phyically touch them. We are going to be dealing in the latent world for the majority of our time together, so start thinking about latent variables now!</p>
 </div>
 </div>
 <div id="data-wrangling" class="section level2">
 <h2>Data Wrangling</h2>
 <p>Person-centric data comes in many different flavors.</p>
 <p>There is the classic cross-sectional wide format (tends towards a vanilla taste):</p>
-<table>
-<thead>
-<tr class="header">
-<th align="right">id</th>
-<th align="right">satisfaction</th>
-<th align="right">leftTip</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="right">5</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="right">3</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="right">5</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">4</td>
-<td align="right">4</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">5</td>
-<td align="right">3</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
+<pre><code>  id satisfaction leftTip
+1  1            3       1
+2  2            7       0
+3  3            2       0
+4  4            4       1
+5  5            1       0</code></pre>
 <p>We also have repeated measures:</p>
-<p>We also have key-value pairs:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left">variable</th>
-<th align="right">value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">id</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="left">id</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">id</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="left">id</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="left">id</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="left">id</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="left">id</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">id</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="left">id</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">satisfaction</td>
-<td align="right">5</td>
-</tr>
-<tr class="odd">
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">satisfaction</td>
-<td align="right">7</td>
-</tr>
-<tr class="odd">
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">satisfaction</td>
-<td align="right">4</td>
-</tr>
-<tr class="odd">
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">satisfaction</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">satisfaction</td>
-<td align="right">6</td>
-</tr>
-<tr class="even">
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
+<pre><code>  id observation satisfaction leftTip rating
+1  1           1            1       1      2
+2  1           2            2       1      4
+3  1           3            1       1      3
+4  2           1            2       0      4
+5  2           2            3       0      5
+6  2           3            3       1      4
+7  3           1            4       1      5
+8  3           2            4       1      5
+9  3           3            4       1      6</code></pre>
+<p>And. key-value pairs:</p>
+<pre><code>       variable value
+1            id     1
+2            id     1
+3            id     1
+4            id     2
+5            id     2
+6            id     2
+7            id     3
+8            id     3
+9            id     3
+10  observation     1
+11  observation     2
+12  observation     3
+13  observation     1
+14  observation     2
+15  observation     3
+16  observation     1
+17  observation     2
+18  observation     3
+19 satisfaction     1
+20 satisfaction     2
+21 satisfaction     1
+22 satisfaction     2
+23 satisfaction     3
+24 satisfaction     3
+25 satisfaction     4
+26 satisfaction     4
+27 satisfaction     4
+28      leftTip     1
+29      leftTip     1
+30      leftTip     1
+31      leftTip     0
+32      leftTip     0
+33      leftTip     1
+34      leftTip     1
+35      leftTip     1
+36      leftTip     1
+37       rating     2
+38       rating     4
+39       rating     3
+40       rating     4
+41       rating     5
+42       rating     4
+43       rating     5
+44       rating     5
+45       rating     6</code></pre>
 <p>And then from there, we can start to do combinations:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="right">id</th>
-<th align="left">variable</th>
-<th align="right">value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">observation</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">observation</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">observation</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">satisfaction</td>
-<td align="right">5</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="left">satisfaction</td>
-<td align="right">7</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="left">satisfaction</td>
-<td align="right">4</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">satisfaction</td>
-<td align="right">3</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">satisfaction</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">satisfaction</td>
-<td align="right">6</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">1</td>
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">2</td>
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="even">
-<td align="right">3</td>
-<td align="left">leftTip</td>
-<td align="right">0</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">leftTip</td>
-<td align="right">1</td>
-</tr>
-</tbody>
-</table>
-<p>All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions).</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left">id</th>
-<th align="right">satisfaction1</th>
-<th align="right">satisfaction2</th>
-<th align="right">satisfaction3</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">1</td>
-<td align="right">4</td>
-<td align="right">6</td>
-<td align="right">3</td>
-</tr>
-<tr class="even">
-<td align="left">2</td>
-<td align="right">4</td>
-<td align="right">4</td>
-<td align="right">2</td>
-</tr>
-<tr class="odd">
-<td align="left">3</td>
-<td align="right">2</td>
-<td align="right">5</td>
-<td align="right">2</td>
-</tr>
-</tbody>
-</table>
-<p>If we want to show a person’s survey responses, we need to do some reshaping:</p>
-<p><img src="data:image/png;base64,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djnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ttkBfQMYko3uR0POQIsu5GSXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsGtChyTnY52bVmQIsi52SXk11rBrQock52Odm1ZkCLIudkl5Ndawa0KHJOdjnZtWZAiyLnZJeTXWsG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" width="672" /></p>
+<pre><code>   id     variable value
+1   1  observation     1
+2   1  observation     2
+3   1  observation     3
+4   2  observation     1
+5   2  observation     2
+6   2  observation     3
+7   3  observation     1
+8   3  observation     2
+9   3  observation     3
+10  1 satisfaction     1
+11  1 satisfaction     2
+12  1 satisfaction     1
+13  2 satisfaction     2
+14  2 satisfaction     3
+15  2 satisfaction     3
+16  3 satisfaction     4
+17  3 satisfaction     4
+18  3 satisfaction     4
+19  1      leftTip     1
+20  1      leftTip     1
+21  1      leftTip     1
+22  2      leftTip     0
+23  2      leftTip     0
+24  2      leftTip     1
+25  3      leftTip     1
+26  3      leftTip     1
+27  3      leftTip     1
+28  1       rating     2
+29  1       rating     4
+30  1       rating     3
+31  2       rating     4
+32  2       rating     5
+33  2       rating     4
+34  3       rating     5
+35  3       rating     5
+36  3       rating     6</code></pre>
+<p>All of these have their place. Many analyses require traditional wide data. Others, like panel models, require long data (e.g., our repeated measures data).</p>
+<pre class="r"><code>library(plm)
+
+panelModel = plm(rating ~ satisfaction, index = c(&quot;id&quot;, &quot;observation&quot;), 
+                 data = repeatedMeasures)
+
+summary(panelModel)</code></pre>
+<pre><code>Oneway (individual) effect Within Model
+
+Call:
+plm(formula = rating ~ satisfaction, data = repeatedMeasures, 
+    index = c(&quot;id&quot;, &quot;observation&quot;))
+
+Balanced Panel: n = 3, T = 3, N = 9
+
+Residuals:
+    Min.  1st Qu.   Median  3rd Qu.     Max. 
+-0.66667 -0.33333  0.33333  0.33333  0.66667 
+
+Coefficients:
+             Estimate Std. Error t-value Pr(&gt;|t|)
+satisfaction  1.00000    0.54772  1.8257   0.1275
+
+Total Sum of Squares:    3.3333
+Residual Sum of Squares: 2
+R-Squared:      0.4
+Adj. R-Squared: 0.04
+F-statistic: 3.33333 on 1 and 5 DF, p-value: 0.12746</code></pre>
+<p>Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions).</p>
+<pre><code>  id satisfaction1 satisfaction2 satisfaction3
+1  1             3             3             1
+2  2             2             7             5
+3  3             5             6             1</code></pre>
+<p>If we want to show several people’s survey responses, we need to do some reshaping:</p>
+<p><img src="data:image/png;base64,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Rc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRc7JLie71gxoUeSc7HKya82AFkXOyS4nu9YMaFHknOxysmvNgBZFzskuJ7vWDGhR5JzscrJrzYAWRY69+vbbV68OfSe60rvWDGhR5NCrV999881335nQjN61Fg7o9x+fnJz85h+Pe18OS5Ejy/n8bj2gJjSjd61lA/riZPD7R743h6TIidV81oAuJ/TQd6chvWstGtDXw3S+OPn1Xx/57hyQIicM6FR611o0oC/GU88XJ7971DtzUIocGPZzM6AW9OH0rrVkQH/+cjzzfG1AZ86ATqZ3rU26Cm9AZ27cz6sBtaAPpnetTRnQn788+dPud75mVr795rpvD32XeLcmrc8RmDKgL09++6/d7xz6v03eLQM6e5PW5whMGNDXR3UR3kOpgIfw0+lda/mAHtl+KnLAgE6nd63FA/ryyPZTkROuwk+md62FA/rzl0f2Rk5FjhjQyfSutWxAl/t5/fpRe4qc8E6kqfSutWhAj3E/FTliQKfSu9aiAX379UtHQJEjPo1p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" width="672" /></p>
 <p>See if you can reproduce the data and visualization!</p>
-<p>No matter the need, don’t be afraid to shape your data in a way that conforms to <em>your</em> needs. Always remember that you are in control of your data – your data is not in control of you!</p>
+<p>No matter the need, don’t be afraid to shape your data in a way that conforms to <em>your</em> needs. Always remember that you are in control of your data – your data is not in control of you! With various packages from the tidyverse and base, you are have the power to make your data be whatever you need it to be.</p>
 <p><em>Link to dataWranglingPrimer.html</em></p>
 </div>
 <div id="ethical-considerations" class="section level2">
 <h2>Ethical Considerations</h2>
-<p>When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people’s privacy?</p>
+<p>When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people’s privacy? Are we being honest to people about how we are going to handle their data? These are questions that require your care and attention.</p>
 <p>This becomes even more important when sharing data. Look at the following data and think about whether or not it could be shared as is:</p>
+<pre class="r"><code>data.frame(age = sample(18:35, 5, replace = TRUE), 
+           gender = sample(c(&quot;male&quot;, &quot;female&quot;), 5, replace = TRUE), 
+           department = sample(c(&quot;cs&quot;, &quot;hr&quot;, &quot;it&quot;), 5, replace = TRUE), 
+           score = sample(50:100, 5)) </code></pre>
 <pre><code>  age gender department score
-1  31 female         it    70
-2  22 female         it    62
-3  19 female         hr    53
-4  31 female         it    79
-5  18   male         cs    88</code></pre>
-<p>There are not any personal identifiers here, so we are good to share away…right? Let’s pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data.</p>
+1  33 female         it    64
+2  35 female         cs    80
+3  33   male         hr    93
+4  29 female         hr    52
+5  23 female         cs    60</code></pre>
+<p>There are not any personal identifiers here, so we are good to put it on Github or Google Drive and share away…right? Let’s pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data. This gets into an area known as de-identification – the removal of not only concrete identifiers (e.g., names, SSNs), but also anything that can be pieced together to identify a person.</p>
+<p>It might seem far fetched that anyone would ever go through the trouble of identifying your data, but you should think conspiratorially when it comes to your data – imagine the absolute worst thing that could happen if someone took it and identified it. Could it cause personal problems, job lose, or reveal something embarrassing/illegal? Remember, the 4Chan collective found a flag in rural Tennessee using contrail patterns, star alignment, and a car horn – in 37 hours. Don’t forget that they also contributed to the identification and subsequent airstrike of an ISIS training facility. Just imagine what could be done with your interesting data.</p>
 </div>
 </div>
 <div id="week-2" class="section level1">
@@ -602,8 +327,19 @@ Behavioral Data Science</div></h1>
 <p>We see many different types of data when working with behavioral data, well beyond what we typically think about with our different levels of measurement (nominal, ordinal, interval, and ratio).</p>
 <div id="attitudinal-data" class="section level3">
 <h3>Attitudinal Data</h3>
-<p>Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured – are they traditional Likert response options (<em>strongly disagree</em> to <em>strongly agree</em>) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). How many response options are there – 3, 5, 7, or more?</p>
+<p>Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured – are they traditional Likert response options (<em>strongly disagree</em> to <em>strongly agree</em>) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). Perhaps it is a Likert-type (<em>Not at all</em> to <em>Very much</em>). How many response options are there – 3, 5, 7, or more?</p>
 <p>When dealing with such attitudinal data, we might see data that takes any of the following forms:</p>
+<pre class="r"><code>library(magrittr)
+data.frame(agreementNumeric = 1:5, 
+           agreementOrdered = ordered(1:5, labels = c(&quot;Strongly disagree&quot;, 
+                                                      &quot;Disagree&quot;, &quot;Neither disagree nor agree&quot;, 
+                                                      &quot;Agree&quot;, &quot;Strongly agree&quot;)), 
+           agreementCharacter = c(&quot;Strongly disagree&quot;, 
+                                  &quot;Disagree&quot;, &quot;Neither disagree nor agree&quot;, 
+                                  &quot;Agree&quot;, &quot;Strongly agree&quot;), 
+           pseudoLikert = c(&quot;Not at all&quot;, &quot;A little&quot;, &quot;Some&quot;, &quot;A lot&quot;, &quot;Very much&quot;)) %T&gt;%
+  glimpse() %&gt;% 
+  summary()</code></pre>
 <pre><code>Observations: 5
 Variables: 4
 $ agreementNumeric   &lt;int&gt; 1, 2, 3, 4, 5
@@ -624,42 +360,19 @@ $ pseudoLikert       &lt;fct&gt; Not at all, A little, Some, A lot, Very much</c
  Strongly agree            :1        Some      :1    
  Strongly disagree         :1        Very much :1    
                                                      </code></pre>
-<p>This is where data familiarization becomes important – always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.</p>
+<p>This is where data familiarization and exploration becomes important – always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.</p>
 <p>With the data as it is in its current form, think about what you might like to do with it. Would you like to plot or create a correlation matrix? Can you make that happen? Data processing becomes very important when working through any survey-based data.</p>
+<p>What functions would you use to convert everything to numeric?</p>
 </div>
 <div id="censored-data" class="section level3">
 <h3>Censored Data</h3>
 <p>We might run into data that is <em>censored</em>. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been <em>discretized</em> – a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like “&lt;25”, “25-35”, “36-45”, “46-55”, and “55+”. When people have an age of “&lt;25”, we have left censored data – we don’t know how far to the “left” the value actually is, we just know that it is somewhere under 25. For our observations with “55+”, we have right censored data – we don’t know how far to the right the value actually is.</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left">ageCategory</th>
-<th align="left">censored</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">&lt;25</td>
-<td align="left">Left censored</td>
-</tr>
-<tr class="even">
-<td align="left">25-35</td>
-<td align="left">Uncensored</td>
-</tr>
-<tr class="odd">
-<td align="left">36-45</td>
-<td align="left">Uncensored</td>
-</tr>
-<tr class="even">
-<td align="left">46-55</td>
-<td align="left">Uncensored</td>
-</tr>
-<tr class="odd">
-<td align="left">55+</td>
-<td align="left">Right censored</td>
-</tr>
-</tbody>
-</table>
+<pre><code>  ageCategory       censored
+1         &lt;25  Left censored
+2       25-35     Uncensored
+3       36-45     Uncensored
+4       46-55     Uncensored
+5         55+ Right censored</code></pre>
 <p>While we won’t be diving into them, tobit models are one such way for dealing with censored dependent variables.</p>
 <p>The following is similar to an example from the AER package. The max number of reported affairs is 12, but that was at the time of reporting – the philandeering partners could have engaged in more affairs after data was collected. To that end, we need to account for right censoring.</p>
 <pre class="r"><code>library(AER)
@@ -697,34 +410,14 @@ Log-likelihood: -661.8 on 5 Df
 Wald-statistic: 36.75 on 3 Df, p-value: 5.1855e-08 </code></pre>
 <div id="special-note-on-discretization" class="section level4">
 <h4><em>Special Note On Discretization</em></h4>
-<p>If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, “But response rates…blah…blah…blah”, or “We have to make it easy.” Consider the following data:</p>
-<table>
-<thead>
-<tr class="header">
-<th align="left">age</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">&lt;25</td>
-</tr>
-<tr class="even">
-<td align="left">25-35</td>
-</tr>
-<tr class="odd">
-<td align="left">36-45</td>
-</tr>
-<tr class="even">
-<td align="left">36-45</td>
-</tr>
-<tr class="odd">
-<td align="left">46-55</td>
-</tr>
-<tr class="even">
-<td align="left">55+</td>
-</tr>
-</tbody>
-</table>
+<p>If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, “But response rates…blah…blah…blah”, or “We have to make it easy.”, or “Think of the children.” Consider the following data:</p>
+<pre><code>    age
+1   &lt;25
+2 25-35
+3 36-45
+4 36-45
+5 46-55
+6   55+</code></pre>
 <p>You have 6 respondents – what is the mean age of those respondents? I have no idea and neither do you! If you allow data to be collected this way, you are immediately imposing limits on what you might do with that data in the future. Someone will likely say, “Just take the middle point of the range and call that the response.”</p>
 <pre><code>  age
 1  25
@@ -743,20 +436,38 @@ Wald-statistic: 36.75 on 3 Df, p-value: 5.1855e-08 </code></pre>
 4  45
 5  51
 6  72</code></pre>
-<pre><code>  age
-1  22
-2  30
-3  36
-4  45
-5  51
-6  72</code></pre>
-<p>What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for yourself: is 18 year old you the same as 24 year old you?</p>
+<pre><code>  mean(age)
+1  42.66667</code></pre>
+<p>What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for your ownself: is 18 year old you the same as 24 year old you?</p>
 <p>And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standar linear regresion, they are going to be really confused when you show them more than 1 intercept!</p>
+<p>Remember, it is okay to make things easy on people, but give them some credit. Most people know how old they are – if they won’t tell you their exact age, they probably won’t tell you the range either.</p>
 </div>
 </div>
 <div id="hierarchical-data" class="section level3">
 <h3>Hierarchical Data</h3>
 <p>Also known has multilevel or nested data, <em>hierarchical</em> data is best defined by a classical example – we could have students, nested within classrooms, nested within schools, nested within districts, and so on.</p>
+<p>Here is what that data might look like:</p>
+<pre class="r"><code>data.frame(id = 1:15,
+           subgroup = rep(1:5, each = 3), 
+           group = rep(1:3, each = 5))</code></pre>
+<pre><code>   id subgroup group
+1   1        1     1
+2   2        1     1
+3   3        1     1
+4   4        2     1
+5   5        2     1
+6   6        2     2
+7   7        3     2
+8   8        3     2
+9   9        3     2
+10 10        4     2
+11 11        4     3
+12 12        4     3
+13 13        5     3
+14 14        5     3
+15 15        5     3</code></pre>
+<p>We have an id variable, which is giving us an individual identifier. Each person is in 1 of 5 subgroups and each subgroup is in 1 of 3 groups.</p>
+<p>Depending on your needs, this structure can be utilized in your analyses (we are going to be getting into it within the next few weeks).</p>
 </div>
 <div id="repeated-measures" class="section level3">
 <h3>Repeated Measures</h3>

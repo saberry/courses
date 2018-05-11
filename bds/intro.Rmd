@@ -7,7 +7,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 
 library(dplyr)
 ```
@@ -23,7 +23,7 @@ Not all data fits into this notion of person-centricity. We often find financial
 
 ## Where Do We Go?
 
-What do we do with person-centric, behavioral data? In general, we want to predict behavior in some way! To predict behavior, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.
+What do we do with person-centric, behavioral data? In general, we want to predict or explain behavior in some way! To do that, we need to create some hypotheses. We must, however, be very careful in crafting our hypotheses. While we can do some fancy analyses that start to lead us down a more causal path, we can never fully generalize what makes people do the things that they do.
 
 This will be a theme that is revisted during our time together. Just so that you can start to fully get your head around hypotheses, let's take the first try at a little game.
 
@@ -34,11 +34,7 @@ visitorData = data.frame(visitorID = c(1, 1, 1, 2, 2, 3, 3, 3, 3),
                          pageID = c("a", "b", "c", "a", "b", "a", 
                                     "b", "c", "d"), 
                          secondsOnPage = rnorm(9, mean = 15, sd = 4))
-```
-
-
-```{r}
-knitr::kable(visitorData)
+visitorData
 ```
 
 I have a visitor identification number, a page identifier, and the number of seconds each user spent on a given page. Do I have data that would allow me to test if there is a difference in the amount of time that people spend on a page? I certainly do! With the data that you see, could I determine exactly why there might be differences in time on page? I would say rather unlikely with the provided data. We always need to make sure that we are not speaking beyond our data!
@@ -53,6 +49,7 @@ Does a small $R^2$ mean that your model is garbage&#8253; Of course not! A small
 
 This is not to suggest that we should accept an $R^2$ of .000001 as the most predictive model in the world (note -- it probably is not); however, we should not be terribly dejected to see a model with 4 or 5 predictors with an $R^2$ around .2. That means that we have taken one of nature's sloppiest and most unpredictable creatures, and explained 20% of the variance of a behavior.
 
+With that aside on $R^2$ out of the way, we can think more generally about analyzing behavioral data (that is why we are here). The Behavioral Sciences have a rich tradition of interesting analyses: from experimental design to causal models and all points in between. When dealing with behavioral data, we are frequently looking at some type of latent variables; these are constructs we think exist, but have no way to phyically touch them. We are going to be dealing in the latent world for the majority of our time together, so start thinking about latent variables now!
 
 ## Data Wrangling
 
@@ -66,53 +63,67 @@ classicWide = data.frame(id = 1:5,
                          leftTip = sample(0:1, 5, replace = TRUE))
 ```
 
-```{r}
-knitr::kable(classicWide)
+```{r, echo = FALSE}
+classicWide
 ```
 
 
 We also have repeated measures:
 
-```{r}
+```{r, echo = FALSE}
 repeatedMeasures = data.frame(id = rep(1:3, each = 3),
                               observation = rep(1:3, 3),
-                              satisfaction = sample(1:7, 9, replace = TRUE), 
-                              leftTip = sample(0:1, 9, replace = TRUE))
+                              satisfaction = sample(1:5, 9, replace = TRUE),
+                              leftTip = sample(0:1, 9, replace = TRUE)) %>% 
+  mutate(rating = satisfaction + sample(1:2, 9, replace = TRUE))
+
+repeatedMeasures
 ```
 
 
-We also have key-value pairs:
+And. key-value pairs:
 
-```{r}
+```{r, echo = FALSE}
 repeatedMeasures %>% 
-  tidyr::gather(key = variable, value = value) %>% 
-  knitr::kable(.)
+  tidyr::gather(key = variable, value = value)
 ```
 
 
 And then from there, we can start to do combinations:
 
-```{r}
+```{r, echo = FALSE}
 repeatedMeasures %>% 
-    tidyr::gather(key = variable, value = value, -id) %>% 
-  knitr::kable(.)
+    tidyr::gather(key = variable, value = value, -id)
 ```
 
 
-All of these have their place. Many analyses require traditional wide data; others, like panel models, require long data. Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions). 
+All of these have their place. Many analyses require traditional wide data. Others, like panel models, require long data (e.g., our repeated measures data).
+
 
 ```{r}
+library(plm)
+
+panelModel = plm(rating ~ satisfaction, index = c("id", "observation"), 
+                 data = repeatedMeasures)
+
+summary(panelModel)
+```
+
+
+Sometimes, we need to reshape our data for the sake of visualization (such visualizations are especially handy for survey questions). 
+
+```{r, echo = FALSE}
 library(ggplot2)
 datTest = data.frame(id = as.factor(1:3),
            satisfaction1 = sample(1:7, 3, replace = TRUE), 
            satisfaction2 = sample(1:7, 3, replace = TRUE), 
            satisfaction3 = sample(1:7, 3, replace = TRUE))
-knitr::kable(datTest)
+datTest
 ```
 
-If we want to show a person's survey responses, we need to do some reshaping:
+If we want to show several people's survey responses, we need to do some reshaping:
 
-```{r}
+```{r, echo = FALSE}
 datTest %>% 
   tidyr::gather(key = variable, value = value, -id) %>% 
   ggplot(., aes(id, value, color = variable)) +
@@ -123,13 +134,13 @@ datTest %>%
 
 See if you can reproduce the data and visualization!
 
-No matter the need, don't be afraid to shape your data in a way that conforms to *your* needs. Always remember that you are in control of your data -- your data is not in control of you!
+No matter the need, don't be afraid to shape your data in a way that conforms to *your* needs. Always remember that you are in control of your data -- your data is not in control of you! With various packages from the tidyverse and base, you are have the power to make your data be whatever you need it to be.
 
 *Link to dataWranglingPrimer.html*
 
 ## Ethical Considerations
 
-When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people's privacy? 
+When dealing with person-centric data, we need to always be thinking about ethics. Are we treating the data in a secure manner and honoring people's privacy? Are we being honest to people about how we are going to handle their data? These are questions that require your care and attention. 
 
 This becomes even more important when sharing data. Look at the following data and think about whether or not it could be shared as is:
 
@@ -140,7 +151,10 @@ data.frame(age = sample(18:35, 5, replace = TRUE),
            score = sample(50:100, 5)) 
 ```
 
-There are not any personal identifiers here, so we are good to share away...right? Let's pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data.
+There are not any personal identifiers here, so we are good to put it on Github or Google Drive and share away...right? Let's pick this apart a little bit. Any of the demographic-inclined variables, in isolation, are not a cause for any concern; when we have all of them together, though, we might be able to identify individuals. Triangulation is a real concern with any type of data, but we need to be diligent in good security and privacy practices when we are dealing with person-centric data. This gets into an area known as de-identification -- the removal of not only concrete identifiers (e.g., names, SSNs), but also anything that can be pieced together to identify a person.
+
+It might seem far fetched that anyone would ever go through the trouble of identifying your data, but you should think conspiratorially when it comes to your data -- imagine the absolute worst thing that could happen if someone took it and identified it. Could it cause personal problems, job lose, or reveal something embarrassing/illegal? Remember, the 4Chan collective found a flag in rural Tennessee using contrail patterns, star alignment, and a car horn -- in 37 hours. Don't forget that they also contributed to the identification and subsequent airstrike of an ISIS training facility. Just imagine what could be done with your interesting data.   
+
 
 # Week 2
 
@@ -151,7 +165,7 @@ We see many different types of data when working with behavioral data, well beyo
 
 ### Attitudinal Data
 
-Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). How many response options are there -- 3, 5, 7, or more? 
+Survey data is where we typically find attitudinal data and it tends to present some interesting issues. How are the items measured -- are they traditional Likert response options (*strongly disagree* to *strongly agree*) or are they some type of feelings thermometers (typically some crazy range that could be anywhere between 0 to 100 or -100 to 100). Perhaps it is a Likert-type (*Not at all* to *Very much*). How many response options are there -- 3, 5, 7, or more? 
 
 When dealing with such attitudinal data, we might see data that takes any of the following forms:
 
@@ -169,9 +183,11 @@ data.frame(agreementNumeric = 1:5,
   summary()
 ```
 
-This is where data familiarization becomes important -- always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.
+This is where data familiarization and exploration becomes important -- always take note of variable types. If you are receiving this data from another source, you never know what you might be getting.
 
 With the data as it is in its current form, think about what you might like to do with it. Would you like to plot or create a correlation matrix? Can you make that happen? Data processing becomes very important when working through any survey-based data.
+
+What functions would you use to convert everything to numeric?
 
 ### Censored Data
 We might run into data that is *censored*. While it might sound like something exciting at first, censored variables are simply those that we do not know about the values before or after data collection started/ended. You may run into variables that have been *discretized* -- a continuous variable, such as age, broken down into discreet categories. When we get that age variable, we might see categories like "<25", "25-35", "36-45", "46-55", and "55+". When people have an age of "<25", we have left censored data -- we don't know how far to the "left" the value actually is, we just know that it is somewhere under 25. For our observations with "55+", we have right censored data -- we don't know how far to the right the value actually is. 
@@ -179,8 +195,7 @@ We might run into data that is *censored*. While it might sound like something e
 ```{r, echo = FALSE}
 data.frame(ageCategory = c("<25", "25-35", "36-45", "46-55", "55+"), 
            censored = c("Left censored", "Uncensored", "Uncensored", 
-                        "Uncensored", "Right censored")) %>% 
-  knitr::kable()
+                        "Uncensored", "Right censored"))
 ```
 
 While we won't be diving into them, tobit models are one such way for dealing with censored dependent variables.
@@ -200,17 +215,16 @@ summary(fm.tobit)
 
 #### *Special Note On Discretization*
 
-If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, "But response rates...blah...blah...blah", or "We have to make it easy." Consider the following data:
+If you find yourself on the planning end of some broader data collection efforts, absolutely resist the temptation (both internal or external) to discretize data. Some people will say, "But response rates...blah...blah...blah", or "We have to make it easy.", or "Think of the children." Consider the following data:
 
-```{r}
+```{r, echo = FALSE}
 data.frame(age = c("<25", "25-35", "36-45", 
-                   "36-45", "46-55", "55+")) %>% 
-  knitr::kable(.)
+                   "36-45", "46-55", "55+"))
 ```
 
 You have 6 respondents -- what is the mean age of those respondents? I have no idea and neither do you! If you allow data to be collected this way, you are immediately imposing limits on what you might do with that data in the future. Someone will likely say, "Just take the middle point of the range and call that the response."  
 
-```{r}
+```{r, echo = FALSE}
 data.frame(age = c(25, 30, 40, 40, 50, 55)) %T>% 
   print(.) %>% 
   summarize(mean(age))
@@ -218,19 +232,33 @@ data.frame(age = c(25, 30, 40, 40, 50, 55)) %T>%
 
 Great.~ We have an average now. What if the actual ages were as follows:
 
-```{r}
+```{r, echo = FALSE}
 data.frame(age = c(22, 30, 36, 45, 51, 72)) %T>% 
-  print(.)
+  print(.) %>% 
+  summarize(mean(age))
 ```
 
-What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for yourself: is 18 year old you the same as 24 year old you? 
+What is your mean age now? Is it still 40? You decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for your ownself: is 18 year old you the same as 24 year old you? 
 
 And here is another common issue: someone will want to discretize an income variable and use it as an outcome variable in a model. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standar linear regresion, they are going to be really confused when you show them more than 1 intercept! 
 
+Remember, it is okay to make things easy on people, but give them some credit. Most people know how old they are -- if they won't tell you their exact age, they probably won't tell you the range either. 
 
 ### Hierarchical Data
 
-Also known has multilevel or nested data, *hierarchical* data is best defined by a classical example -- we could have students, nested within classrooms, nested within schools, nested within districts, and so on. 
+Also known has multilevel or nested data, *hierarchical* data is best defined by a classical example -- we could have students, nested within classrooms, nested within schools, nested within districts, and so on.
+
+Here is what that data might look like:
+
+```{r}
+data.frame(id = 1:15,
+           subgroup = rep(1:5, each = 3), 
+           group = rep(1:3, each = 5))
+```
+
+We have an id variable, which is giving us an individual identifier. Each person is in 1 of 5 subgroups and each subgroup is in 1 of 3 groups. 
+
+Depending on your needs, this structure can be utilized in your analyses (we are going to be getting into it within the next few weeks).
 
 ### Repeated Measures
 

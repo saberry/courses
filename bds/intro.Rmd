@@ -243,7 +243,7 @@ data.frame(age = c(21, 30, 36, 45, 52, 74)) %T>%
   summarize(mean(age))
 ```
 
-What is your mean age now? Is it still 40? Will it matter for you analyses? You need to decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for your own self: is 18 year old you the same as 24 year old you? This becomes an even bigger issue when we have ranges with unequal intervals (commonly seen in income brackets that might start with a few thousand dollars in range, but end with upwards of 100K dollars or more in range).
+What is your mean age now? Is it still 40? Will it matter for your analyses? You need to decide if the difference in the answer is important or not. Maybe you decide it is not that different and are comfortable doing this. Let me pose an additional question: is a 25 year old the same as a 35 year old? Just think about that for your own self: is 18 year old you the same as 24 year old you? This becomes an even bigger issue when we have ranges with unequal intervals (commonly seen in income brackets that might start with a few thousand dollars in range, but end with upwards of 100K dollars or more in range).
 
 And here is another common issue: someone will want to discretize a variable and use it as an outcome variable in a model. Such shenanigans is common with discretized income variables. You have the power to make that happen (think back to our friend ordered logistic regression from generalized linear models). To the person who was expecting a standard linear regression, they are going to be really confused when you show them more than 1 intercept! 
 
@@ -312,17 +312,19 @@ When we are dealing in behavioral data, there are many places that we can typica
 
 ### Surveys
 
+Self-reported surveys might be the classic source for behavioral data. With the rise or web-based surveys, collecting data has never been easier. Although response rates have been declining over the years, it is still easy to amass a reasonably-sized sample (especially if you can pay participants). In addition to collecting your own data, there are numerous big surveys that make the data available to the public (e.g., Behavioral Risk Factor Surveillance System and National Survey on Drug Use and Health).
+
 ### Client-side Paradata/Metadata
 
-Paradata and metadata are rich sources of behavioral data. While both relate more to the "hidden" data that people produce, they are a bit different. Metadata is all of the little stuff that happens when people use a site -- login times, time on page and navigation, and other data related to use. What was once thought of in the context of person-to-person surveys, client-side paradata (CSP) details the small things that people do. 
+Surveys provide data that people explicitly offer, but what about the behaviors that go into survey esponding (or any behaviors that lead up to an action). Paradata and metadata offer such data. While both relate more to the "hidden" data that people produce, they are a bit different. Metadata is all of the little stuff that happens when people use a site -- login times, time on page and navigation, and other data related to use. What was once thought of in the context of person-to-person surveys, client-side paradata (CSP) details the small things that people do. Mouse movements, clicks, scrolling, and related variables can all be collected and analyzed.
 
 ### Records
 
-Records tend to be a bit tricky, but they are out there (in fact, a great many organizations make money hand over fist by pulling public records together). While you
+Records tend to be a bit tricky, but they are out there (in fact, a great many organizations make money hand over fist by pulling public records together). While you might be granted to keys to kingdom and be given access to such databases, you can pull public records from many different places: county assessors websites and county courthouse websites are two such examples (jailtracker is fun to use). Many cities across America are also diving into the open data game and providing a great wealth of data. While it might not all be useful, there is certainly enough there to begin thinking about interesting questions. 
 
 ### Social Media
 
-Social media is ripe for data (being mindful of Terms of Service, of course). Post history, both what was posted and in frequency, are excellent data points. Social networks are also a popular research endeavor.
+Social media is ripe for data (being mindful of Terms of Service, of course). Post history, both what was posted and in frequency, are excellent data points. Social networks are also a popular research endeavor. 
 
 ## More Data Wrangling
 

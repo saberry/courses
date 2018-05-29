@@ -8,11 +8,15 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE)
 
 library(dplyr)
 
 library(ggplot2)
+
+library(readr)
+
+library(pwr)
 ```
 
 # Section 1  
@@ -21,11 +25,11 @@ library(ggplot2)
 
 Using the following data, produce a visualization with patient_days_admitted on the x-axis and dollar_spent_per_patient on the y-axis. After producing this visualization, explain what this relationship means and how this relationship might guide a decision.
 
-After looking at the bivariate relationship in the previous visualization, add department to the visualization as a grouping variable. Does this change your interpretation of the relationship? If so, how? Does this visualization offer any additional explanatory power over the more simple visualization? Explain.
+After looking at the bivariate relationship in the previous visualization, add department to the visualization as a grouping variable. Does this change your interpretation of the relationship or add any expanded understanding? If so, how? Does this visualization offer any additional explanatory power over the more simple visualization? Explain.
 
 
 ```{r}
-visualizationData 
+visualizationData = read_csv("https://www.nd.edu/~sberry5/data/visualizationData.csv")
 ```
 
 
@@ -33,12 +37,12 @@ visualizationData
 
 ## Instructions   
 
-Using the following data, formulate a hypothesis for training.sessions.attended.year's effect on customer.satisfaction.scores.year. Please clearly state the relationship that you would expect to find. Using an appropriate technique from the general linear model, test your hypothesis and report your findings -- interpretation of your model's coefficients is critical. 
+Using the following data, formulate a hypothesis for training.sessions.attended.year's effect on customer.satisfaction.scores.year. Please clearly state the relationship that you would expect to find. Using an appropriate technique from the general linear model, test your hypothesis and report your findings -- interpretation of your model's coefficients is critical. Describe your rationale for any data processing (e.g., centering) that you might undertake.
 
 After reporting and interpreting your findings, conduct a post hoc power analysis to determine if you had a sufficient sample size to detect an effect. Discuss the results from your power analysis.
 
 ```{r}
-glmData
+glmData = read_csv("https://www.nd.edu/~sberry5/data/glmData.csv")
 ```
 
 
@@ -46,13 +50,12 @@ glmData
 
 ## Instructions   
 
-Consider the following A/B testing data. This data tracks a user's time on page (timeOnPage) and the UI design (design). In A/B testing, we are concerned with the difference between the two groups on the outcome. Select the appropriate technique from the general linear model and determine if any significant differences exist between the two competing page designs. 
+Consider the following A/B testing data. This data tracks a user's time on page (timeOnPage) and the UI design (design). In A/B testing, we are concerned with the difference between the two groups on the outcome. Select the appropriate technique from the general linear model and determine if any significant differences exist between the two competing page designs. Describe your rationale for any data processing that you might undertake.
 
 Discuss your results and indicate any actionable decision that comes from your analysis. Additionally, determine if your analyses were sufficiently powered.
 
-
 ```{r}
-abData
+abData = read_csv("https://www.nd.edu/~sberry5/data/abData.csv")
 ```
 
 
@@ -60,19 +63,21 @@ abData
 
 ## Instructions   
 
-Using the following data, determine if there are any differences in the daily net profit of three different store locations. Select the appropriate test from the general linear model and determine if any significant differences exist. 
+Using the following data, determine if there are any differences in the daily net profit of three different store locations. Select the appropriate test from the general linear model and determine if any significant differences exist. Describe your rationale for any data processing that you might undertake. 
 
 Discuss your results.
 
-
 ```{r}
-performanceData
+performanceData = read_csv("https://www.nd.edu/~sberry5/data/performanceData.csv")
 ```
 
 # Section 5  
 
 ## Instructions   
 
-Using the following data, determine what variables influence a franchise's ultimate outcome -- failure or success. Using any variables available to you, select the appropriate method and test your model. Discuss your results
+Using the following data, determine what variables influence a franchise's ultimate outcome -- failure or success. Using any variables available to you, select the appropriate method and test your model. Discuss your results and describe your rationale for any data processing that you might undertake.
 
-outcomeData
+```{r}
+outcomeData = read_csv("https://www.nd.edu/~sberry5/data/outcomeData.csv")
+```
+

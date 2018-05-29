@@ -1,0 +1,203 @@
+---
+title: |  
+       |  Bayesian Regression Review
+       |  PCA
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE, error = FALSE, comment = "")
+
+```
+
+## Markov Chains
+
+You manage 10 teams, named from 1 to 10. Each team name is proportional to the number of people on the team and each team is on a separate floor in the building. 
+
+You need to visit a team everyday, proportional to the number of people on the team (i.e., you would visit team 10 more often than team 1). 
+
+At the end of the day, you randomly select whether a proposed move will take you up a floor or down a floor. 
+
+After randomly selecting up or down, you grab a number of pens that is equal to the number of the current team (for team 10, you would grab 10 pens). 
+
+Next, you would grab a number of pencils corresponding to the proposed move (your randomly selected proposal would take you up a floor, so starting back at the bottom with team 1). So you would have 10 pens and 1 pencil. 
+
+If you have more pencils than pens, you will always move to the proposed floor.
+
+If you have more pens than pencils, you set down a number of pens equal to the number of pencils and put them in a drawer.
+
+You reach back into the drawer to randomly select a pen or a pencil. 
+
+Your selection decides where you go -- pen is stay and pencil is go!
+
+```{r}
+days = 1000
+
+position = rep(0, days)
+
+current = 10
+
+for(i in 1:days) {
+  position[i] = current
+  
+  proposal = current + sample(c(-1, 1), size = 1)
+  
+  if(proposal < 1) proposal = 10
+  
+  if(proposal > 10) proposal = 1
+
+  probabilityMove = proposal / current
+  
+  current = ifelse(runif(1) < probabilityMove, proposal, current)
+  
+  # print(paste(position[i], proposal, probabilityMove, current, sep = " -> "))
+}
+```
+
+
+```{r}
+hist(position)
+```
+
+Does this look familiar?
+
+```{r}
+plot(position[1:100])
+```
+
+
+Might it look like this:
+
+
+```{r}
+library(dplyr)
+
+library(rstanarm)
+
+library(ggplot2)
+
+crimeScore = readr::read_csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+
+crimeScore = crimeScore %>% 
+  filter(SEX_CODE_CD != "X")
+
+blm = stan_lm(SSL_SCORE ~ WEAPONS_ARR_CNT, 
+              data = crimeScore, 
+              prior = R2(.1, "mean"), seed = 10001, chains = 4,
+              cores = (parallel::detectCores() - 1),
+              iter = 2000)
+
+rstan::stan_trace(blm, pars = "WEAPONS_ARR_CNT")
+```
+
+
+It might help to break them apart:
+
+```{r}
+rstan::stan_trace(blm, pars = "WEAPONS_ARR_CNT") +
+  facet_wrap( ~ chain, nrow = 2)
+```
+
+
+```{r}
+summary(blm)
+```
+
+
+# PCA -- Briefly
+
+Some of you might have found data with many predictor variables. When you start looking at these predictor variables, you might start to think that there could be interesting ways to reduce them down into fewer variables. We can do this by taking linear combinations of the variables. PCA will find the first linear combination of variables that account for the most variability within the data. There is no underlying model for the components and the correlation diagonals between components and items are 1.
+
+
+
+```{r}
+
+crimeScore = crimeScore %>% 
+  select(starts_with("predictor"), SSL_SCORE, SEX_CODE_CD, 
+         -PREDICTOR_RAT_AGE_AT_LATEST_ARREST)
+
+crimeScore %>% 
+  select(-SEX_CODE_CD, -SSL_SCORE) %>% 
+  cor(.) %>% 
+  corrplot::corrplot(., order = "FPC", tl.cex = .5)
+
+```
+
+There are two main types of PCA: spectral decomposition and singular value decomposition (SVD).
+
+Spectral works over the variables, SVD works over the individuals.
+
+Let's look at a spectral first:
+
+```{r}
+pcaTestSpec = crimeScore %>% 
+  select(-SSL_SCORE, -SEX_CODE_CD) %>% 
+  princomp(., cor = TRUE, scores = TRUE)
+```
+
+
+We can see each components eigenvalue:
+
+```{r}
+pcaTestSpec$sdev^2
+```
+
+
+Factor loadings are the correlation between the variable and the component:
+
+```{r}
+pcaTestSpec$loadings
+```
+
+
+```{r}
+factoextra::fviz_pca_var(pcaTestSpec, 
+                         col.var = "contrib", 
+                         repel = TRUE)
+```
+
+
+```{r}
+factoextra::fviz_pca_ind(pcaTestSpec, geom = "point", 
+                         habillage = crimeScore$SEX_CODE_CD)
+```
+
+```{r}
+crimeScoresPCA = cbind(crimeScore, pcaTestSpec$scores)
+
+lm(SSL_SCORE ~ Comp.1, data = crimeScoresPCA) %>% 
+  summary()
+```
+
+
+And now SVD:
+
+```{r}
+pcaTestSVD = crimeScore %>% 
+  select(-SSL_SCORE, -SEX_CODE_CD) %>% 
+  prcomp(., center = TRUE, scale. = TRUE)
+```
+
+In our summary we have our loadings:
+
+```{r}
+pcaTestSVD
+```
+
+We can also get the eigenvalues for each component:
+
+```{r}
+pcaTestSVD$sdev^2
+```
+
+
+```{r}
+factoextra::fviz_pca_var(pcaTestSVD, 
+                         col.var = "contrib", 
+                         repel = TRUE)
+```

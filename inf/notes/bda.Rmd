@@ -1,0 +1,233 @@
+---
+title: "Bayesian Regression"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE, error = FALSE)
+
+library(rstanarm)
+
+```
+
+## Package Roundup
+
+Some of these might require some work.
+
+```{r, eval = FALSE}
+install.packages(c("rstanarm", "jsonlite", "R.utils", 
+                   "tidyr", "rstudioapi"))
+```
+
+We won't use it, but I also want to introduce you to the <a href="http://docs.zeligproject.org/articles/index.html#section-core-zelig-model-details">Zelig</a> package.  Pick just about any common model and you will find that Zelig likely has an implementation of it.
+
+You can also do something similar with <a href="https://topepo.github.io/caret/available-models.html">caret</a>
+
+## Our Data
+
+Should be familiar:
+
+```{r}
+library(dplyr)
+
+crimeScore = readr::read_csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+
+crimeScore = crimeScore %>% 
+  filter(SEX_CODE_CD != "X") %>%
+  select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT) %>% # Mean weapons = 1.206
+  mutate(WEAPONS_ARR_CNT = ifelse(is.na(WEAPONS_ARR_CNT), 0, WEAPONS_ARR_CNT),
+    WEAPONS_ARR_CNT = (WEAPONS_ARR_CNT - mean(WEAPONS_ARR_CNT)), 
+    SEX_CODE_CD = as.factor(SEX_CODE_CD))
+```
+
+
+
+## Bayesian Data Analysis
+
+Rev. Bayes...$P(A|B) = \frac {P(B|A)P(A)} {P(B)}$...cancer
+
+This might be more intuitive:
+
+$$p(hypothesis|data) \propto p(data|hypothesis)p(hypothesis)$$
+
+What is the probability of our hypothesis being correct, given our data, in proportion to prior beliefs about the hypothesis.
+
+In the end, we get this:
+
+$$updated\ belief = current\ evidence\ *\ prior\ belief  $$
+
+### How Is It Different?
+
+We have two different worlds: Frequentist (where we have largely been living) and Bayesian.
+
+You can fill yourself in on the debate and "fanboy" fawning, but we are going to focus on what BDA does for your research.
+
+Here are the differences:
+
+1.  Probability
+
+    - Frequentist: I am going to assume that my parameter is zero.  What is the probability that my observed parameter is a certain magnitute different than zero?
+  
+    - Bayesian: What is the probability that my parameter is not zero?
+
+2.  Interval Estimates
+
+    - Frequentist: I will conduct my analyses an infinite number of times and calculate an interval each time, than a certain percentange of those intervals will contain the true value.  I will now show you just one of those intervals.
+  
+    - Bayesian: The probability that the true value falls in this interval is *P*.
+
+
+A Frequentist might say something like the following: I reject the null hypothesis that variable x has no bearing on y. Given the *p*-value of my test statistic, the probability of obtaining my large test statistic is very small if the null hypothesis is indeed true.
+
+A Bayesian might say something like this: I am 95% sure that variable x had this effect on y.
+
+The biggest departure is the iterative nature of Bayesian models. Since these models are running many times and producing estimates, we eventually get a distribution of estimates.
+
+### The Basics
+
+1.  We have a feeling about the way our world works (we might even have some data to support this feeling). This defines our *prior*.  We can specify a lot of different parameters here (the shape of the distribution and the properties of the distribution, such as the mean).
+
+2.  After running our model on new data, we can *update* what we know about our priors.
+
+3.  We can also create a *posterior probability distribution*.
+
+We are obtaining the probability of a hypothesis being true, given the evidence and our prior beliefs.
+
+Although in the end we will be able to get some point estimates (think our regression coefficients), we are going for something else with BDA -- the distribution of possible effects.  Essentially, we get potentially many possible values and a probability for each one.
+
+### Stan
+
+The stan language has quickly turned into *the* language for BDA.  Stan, in and of itself, is a fully functioning language with hooks to other languages (R, Python, Matlab, Stata).  We are going to focus on the "rstanarm" package.  In essence, it creates a nice wrapper for Stan models and helps to serve as a nice bridge.
+
+
+### Our Problem
+
+
+### Constructing Our Model
+
+For our reference, here is our Frequentist model:
+
+```{r}
+slim = lm(SSL_SCORE ~ WEAPONS_ARR_CNT, data = crimeScore)
+
+coef(slim)
+```
+
+
+In our Bayesian model, we are going to use "informative" priors.  We are giving it something to work on, but it is pretty generic (e.g., giving a uniform distribution would be uninformative and practically the same as our standard linear model).  The specification of priors is the sticky point here.  They can be somewhat subjective, especially in the case when you do not have any background evidence.   
+
+**WARNING** -- This might take a while to run as it is! Of all the things that we have worked on, nothing can be more computationally intensive than this stuff.  We are using a little more than half of the necessary chains and iterations to get reasonable results.
+
+```{r}
+
+library(rstanarm)
+
+blm = stan_lm(SSL_SCORE ~ WEAPONS_ARR_CNT, 
+              data = crimeScore, 
+              prior = R2(.1, "mean"), seed = 10001, chains = 6,
+              cores = (parallel::detectCores() - 1),
+              iter = 4000)
+
+
+```
+
+We can fit a line, as per usual course:
+
+```{r}
+draws = as.data.frame(as.matrix(blm))
+
+library(ggplot2)
+
+ggplot(crimeScore, aes(WEAPONS_ARR_CNT, SSL_SCORE)) +
+  geom_point() +
+  geom_abline(data = draws, aes(intercept = `(Intercept)`, 
+                                slope = `WEAPONS_ARR_CNT`), 
+              color = "#ff5500", alpha = .2) +
+  geom_abline(data = draws, aes(intercept = coef(blm)[1], 
+                                slope = coef(blm)[2]))
+```
+
+
+
+```{r, eval = TRUE}
+summary(blm)
+```
+
+
+Well what do we have here? A lot of this output probably looks unfamiliar.  There are two columns to give some attention.  Instead of a point estimate (e.g., our regression coefficients), we are given the mean values of the posterior distribution (which *are* just your standard model coefficients). We are also given the credible intervals. The sigma is the standard deviation of the error and the mean_PPD is the predicted value for the average observation.  
+
+We also have some diagnostics. The "mcse" is the Monte Carlo standard error (this accounts for the uncertainty of having a finite number of posterior draw), "Rhat" tells us how well the chains mix (we want it to be 1 or very close to it), and "n_eff" tells us the number of effective *n* over the chains (it accounts for autocorrelation within the chain; it should be close to the number of iterations).   
+
+We can also check out our intervals:
+
+```{r, eval = TRUE}
+posterior_interval(blm, prob = .95, pars = "WEAPONS_ARR_CNT")
+```
+
+This is where our simplified interpretation becomes useful.  Here, we can say that there is a 95% chance that the true parameter rests within this interval.  Nice, simple, and done!
+
+Let's also do some graphical checking:
+
+```{r, eval = TRUE}
+rstan::stan_trace(blm, pars = "WEAPONS_ARR_CNT")
+```
+
+Do you see a caterpillar or grass?  
+
+We can also look at our posterior predictive distributions:
+
+```{r}
+pp_check(blm, plotfun = "hist", nreps = 5)
+```
+
+We can do many of them and put them together with density overlays:
+
+```{r, eval = TRUE}
+pp_check(blm, plotfun = "dens_overlay", nreps = 60)
+```
+
+Here, we have our observed predicted value density with simulated densities for 60 draws.  The simulated densities are coming from datasets simulated from the posterior predictive distribution.  In an ideal world, they look pretty close to each other.
+
+
+"Okay, sometimes science is more art than science" -- Rick Sanchez
+
+### Model Selection
+
+Let's now try this model:
+
+```{r}
+blm2 = update(blm, formula = . ~ WEAPONS_ARR_CNT + SEX_CODE_CD)
+```
+
+
+```{r, eval = TRUE}
+summary(blm2)
+```
+
+```{r, eval = TRUE}
+rstan::stan_trace(blm2)
+```
+
+
+```{r, eval = TRUE}
+pp_check(blm2, plotfun = "dens_overlay", 
+         nreps = 60)
+```
+
+
+<!-- ## Changing Priors -->
+
+<!-- ```{r} -->
+<!-- blmNorm = stan_glm(SSL_SCORE ~ WEAPONS_ARR_CNT, -->
+<!--               data = crimeScore, -->
+<!--               prior = normal(location = .5, scale = 2.5), -->
+<!--               seed = 10001, chains = 6, -->
+<!--               cores = (parallel::detectCores() - 1), -->
+<!--               iter = 4000) -->
+<!-- ``` -->
+

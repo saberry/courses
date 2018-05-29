@@ -1,0 +1,37 @@
+---
+title: "Homework 3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+```
+
+## Step 1
+
+### Find Your Data
+Find data that is of interest to you. You might want to look at <a href="https://www.kaggle.com/datasets">Kaggle</a>, <a href="https://www.quandl.com/">Quandl</a>, <a href="https://github.com/awesomedata/awesome-public-datasets">Awesome Public Datasets</a>, or <a href="https://docs.google.com/spreadsheets/d/1wZhPLMCHKJvwOkP4juclhjFgqIY8fQFMemwKL2c64vk/edit#gid=0">Data Is Plural</a> (<a href="https://www.dataandsons.com/blog/List-of-Lists">Data & Sons</a> might be of value too!). If you are not having any luck, just let me know and we can find something.
+
+## Step 2
+
+### Understand Your Data
+
+Understanding your data is critical. Not only do you need to know what variables are within your data, but you also need to know how they are measured. To that end, summarize your data (e.g., summary, Hmisc::describe) and show those results.
+
+## Step 3
+
+### Forumlate 2 Distinct Hypotheses
+
+Your dependent variable can be the same for both hypotheses. Specify your hypotheses.
+
+## Step 4
+
+### Visualize Your Hypotheses
+
+For your two hypotheses, create visualizations that show the relationships.
+
+## Step 5
+
+### Analyze Your Data
+
+Use any of the methods that we have discussed to this point. Present and interpret your results. Discuss any potential limitations and highlight anything interesting.

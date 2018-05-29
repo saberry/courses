@@ -16,7 +16,7 @@ visualizationData = data.frame(dollar_spent_per_patient = abs(rlogis(127, locati
                                            dollar_spent_per_patient + 500, 
                                            dollar_spent_per_patient))
 
-ggplot(visualizationData, aes(patient_days_admitted, dollar_spent_per_patient)) +
+ggplot(visualizationData, aes(patient_days_admitted, dollar_spent_per_patient, color = department)) +
   geom_point() +
   theme_minimal()
 
@@ -83,3 +83,13 @@ outcomeData %>%
   group_by(outcomeClosedOpen) %>% 
   select(-storeID) %>% 
   summarize_all(mean)
+
+write.csv(visualizationData, "inf/visualizationData.csv", row.names = FALSE)
+
+write.csv(glmData, "inf/glmData.csv", row.names = FALSE)
+
+write.csv(abData, "inf/abData.csv", row.names = FALSE)
+
+write.csv(performanceData, "inf/performanceData.csv", row.names = FALSE)
+
+write.csv(outcomeData, "inf/outcomeData.csv", row.names = FALSE)

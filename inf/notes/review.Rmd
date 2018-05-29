@@ -1,0 +1,230 @@
+---
+title: "Your Path To Statistical Enlightenment"
+output:
+  html_document:
+    theme: "readable"
+    highligh: "tango"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, comment = "", warning = FALSE, message = FALSE)
+```
+
+# Starting Places {.tabset .tabset-fade .tabset-pills}
+
+## Power Analyses {.tabset .tabset-fade .tabset-pills}
+
+Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect.  This is where power analysis becomes helpful.  Given a target power ($\beta$ = .8; it gives a good ratio of Type I to Type II error), a hypothesized effect size, and the proposed *p*-value.  All functions come from the "pwr" package.
+
+### *t*-test
+
+The following is a pretty standard *t*-test power analysis. 
+
+```{r}
+
+pwr::pwr.t.test(n = NULL, 
+                d = .2, 
+                sig.level = .05, 
+                power = .8)
+```
+
+
+### ANOVA
+
+The ANOVA power analysis is just a bit different than the *t*-test power analysis.  Remember that ANOVA is testing the difference in means between more than two groups.  To that end, we need to specify how many groups we will have.
+
+```{r}
+
+pwr::pwr.anova.test(k = numberGroups, 
+                    n = NULL, 
+                    f = .1, 
+                    sig.level = .05, 
+                    power = .8)
+```
+
+
+### Regression 
+
+To compute sample size for a regression, you will need to know how many degrees of freedom you will have in your numerator -- this is equal to the number of predictors that you have in your model. 
+
+```{r}
+pwr::pwr.f2.test(u = numeratorDegreeFreedom, 
+                 v = NULL, 
+                 f2 = .1, 
+                 sig.level = .05, 
+                 power = .8)
+```
+
+Afterwards, you will get the value for "v" -- the degrees of freedom in the denominator.  You get your total sample size from this by taking the value, adding 1, and then adding the number of predictors that you have.
+
+
+### Post-hoc
+
+If you need to know your observed power, then you can set the "power" argument to NULL in any of the functions and fill in the missing number for the sample.  
+
+
+
+## Data Exploration
+
+Before analyses began, it is a good idea to explore your data.  This can be done by checking out summary tables, correlations, and visualizations.
+
+To get a quick summary of your data, the summary() function is helpful:
+
+```{r}
+summary(yourData)
+```
+
+You can also explore the correlations within your data:
+
+```{r}
+cor(yourData$x, yourData$y)
+
+cor(yourData)
+```
+
+Do note that the cor() function will only work with numeric data.
+
+Checking all of the bivariate relationships is easy with a scatterplot matrix:
+
+```{r}
+car::scatterplotMatrix(youData)
+```
+
+
+# Generalized Linear Models {.tabset .tabset-fade .tabset-pills}
+
+## Continuous DV {.tabset .tabset-fade .tabset-pills}
+
+When your dependent variable is continuous (i.e., real numbers that could range from $-\infty$ to $\infty$), then the general linear model will be a good place to start.
+
+The general linear model is primarily composed of three nearly-identical tests: *t*-tests, Analysis of Variance (ANOVA), and linear regression.
+
+### *t*-tests
+
+If you want to compare two groups' mean values on a variable (e.g., wage differences between men and women within an organization), the *t*-test is the appropriate test to use.  You will need to decide about your tails (one or two tails) and the precise type of *t*-test (paired, independent, etc.), but the basic *t*-test can be performed as follows:
+
+```{r}
+tTest = t.test(x = score, y = group, 
+       data = yourData)
+
+summary(tTest)
+```
+
+#### Example
+
+```{r}
+t.test(mpg ~ as.factor(am), data = mtcars)
+```
+
+
+### ANOVA
+
+The ANOVA is very much like the *t*-test; the only exception is that it can handle more groups (is there a performance difference between 1st, 2nd, and 3rd shift employees on the floor).  
+
+```{r}
+anovaTest = aov(y ~ x, 
+    data = yourData)
+```
+
+
+#### Example
+
+```{r}
+anovaTest = aov(mpg ~ as.factor(cyl), data = mtcars)
+
+summary(anovaTest)
+
+TukeyHSD(anovaTest)
+```
+
+
+### Linear Regression
+
+If you are trying to predict a response variable given a set of predictor variables (e.g., I want to predict ad clicks, using gender and age to make the prediction), linear regression will be the best test to use.
+
+In R, the basic linear model is as follows:
+
+```{r}
+linearRegression = lm(y ~ x, 
+             data = yourDat)
+
+summary(linearRegression)
+
+plot(linearRegression)
+```
+
+#### Example
+
+```{r, eval = TRUE}
+testMod = lm(mpg ~ hp + as.factor(am), data = mtcars)
+
+summary(testMod)
+```
+
+We want to focus most of our attention of the coefficients. The intercept is telling us the model's mean miles per gallon when horsepower (hp) is at 0 and am is at zero. The coefficient for hp is indicating that every unit increase in horsepower leads to a .06 reduction in the average mpg. Since am is being treated as a factor variable, we are going to compare the reference level (0 = automatic in this case) to the listed level(s). To that end, we would say that a vehicle with a manual transmission gets on average 5.28 more miles per gallon than an automatic transmission.
+
+We might also want to check for heteroskedasticity
+
+We need to know if we have contant variance (good) or not (bad).  We can get a good look by plotting our fitted values against our residuals.
+
+```{r, eval = TRUE}
+plot(testMod$fitted, testMod$residuals)
+```
+
+#### Cautions & Considerations
+
+Linear regression models can be sensitive to outliers (they exert leverage on our regression line).
+
+We should be looking at heteroskedasticity (we hope for constant variance).
+
+Pay careful attention to center your variables -- this impacts your intercepts interpretability.
+
+Remember, we are talking about the conditional means.
+
+## Dichotomous DV
+
+If your dependent variable is binary (no/yes, absent/present, etc.), a logistic regression is what you seek.
+
+```{r}
+logisticRegression = glm(yBinary ~ x, 
+                         family = binomial)
+```
+
+### Example
+```{r, eval = TRUE}
+logisticTest = glm(am ~ mpg, data = mtcars, family = binomial)
+
+summary(logisticTest)
+```
+
+Now, our interpration is that every increase in mpg increases the log odds of an automobile having an automatic transmission as opposed to a manual transmission by .3 (we are essentially learning the chances of flipping from one category to the next).
+
+We can exponentiate it to get odds:
+
+```{r, eval = TRUE}
+exp(.3070)
+```
+
+```{r, eval = TRUE}
+
+library(dplyr)
+
+library(ggplot2)
+
+mtcars %>% 
+  mutate(predictedProbs = predict(logisticTest, type = "response")) %>% 
+  ggplot(., aes(mpg, predictedProbs)) +
+  geom_line(size = 1.5) +
+  theme_minimal()
+```
+
+
+### Cautions About Logistic Regression
+
+Bivariate relationships are really important for logistic models.
+
+Your model needs to see some dispersion of values over the bivariate tables.
+
+Logistic regression requires a larger sample size than what a linear regression needs.
+
+$R^2$ does not apply to a logistic regression.

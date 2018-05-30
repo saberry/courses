@@ -19,21 +19,20 @@ The vast majority of statistical techniques are not robust to missingness. Take 
 
 ```{r}
 library(dplyr)
-
-nrow(starwars)
 ```
 
 
 ```{r}
 library(magrittr)
 
-missingMod = starwars %>% 
-  select(height, mass) %>% 
-  lm(mass ~ height, data = .) %>% 
+testData = read.csv("missingSurvey.csv")
+
+missingMod = testData %>% 
+  lm(average_montly_hours ~ EMP_Engagement_5, data = .) %>% 
   summary()
 ```
 
-Do you see any discrepancies? If we look at the number of rows within our data, we see a value of 87. If, however, we take a look at our degrees of freedom from our model output, we see that a considerable amount of rows were dropped. A linear regression cannot use missing information, so the whole row gets dropped if any missingness exists. If an observation or dozen gets dropped out of a few hundred rows, we might not have too much to worry about. What about if more than half of the observations get dropped? It's probably not a good thing.
+Do you see any discrepancies? If we look at the number of rows within our data, we see a value of 14999. If, however, we take a look at our degrees of freedom from our model output, we see that a considerable amount of rows were dropped. A linear regression cannot use missing information, so the whole row gets dropped if any missingness exists. If an observation or dozen gets dropped out of a few hundred rows, we might not have too much to worry about. What about if more than half of the observations get dropped? It's probably not a good thing.
 
 
 ## Types Of Missingness
@@ -50,24 +49,14 @@ Missing not at random (MNAR) just extends MAR to assume that the missing data is
 
 Determining which type of missingness is present within your data can be tricky. In the most ideal world, we would have the data to know whether it is MCAR or something else. I think you can see the circular nature that we are getting ourselves in!
 
-There are, however, some methods that will let us test our missingness. The MissMech package will perform 
+There are, however, some methods that will let us test our missingness. The MissMech package will perform some tests that can help.
 
 ```{r}
 library(MissMech); library(dplyr)
 
-testData = starwars %>% 
-  select(height, mass, hair_color, skin_color, eye_color, 
-         birth_year, gender, homeworld, species) %>% 
-  mutate(hair_color = as.factor(hair_color), 
-         skin_color = as.factor(skin_color), 
-         eye_color = as.factor(eye_color), 
-         gender = as.factor(gender), 
-         homeworld = as.factor(homeworld), 
-         species = as.factor(species))
+# testData = read.csv("missingSurvey.csv")
 
-mcarTest = testData %>% 
-  select(height, mass) %>% 
-  TestMCARNormality(.)
+mcarTest = TestMCARNormality(testData, del.lesscases = 200)
 
 mcarTest
 ```
@@ -90,26 +79,26 @@ Many types of mean imputation exist: mean imputation, median imputation, among o
 
 Multiple imputation takes those simple imputation techniques much further. If we are using multivariate imputations by chained equations (mice), then we are going through a lengthy process to estimate the missing values and using several imputed datasets for our models. Data imputed with mice will use predictions on every variable around the missing data to predict the value of the missing data.
 
-We are only interested in imputing height and weight, so we will specify the "cart" method (classification and regression trees) for those two variables and leave the other seven blank.
+We are only interested in imputing our variable with missingness, so we will specify the "cart" method (classification and regression trees) for that variable and leave the other five blank.
 
 ```{r}
 library(mice)
 
 imputedData = mice(testData, m = 20, maxit = 20, 
-                   method = c("cart", "cart", "", "", "", 
-                              "", "", "", ""), print = FALSE)
+                   method = c("", "", "", "", "", "sample"), 
+                   pred = quickpred(testData, minpuc = .2), print = FALSE)
 
 imputedData
 
-plot(imputedData)
+plot(imputedData, layout = c(2, 1))
 ```
 
-Will you look at that plot! These are trace lines. They track each imputation model over each iteraction. What do we take out of these? If they look like fuzzy caterpillars, the chained equation process was good. If there is any discernable pattern, then something odd might have happened -- there might be something odd happening with imputing mass, but it is not crystal clear.
+Will you look at that plot! These are trace lines. They track each imputation model over each iteraction. What do we take out of these? If they look like fuzzy caterpillars, the chained equation process was good. If there is any discernable pattern, then something odd might have happened -- these look just as crazy as they should! The mean for our imputed variable generally bounces around between 2.45 and 2.65. Given the observed mean, this seems pretty good.
 
 Now, we have 20 imputed data sets that went through 20 iterations that we can perform separate analyses on.
 
 ```{r}
-fit1 = with(data = imputedData, exp = lm(mass ~ height))
+fit1 = with(data = imputedData, exp = lm(average_montly_hours ~ EMP_Engagement_5))
 ```
 
 And we can then pool those results together:

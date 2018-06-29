@@ -6,70 +6,159 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
+
+## Overview
+
+While provacative statements are often fun to make, you will not get one here. Instead, I would prefer to play it safe and make an assumption that you have used some form of online commerce during the past year. Maybe you bought something off Amazon or you used Netflix to make poor choices around bedtime. If you have used any such services, you have interacted with a *recommender system*. Recommender systems are a class of models designed to make predictions about items that people might like/endorse/want, despite never having seen those items. It is exactly how Netflix makes recommendations (see how that works?) and how Amazon gives you items inspired by your viewing history. 
+
+Everytime you click, watch, rate, or buy, you are helping to train these recommender systems. Imagine yourself as "Person A". As "Person A", you have rated the show *Ash Vs. Evil Dead* highly (and watched every available episode). Another person, likely "Person B", has done the same. "Person B" also provided a very high rating for the movie *Bubba Ho-tep*. Since you and "Person B" both enjoyed *Ash Vs. Evil Dead*, a video service would likely recommend *Bubba Ho-tep* to you. 
+
+While our little contrived scenario serves as a clean example, recommender systems are great when there are many items (as is the case with nearly every online entity).    
 
 ## Package Installation
 
-```{r}
+While we are going to use recommenderlab (for ease and speed), recosystem is an excellent package and one that you should keep in mind.
+
+```{r, eval = FALSE}
 install.packages("recommenderlab")
+
 install.packages("recosystem")
 
-
 devtools::install_github("tarashnot/SlopeOne")
+
 devtools::install_github("tarashnot/SVDApproximation")
 ```
 
 
-https://rpubs.com/tarashnot/recommender_comparison
 ## Recommender Systems Types
+
+Like most statistical techniques, recommender systems are a veritable 31 flavors. However, your data and needs will largely dictate the precise method that is used. 
 
 ### Content-based
 
+Sometimes, items have a discreet set of descriptors and users can endorse those descriptors that they like. For example, you might like music that evokes memories of cruising in your Testerosta under pink and blue neon lights (possibly in Miami). There is a whole genre of music that fits this bill and is tagged appropriately on platforms like Pandora. When you offer a thumbs up or down, then you are helping to train the system about what you like and what features of the music are important to you. If Pandora plays a song without synthesizers and I provide a thumbs down, then the system knows that I might not like songs without synth. Next, I will likely give a thumbs up to something with synth. Finally a will give a thumbs down to a track with synth and vocals. Pandora now knows that I will put a large weight on the synth feature and they will continue offering me content accordingly.  Depending upon the system, I might run into an issue with *diversity* if I am too specific or all of my weight is on one feature. 
+
+The content-based approach works well when there is just a single content type to be offered (music, movies, news, etc.). However, they do not perform well when the content is mixed (how well do you think Pandora could recommend news to you given your musical preferences). To that end, other techniques might be considered.
+
 ### Collaborative Filtering
+
+Fortunately, collaborative filtering tells us what is going on by name alone! Through a collaborative effort, items are filtered to you -- people who act like you help to filter better predicted items to you. Our previous example about *Ash Vs. Evil Dead* is an excellent example of collaborative filtering.   
+
+Another interesting thing to note, though, is that we have two sources of information in a collaborative filtering model: the user and the item. The goal in both is the same, but the mechanism is slightly different.
 
 #### User-based
 
+In user-based collaborative filtering models, the goal is the find another user that shares similar patterns with the target user. At its root, it is very much akin to distance-based Nearest Neighbor matching. In small systems, user-based models can work well. However, large and/or dynamic systems are not kind to user-based models. Computing a similarity between every user in large systems is expensive and this can be compounded when users preference change/update. Another issue -- one that Amazon identified quickly -- is that having many items but few ratings of the items can perform poorly. To that end, some brilliant folks from Amazon decided to try something new. 
+
 #### Item-based
+
+Instead of focusing on similarities between users, item-based models (also called item-item models) focus on the mean ratings of the items. At a certain point, the mean of the item won't bounce around too terribly much and then similarities can be computed between items. If I purchase an item, there is a high probabilitiy that I would also enjoy an item that is similarly rated.
+
+#### Cold Start Problems
+
+What happens when you are brand new to anything that uses collaborative filtering? Can any reasonable predictions be made? Not really. This is an issue with data sparsity. Imagine a matrix with every person that has bought something from Amazon on the rows and every item from Amazon on the columns -- this would be an incredibly large and sparse matrix. That is why some services ask you some questions from the get-go and Netflix throws some popular things out that might be of interest to you. Given the massive amounts of metadata that you produce (time of day, navigation patterns, devices used), many systems are never without some kind of context, but concrete behavior is very helpful. 
+
+Another way to deal with sparsity is to perform what is frequently known as model-based collaborative filtering. It sounds fancy, but it really isn't anything that you haven't covered already! Imagine that we take our matrix and perform some type of dimension reduction on it. 
+
+### Hybrids
+
+While your particular needs will mostly drive the decision, we do not always have to pick just one method and stick with it forever. Instead, we can create hybrid systems. These systems allow us to combine pieces of both of collaborative filtering and content-based models to achieve better predictions. If you were to come up with a video service where you allowed users to rate videos and show them videos with similar attributes to those that are rated highly (pulling from content-based filtering) and also take into account how a users viewing/searching habits are like other people (from collaborative filtering), you might just have a million dollar idea on your hands...I wonder why nobody has done such a thing...
 
 ## Example
 
-### Data Prep
+It is very important to note that the example here is going to be very generic. You might wonder what the fun is in that and I would certainly wonder the same thing. As noted before, recommender systems are computationally expensive. You will notice that we are running our model on a very small set (20%) of the data -- you want to actually be able to finish this model and see results. If your machine is a bit older, it might chug on the models.
 
-```{r}
-library(recosystem)
+We are going to demo both main types of the collaborative filtering model.
 
-data(ratings, package = "SVDApproximation")
+### User-based Collaborative Filtering
 
-set.seed(1001)
+We can get the top recommendations for a few people given a trained model and predict ratings:
 
-dataPart = caret::createDataPartition(ratings, p = .7, list = TRUE)
+```{r, eval = TRUE}
+library(recommenderlab)
 
-in_train <- rep(TRUE, nrow(ratings))
-in_train[sample(1:nrow(ratings), size = round(0.2 * length(unique(ratings$user)), 0) * 5)] <- FALSE
+data("Jester5k")
 
-ratings_train <- ratings[which(in_train == TRUE), ]
+ubcfTest = Recommender(Jester5k[1:1000], method = "UBCF")
 
-ratings_test <- ratings[which(in_train == FALSE), ]
+ubcfRecom = predict(ubcfTest, Jester5k[1001:1005])
 
-write.table(ratings_train, file = "trainset.txt", sep = " ", row.names = FALSE, col.names = FALSE)
+as(ubcfRecom, "list")
 
-write.table(ratings_test, file = "testset.txt", sep = " ", row.names = FALSE, col.names = FALSE)
+ubcfPredictRating = predict(ubcfTest, Jester5k[1001:1005], 
+                            type = "ratings")
 
-r = Reco()
+as(ubcfPredictRating, "list")
 
-opts <- r$tune(train_data = data_file("trainset.txt"), opts = list(dim = c(1:20), lrate = c(0.05),
-                                           nthread = 2, niter = 200, verbose = FALSE))
-
-r$train("trainset.txt", opts = c(opts$min, nthread = 4, niter = 500, verbose = FALSE))
-
-outfile = tempfile()
-
-r$predict("testset.txt", outfile)
-  
-scores_real <- read.table("testset.txt", header = FALSE, sep = " ")$V3
-scores_pred <- scan(outfile)
-  
-rmse_mf <- sqrt(mean((scores_real-scores_pred) ^ 2))
 ```
 
+### Item-based Collaborative Filtering
+```{r, eval = TRUE}
+
+ibcfTest = Recommender(Jester5k[1:1000], method = "IBCF")
+
+ibcfRecom = predict(ibcfTest, Jester5k[1001:1005])
+
+as(ibcfRecom, "list")
+
+ibcfPredictRating = predict(ibcfTest, Jester5k[1001:1005], 
+                            type = "ratings")
+
+as(ibcfPredictRating, "list")
+
+```
+
+Compare the results of our two models. How where they different? Did the same jokes get predicted? You also have the power to find the recommended jokes (you can index into JesterJokes with the given number).
+
+Here is u18250's top recommended joke:
+
+```{r}
+JesterJokes[84]
+```
+
+What a knee-slapper!
+
+
+### Evaluation and Comparison
+
+For a recommender system, inference practically flies out the window. We are going to focus our attention on the prediction quality. As with other matters of prediction, the classic root mean squared error will be serving as our determiner of quality.
+
+First we will create our training/testing split.
+```{r}
+e = evaluationScheme(Jester5k[1:1000], method = "split", 
+                     train = 0.9, given = 15,  goodRating = 5)
+e
+```
+
+We can now train a user-based model:
+
+```{r}
+ubcfTrain = Recommender(getData(e, "train"), "UBCF")
+```
+
+And an item-based model:
+
+```{r}
+ibcfTrain = Recommender(getData(e, "train"), "IBCF")
+```
+
+Now we can make our predictions:
+
+```{r}
+ubcfPredict = predict(ubcfTrain, getData(e, "known"), type="ratings")
+
+ibcfPredict = predict(ibcfTrain, getData(e, "known"), type="ratings")
+```
+
+You can explore these just like we did earlier.
+
+Finally, we can take a look at our errors:
+
+```{r}
+rbind(UBCF = calcPredictionAccuracy(ubcfPredict, getData(e, "unknown")), 
+      IBCF = calcPredictionAccuracy(ibcfPredict, getData(e, "unknown")))
+```
+
+Since we want as little error as possible, we can conclude that the user-based collaborative filter performed better on root mean squared error, mean squared error, and mean average error.

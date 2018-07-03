@@ -1,0 +1,131 @@
+---
+title: "Week 4 Practice"
+author: "BDS"
+date: "July 1, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(psych)
+
+
+library(dplyr)
+
+library(ggcorrplot)
+
+```
+
+Since we are dealing with a json file, we need to bring it in accordingly. The jsonlite package makes for simple reading and conversion to data frames. For our purposes, we need to remember to set the simplifyVector argument to TRUE.
+
+
+```{r}
+week4 = jsonlite::read_json("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week04and05.json", simplifyVector = TRUE)
+```
+
+There are many ways to determine the number of factors to maintain -- both theoretically and analytically. To that end, we can check a variety of statistics with the nfactors function from psych.
+
+
+Deselecting the *id* column is important here! Doing it in a dplyr chunk makes for easy reading.
+```{r}
+week4 %>% 
+  select(-id) %>% 
+  nfactors(.)
+```
+
+After looking at everything, it appears that many of our statistics would suggest going with a two factor solution. 
+
+If we look at the names of the variables, we can hopefully start to have some thoughts as to how the items might be grouping together.
+
+
+```{r}
+names(week4)
+```
+
+We can also take a very quick exploratory look:
+
+```{r}
+week4 %>% 
+  select(-id) %>% 
+  cor() %>% 
+  ggcorrplot(type = "lower")
+```
+
+Before we actually run our analyses, we need to give some serious thought to the factors that might emerge...will the two factors be correlated? If you imagine that the two factors would be correlated, then we need to specify a certain form of rotation. If you don't think they would be correlated by nature, then the rotation family will  change.
+
+Now, we need to think about another issue: the responses. When we looked at the summary (you looked at the summary, right), we could see that these were likely seven point Likert response options (strongly disagree to strongly agree). You will run into a few camps: those who will say that you can treat those numbers, those who demand that they are treated as ordered factors, and those that will say that they are nominal at absolute best. I will leave the nominal folks to ramble on about their nonsense, but I really prefer to mediate piece between the two other camps. There are smart people on both sides who will gladly cross over to champion the others. Since this is  a seven point scale, I would not have too many quams with just treating them as numeric. If we were dealing with less, we would want to go the ordinal route.
+
+Now, let's see some results. We are going to need to drop our id variable here too:
+
+```{r}
+week4FA = week4 %>% 
+  select(-id) %>% 
+  fa(., nfactors = 2, rotate = "promax")
+
+week4FA
+
+```
+
+We lost some observations due to missingness, but our results look really nice! The first thing  you should see is the loadings matrix. We can focus our attention on MR1 and MR2. It looks like Tasks, Pay, Recognition, and Advancement load onto one factor, while Balance, Coworkers,  and Management load onto another. This seems  like we are hitting into a construct that is measuring the actual job (tasks, pay, etc.) and another that is measuring the interpersonal part of the job.
+
+Despite using an oblique rotation, we do not have any correlations between our two factors. I would contend that they should be allowed to correlate. 
+
+Let's see how the factor scores correlate:
+
+
+```{r}
+week4FA$score.cor
+```
+
+Let's just make an assumption that these are two unidimensional constructs. To appease a certain crowd, we need to check on reliability (Cronbach's $\alpha$, in this case):
+
+```{r}
+week4 %>% 
+  select(jobTasksSDSA, jobPaySDSA, 
+         jobRecognitionSDSA, jobAdvancementSDSA) %>% 
+  psych::alpha()
+```
+
+That one is solid!
+
+```{r}
+week4 %>% 
+  select(jobBalanceSDSA, jobCoworkersSDSA, 
+         jobManagementSDSA) %>% 
+  psych::alpha()
+```
+
+And so is that one. For most practical applications, an $\alpha$ above .7 is going to work for most anyone. Keep in mind, though, that alpha is only appropriate for unidimensional constructs -- even then it has some issues.
+
+Just for giggles, let's try it in an ordinal fashion:
+
+```{r}
+week4FAPoly = week4 %>% 
+  select(-id) %>% 
+  fa(., nfactors = 2, rotate = "promax", cor = "poly")
+```
+
+By setting the cor argument to poly, we are using the polychoric correlation for ordinal items. While we had some warnings pop, we can see that our results did not really change.
+
+After doing all of this work, we definitely want to keep our factor scores.
+
+```{r}
+week4 = week4 %>% 
+  mutate(factor1Score = week4FA$scores[, "MR1"], 
+         factor2Score = week4FA$scores[, "MR2"])
+
+summary(week4)
+```
+
+We will be able to use these scores in models or anything else that we want.
+
+```{r}
+ggplot(week4, aes(factor1Score, factor2Score)) +
+  geom_point() + 
+  theme_minimal()
+```
+
+Not much happening there!

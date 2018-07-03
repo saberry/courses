@@ -1,0 +1,168 @@
+---
+title: "Week 6 Practice"
+author: "BDS"
+date: "July 2, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(psych)
+
+library(lme4)
+
+library(ggplot2)
+```
+
+The data for this week, while not too complicated, can throw you for a loop if you are not paying attention to your file extensions and/or not taking a quick look at the file! 
+
+```{r}
+readLines("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week06.tab")[1]
+```
+
+Our delimiter is definitely some type of white space, so we can just use the default from read.table.
+
+```{r}
+week6 = read.table("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week06.tab")
+```
+
+Let's take a quick peak at our data:
+
+```{r}
+summary(week6)
+```
+
+Excellent! We have some new variables to explore!
+
+Since we have already done the work of creating factors in previous weeks, let's get right to getting those scores into our data:
+
+```{r}
+week6FA = week6 %>% 
+  select(starts_with("job")) %>% 
+  fa(., nfactors = 2, rotate = "promax")
+
+
+week6 = week6 %>% 
+  mutate(jobScore = week6FA$scores[, "MR1"], 
+         interpersonalScore = week6FA$scores[, "MR2"])
+
+summary(week6)
+```
+
+Purely because we can, let's take a look at some possible relationships:
+
+```{r}
+week6 %>% 
+  select(jobScore, interpersonalScore, salary) %>% 
+  cor() %>% 
+  ggcorrplot::ggcorrplot()
+```
+
+Not much going on in the way of correlations, but let's run a quick model.
+
+```{r}
+slim = lm(jobScore ~ salary, data = week6)
+```
+
+That's it...let's wrap it up and go home...
+
+We would have known that there was not much going on if we would have looked a visualization first (I really cannot fully support the notion of abonding a hypothesis just because a clear pattern does not emerge through viz):
+
+```{r}
+ggplot(week6, aes(salary, jobScore)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+
+Salary was not the only new variable in the data, so let's look at the other two.
+
+```{r}
+summary(week6$team)
+
+summary(week6$manager)
+
+week6 %>% 
+  group_by(team, manager) %>% 
+  summarize(n = n())
+```
+
+It appears that each team has a few different managers within. There are other things that we could learn, but I will let you do that exploration on your own!
+
+Maybe we should visualize some things:
+
+```{r}
+ggplot(week6, aes(salary, jobScore)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(~ team) +
+  theme_minimal()
+```
+
+That is more interesting.
+
+What about this:
+
+```{r}
+ggplot(week6, aes(salary, jobScore)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  facet_wrap(team ~ manager) +
+  theme_minimal()
+```
+
+That gives us a lot of information.
+
+Since we know that we have a multilevel arrangment, let's wander down the mixed model path.
+
+```{r}
+lmerTeam = lmer(jobScore ~ salary + (1|team), data = week6)
+
+summary(lmerTeam)
+```
+
+We would likely be pretty comfortable saying that there is more variation coming from the team effect.
+
+We can also look at the effect of manager:
+
+```{r}
+lmerManager = lmer(jobScore ~ salary + (1|manager), data = week6)
+
+summary(lmerManager)
+```
+
+Finally, we can look at how they are nested:
+
+```{r}
+lmerTeamManager = lmer(jobScore ~ salary + (1|team) + (1|team:manager), data = week6)
+
+summary(lmerTeamManager)
+```
+
+
+In looking at our various output, we can see that our mixed effects models are probably nothing to write home about. But, insofar as our models go, they are far superior to what is offered by that standard linear model.
+
+<!-- Let's add our predictions back into the data. -->
+<!-- ```{r} -->
+<!-- week6 = week6 %>%  -->
+<!--   modelr::add_predictions(slim, var = "slimPred") %>%  -->
+<!--   modelr::add_predictions(lmerTeamManager, var = "mixedPred") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- ggplot(week6, aes(slimPred, jobScore)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method = "lm") -->
+
+<!-- ggplot(week6, aes(slimPred, jobScore)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method = "lm") + -->
+<!--   facet_wrap(team ~ manager) -->
+<!-- ``` -->
+

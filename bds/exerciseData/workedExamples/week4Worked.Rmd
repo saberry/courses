@@ -108,7 +108,6 @@ week4FAPoly = week4 %>%
   fa(., nfactors = 2, rotate = "promax", cor = "poly")
 ```
 
-By setting the cor argument to poly, we are using the polychoric correlation for ordinal items. While we had some warnings pop, we can see that our results did not really change.
 
 After doing all of this work, we definitely want to keep our factor scores.
 
@@ -128,4 +127,4 @@ ggplot(week4, aes(factor1Score, factor2Score)) +
   theme_minimal()
 ```
 
-Not much happening there!
+Not much happening there! 

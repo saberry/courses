@@ -1,0 +1,154 @@
+---
+title: "Week 7 Practice"
+author: "BDS"
+date: "July 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(psych)
+
+library(mice)
+```
+
+
+Data comes in all wacky forms -- you will often find that data vendors hold their data with some odd delimiter. If we take a look at our first line of data, we can see that some weird things are happening:
+
+```{r}
+readLines("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week07.txt")[1:10]
+```
+
+A pipe...not a tidyverse pipe, but an actual pipe. Incredible! You would be shocked at the delimiters you will see in the wild.
+
+It won't take too much to make this happen:
+
+```{r}
+week7 = read.delim("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week07.txt", header = TRUE, sep = "|")
+
+head(week7)
+```
+
+When we look at the first few rows, we see that we have a blank first row (also far too common in the wild).
+
+We have some options here. If this was a large data frame and the read time was long, I would just drop the index with something like this:
+
+```{r, eval = FALSE}
+week7 = week7[-1, ]
+```
+
+The use of magic numbers, though, is a bit dangerous and we probably should not engage in such risky business.
+
+```{r}
+week7Names = read.table("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week07.txt", header = TRUE, sep = "|", nrows = 1)
+
+week7 = read.table("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week07.txt", header = TRUE, sep = "|", skip = 1, row.names = 1)
+
+names(week7) = names(week7Names)
+
+```
+ 
+That is a lot of steps, but we don't always need to worry about code golf. This solution will work under many different situations and is a trick that you should keep with you -- you never know when you might want to use it.
+
+Let's check out our data now:
+
+```{r}
+summary(week7)
+```
+
+Largely great. During the last few weeks, we have noticed that there is some missingness within our data. With those 212 missing responses on jobManagementSDSA, we are cutting our sample by roughly `r round(212/1384, 2) * 100`% for any analyses that we might run. I would say that is significant, but not even close to what you might see in other data.
+
+Let's get a baseline model working:
+
+```{r}
+week7FA = week7 %>% 
+  select(starts_with("job")) %>% 
+  fa(., nfactors = 2, rotate = "promax")
+
+week7 = week7 %>% 
+  mutate(jobScore = week7FA$scores[, "MR1"], 
+         interpersonalScore = week7FA$scores[, "MR2"])
+
+```
+
+Nothing new there from the last few weeks, so let's test out some models:
+
+```{r}
+missingSlim = lm(jobScore ~ salary, data = week7)
+
+summary(missingSlim)
+```
+
+Again, we have already seen this stuff before. We know, though, that we have some missing data in these models. With that, we need to do something about it. 
+
+Let's try to impute the missing values for jobScore. The mice function allows some pretty slick action to happen when setting the iterations to 0 -- it gives you the ability to hack into the object and use it for the actual model!
+
+```{r}
+baseInfo = mice(week7, maxit = 0)
+
+baseInfo$method
+
+baseInfo$predictorMatrix
+```
+
+We can see that the default predictor is partial mean matching and that every item is being used to predict every other item.
+
+So, let's switch up our method and tune up our predictor matrix (specifically, we need to remove some of our variables are predictors). We might also want to change our method and not worry about predicting jobManagementSDSA.
+
+```{r}
+predictors = baseInfo$predictorMatrix
+
+predictors[, c("id", "manager", "jobManagementSDSA")] = 0
+
+predictionMethod = baseInfo$method
+
+miceMod = mice(week7, method = c(rep("", 12), "rf", "rf"), 
+               predictorMatrix = predictors, print = FALSE, 
+               seed = 1001)
+```
+
+I am not entirely convinced that the model converged. 
+
+```{r}
+miceMod = mice(week7, method = c(rep("", 12), "rf", "rf"), 
+               predictorMatrix = predictors, maxit = 20, 
+               print = FALSE, seed = 1001)
+
+plot(miceMod)
+```
+
+I am much more comfortable with those trace plots (we could even tack 10 to 20 more iterations on, just to make sure, but this is close enough for rock and roll).
+
+Since we have some imputed data laying around, let's see how things compare to the original data:
+
+```{r}
+summary(week7$jobScore)
+
+complete(miceMod) %>% 
+  select(jobScore) %>% 
+  summary()
+```
+
+We certainly have some differences there!
+
+All of this is fun, but let's see the impact on our models:
+
+```{r}
+slimImpute = with(data = miceMod, 
+                  exp = lm(jobScore ~ salary))
+
+summary(pool(slimImpute))
+```
+
+Now, we can compare those to our standard model with missingness:
+
+```{r}
+broom::tidy(missingSlim)
+```
+
+A sign flip on our salary coefficient!?!

@@ -140,16 +140,16 @@ exampleData %>%
   mutate(X = sample(1:10000, 1)) %>% 
   write.table(., "bds/exerciseData/week11.txt", sep = "^")
 
-exampleData %>% 
-  select(id, team, manager, starts_with("job"), salary, tenure, age, 
-         genderFM, degreeBMP, citizenNY) %>% 
-  write.csv(., "bds/exerciseData/easy/week12.csv")
-
-exampleData %>% 
-  select(id, team, manager, starts_with("job"), salary, tenure, age, 
-         genderFM, degreeBMP, citizenNY) %>%
-  bind_rows(.) %>% 
-  write.csv(., "bds/exerciseData/week12.csv")
+# exampleData %>% 
+#   select(id, team, manager, starts_with("job"), salary, tenure, age, 
+#          genderFM, degreeBMP, citizenNY) %>% 
+#   write.csv(., "bds/exerciseData/easy/week12.csv")
+# 
+# exampleData %>% 
+#   select(id, team, manager, starts_with("job"), salary, tenure, age, 
+#          genderFM, degreeBMP, citizenNY) %>%
+#   bind_rows(.) %>% 
+#   write.csv(., "bds/exerciseData/week12.csv")
 
 exampleData %>% 
   select(id, team, manager, starts_with("job"), salary, tenure, age, 
@@ -162,3 +162,5 @@ exampleData %>%
   select(id, team, manager, starts_with("job"), salary, tenure, age, 
          genderFM, degreeBMP, citizenNY, describeManager) %>% 
   save(., file = "bds/exerciseData/week13.RData")
+
+

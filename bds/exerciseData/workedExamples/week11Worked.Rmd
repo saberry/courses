@@ -1,0 +1,152 @@
+---
+title: "Week 11 Practice"
+author: "BDS"
+date: "July 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(mgcv)
+
+library(ggplot2)
+```
+
+
+```{r}
+readLines("C:/Users/berry2006/Documents/projects/courses/bds/exerciseData/week11.txt")[1:10]
+```
+
+Another wacky delimiter is in the house!
+
+```{r}
+week11 = read.table("C:/Users/berry2006/Documents/projects/courses/bds/exerciseData/week11.txt", sep = "^")
+```
+
+While everything read in just fine, it appears that we have a wild column that got thrown into the mix. 
+
+```{r}
+hist(week11$X)
+```
+
+
+It has no name other than "X" and its distribution appears to be coming from a random uniform distribution -- we can probably just ignore it, but let's not forget that it is in there.
+
+```{r}
+slimTest = lm(salary ~ tenure, data = week11)
+
+summary(slimTest)
+
+ggplot(week11, aes(salary, tenure)) +
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+It appears that we have a significant linear relationship between tenure and salary, in that as salary increases, tenure increases. 
+
+When we look at the visualizations, though, it seems like there could be something that would fit better than a linear line.
+
+```{r}
+gamTest = gam(salary ~ s(tenure), data = week11)
+
+summary(gamTest)
+```
+
+The edf of our smoothed tenure term is certainly not 1, so we can be pretty comfortable in guessing that some smoothing worked for the best and significantly so. We can take a look the plot
+
+```{r}
+plot(gamTest)
+```
+
+```{r}
+gam.check(gamTest)
+```
+
+When we look at the output there, we see k' -- this is telling us how many knots we have in the model (k' + 1 = model k). The gam function will pick the best k for us automatically, but we can play around with it to see what happens:
+
+With 4 knots:
+
+```{r}
+plot(gam(salary ~ s(tenure, k = 4), data = week11))
+```
+
+With 6 knots:
+
+```{r}
+plot(gam(salary ~ s(tenure, k = 6), data = week11))
+```
+
+And with 8 knots:
+
+```{r}
+plot(gam(salary ~ s(tenure, k = 8), data = week11))
+```
+
+Do you see much of a difference in these plots? The more knots for the smooth term, the more wiggle we are allowing in our model.
+
+If you want something a bit nicer, you can always use ggplot (a gam smooth won't work for anything over 1k observations!). Feel free to throw the span arguement into the geom_smooth function and tweak the wiggle (anything between .15 and 1 should work)!
+```{r}
+ggplot(week11, aes(tenure, salary)) +
+  geom_point() + 
+  geom_smooth(method = "loess") +
+  theme_minimal()
+```
+
+
+In the end, we are much more concerned with prediction in gam -- let's see how our gam model compares to our standard linear model with regard to mean squared error:
+
+```{r}
+week11 = week11 %>% 
+  mutate(gamPrediction = predict(gamTest), 
+         slimPrediction = predict(slimTest), 
+         gamError = salary - gamPrediction, 
+         slimError = salary - slimPrediction)
+
+mean(week11$gamError^2) < mean(week11$slimError^2)
+```
+
+Better, but if we actually look at those values, you would see that our predictions from gam really are not too good.
+
+```{r}
+plot(gamTest$model$salary, gamTest$fitted.values)
+```
+
+That's not really what you want to see in a plot of fitted values and actual values!
+
+For our own entertainment and enjoyment, let's throw a few other terms into our model.
+
+```{r}
+gamAddedVars = gam(salary ~ s(tenure) + age + team +
+                     as.factor(genderFM) + 
+                     as.factor(degreeBMP), data = week11)
+
+summary(gamAddedVars)
+
+plot(gamAddedVars)
+```
+
+We can see from the output, that those additional terms went in as linear predictors and can be interpretted as such. We also see a dramatic increase in our model fit statistics.
+
+Let's check our error:
+
+```{r}
+week11 = week11 %>% 
+  mutate(gamAddedPrediction = predict(gamAddedVars), 
+         gamAddedError = salary - gamAddedPrediction)
+
+mean(week11$gamAddedError^2) < mean(week11$gamError^2)
+
+
+```
+
+```{r}
+plot(gamAddedVars$model$salary, gamAddedVars$fitted.values)
+```
+
+This model does really well at lower values salary values, but starts to get a little crazy at higher levels of salary.

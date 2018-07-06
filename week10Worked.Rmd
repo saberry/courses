@@ -1,0 +1,88 @@
+---
+title: "Week 10 Practice"
+author: "BDS"
+date: "July 5, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(poLCA)
+```
+
+
+```{r}
+readLines("C:/Users/berry2006/Documents/projects/courses/bds/exerciseData/week10.csv")[1:10]
+```
+
+Blank lines...cute!
+
+Fortunately, this is always an easy problem to fix:
+
+```{r}
+week10 = read.csv("C:/Users/berry2006/Documents/projects/courses/bds/exerciseData/week10.csv", skip = 3)
+```
+
+There are many ways to conduct some latent class analysis in R, but I tend to like poLCA the most. It grants us the ability to perform latent class analysis on polytomous data, instead of just dichotomous data. 
+
+We should see what is in our data:
+
+```{r}
+summary(week10)
+```
+
+We can try to fit a some latent classes to gender, degree, and citizen. 
+
+The interface for poLCA is a bit odd at first, but it makes sense as you move through it.
+
+```{r}
+lcaFormula = cbind(genderFM, degreeBMP, citizenNY) ~ 1
+
+lca2Classes = poLCA(lcaFormula, week10, nclass = 2, maxiter = 5000)
+
+```
+
+The output first shows the item response probabilities for the class by response. For example the genderFM variable (likely with female coded as 1 and male coded as 2), shows that in class 1, there is a high probability that a female will be assigned to class 1, while males are more likely to be assigned to class 2. For degreeBMP (likely to be bachelor, masters, phd), we see that class 1 most likely contains people with bachelors degrees, with a smaller probability of masters, and almost no chance of phds. Class 2, however, shows a much higher chance of containing phds. 
+
+While it takes just a minute to parse the following plot, it is a useful tool for gaining some understanding of what the latent class look like:
+
+```{r}
+plot(lca2Classes)
+```
+
+A clear picture of our class emerges now: class 1 is largely women, who are citizens, and have mostly bachelor degrees. Class 2, is mostly men, who are citizens with phds.
+
+As with most things related to dimension reduction, we need to do some work to know how many divisions (classes, in this case) within our data we need to make.
+
+```{r}
+lca3Classes = poLCA(lcaFormula, week10, nclass = 3, maxiter = 5000)
+
+plot(lca3Classes)
+```
+
+
+```{r}
+lca4Classes = poLCA(lcaFormula, week10, nclass = 4, maxiter = 5000)
+
+plot(lca4Classes)
+```
+
+```{r}
+lca5Classes = poLCA(lcaFormula, week10, nclass = 5, maxiter = 5000)
+
+plot(lca5Classes)
+```
+
+At the end of all this, we have several models that throw us an explicit warning about negative degrees of freedom (we should probably listen to such a warning). We have other variables that you could play with and discretize, but we could always do that another day. To that end, we should probably just stick with the 2 class model. 
+
+You might be thinking, "The classes really don't seem to capture everybody that we could have", and you would be correct on this one. However, looking at some tables might make this clear:
+
+```{r}
+table(week10$genderFM, week10$degreeBMP, 
+      week10$citizenNY, deparse.level =  2)
+```
+
+Grand scheme -- there just are not too many non-citizens compared to citizens. Furthermore, 

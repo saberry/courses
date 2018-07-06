@@ -1,0 +1,214 @@
+---
+title: "Week 8 Practice"
+author: "BDS"
+date: "July 3, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(factoextra)
+
+library(cluster)
+
+library(mclust)
+```
+
+
+Fantastic -- just a nice csv file to read in...
+
+```{r}
+week8 = read.csv("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week08.csv")
+
+summary(week8)
+```
+
+What is happening with our data?
+
+The rowname variable is not too much of an issue, but what is causing those NAs were we did not have any before. From our summary, we can make a few deductions -- something happens after id, but jobTasksSDSA is not affected.
+
+Do you know any Excel users? I do and I know that they love to put average in new columns or on new rows.
+
+```{r}
+tail(week8)
+```
+
+And there you have it, somebody kindly calculated an average for us (you know what they say -- it is the thought that counts).
+
+```{r}
+week8 = week8[-(which(week8$id == "average")), ]
+```
+
+Naturally, we could have done some dplyr filtering, but sometimes you really need to use base R (if only to impress other people). Kidding aside on the base R point, learning it will only play dividends for your programming skills.
+
+Now that our data is in and ready, we should try some clustering.
+
+It would be great if we could just start throwing clusters together, but what is the first question that we should ask -- how many clusters do we have? 
+
+We can use the fviz_nbclust function from factoextra to test a variety of models and determine which has the best gap statistic values (do note that this might take a while to run).
+
+```{r}
+week8 %>% 
+  select(starts_with("job"), salary, tenure, age) %>% 
+  scale() %>% 
+  na.omit() %>% 
+  fviz_nbclust(x = ., FUNcluster = kmeans, method = "gap")
+```
+
+We can see that 3 kmeans clusters works pretty well, but note that we would be very likely to get a different optimal value with something like silhouette.
+
+We can also try the NbClust package (this will take a bit to run):
+
+```{r}
+nbTest = week8 %>% 
+  dplyr::select(starts_with("job"), salary, tenure, age) %>% 
+  scale() %>% 
+  na.omit() %>% 
+  NbClust::NbClust(data = ., distance = "euclidean", method = "kmeans")
+```
+
+Well if the majority rules...
+
+
+For a first pass, let's see what k-means might get us. 
+
+```{r}
+clusterData = week8 %>% 
+  dplyr::select(id, starts_with("job"), salary, tenure, age)
+
+kmeansTest = kmeans(x = scale(na.omit(clusterData[,-grepl("id", 
+                                                         names(clusterData))])), 
+                    centers = 3)
+
+fviz_cluster(kmeansTest, scale(na.omit(clusterData[,-grepl("id", 
+                                                         names(clusterData))])))
+
+
+
+```
+
+That looks like it partioned pretty nicely. Now let's look at our cluster centers:
+
+Since we scaled our data, those center are a bit hard to interpret and they don't represent real observations anyway.
+
+```{r}
+kmeansTest$centers
+```
+
+Those centers are practically meaningless (we can understand magnitude and the sort). Maybe we should unscale them:
+
+```{r}
+usedData = clusterData %>% 
+  dplyr::select(-id) %>% 
+  na.omit() %>% 
+  scale()
+
+kmeansCenters = as.data.frame(kmeansTest$centers)
+
+varNames = names(kmeansCenters)
+
+unscaleCenters = function(varName) {
+  unscaled = kmeansCenters[, varName] * 
+    attr(x = usedData, which = "scaled:scale")[varName] + 
+    attr(x = usedData, which = "scaled:center")[varName]  
+  
+  res = data.frame(unscaled)
+  
+  names(res) = varName
+  
+  return(res)
+}
+
+clusterCentersRaw = lapply(varNames, function(x) unscaleCenters(x)) %>% 
+  bind_cols(.)
+
+clusterCentersRaw
+```
+
+We can certainly tell a story about these 3 clusters, but we will save that exercise for the next step.
+
+
+Instead of k-means, let's try a different clustering method: medioids. Partitioning around medioids (pam) will actually find the observation that rests in the middle of a cluster. 
+
+Just so that we get a sense of how it works, let's go through the cluster number exercise again:
+
+```{r}
+week8 %>% 
+    dplyr::select(starts_with("job"), salary, tenure, age) %>% 
+    scale() %>% 
+    na.omit() %>% 
+    fviz_nbclust(x = ., FUNcluster = pam, method = "gap")
+```
+
+This produced some different results, with 4 clusters suggested. 
+
+Let's take a peak at it:
+
+```{r}
+pamTest = pam(x = scale(na.omit(clusterData[,-grepl("id", 
+                                                         names(clusterData))])), 
+                    k = 4)
+
+fviz_cluster(pamTest, clusterData)
+
+```
+
+This one does not look as clean as our 3 cluster k-means, but let's check out our mediods:
+
+```{r}
+pamTest$medoids
+```
+
+Scaled values!?! Those don't really tell us too much. While our coding might have looked overly-complicated, it gives us the flexibility to use rows for pulling stuff out:
+
+```{r}
+clusterData[rownames(pamTest$medoids), ]
+```
+
+Now we can tell a story about these clusters! 
+
+The person with id "M579F", representing cluster 1, has high job satisfaction and lower interpersonal satisfaction, is well paid, and is not new at the organization.
+
+Cluster 2 is *almost* the opposite of cluster 1. The medioid person, "O343O", likes the people, hates the work, is making less money than the mean and median, and is slightly younger than the average employee.
+
+Cluster 3 is likely the saltiest of the bunch, despite making around the average salary. They might be getting slightly bitter being around all of the younger folks.
+
+Cluster 4's representative, "Y322Y", is youngish, making a roughly average salary, and is just happy with everything. 
+
+We can also get some information about the clusters:
+
+```{r}
+pamTest$clusinfo
+```
+
+The split is not quite equal, but we don't have anything that completely runs aways with people.
+
+Let's try one more thing on this front: clara. It is pam, but for large applications. It performs some sampling that makes it go much faster; you will notice the speed difference when we run our k check (we can even be pretty cool with bumping the iterations up to 500 for maximum stability).
+
+```{r}
+week8 %>% 
+    dplyr::select(starts_with("job"), salary, tenure, age) %>% 
+    scale() %>% 
+    na.omit() %>% 
+    fviz_nbclust(x = ., FUNcluster = clara, method = "gap", nboot = 500)
+```
+
+It still pops up as 4, but we can be more confident. Let's see how it fairs:
+
+```{r}
+claraTest = clara(x = scale(na.omit(clusterData[,-grepl("id", 
+                                                         names(clusterData))])), 
+                    k = 4)
+```
+
+```{r}
+clusterData[rownames(claraTest$medoids), ]
+```
+
+While a very similar story appears within the medioids, it is a bit different.
+

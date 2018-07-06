@@ -1,0 +1,107 @@
+---
+title: "Week 12 Practice"
+author: "BDS"
+date: "July 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(recommenderlab)
+```
+
+
+Fortunately, this is a pretty straight away RData file -- we can just use the load function to bring it in.
+
+```{r}
+load("C://Users/sberry5/Documents/project/courses/bds/exerciseData/week12.RData")
+```
+
+Now we have an object called "projectRatings". It is an S4 object, so navigating around it is just a bit different than your typical S3 object (e.g., you won't be able to use the $ until you get into a slot).
+
+```{r}
+head(projectRatings@data)
+```
+
+The output we see from this is a sparse matrix (you might remember a brief chat about sparse matrices from a few weeks ago). In this matrix, we have employee IDs on the rows and project names on the columns. The values are normalized ratings. If you are at all interested, we can actually take a peak a the non-normalized ratings:
+
+```{r}
+deNormedRatings = denormalize(projectRatings)
+
+head(deNormedRatings@data)
+```
+
+We can see from the denormed ratings that we are dealing with a 1 to 5 rating scale. The normalization done here is nothing but rowwise centering. We will use the denormed ratings to train our recommenders; otherwise, some of the stuff we will do later will fail!
+
+We need to make a decision about the type of recommender system that we will ultimately train. Personally, I like collaborative filtering for this type of data (we have ratings on items, but we really do not have any features of the items). The next decision we need to make is what type of collaborative filtering: item-based or user-based. There are a few things at play here: how likely are the people to change preferences, how frequently do I need to do this, how many items do we have. If I were to guess that these are work projects and make an assumption that people won't change too much about what they like to work on, I will probably go with a user-based recommender.  
+
+We want to look at a few things with our recommender system: predicted ratings for projects and predicted top projects.
+
+We can start with predicted ratings. We are going to just look at 3 random people.
+
+```{r}
+projectRecommender = Recommender(deNormedRatings[1:1200], method = "UBCF")
+
+projectRecommenderPred = predict(projectRecommender, 
+                                 newdata = deNormedRatings[sample(1201:deNormedRatings@data@Dim[1], 3)],
+                                 type = "ratings")
+
+as(projectRecommenderPred, "list")
+
+```
+
+We can see the predictions for each of those three people on the projects that they did not previously rate. We can take a quick look at the ratings that they gave to other projects:
+
+```{r}
+deNormedRatings@data[rownames(projectRecommenderPred@data),]
+```
+
+If you want a complete ratings matrix, it is an easy switch (don't forget that we made the newdata random!):
+
+```{r}
+recomRatingMatrix = predict(projectRecommender, 
+                                 newdata = deNormedRatings[sample(1201:deNormedRatings@data@Dim[1], 3)],
+                                 type = "ratingMatrix")
+
+recomRatingMatrix@data
+```
+
+Now, we can move to getting employee's top recommended projects:
+
+```{r}
+projectTop3 = predict(projectRecommender, 
+                                 newdata = deNormedRatings[sample(1201:deNormedRatings@data@Dim[1], 3)],
+                                 type = "topNList", n = 3)
+
+as(projectTop3, "list")
+```
+
+This is all great. We know what a person's predicted rating would have been on any given project and we have a list of recommended projects. Let's see how our model will actually perform now. Before we can do that, though, we will need to engage in some additional data prep. If we would take a look at the data (use rowCounts(denormedRatings)), we will see that some people have 0 -- this means that they have not rated any projects. We need to drop them from the forthcoming analyses. For evaluation purposes, we will also need to drop those people with one observation (we need to be able to drop at least one observed rating so that our evaluation can predict that rating). In our evaluation, we will set our goodRating argument to 4 -- any rating 4 or above counts as "good".
+
+```{r}
+
+nonZeroRatings = deNormedRatings[rowCounts(deNormedRatings) > 1]
+
+e = evaluationScheme(nonZeroRatings, method = "split", 
+                     train = 0.8, given = -1,  goodRating = 4)
+
+training = Recommender(getData(e, "train"), "UBCF")
+
+testing = predict(training, getData(e, "known"), type = "ratings")
+
+calcPredictionAccuracy(testing, getData(e, "unknown"))
+```
+
+If you are so inclined, we can look at the accuracy for each person:
+
+```{r}
+head(calcPredictionAccuracy(testing, getData(e, "unknown"), byUser = TRUE))
+```
+
+
+I think that is good enough for who it is intended for!

@@ -1,0 +1,114 @@
+---
+title: "Week 13 Practice"
+author: "BDS"
+date: "July 6, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(tidyr)
+
+library(tidytext)
+
+library(sentimentr)
+```
+
+
+We have another RData file to load in:
+
+```{r}
+load("C:/Users/sberry5/Documents/project/courses/bds/exerciseData/week13.RData")
+```
+
+Nothing too wild with our structure, but we will want to keep an eye on that list column!
+
+```{r}
+glimpse(week13)
+```
+
+Nothing too wild with our structure, but we will want to keep an eye on that list column!
+
+Let's start really simple and use some of the tidytext stuff. We need to do some prep first -- it was not too long before that list column was going to give us some issues!
+
+```{r}
+week13Tidy = week13 %>% 
+  select(id, manager, describeManager) %>% 
+  ungroup() %>%
+  mutate(describeManager = unlist(.$describeManager), 
+         describeManager = gsub("^c\\(|\\)$", "", .$describeManager)) 
+```
+
+Given a few of our variables, we can do some interesting things. First, we can get a sentiment by id (i.e., the person who offered the manager descriptions):
+
+```{r}
+employeeSentiment = week13Tidy %>%
+  unnest_tokens(tbl = ., output = word, input = describeManager) %>% 
+  group_by(id) %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+
+employeeSentiment
+```
+
+Employee A192M really did not like his/her manager!
+
+Now, let's look at it from the manager perspective. While they did not rate theirselves, it will give us an idea about the mean sentiment towards the manager:
+
+```{r}
+managerSentiment = week13Tidy %>%
+  unnest_tokens(tbl = ., output = word, input = describeManager) %>% 
+  group_by(manager, id) %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% 
+  group_by(manager) %>% 
+  summarize(meanNegative = mean(negative), 
+            meanPositive = mean(positive), 
+            sentiment = meanPositive - meanNegative)
+
+managerSentiment
+```
+
+These give us a pretty good idea about the general sentiment directed towards the manager.
+
+At the end of the day, these are purely count based metrics and we have no idea the true strength of any person's words.
+
+For example, lets take a look at a few words offered to our highest and lowest manager:
+
+```{r}
+worstManager = managerSentiment$manager[which.min(managerSentiment$sentiment)]
+
+bestManager = managerSentiment$manager[which.max(managerSentiment$sentiment)]
+
+week13$describeManager[week13$manager == worstManager][sample(1:5, 1)]
+
+week13$describeManager[week13$manager == bestManager][sample(1:5, 1)]
+```
+
+Striking, right!?! I would say that those words might have some different valences.
+
+Let's try something a bit more intelligent!
+
+```{r}
+vadarSent = sentiment(week13Tidy$describeManager, polarity_dt = lexicon::hash_sentiment_vadar)
+```
+
+If we want to get an idea about a manager's overall sentiment, we just need to do a little bit of joining!
+
+```{r}
+week13Tidy %>% 
+  mutate(element_id = 1:nrow(.)) %>% 
+  left_join(., vadarSent, by = "element_id") %>% 
+  group_by(manager) %>% 
+  summarize(meanSent = mean(sentiment))
+```
+
+While that one person is still clearly horrible, the manager who has the highest sentiment has changed.

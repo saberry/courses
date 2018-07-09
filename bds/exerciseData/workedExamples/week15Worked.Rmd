@@ -1,0 +1,202 @@
+---
+title: "Week 15 Practice"
+author: "BDS"
+date: "July 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(stm)
+```
+
+```{r}
+readLines("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week15.csv")[1:10]
+```
+
+It looks like there is a default row name in there (i.e., X = 1:nrow()), but everything else looks fine!
+
+```{r}
+week15 = read.csv("C://Users/berry2006/Documents/projects/courses/bds/exerciseData/week15.csv", stringsAsFactors = FALSE)
+```
+
+When playing with topic models, there is a lot of pre-processing that needs to be done. Fortunately, it can pretty easily be handled in the stm package.
+
+```{r, eval = FALSE}
+week15Text = textProcessor(documents = week15$review, 
+                           metadata = week15)
+```
+
+There is a good chance that you ran into an error on that one, so we will need to do some encoding conversion, remove non-graphical characters within the data, and remove that offending character:
+
+```{r}
+rvest::guess_encoding(week15$review)
+
+week15$review = iconv(week15$review, "ISO-8859-1", "UTF-8", sub = "")
+
+week15$review = gsub("[^[:graph:]]|Ã", " ", week15$review, perl = TRUE)
+
+week15$review = iconv(week15$review, "ISO-8859-1", "UTF-8", sub = "")
+
+```
+
+The gsub sandwiched between the conversion functions seems odd and it is; sometimes, though, you will need to do weird things when dealing with text from an online source.
+
+When I look at the first few dozen reviews, I see the word "REDACTED" in a couple of the entries. I don't want this messing with my topics on down the line, so let's see how much it is around:
+
+```{r}
+nrow(week15[grepl("REDACTED", week15$review), ])
+```
+
+"REDACTED" appears in about 15% of lines -- not enough to get kicked out of too common words, but enough that it might pop up in our topics. 
+
+We can just add it as a custom stopword to our text processor. This type of context-dependent stopword is something that you will just need to get the feel for *and* recognize that this is no one right answer. In addition to custom stopwords, I also like to include the SMART words again (it is the default) and the english stopwords. 
+
+```{r}
+week15TextProcess = textProcessor(documents = week15$review, 
+                           metadata = week15, 
+                           onlycharacter = TRUE,
+                           customstopwords = c("redacted", 
+                                               tm::stopwords("SMART"), 
+                                               tm::stopwords("en")))
+
+week15TextPrep = prepDocuments(documents = week15TextProcess$documents, 
+                               vocab = week15TextProcess$vocab,
+                               meta = week15TextProcess$meta)
+
+``` 
+
+We get a nice little message telling us what we have going on in our corpus.
+
+We can pass our corpus to the stm function.
+
+```{r}
+topic3 = stm(documents = week15TextPrep$documents, 
+             vocab = week15TextPrep$vocab, 
+             K = 3)
+```
+
+The plot for top topics is going to give us the expected topic proportions for each of our topics and the highest probability words. 
+
+```{r}
+plot(topic3)
+```
+
+The expected topic proportions are pretty even amonst these three, but topic 3 certainly would have the highest expected proportions.
+
+We can also take a look at the various top words within a topic:
+
+```{r}
+labelTopics(topic3)
+```
+
+Personally, I find it easiest to tell the story by looking at the highest probability and the frex (frequent and exclusive) words. If I had to give some names to the topics, I would say that topic 1 is talking about "being a great place to work", topic 2 is about "opportunities and compensation", and topic 3 is about "people". Truly an area where science is more art than science.
+
+NOTE: It appears that we have some German that came into our words. We are not going to worry about them now.
+
+
+We can also get some exemplar texts for each topic:
+
+```{r}
+findThoughts(topic3, texts = week15$review, n = 1)
+```
+
+You probably remember learning that topic models are a bit on the greedy side with the number of topics they want (this makes sense if you think about the underlying assumption offered by latent dirichlet allocation -- every topic that has been written about existed before the words were written). We can check to see if we have an "adequate" number of topics. 
+
+```{r}
+checkResiduals(topic3, documents = week15TextPrep$documents)
+```
+
+A significant test statistic here means that we do not have an adequate number of topics -- we want our dispersion to be very close to 1. You will need to balance model fit with topic interpretability when playing with topic models.
+
+Let's see how a 4 topic model fairs:
+
+```{r}
+topic4 = stm(documents = week15TextPrep$documents, 
+             vocab = week15TextPrep$vocab, 
+             K = 4)
+```
+
+
+```{r}
+plot(topic4)
+```
+
+
+```{r}
+labelTopics(topic4)
+```
+
+
+The topics don't look entirely dissimilar from the 3 topic model, but there are some differences. These differences might be more apparent when looking at the exemplars
+
+```{r}
+findThoughts(topic4, texts = week15$review, n = 1)
+```
+
+
+```{r}
+checkResiduals(topic4, documents = week15TextPrep$documents)
+```
+
+Our dispersion definitely dropped down just by adding 1 topic, but let's continue.
+
+```{r}
+topic5 = stm(documents = week15TextPrep$documents, 
+             vocab = week15TextPrep$vocab, 
+             K = 5)
+```
+
+
+```{r}
+plot(topic5)
+```
+
+```{r}
+labelTopics(topic5)
+```
+
+```{r}
+findThoughts(topic5, texts = week15$review, n = 1)
+```
+
+We find some of the same themes appearing.
+
+```{r}
+checkResiduals(topic5, documents = week15TextPrep$documents)
+```
+
+While we did this manually, we can do some more automatic work with our K selection:
+
+```{r}
+kTest = searchK(documents = week15TextPrep$documents, 
+             vocab = week15TextPrep$vocab, 
+             K = c(3, 4, 5, 10, 20, 25, 35))
+
+plot(kTest)
+```
+
+
+While this is most helpful from a time-use perspective, we do lose a little bit of the hands on approach to examining our topic. It truly becomes an issue of taking a model that makes sense and can be explained (maybe 5 to 10 topics) or chasing model fit statistics.
+
+The 4 plots that are returned are going to try to help us determine the best number of topics to take. I like to focus on semantic coherence (how well the words hang together) and the residuals. We want to have low residual and high semantic coherence. The residuals definitely take a sharp dive as we increase K, but our coherence bounces around some (but appears to spike back up for 35). Since we have the computation power, let's just see what 35 looks like!
+
+```{r}
+topic35 = stm(documents = week15TextPrep$documents, 
+             vocab = week15TextPrep$vocab, 
+             K = 35)
+
+plot(topic35)
+
+labelTopics(topic35)
+
+checkResiduals(topic35, documents = week15TextPrep$documents)
+```
+
+We really don't even have enough topics to have great model fit!
+
+If you have a few million topics, I would not be afraid to go big with K. With things in the thousands, though, I would probably stick to something that could be digested (and explained to people).
+

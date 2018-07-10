@@ -1,18 +1,16 @@
 ---
 title: "Clustering"
 author: "Behavioral Data Science"
-date: "March 6, 2018"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-There is no shortage of ways to cluster data. We can think of several large classes of cluster analyses.
+There is no shortage of ways to cluster data and the reasons to do it are just as numerous. Clustering is great for reducing the number of dimensions within your data (i.e., combining several variables into one), but it is equally well suited to finding natural groups within data. 
 
-Two of the bigger divisions are hard clustering and fuzzy clustering. Hard clustering algorithms assign observations to a specific cluster, whereas fuzzy clustering algorithms are probablistic in nature (i.e., an observation has a certain probability to belonging to any one cluster).
-
+There are several large classes of cluster analyses, such as centroid or hierarchical clustering. Two of the bigger divisions are hard clustering and fuzzy clustering. Hard clustering algorithms assign observations to a specific cluster, whereas fuzzy clustering algorithms are probablistic in nature (i.e., an observation has a certain probability to belonging to any one cluster). In 
 
 
 ## Centroid Clustering
@@ -23,7 +21,9 @@ Careful attention needs to be paid to your data when clustering. Are they variab
 
 ### Determining Factor Numbers
 
-There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
+Determining the number the number of clusters is very much akin to determining the number of factors in factor analysis -- there can be theory guiding the practice, but various statistics can help us make our decisions too. When clustering, especially hard clustering, we need to be thoughtful about the clarity of our clusters -- too few clusters might not be helpful, but too many clusters might not separate very well. There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
+
+As an example, let's use the data from the Holzinger Swineford article, found in the lavaan package.
 
 ```{r}
 library(lavaan)
@@ -51,15 +51,17 @@ kmeansTest = kmeans(testData, 2)
 kmeansTest
 ```
 
-Our output provides some very useful information. First, we see the cluster means for each item across the two cluster. These give us a pretty good idea of the "location" for each of the clusters and helps us to start to get an idea for what these cluster look like. 
+Our output provides some very useful information. First, we see the cluster means for each item across the two cluster. These give us a pretty good idea of the "location" for each of the clusters and helps us to start to get an idea for what these cluster look like (we essentially have one higher scoring group and one lower scoring group). 
 
 Next, we see our clustering vector. This tells us to which cluster each observation was assigned. 
 
-We can also take a look at the bivariate plots.
+We can also take a look at the bivariate plots, which will give us the cluster membershp within each of the bivariate plots.
 
 ```{r}
 plot(testData, col = kmeansTest$cluster)
 ```
+
+We can see the variables were our clusters separate pretty nicely (e.g., x1 and x4) and were they do not (x8 and x9).
 
 
 And a plot based upon the first two components of a PCA:
@@ -73,15 +75,17 @@ The k-means cluster is great and widely used. But, it can be picky about data (i
 
 ### medoids
 
-To circumvent the issue within k-means, we can partition around medoids. Whereas our centroid can be an arbitrary value that gets observations clustered around it, a medoid is an actual observation within the data that then gets other observations clustered around it.
+To circumvent the issue within k-means, we can partition around medoids. Whereas our centroid can be an arbitrary value that gets observations clustered around it, a medoid is an actual observation within the data that then gets other observations clustered around it. In other words, the centroid does not relate to a specific observation, so the centroid cannot be linked to a specific observation.
 
 ```{r}
 library(cluster)
 
 pamTest = cluster::pam(testData, k = 2)
+
+pamTest
 ```
 
-We can see very similar output, but we get the actual observations that represent the medoids. 
+We can see very similar output to what we got from k-means, but we get the actual observations that represent the medoids. This identification helps to us to get a better idea about what the clusters look like.
 
 
 ```{r}
@@ -89,7 +93,7 @@ cluster::clusplot(testData, pamTest$clustering)
 ```
 
 
-If we look at both plots, we can notice some definite differences in cluster assignment when we are getting towards the 0s.
+If we look at both plots, we can notice some definite differences in cluster assignment when we are getting towards the 0s (PAM puts some observations in one cluster, while kmeans puts the same observation into a different cluster). This is purely a function of how the two methods compute the centroid.
 
 ```{r}
 par(mfrow = c(1, 2))
@@ -100,20 +104,22 @@ cluster::clusplot(testData, kmeansTest$cluster, main = ("KMeans"))
 ```
 
 
-
 ## Distribution Clustering
 
-Sometimes referred to as model-based clustering, distribution clustering allows us to model variables that have mixed distributions (maybe a mixture of normal distributions or a normal distribution and something else).
+Any centroid-based clustering algorithm works great when our data looks pretty normal. Data that might not be normally distributed might cause some issues in finding a decent centroid. 
+
+Imagine a variable distributed in the following manner:
 
 ```{r, echo = FALSE}
-N     = 1000              # this is how many data you want
-probs = c(.3,.8)          # these are *cumulative* probabilities; since they 
-                          #   necessarily sum to 1, the last would be redundant
-dists = runif(N)          # here I'm generating random variates from a uniform
-                          #   to select the relevant distribution
+N = 1000              # this is how many data you want
+probs = c(.3,.8)      # these are *cumulative* probabilities; since they 
+                      # necessarily sum to 1, the last would be redundant
+dists = runif(N)      # here I'm generating random variates from a uniform
+                      # to select the relevant distribution
 
 # this is where the actual data are generated, it's just some if->then
 #   statements, followed by the normal distributions you were interested in
+
 data = vector(length=N)
 for(i in 1:N){
   if(dists[i]<probs[1]){
@@ -128,6 +134,10 @@ for(i in 1:N){
 plot(density(data))
 ```
 
+It looks like it has something close to a normal distribution on the right and something a bit lumpy on the left. Using a centroid-based algorithm would find a centroid, but we could almost imagine that this distribution is a mix of two different distributions -- any centroid is going to betray the actual distribution of this data. Situations like this call for distribution clustering
+
+Sometimes referred to as model-based clustering, distribution clustering allows us to model variables that have mixed distributions (maybe a mixture of normal distributions or a normal distribution and something like the bimodal-looking distribution we just saw).
+
 If your data have a mixture of normals or you just want the actual distribution of your data to drive the clustering, then these distribution clustering algorithms will offer better solutions. Furthermore, they are better suited for clustering items that might have a latent structure.
 
 Given that we are using our data's distributions, we need to do another check on the number of clusters. Not only will we get a good number of clusters, but we will also get the clustering shapes that best fit our data.
@@ -140,25 +150,25 @@ bicTest = mclustBIC(testData)
 bicTest
 ```
 
-We see that a two cluster solution might work well, but what does VEE mean? It means that our mixture is ellipsoidal in shape with equal volume and orientation. Check the mclustModelNames function for all names.
+In looking at the bottom of the ouput (Top 3 models based on the BIC criterion), we see that a two cluster solution might work well, given that those are the first two solutions offered. The best solution, however, is "VEE, 2" -- what does VEE mean? It means that our mixture is ellipsoidal in shape with equal volume and orientation. Check the mclustModelNames function for all names.
 
 Let's take a peak at it:
 
 ```{r}
 mclustTest = Mclust(testData, 2, modelNames = "VEE")
 
-
-mclustTest
+summary(mclustTest)
 ```
 
-We can see our clustering table looks a lot different than our previous methods.
+We can see that the provided output is very different than our previous clustering efforts. We have a cluster table, demonstrating how many observations are grouped into the two clusters, and we have mixing probabilites. The mixing probabilities add up to 1 and are just the probabilities that an observation will wind up in one cluster or another.
 
-Now, let's look at our clustering center:
+Now, let's look at our clustering centers:
 
 ```{r}
 mclustTest$parameters$mean
 ```
 
+This is giving us an idea about the center for each of the clusters.
 
 
 ```{r}
@@ -173,20 +183,43 @@ coordProj(testData, parameters = mclustTest$parameters, z = mclustTest$z)
 ```
 
 
-Do you notice anything different? The shape of the clustering is a bit different, yes, but there is something else -- some of the observations are marked with a 
-
 ## Hierarchical Clustering
 
 Everything we have seen to this point needs some type of work to know how many clusters to find. 
 
-Conversely, hiearchical clustering will clusters without any input:
+Conversely, hiearchical clustering will cluster without any input. These hierarchical clustering approach can start with every observation as its own cluster and then start connecting those individual clusters into larger clusters. This continues until every cluster is clustered under a larger cluster. This process is known as agglomerative clustering (the reverse, where everything starts in one big cluster and is broken down into smaller clusters, is known as divisive clustering). 
 
 ```{r}
-hieararchicalTest = cluster::agnes(testData)
+hieararchicalTest = hclust(dist(testData))
 ```
 
 ```{r}
 plot(hieararchicalTest)
 ```
 
+This monstrous-looking dendogram is showing us how the observations cluster all the way up the tree. The y-axis, Height, is telling us how similar observations are when they get clustered together -- i.e., observations that are clustering at height 1 are much more similar than observations clustering at height 6.
 
+If we want to get an idea about cluster membership, we need to determine where we want to cut our tree. For consistency with our other clustering algorithms, we can just go with defining two clusters:
+
+```{r}
+hier2Clus = cutree(hieararchicalTest, k = 2)
+```
+
+
+This provides the cluster membership so that we can identify the observations in our data that belong to a cluster:
+
+```{r}
+head(testData[hier2Clus == 2, ])
+```
+
+Finally, we could get the averages for each variable for both clusters:
+
+```{r}
+rbind(cluster1 = testData[hier2Clus == 1, ] %>% 
+        summarize_all(mean), 
+      cluster2 = testData[hier2Clus == 2, ] %>% 
+        summarize_all(mean))
+```
+
+
+Just like everything else we have seen, we have a lower scoring group and a higher scoring group.

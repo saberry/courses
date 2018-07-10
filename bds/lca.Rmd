@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Can There Really Be More Latent Stuff?
@@ -15,67 +15,104 @@ We have covered a big slice of models that deal with some type of latent structu
 
 ## LCA
 
-LCA has definite conceptual relationships to cluster analysis and factor analysis. From a technical standpoint, however, they are different. While we saw that certain variable types work better for different types of cluster analyses, categorical variables are the only variables that can be used in LCA (e.g., it could not use raw age -- you would unfortuantely need to discretize it first).
+LCA has definite conceptual relationships to cluster analysis and factor analysis. From a technical standpoint, however, they are different. While we saw that certain variable types work better for different types of cluster analyses, categorical variables are the only variables that can be used in LCA (e.g., it could not use raw age -- you would unfortuantely need to discretize it first). The latent classes that emerge in LCA are often noted as "profiles" (some people even call it latent profile analysis) -- thinking of them as profiles allows you to think about constructing general profiles and grouping people into those profiles. 
 
-### poLCA
-
-Let's try models with 1 through 5 latent classes.
+Let's try to fit a model with 2 latent classes based upon education, gender, and party identification. We can use the election data from poLCA.
 
 ```{r}
 library(poLCA)
 
 library(dplyr)
 
-data("starwars")
+data("election")
 
-lcaDat = starwars %>% 
-  mutate(hair_color = as.factor(hair_color), 
-         skin_color = as.factor(skin_color), 
-         eye_color = as.factor(eye_color), 
-         gender = as.factor(gender), 
-         homeworld = as.factor(homeworld), 
-         species = as.factor(species))
+lcaDat = election
 
-lcaFormula = cbind(hair_color, eye_color) ~ 1
+lcaFormula = cbind(EDUC, GENDER, PARTY) ~ 1
 
-lcaMod1 = poLCA(lcaFormula, lcaDat, 1)
+lcaMod2 = poLCA(lcaFormula, lcaDat, 2, maxiter = 5000)
 
-lcaMod2 = poLCA(lcaFormula, lcaDat, 2)
-
-lcaMod3 = poLCA(lcaFormula, lcaDat, 3)
-
-lcaMod4 = poLCA(lcaFormula, lcaDat, 4)
-
-lcaMod5 = poLCA(lcaFormula, lcaDat, 5)
 ```
 
-When we look at the output, we see that we get the probability of each level within the variable (e.g., the 12 levels of hair color) belonging to one of the latent classes. We also get the estimated class population shares and the predicted class membership. Those seem like they are intuitively similar, and they are, but with a key difference: the estimate class population shares are more descriptive of what we actually have and the predicted class memberships are the predictions of what we should have based upon the model.
+Our output is showing us our two classes, as we specified, and the probabilities of each variables response category belonging to a class. This will be explained in more depth shortly. The output also gives us our estimated population shares (how many are observed) and the predicted class membership (how many would be predicted).
 
-We also get some model fit indices and these are all interpretted as they would normally be interpretted. We are looking for the lowest possible AIC and BIC.
+We also get some fit statistics and those are interpreted as we would normally expect.
 
-### mclust
+Seeing a plot of the class probabilities will be helpful as an explanatory tool and the help for the election data is critical for knowing what the levels are within the data:
 
-You remember our friend, mclust, right? We used it for our clustering last week. Not only can it handle the clustering we saw last week, but we can also use it for some expanded forms of latent class analysis with continuous variables. Remember, that it uses mixture distributions, so we can really throw a lot of different variables types at it.
+EDUC is 1 (8th grade or less) through 7 (advanced degree), gender is 1 (male), and party is 1 (strong Democrat) to 7 (strong Republican). 
 
 ```{r}
-library(mclust)
-
-data("starwars")
-
-mclustDat = starwars %>% 
-  mutate(hair_color = as.factor(hair_color), 
-         skin_color = as.factor(skin_color), 
-         eye_color = as.factor(eye_color), 
-         gender = as.factor(gender), 
-         homeworld = as.factor(homeworld), 
-         species = as.factor(species)) %>% 
-  dplyr::select(height, mass) %>% 
-  na.omit()
-  
-
-
-bicTest = mclust::mclustBIC(mclustDat, G = 2:5)
-
-mclustRes = Mclust(mclustDat, G = 4, modelNames = "EII")
+plot(lcaMod2)
 ```
 
+If we had to put a face to class 1, we might imagine mostly men, with some level of college eduction, who trend Republican. Class 2 is largely women, with a very slightly trend towards Democrat, with a slightly less education. 
+
+One interesting thing about LCA is that an automated class selection mechanism really does not exist -- you need to engage in some model comparison.
+
+Let's try models with 3, 4, and 5 classes.
+
+
+```{r}
+lcaMod3 = poLCA(lcaFormula, lcaDat, 3, maxiter = 5000)
+
+plot(lcaMod3)
+```
+
+
+```{r}
+lcaMod4 = poLCA(lcaFormula, lcaDat, 4, maxiter = 5000)
+
+plot(lcaMod4)
+```
+
+
+```{r}
+lcaMod5 = poLCA(lcaFormula, lcaDat, 5, maxiter = 5000)
+
+plot(lcaMod5)
+```
+
+Using each model's AIC, let's see which model might work the best:
+
+```{r}
+rbind(class2 = lcaMod2$aic, 
+      class3 = lcaMod3$aic, 
+      class4 = lcaMod4$aic, 
+      class5 = lcaMod5$aic)
+```
+
+There is not too much difference between 2 and 3 classes, so we could stick with parsimony and be happy with 2 classes.
+
+Latent class analysis will also let us include a covariate in our model, essentially performing a regression. Let's define a latent class based upon views of presidential candidates (demarked by a B or G after the variable name):
+
+```{r}
+covariateFormula = cbind(LEADG, MORALG, LEADB, MORALB) ~ PARTY
+
+intelPartyLCA = poLCA(covariateFormula, lcaDat, 2, maxiter = 5000)
+```
+
+We have the same output with regard to our class membership that we had before, but we also get some information about our regression model fit. In our model, we specified two latent classes; examining our latent class would lead us to assume that those in class 1 favor leader B, while those in class 2 favor leader G. In our regression output, we are comparing class 1 to class 2. We see our typical regression results and we know that it is a significant one, but what exactly does it mean? 
+
+To start, we are comparing the likelihood that a person will belong to class 2 as opposed to class 1 (that is what the 2 / 1 indicates). If we use our PARTY scores with our provided equation, we will get at the log-ratio prior probability:
+
+```{r}
+classPriors = exp(cbind(1, c(1:7)) %*% intelPartyLCA$coeff)
+
+priorProbs = cbind(1, classPriors) / (1 + rowSums(classPriors))
+
+priorProbsData = data.frame(class1B = priorProbs[, 1], 
+                           class2G = priorProbs[, 2], 
+                           partyValue = 1:7) %>% 
+  tidyr::gather(.,key = class, value = probability, -partyValue)
+
+library(ggplot2)
+
+ggplot(priorProbsData, aes(x = partyValue, y = probability, color = class)) + 
+  geom_line() +
+  theme_minimal()
+```
+
+Recall that PARTY is coded 1 (strong Democrat) to 7 (strong Republican). Someone with a PARTY value of 1 would have a near probability of 0 to belonging to class 1 and a near 1 probability of belonging to class 2. Conversely, someone with a party value of 7 would have a near 1 probability to belong to class 1 and a near 0 probability of for class 2. 
+
+Using this added feature of latent class analysis can help to make more sense of the classes and give you a better idea about how people within those classes might behave.

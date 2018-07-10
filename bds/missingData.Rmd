@@ -1,12 +1,11 @@
 ---
 title: "Missing Data"
 author: "Behavioral Data Science"
-date: "March 6, 2018"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Missing Data
@@ -27,17 +26,17 @@ library(magrittr)
 
 testData = read.csv("missingSurvey.csv")
 
-missingMod = testData %>% 
-  lm(average_montly_hours ~ EMP_Engagement_5, data = .) %>% 
+testData %>% 
+  lm(average_weekly_hours ~ EMP_Engagement_5, data = .) %>% 
   summary()
 ```
 
-Do you see any discrepancies? If we look at the number of rows within our data, we see a value of 14999. If, however, we take a look at our degrees of freedom from our model output, we see that a considerable amount of rows were dropped. A linear regression cannot use missing information, so the whole row gets dropped if any missingness exists. If an observation or dozen gets dropped out of a few hundred rows, we might not have too much to worry about. What about if more than half of the observations get dropped? It's probably not a good thing.
+Do you see any discrepancies? If we look at the number of rows within our data, we see a value of 14999 - a very decent sample for sure. If, however, we take a look at our degrees of freedom from our model output, we see that a considerable amount of rows were dropped (the output even gives us a message letting us know how many were dropped). A linear regression cannot use missing information, so the whole row gets dropped if any missingness exists within the variables being used. If an observation or dozen get(s) dropped out of a few hundred rows, we might not have too much to worry about. What about if more than half of the observations get dropped? It's probably not a good thing.
 
 
 ## Types Of Missingness
 
-When we talk about missing data, it is easy to assume that it is just missing: nothing more and nothing less. What if we knew why those were missing. Would that change your thoughts on missingness? What if you knew that certain people did not responsd to certain questions (for example, people who do not identify with any particular religion may leave a question about religious strength blank). Just thinking about such an example, would group that kind of missingness with someone who just skipped a question purely through omission? You would likely say that they are different and you would be correct. Generally, we can think of three different types of missing values: missing completely at random, missing at random, and missing not at random.  
+When we talk about missing data, it is easy to assume that it is just missing: nothing more and nothing less. What if we knew why those were missing. Would that change your thoughts on missingness? What if you knew that certain people did not responsd to certain questions (for example, people who do not identify with any particular religion may leave a question about religious strength blank). Just thinking about such an example, would grouping that kind of missingness with someone who just skipped a question purely through omission make sense? You would likely say that they are different and you would be correct. Generally, we can think of three different types of missing values: missing completely at random, missing at random, and missing not at random.  
 
 Data missing completely at random (MCAR), is exactly how it sounds -- the missing data is not related to any study variables and it is not related to any unknown process or parameter about the person generating the data. We can assume that MCAR data is not biased.
 
@@ -52,22 +51,24 @@ Determining which type of missingness is present within your data can be tricky.
 There are, however, some methods that will let us test our missingness. The MissMech package will perform some tests that can help.
 
 ```{r}
-library(MissMech); library(dplyr)
+library(MissMech)
 
-# testData = read.csv("missingSurvey.csv")
+library(dplyr)
 
-mcarTest = TestMCARNormality(testData, del.lesscases = 200)
+mcarTest = TestMCARNormality(testData)
 
 mcarTest
 ```
 
-In our output, we get a glimpse at what patterns exists. We can see that there are 59 complete cases and 22 cases with mass missing. If we look at the Hawkins test, we would have to reject multivariate normality and MCAR. Our rejection of MCAR is only under the assumption of multivariate normality, which we already rejected. In looking at the non-parametric test, we can see that we likely cannot reject MCAR. 
+In our output, we get a glimpse at what missing patterns exists. We can see that there are 11205 complete cases (group.2 has a 1 for every variable). If we look at the Hawkins test for multivariate normality and homoscedasticity, we would have to reject multivariate normality and/or homoscedasticity (i.e., we are rejecting the hypothesis that our data is normal and homoscedastic -- not surprising since this is Likert-flavored survey data). Since multivariate normality is out of the picture, we cannot use the Hawkins test (if we could, though, it would demonstrate that we would need reject our MCAR assumption and accept that our data is not missing completely at random), we can go down to the non-parametric test. In looking at the non-parametric test, we can see that we likely cannot reject the MCAR assumption there either. 
 
-The language here is important -- notice that there was very little in the way of absolutes. 
+Had our results been different, we would have gotten a message stating, "There is not sufficient evidence to reject normality or MCAR at 0.05 significance level.". 
+
+The language here is important -- notice that there was very little in the way of absolutes because we can never be 100% confident that our data is missing completely at random. 
 
 The TestMCARNormality function will only take numeric variables, so be sure to keep that in mind when using it.
 
-If we can establish MCAR, then we can proceed with some imputation without fear of introducing a terrible amount of bias.
+If we can establish MCAR, then we can proceed with some imputation without fear of introducing a terrible amount of bias. If we cannot establish that our missing data was missing completely at random, then our multiply imputed data might have some issues.
 
 ## Imputation Methods
 
@@ -79,36 +80,54 @@ Many types of mean imputation exist: mean imputation, median imputation, among o
 
 Multiple imputation takes those simple imputation techniques much further. If we are using multivariate imputations by chained equations (mice), then we are going through a lengthy process to estimate the missing values and using several imputed datasets for our models. Data imputed with mice will use predictions on every variable around the missing data to predict the value of the missing data.
 
-We are only interested in imputing our variable with missingness, so we will specify the "cart" method (classification and regression trees) for that variable and leave the other five blank.
+We are only interested in imputing our variable with missingness, so we will specify the "cart" method (classification and regression trees) for our engagement questions and predictive mean matching for our hours worked. There are many options depending upon your exact needs (i.e., data types), so spend some time looking at the built in imputation methods in mice. The "cart" and "pmm" methods were used here purely for flexibility.
 
 ```{r}
 library(mice)
 
-imputedData = mice(testData, m = 20, maxit = 20, 
-                   method = c("", "", "", "", "", "sample"), 
-                   pred = quickpred(testData, minpuc = .2), print = FALSE)
+imputedData = mice(testData, m = 10, maxit = 20, 
+                   method = c("cart", "cart", "cart", 
+                              "cart", "cart", "pmm"), 
+                   pred = quickpred(testData, minpuc = .2, mincor = .01), 
+                   print = FALSE)
 
 imputedData
 
 plot(imputedData, layout = c(2, 1))
 ```
 
-Will you look at that plot! These are trace lines. They track each imputation model over each iteraction. What do we take out of these? If they look like fuzzy caterpillars, the chained equation process was good. If there is any discernable pattern, then something odd might have happened -- these look just as crazy as they should! The mean for our imputed variable generally bounces around between 2.45 and 2.65. Given the observed mean, this seems pretty good.
+Will you look at that plot! These are trace lines. They track each imputation model over each iteration. What do we take out of these? If they look like fuzzy caterpillars, the chained equation process was good. If there is any discernable pattern, then something odd might have happened -- these look just as crazy as they should! The mean for our imputed variables generally bounced around between 2.45 and 2.65. Given the observed mean, this seems pretty good.
 
-Now, we have 20 imputed data sets that went through 20 iterations that we can perform separate analyses on.
+Now, we have 10 imputed data sets that have been through 20 iterations that we can perform separate analyses on.
 
 ```{r}
-fit1 = with(data = imputedData, exp = lm(average_montly_hours ~ EMP_Engagement_5))
+fit1 = with(data = imputedData, 
+            exp = lm(average_weekly_hours ~ EMP_Engagement_5))
 ```
+
+We can check on each individual imputed data set:
+
+```{r}
+summary(fit1)
+```
+
+All of our coefficients are hoving around or slightly above our original coefficient, but our standard errors are uniformly smaller. 
+
 
 And we can then pool those results together:
 
 ```{r}
-pool(fit1)
+pooledFit = pool(fit1)
+
+summary(pooledFit)
 ```
 
 How different are these pooled coefficients compared to our previous coefficients? The pooled are certainly a bit stronger, but not terribly so. 
 
 ## Missing Or Sparse
 
-On occasion you will see some data that looks like it has a lot of missingness. It might not truly be missing, it just might be sparse. Missing means that something was skipped (think about a survey question). In sparse data, the observations have a zero value. 
+On occasion you will see some data that looks like it has a lot of missingness. It might not truly be missing, it just might be sparse. Missing means that something was skipped (think about a survey question) and you have no idea what the value actually is. In sparse data, the observations have a zero value. 
+
+Sparsity comes up in a great many places, but the following example will hopefully help to make the point clearer. I shop on Amazon, but I have not bought everything there is to buy on Amazon. Not only have I not bought everything, I have not even seen every product on Amazon. If there were to be a matrix of every item that I have bought off of Amazon (all of those products get a 1) and everything I have not bought off Amazon (all of those products would get a 0), we would have very sparse data. In other words, Amazon actually knows what I have and have not bought.
+
+On the other hand, let's say that I just got a middle of the road Red Dragon keyboard RGB mechanical keyboard. Amazon knows that I bought it, so I would get a 1 in that column. However, I have not rated said keyboard; therefore, Amazon has no idea how much I actually like the keyboard. Essentially, there is a blank in the ratings column that cannot be assumed to be 0.

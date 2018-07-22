@@ -72,7 +72,25 @@ If we can establish MCAR, then we can proceed with some imputation without fear 
 
 ## Imputation Methods
 
-Many types of mean imputation exist: mean imputation, median imputation, among others. The central tendancy-based imputation methods are classical holdovers. In essence, they replace a missing value with the mean/median of the column. When statistics were done on punchcards, this was probalby about the best that could be done.
+Many types of mean imputation exist: mean imputation, median imputation, among others. The central tendancy-based imputation methods are classical holdovers. In essence, they replace a missing value with the mean/median of the column. 
+
+Here is a brief demonstration of how this might work:
+
+```{r}
+testData %>%
+  mutate(average_weekly_hours = ifelse(is.na(average_weekly_hours) == TRUE, 
+                                       mean(average_weekly_hours, na.rm = TRUE), 
+                                       average_weekly_hours), 
+         EMP_Engagement_5 = ifelse(is.na(EMP_Engagement_5), 
+                                   mean(EMP_Engagement_5, na.rm = TRUE), 
+                                   EMP_Engagement_5)) %>% 
+  lm(average_weekly_hours ~ EMP_Engagement_5, data = .) %>% 
+  summary()
+```
+
+Our missing values are fixed, so all is well. In reality, we are making a pretty big logical leap with assuming that those missing values would be the mean. It might not be the worst assumption that we could make (if we knew that this was the actual population average, it might be slightly more reasonable), but it is still tenuous.
+
+When statistics were done on punchcards, this was probalby about the best that could be done. With greater computing power and more advanced statistical methods, we can get much better imputation values.
 
 ## Multiple Imputation
 

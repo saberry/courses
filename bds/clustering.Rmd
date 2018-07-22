@@ -19,13 +19,15 @@ Centroid clustering is based upon distances around some centroid (maybe a mean).
 
 Careful attention needs to be paid to your data when clustering. Are they variables that naturally contain mean? If so, a k-means clustering might work well.
 
-### Determining Factor Numbers
+### Determining Cluster Numbers
 
-Determining the number the number of clusters is very much akin to determining the number of factors in factor analysis -- there can be theory guiding the practice, but various statistics can help us make our decisions too. When clustering, especially hard clustering, we need to be thoughtful about the clarity of our clusters -- too few clusters might not be helpful, but too many clusters might not separate very well. There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
+Determining the number of clusters is very much akin to determining the number of factors in factor analysis -- there can be theory guiding the practice, but various statistics can help us make our decisions too. When clustering, especially hard clustering, we need to be thoughtful about the clarity of our clusters -- too few clusters might not be helpful, but too many clusters might not separate very well. There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
 
 As an example, let's use the data from the Holzinger Swineford article, found in the lavaan package.
 
 ```{r}
+library(factoextra)
+
 library(lavaan)
 
 library(dplyr)
@@ -223,3 +225,37 @@ rbind(cluster1 = testData[hier2Clus == 1, ] %>%
 
 
 Just like everything else we have seen, we have a lower scoring group and a higher scoring group.
+
+## A Brief Word On Fuzzy Clustering
+
+To this point, we have been using "hard" clustering -- an observation is put into one cluster and there is no notion that the observation could belong to another. Fuzzy clustering changes this, by providing probabilities of class membership. 
+
+```{r}
+fuzzyTest = fanny(testData, k = 2, memb.exp = 1.25)
+```
+
+We can get our clusters, just like we did with everything else:
+
+```{r}
+head(fuzzyTest$clustering)
+```
+
+But a key difference is that we can also get the membership coefficients
+
+```{r}
+head(fuzzyTest$membership)
+```
+
+These can essentially be thought of as the probability of belonging to a cluster.
+
+```{r}
+fviz_cluster(fuzzyTest)
+```
+
+We can see that a great deal of the observations are pretty clear, but we can look at one of the observations that are resting between the 2 clusters.
+
+```{r}
+fuzzyTest$membership[67, ]
+```
+
+We can see that it is not exactly 50/50, but it is pretty clear that this observation's membership in cluster 2 is not 100% concrete.

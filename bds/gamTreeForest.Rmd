@@ -8,7 +8,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 # Generalized Additive Models
@@ -66,6 +66,8 @@ lines(sort(plotDat$enabling),
                 data = plotDat))[order(plotDat$enabling)], col = "green")
 ```
 
+The preceding figure shows us 3 different lines: a linear regression line, and two higher-order trends. We will use them as a reference.
+
 Let’s check this out:
 
 ```{r}
@@ -85,7 +87,7 @@ gamTest = gam(effect ~ enabling, data = noLeaders)
 summary(gamTest)
 ```
 
-
+You should notice that there is no difference between our standard linear model and our gam with regard to the coefficient. If we do not smooth a variable, it gets treated just like it would in a linear regression model. We also get some output such as adjusted R^2 (interpreted as per normal) and we also have deviance explained, which is giving us very similiar information to adjusted R^2 (instead of looking at the sums of square error between fitted and observed, it just uses a different error calculation). The scale estimate, in this case, is the residual standard error squared. GCV is the minimized generalised cross-validation and it gives us an idea about our prediction error (ideally, we want this to be a small value).
 
 Let’s try to smooth. In the following code, you will notice how we wrapped out term in s(). Believe it or not, this is to specify a smooth term. We could spend a whole week on different ways to smooth things, but we will just stick with s() and its defaults for now.
 
@@ -95,7 +97,11 @@ gamTestSmooth = gam(effect ~ s(enabling), data = noLeaders)
 summary(gamTestSmooth)
 ```
 
+After smoothing our term, we can see that our output has changed. Instead of getting a linear regression coefficient, we get an edf (estimated degrees of freedom). While these edf values lack the clean interpretation of our linear regression coefficients, we can still get a great deal of information from them. The closer edf is to 1, the more linear in nature the term actually is. However, as edf goes beyond 1, we have an increasingly wigglier relationship. 
 
+Since we included a smooth term, we can see that our model fit has improved from our previous gam without a smooth term.
+
+If we plot our newly-fitted gam model back onto our previous visualization, here is what we get:
 ```{r}
 plot(effect ~ enabling, data = plotDat)
 lines(sort(plotDat$enabling), 
@@ -113,18 +119,20 @@ lines(sort(plotDat$enabling),
       col = "orange") 
 ```
 
+The soft orange line is our gam fit. We can see that it does not rocket upwards, like our higher-order terms, but is instead capturing a bit of the downward trend towards the larger values of the enabling variable.
+
 ## Bias/Variance Trade-Off
 
 The wiggle can be controlled and you are the one to control it (all models are your monster, so build them in a way that you can control it). An important consideration to make with the wiggle (and with almost all of our decision from here on out) is the bias/variance trade-off. You will see this called other things (e.g., error/variance), depending on with whom you are hanging around. Since we have only talked about bias briefly, we do not need to worry about getting bias in this sense conflated with anything else.
 
 It works like this: you cannot have your cake and eat it too. Do you want your in-sample predicition to be awesome (low bias)? Great! You can count on getting that at the expense of higher variance. The lower the variance, the better your model will predict new data. Well that sounds easy – just go with the lowest variance. But...that might contribute to missing some weird pattern. Again, it is just a decision to make (you likely won't be facing off with your monsters in the Arctic in the end).
 
-With our gam models, the wigglier your line, the lower your bias will be and the better you are doing at predicting in sample. You can see the line really bending to fit the pattern within your data.
+With our gam models, the wigglier your line, the lower your bias will be and the better you are doing at predicting in sample. 
 
 ```{r}
 library(ggplot2)
 
-gamTestLambda1 = gam(effect ~ s(enabling, sp = .1, k = 40), data = noLeaders)
+gamTestLambda1 = gam(effect ~ s(enabling, sp = 0, k = 40), data = noLeaders)
 
 p = predict(gamTestLambda1, type = "lpmatrix")
 
@@ -135,7 +143,8 @@ s = p %*% beta
 plotDat = cbind.data.frame(s = s, enabling = na.omit(noLeaders$enabling))
 
 gam1Plot = ggplot(plotDat, aes(enabling, s)) + 
-  geom_line() +
+  geom_line(color = "#ff5500") +
+  geom_point(data = noLeaders, aes(enabling, effect), alpha = .5) +
   theme_minimal()
 
 gamTestLambda9 = gam(effect ~ s(enabling, sp = .9, k = 40), data = noLeaders)
@@ -149,13 +158,16 @@ s = p %*% beta
 plotDat = cbind.data.frame(s = s, enabling = na.omit(noLeaders$enabling))
 
 gam9Plot = ggplot(plotDat, aes(enabling, s)) + 
-  geom_line() +
+  geom_line(color = "#ff5500") +
+  geom_point(data = noLeaders, aes(enabling, effect), alpha = .5) +
   theme_minimal()
 
 library(gridExtra)
 
 gridExtra::grid.arrange(gam1Plot, gam9Plot)
 ```
+
+In the top plot, we have allowed our line a bit more flexibility to wiggle -- you can see the line bending more to fit the pattern within your data. We are going to get very good in-sample prediction here, at the expense of out-of-sample prediction. The bottom plot, is a bit more reserved. It will undoubtedly do better out-of-sample, but might be missing something within the in-sample data.
 
 
 # Decision Trees
@@ -248,8 +260,10 @@ confusionMatrix(predict(overgrownTree, type = "class"),
                 noRecodes$Status)
 ```
 
+We can see what happens when we reduce the number of observation in any one split and we completely relax the need to improve our fit at every node -- our tree is allowed to grow almost unchecked. Although our decision tree is now absolutely crazy and nearly impossible to follow, we have greatly improved our accuracy. Again, this in-sample accuracy is likely going to come with the cost of poor out-of-sample accuracy. 
 
-For the love of all that is holy, is this really necessary? We already have regression, why do we need to have something else to further cloud the skies? Here is a big hint – if you have a limited set of predictors with clearly linear relationships that are bound by concrete theory, then a linear regression model will outperform these trees. If, on the other hand, you have more than a few predictors and no clear theory to guide variable selection, then the trees will be great.
+
+For the love of all that is holy, is this really necessary? Here is a big hint – if you have a limited set of predictors with clearly linear relationships that are bound by concrete theory, then a linear regression model will outperform these trees. If, on the other hand, you have more than a few predictors and no clear theory to guide variable selection, then the trees will be great.
 
 
 # Random Forest
@@ -313,34 +327,28 @@ plot(repTree)
 
 What happened? While we do not want to overgrow a tree, a random forest does not care in the slightest. In fact, it will grow the deepest tree that it possibly can. If you would say that this causes over-fitting, then you would be absolutely correct. Remember, though, that we are generating a lot of trees and using all of these trees to votes on the outcomes. Therefore, the over-fitting within one tree really does not make a big differenece – it will come out in the wash. But, you can see where interpretting a tree from a forest is practically nonsense!
 
-```{r}
+While interpretting a tree is indeed nonsense, we can do some work with exploring what happens within the tree and specific observations a bit more. This is certainly not requisite, thus the output of the code is not provided, but you could use the following code from the lime package to do some exploring on your own.
+
+```{r, eval = FALSE}
 library(lime)
 
-sampleObs = sample.int(n = nrow(noRecodes), 
+sampleObs = sample.int(n = nrow(noRecodes),
                        size = floor(.75 * nrow(noRecodes)), replace = F)
 
 train = noRecodes[sampleObs, ]
 
 test = noRecodes[-sampleObs, ]
 
-
-# Create Random Forest model on iris data
 modelTrain = train(Status ~ ., data = train, method = 'rf')
 
-# Create an explainer object
 explainer = lime(train, modelTrain)
 
-# Explain new observation
 explanation = explain(test, explainer, n_labels = 2, n_features = 3)
 
-# The output is provided in a consistent tabular format and includes the
-# output from the model.
 head(explanation)
 
 plot_features(explanation)
 ```
-
-
 
 
 This is but one type of classification tree/random forest scenario. The “party” package has some different tree/forest algorithms. Let’s take a look at a random forest fit with conditional inference. Instead of using something like the Gini index to maximize information, conditional inference trees use significance testing to perform the splits.
@@ -359,4 +367,6 @@ Let’s see if we did any better:
 confusionMatrix(predict(crfTest), noRecodes$Status, positive = "good")
 ```
 
-We can get a sample tree from this forest, but we are not going to do it. One important thing to note is that party will not create a deep tree by default.
+We certainly did! This all boils down to tweaking the parameters of your forest. It is not terribly hard to make incremental improvements to your prediction rates, but sometimes you can make pretty significant jumps just by switching up the way the nodes are split.
+
+We could get a sample tree from this forest, but we are not going to do it. One important thing to note is that party will not create a deep tree by default.

@@ -42,7 +42,7 @@ library(car)
 
 library(dplyr)
 
-noLeaders = read.csv("bds/leadershipRatingsAgreement.csv")
+noLeaders = read.csv("leadershipRatingsAgreement.csv")
 
 scatterplotMatrix(noLeaders[, !(names(noLeaders) %in% c("leaderID"))])
 ```

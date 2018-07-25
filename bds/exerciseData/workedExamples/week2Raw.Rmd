@@ -1,0 +1,63 @@
+---
+title: "Week 2 Practice"
+author: "BDS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(dplyr)
+```
+
+Many, if not all, organizations really care about employee retention -- replacing employees is a costly endeavor and one that organizations would rather not engage in with great regularity. To that end, many people involved in HR-flavored analytics are curious about what drives turnover -- is it pay, performance, interest, or something about the person?
+
+Unfortunately, not all organizations have the capacity to explore such issues. If an organization came to you and asked about the causes of employee turnover, you might be able to help them; however, the level to which you could help them is going to be a function of the data at hand. Whenever we are looking at behaviors, we need to be sure that we actually have the behavior within the data. J
+
+For example, could you provide any answers about turnover with the following data:
+
+```{r}
+data.frame(tenure = round(rnorm(500, mean = 10, sd = 2)), 
+           salary = rnorm(500, mean = 45000, sd = 10000),
+           last_review = sample(c("Developing", "Valued", "Top Performer"), 500, replace = TRUE)) %>% 
+  summary()
+```
+
+What about the following data. What questions about turnover could be answered?
+
+```{r}
+data.frame(tenure = round(rnorm(500, mean = 10, sd = 2)), 
+           salary = rnorm(500, mean = 45000, sd = 10000),
+           last_review = sample(c("Developing", "Valued", "Top Performer"), 500, replace = TRUE), 
+           current_employee_NY = sample(0:1, 500, replace = TRUE)) %>% 
+  summary()
+```
+
+
+What questions about turnover could be answered with this data:
+
+```{r}
+data.frame(degree = sample(c("CS", "Management", "Biology"), 500, replace = TRUE), 
+           degree_type = sample(c("BS", "Masters", "Doctoral"), 500, replace = TRUE),
+           hired_NY = sample(0:1, 500, replace = TRUE)) %>% 
+  summary()
+```
+
+
+Even if you have all of the necessary data, you need to make sure that the hypotheses actually follow a logic mechanism (while causality is hard to demonstrate, our hypotheses should at least make causal sense).
+
+Does the following hypothesis make sense? If not, how could it be revised?
+
+> People who use online dating services like Tandem are more likely to engage in extramarital affairs.
+
+What about this one?
+
+> Gambling causes people to have higher levels of risk taking behaviors.
+
+And this one?
+
+> Having more muscle mass leads to greater expenditures on protein powder.
+
+Finally?
+
+> People who litter less are more responsive to anti-littering ad campaigns.

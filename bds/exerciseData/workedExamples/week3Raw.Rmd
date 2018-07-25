@@ -1,0 +1,24 @@
+---
+title: "Week 3 Practice"
+author: "BDS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Who needs ethics when we have such great data? Everyone...the answer is everyone!
+
+People get excited about data and this excitement does not just lead to weird questions. People tend to not think about the data that they have and how sensitive it can be. Even if the data is not sensitive, care needs to be taken to make sure that the data is not identifiable (especially if there is a reasonable expectation of privacy).
+
+Always imagine the absolute worst thing that could happen with your data (this is one place where it is absolutely okay to be a bit conspiratorial). 
+
+Find the issues with the following situations. Unfortunately, these are all real-life examples.
+
+> Someone is going to give me an external drive. This drive will originate in Brazil and I will bring it with me to America. On this drive, I will have data from every branch of a bank. This bank is one that has been through a recent merger. I will have data on every employee, including: name, address, performance reviews, salary, tenure, employee id. In addition to the employee specific data, I will also have every email sent during the last 5 years, with all sender and recipient information.
+
+> I conducted a survey of people in several manufacturing facilities. The study was reviewed by the Institutional Review Board (IRB) and all participants agreed to participate. My co-author and I were both listed on our protocol. In our survey, many people volunarily gave us their names and organization. My co-author and I later needed some external assistance, so we sent the whole data file, through email, to a data scientist.
+
+> In a program evaluation of violence prevention training for middle school students, great precautions were taken to not record any student identities (names, home addresses, parental contact information). We did, however, collect information about each student's school, class, age, and gender. We don't have to worry about de-identifying the data, because there are not any names within the data.
+

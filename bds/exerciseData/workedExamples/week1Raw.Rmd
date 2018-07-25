@@ -1,0 +1,44 @@
+---
+title: "Week 1 Practice"
+author: "BDS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(dplyr)
+```
+
+Data excites people. If you give people data, there is a good chance that they will take it straight to Excel and pivot table away. This is the type of behavior that cause some people to note that human beings are natural scientists -- we are always on the look-out for patterns and relationships. This practice becomes even more rewarding and engaging when that is about people, from people, and what those people do. The thought is typically, "Hey! I'm a person, so I probably know about what other people do!" 
+
+When people have this data and access to someone with the chops to answer questions, their brains will start creating a glut of questions. As a practicioner of data science, you need to be a guiding light for asking the correct questions. Furthermore, you must remember that great magic happens in the blackbox, but people often like to have explainable answers to the question.
+
+You have the power to get the answers, but you need to understand the question. Not only do you need to understand the question, but sometime you will need to shape the question
+
+Given the following data and question, provide some advice on what questions could actually be answered:
+
+> Do tobacco users utilize riskier betting strategies than non-users?
+
+```{r}
+data.frame(cigs_smoked_daily = rnorm(50, 25, 2), 
+           betting_strategy = sample(c("conservative", "balanced", "aggressive"), 50, replace = TRUE)) %>% 
+  summary()
+```
+
+
+> Will more experienced video game players use fewer pulse blasts (i.e., weak blasts, but fast follow-up shots) than players with less experience?
+
+```{r}
+data.frame(charge_blast_count = rnorm(50, 75, 15), 
+           hours_in_game = rnorm(50, 50, 10)) %>% 
+  summary()
+```
+
+> Are there any group differences in page interaction (click rates, scroll rates, etc.) between people using different web browsers?
+
+```{r}
+data.frame(seconds_on_page = rnorm(5000, 60, 10), 
+           browser = sample(c("Safari", "Chrome", "Firefox", "Edge"), 5000, replace = TRUE)) %>% 
+  summary()
+```

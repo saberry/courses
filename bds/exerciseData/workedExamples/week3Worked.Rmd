@@ -1,0 +1,29 @@
+---
+title: "Week 3 Practice"
+author: "BDS"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Who needs ethics when we have such great data? Everyone...the answer is everyone!
+
+People get excited about data and this excitement does not just lead to weird questions. People tend to not think about the data that they have and how sensitive it can be. Even if the data is not sensitive, care needs to be taken to make sure that the data is not identifiable (especially if there is a reasonable expectation of privacy).
+
+Always imagine the absolute worst thing that could happen with your data (this is one place where it is absolutely okay to be a bit conspiratorial). 
+
+Find the issues with the following situations. Unfortunately, these are all real-life examples.
+
+> Someone is going to give me an external drive. This drive will originate in Brazil and I will bring it with me to America. On this drive, I will have data from every branch of a bank. This bank is one that has been through a recent merger. I will have data on every employee, including: name, address, performance reviews, salary, tenure, employee id. In addition to the employee specific data, I will also have every email sent during the last 5 years, with all sender and recipient information.
+
+Where to begin? First, an external drive is not a secure way to transfer data (pretty easy for it to get stolen). We would also need to be careful about any export controls with regard to the data. Next, we have data that is, without doubt, highly identifiable. The employees of the bank would certainly have a reasonable expectation of privacy with regard to any research projects on their data. Depending on how this data would be stored, it could cause major problems if it were ever to be leaked.
+
+> I conducted a survey of people in several manufacturing facilities. The study was reviewed by the Institutional Review Board (IRB) and all participants agreed to participate. My co-author and I were both listed on our protocol. In our survey, many people volunarily gave us their names and organization. My co-author and I later needed some external assistance, so we sent the whole data file, through email, to a data scientist.
+
+Depending upon what people were told within the informed consent of the survey and what was offered to the IRB, it might not be too big of a deal to have the names within the survey. What is a big deal, however, is sharing this data with someone who was not intended to have it -- especially since it there are names within the data. Finally, just emailing someone data of this nature is a poor practice.
+
+> In a program evaluation of violence prevention training for middle school students, great precautions were taken to not record any student identities (names, home addresses, parental contact information). We did, however, collect information about each student's school, class, age, and gender. We don't have to worry about de-identifying the data, because there are not any names within the data.
+
+With a brief glance, this seems like it could be okay. In thinking through the issues, though, it becomes apparent that we have enough information that we could very well identify individual children. I can essentially use the data to triangulate the identity of any child that has engaged in the program. It is always worth remembering that data can be identifying in abscense of a name; we just need a few key fields and we can start to get pretty close to an identity.

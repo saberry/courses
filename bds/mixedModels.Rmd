@@ -1,5 +1,6 @@
 ---
 title: "Mixed Models"
+author: "Behavioral Data Science"
 output: html_document
 ---
 
@@ -131,7 +132,7 @@ summary(riModP)
 
 ```
 
-**NOTE:** I would never load the lmerTest package, but would attach with colons!
+**NOTE:** I would never load the lmerTest package, but would attach with colons! If you load it, you will find that it masks things from lme4 that you don't want to have masked (i.e., lmer) and they are not equivalent objects!
 
 Getting predicted values from our mixed model is no different then getting them from any other model:
 
@@ -191,7 +192,7 @@ head(cbind(actual = healthData$SCORE,
 
 For many observations, our predictions definitely go tighter (many are still far off, though).
 
-If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses.
+If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses. We could imagine two different ways that the works: one in which a restuarant's score improves as observations increase (it takes some time for the owner to get his staff fully up to speed) or one in which the score decreases as the observations increase (the "shine has worn off the penny").
 
 Let's do a bit of data processing first.
 
@@ -242,7 +243,7 @@ We see that the location alone accounts for nearly 20% of the variance in health
 
 ## Hierarchical Models
 
-Hierarchical are a slight variation on the models that we have just seen. In these models, we have groups nested within other groups. We know that we have a "BORO" variable, but a quick look at our data will show that we also have a DBA variable; this variable is giving the name of the restaurant.  One source of inquiry would be to inspect how various chain restaurants, nested within each boro, perform.
+Hierarchical models are a slight variation on the models that we have just seen. In these models, we have groups nested within other groups. We know that we have a "BORO" variable, but a quick look at our data will show that we also have a DBA variable; this variable is giving the name of the restaurant.  One source of inquiry would be to inspect how various chain restaurants, nested within each boro, perform.
 
 Let's check out how some chain restaurants do within the boroughs. 
 
@@ -263,13 +264,65 @@ hierMod = lme4::lmer(SCORE ~ observation + (1|BORO/DBA),
 summary(hierMod)
 ```
 
+We have our fixed effect for observation (indicating that there is a positive relationship between observations and scores) and we have individual intercepts for both BORO and DBA nested within BORO. Looking at the standard deviation of our random effects, we can see that the scores bounce around a little over 3 points from chain to chain. If we explore the variance components, we see that around 6% (11.076 / (11.076 + 1.877 + 168.91)) of the variance in score is handled within our nested random effect.
+
+We can also look at our effect ranges: 
+
 ```{r}
 plotREsim(REsim(hierMod))
 ```
 
-```{r}
+Even though it does not look like there is too much going on in the way of effects here, we still need to know the group(s) that each dot represent(s):
 
+```{r}
 unique(hierMod@flist$BORO)
 unique(hierMod@flist$`DBA:BORO`)
 ```
 
+They appear in the same order in the graph as they do printed out, so we can just map them on. While the interval is large and certainly crosses 0, it seems like the effect for McDonald's in the Bronx is sizeable.
+
+## Random Slopes
+
+Now that we have seen random intercepts and hierarchical models, we can add one final piece: random slopes. In the following model, we will specify a random intercept (recall, it is the 1 within our parenthesis) and a random slope (we are putting the prefixing our grouping variable with a slope of interest). Not only will this model allow the intercept to vary between groups, but it will also allow the slope to vary between groups.
+
+```{r}
+observationMod = lmer(SCORE ~ observation + (1 + observation|nameLocation), data = reviewedRest)
+
+summary(observationMod)
+```
+
+Nothing changes with regard to our fixed effects, but we get some added information in our random effects. The random intercept variance for each location is telling us the amount that the first score bounces around from place to place (a pretty massive amount, if you ask me) and the observation variance is telling us how much variability there is within the slope between locations. 
+
+If we use the predicted values of our model, we can see what our results will look like over the observations:
+
+```{r}
+
+
+randEffPlot = reviewedRest %>% 
+  ungroup() %>% 
+  mutate(mixedPrediction = predict(observationMod)) %>% 
+  group_by(nameLocation) %>% 
+  ggplot(., aes(observation, mixedPrediction, group = nameLocation)) + 
+  geom_line(alpha = .5) + 
+  theme_minimal()
+  
+randEffPlot
+```
+
+Amazing! We can really see the varying intercepts for each restaurant and we can see how the slopes are completely different (some are similar, but we have a completely mixed bag of directions and magnitudes). 
+
+For the sake of demonstration, and hopefully as a way to bring everyting together, let's see what predictions from a standard regression might look like compared to our mixed model:
+
+```{r}
+slimPred = predict(lm(SCORE ~ observation, data = reviewedRest))
+
+reviewedRest = reviewedRest %>% 
+  ungroup() %>% 
+  mutate(slimPrediction = slimPred)
+
+randEffPlot +
+  geom_line(data = reviewedRest, aes(observation, slimPrediction), 
+            color = "#ff5500", size = 2)
+```
+
+It looks like the standard regression line would do okay for many of our locations, but we can see that it would do poorly with many others. This should help to provide an illustration of just how flexible and powerful mixed model can be in your hands.

@@ -1,7 +1,6 @@
 ---
 title: "Factor Analysis"
 author: "Behavioral Data Science"
-date: "February 26, 2018"
 output: html_document
 ---
 
@@ -23,7 +22,7 @@ An important part of measurement concerns error. Error can come from many differ
 
 There might be a feeling of dejavu creeping in here. You have already learned about a technique used for taking items and reducing them down -- principal components analysis (PCA). The logical question is are factor analysis and pca the same things? They are both matrix factorization techniques, but the similarities start to end pretty quickly after that.
 
-  - Causal direction: The video highlights the difference between the causual direction of PCA and factor analysis.
+  - Causal direction: In PCA, the items are the cause of the component (think how ingredients combine to make a pancake -- the pancake exists because the ingredients exist). In factor analysis, the latent factor gives rise to the items (i.e., the items reflect the construct -- questions for mathematical reason exist because there is a construct for mathematical reasoning that exists beyond the existence of the items).
   
   - Component/Factor Interpretation: These is no interpretation of a component -- it simply exists to reduce the variables. Factors represent the latent variables are important.
   
@@ -31,7 +30,7 @@ There might be a feeling of dejavu creeping in here. You have already learned ab
   
   - Measurement error: PCA assumes perfect measurement
 
-Let's see what these difference mean
+Let's see what these difference mean in terms of our output:
 
 ```{r}
 library(dplyr)
@@ -42,16 +41,16 @@ testData = bfi %>%
   select(starts_with("A", ignore.case = FALSE), 
          starts_with("C"))
 
-testPCA = pca(r = testData, nfactors = 2, rotate = "none")
+testPCA = principal(r = testData, nfactors = 2, rotate = "none")
 
 testFA = fa(r = testData, nfactors = 2, rotate = "none")
-
 
 testPCA
 
 testFA
 ```
 
+While items might load on the same factor/component, the magnitudes are much different. We also see differences in communality (h2 -- item correlations with all other items) and item uniqueness (u2 -- variance that is unique to the item and not the factor/component). We can also see that our PCA extracted more variance from the items than did our EFA (.48 to .36).
 
 ## Determining Factor Numbers
 
@@ -61,17 +60,18 @@ Determining the appropriate number of factors in an exploratory factor analysis 
 psych::fa.parallel(testData)
 ```
 
-This is the most automated way of finding a potentially suitable number of factors. If some theory exists, you can also use that information to guide your factor numbers. 
+This is the most automated way of finding a potentially suitable number of factors. We are given some output appropriate for both factor analysis and principal components analysis, with a graphical representation provided. In this case, parallel analysis would suggest 4 factors to be retained for a factor analysis. If some theory exists, you can also use that information to guide your factor numbers. 
 
 While you will often get some different results, you can also use the nfactors function:
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 testData %>% 
   na.omit() %>% 
   cor() %>% 
   psych::nfactors()
 ```
 
+Now we are provided a variety of different metrics for determining the number of factors to retain. We can see that the suggested number of factors range from 2 (very simple structure with complexity 1 and MAP) to 5 (very simple structure with complexity 2). Given the results of our parallel analysis and our sample size adjusted BIC, we could make a good argument for retaining 4 factors.
 
 ## Rotation
 
@@ -101,7 +101,7 @@ Let's take a peak at the factor loadings of our oblique solution from above:
 obliqueRotation$loadings
 ```
 
-We can see that our output is hiding values of small magnitude (refer to the previous results for all values). We can read these very much in the same way that we read correlations. For factor 1 (MR1 in the output), we see that items C1 through C5 load pretty strongly (with A4 having a weak loading). So, someone who offers a high response on C5 might have lower values of whatever latent trait is being measured, while they might have high values of the latent trait if they respond with a higher value on question C2.
+We can see that our output is hiding values of small magnitude (refer to the previous results for all values) -- this is for ease in examining the loading matrix and we could consider these as neglible loadings given the weakness of the loading. We can read these very much in the same way that we read correlations. For factor 1 (MR1 in the output), we see that items C1 through C5 load pretty strongly (with A4 having a weak loading). So, someone who offers a high response on C5 might have lower values of whatever latent trait is being measured, while they might have high values of the latent trait if they respond with a higher value on question C2.
 
 ## Factor Scoring
 
@@ -238,7 +238,21 @@ Earlier, we played with the bfi data. Let's return to that, but with a hypothesi
 bfiSubFactors = bfi %>% 
   select(-gender, -education, -age)
 
-psych::omega(bfiSubFactors, nfactors = 5, rotate = "promax")
+omegaTest = psych::omega(bfiSubFactors, nfactors = 5, 
+             rotate = "promax", plot = FALSE)
 
+omega.diagram(omegaTest, sl = FALSE)
 ```
 
+This is what our factor structure would look like in a hierarchical fashion. We have the general factor (g) and our 5 subfactors (also called grouping factors). We can see how strongly our subfactors load onto our general factor with the provided values. We can also see how strongly each individual items loads onto a subfactor.
+
+We can also look at some reliability values (and a cleaner loading matrix):
+
+```{r}
+omegaTest
+```
+
+
+While we see that we can get an $\alpha$ value, we also have Guttman's $\lambda_6$, and 3 different $\omega$ values that are of interest to us. Since we are dealing with something of a hierarchical nature, we already know that $\alpha$ and $\lambda_6$ won't be appropriate.  $\omega_h$ gives us an idea about the reliability of the general factor (perhaps not super in this case) and $\omega_t$ gives us the total reliability of the test (very good). 
+
+We can also see item loadings for the general factor and each subfactor. Generally, we find that the items that we would anticipate loading together (e.g., all N items load together, and all O items load together), along with some cross-loading items from other subfactors.

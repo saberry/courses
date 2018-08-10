@@ -123,7 +123,7 @@ Instead, we can use factor scores. There are several different types of factor s
 
 Thurstone score are incredibly easy to produce by hand, so let's give it a try.
 
-To compute those score, we need to produce a correlation matrix of our observed scores. For simplicity, let see what a one factor model would look like.
+To compute those scores, we need to produce a correlation matrix of our observed scores. For simplicity, let see what a one factor model would look like.
 
 ```{r}
 agreeDat = bfi %>% 

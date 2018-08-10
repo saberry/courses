@@ -48,6 +48,7 @@ summary(lmTest)
 
 We have our standard output here. As before, our intercept is the average score when there is zero distance between the restaurant and department of health and our coefficient for distance is telling us that for every mile increase in distance, we are increasing our score by some tiny amount. We know that we are ignoring some information within our model, namely the clustering that occurs based upon cuisine and/or borough. 
 
+Let's take a quick look at how each of the different boroughs might behave in a model:
 
 ```{r}
 ggplot(healthData, aes(SCORE, distanceCentered, group = BORO)) +
@@ -56,12 +57,14 @@ ggplot(healthData, aes(SCORE, distanceCentered, group = BORO)) +
   facet_wrap( ~ BORO)
 ```
 
+We can see that we have very different effects for each level of BORO.
 
 ### Why Mixed Models
 
-When we have repeated samples/measurement, mixed models will not overfit or underfit. They don't get bogged down by large groups and the smaller groups do not get buried by the larger groups.
+Given what we saw in the preceding figure, mixed models will allow us to use the information for each level of BORO in the model.
 
-In linear models, you likely learned about balance in *t*-tests; mixed models will attenuate the effects of group imbalance.
+Mixed models don't get bogged down by large groups and the smaller groups do not get buried by the larger groups (in linear models, you likely learned about balance in *t*-tests; mixed models will attenuate the effects of group imbalance.) and mixed models will not overfit or underfit when we have repeated samples/measurement
+
 
 ## Random Intercepts Model
 
@@ -83,13 +86,17 @@ We should probably check out the summary:
 summary(riMod)
 ```
 
-We have our standard output and we can see that our coefficients have changed from our standard linear model -- this change is purely due to the severe imbalance between our groups:
+We have our standard output and we can see that our coefficients have changed from our standard linear model -- this change is purely due to the severe imbalance between our groups.
+
+We can see the imbalance between the groups by using the group_by and summarize:
 
 ```{r}
 healthData %>% 
   group_by(BORO) %>% 
   summarize(n())
 ```
+
+We can clearly see that we have large disparities between our groups.
 
 When groups are largely balanced, we would find that our coefficients would be the same (or very close to it).
 

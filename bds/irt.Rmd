@@ -43,7 +43,7 @@ library(ltm)
 # The model arguement set to 1 means we are just looking
 # at a one factor model.
 
-fit1PL <- mirt(LSAT, model = 1, itemtype = "Rasch")
+fit1PL = mirt(LSAT, model = 1, itemtype = "Rasch", verbose = FALSE)
 
 plot(fit1PL, type = 'trace', which.items = 1:5, 
      facet_items = FALSE)
@@ -61,7 +61,7 @@ Item discrimination, the $a_i$ parameter, demonstrates the likelihood of people 
 Let's specify a slightly different model and take a look at our ICC again:
 
 ```{r}
-fit2PL <- mirt(LSAT, model = 1, itemtype = "2PL")
+fit2PL = mirt(LSAT, model = 1, itemtype = "2PL", verbose = FALSE)
 
 plot(fit2PL, type = 'trace', which.items = 1:5, 
      facet_items = FALSE)
@@ -94,7 +94,7 @@ The two parameter logistic model (2PL) adds the discrimination parameter, $a_i$,
 The three parameter logistic model (3PL) adds in the guessing parameter, $c_i$. You might wonder how in the world a guessing parameter is added! If someone could guess the correct answer (think about a multiple choice test), would the probability of a correct answer ever be 0? I would think not. So, $c_i$ just includes a lower-bound asymtote. 
 
 ```{r}
-fit3PL = mirt(LSAT, model = 1, itemtype = "3PL")
+fit3PL = mirt(LSAT, model = 1, itemtype = "3PL", verbose = FALSE)
 
 plot(fit3PL, type = 'trace', which.items = 1:5, 
      facet_items = FALSE)
@@ -126,6 +126,8 @@ Scoring in IRT models works a bit differently than scoring in CTT.
 
 An element common to both IRT and CTT is the *true score*, $true_{score} = observed_{score} + e$. The distinction rests in how they treat $e$ -- CTT assumes that error is the same for everyone and IRT allows for error to vary freely across people.
 
+IRT scores also have the added benefit of using the item response functions in the computation of scores. 
+
 We can see the factor scores returned from our model:
 
 ```{r}
@@ -136,6 +138,21 @@ head(facScores)
 summary(facScores)
 
 ```
+
+And let's see what scores from a factor analysis would look like compared to these scores:
+
+```{r}
+faScores = psych::fa(LSAT, 1, rotate = "promax")$scores
+
+summary(faScores)
+
+cor(faScores, facScores)
+
+plot(faScores, facScores)
+```
+
+We can see some very clear similarities and an undeniable correlation between our two different factor scores. While certainly similar, we can be pretty confident that our IRT scores are closer to *true scores*. 
+
 
 
 ## Different Measurement Levels
@@ -167,7 +184,7 @@ testData %>%
   theme_minimal()
 
 
-grmMod = mirt(testData, model = 1, itemtype = "graded")
+grmMod = mirt(testData, model = 1, itemtype = "graded", verbose = FALSE)
 
 coef(grmMod, simplify = TRUE, IRTpars = TRUE)
 

@@ -1,0 +1,67 @@
+Homework # 1
+
+	Behavioral data is everywhere. The Behavioral Risk Factor Surveillance System is an annual survey about people's health behaviors. The survey covers a very broad range of behaviors, ranging from eating habits to drug use, and is a rich source of data. Using the codebook, https://www.cdc.gov/brfss/annual_data/2016/pdf/codebook16_llcp.pdf, develop 5 distinct research questions that could be answered with the data. Pay careful attention to the response options for each variable that you would use.
+
+Week 1
+
+Week 2
+
+Week 3
+
+Week 4
+
+The "Partitioning the variance in factor analysis" section in https://stats.idre.ucla.edu/spss/seminars/introduction-to-factor-analysis/a-practical-introduction-to-factor-analysis/ might be helpful.
+
+Revelle's guide: http://personality-project.org/r/psych/HowTo/factor.pdf
+
+
+Week 5
+
+The article for mirt: https://www.jstatsoft.org/article/view/v048i06/v48i06.pdf
+
+A nice and easy to digest primer: https://www.mailman.columbia.edu/research/population-health-methods/item-response-theory
+
+A deeper dive: https://www.metheval.uni-jena.de/irt/VisualIRT.pdf
+
+Week 6
+
+Bodo Winter's helpful jumpstarter: www.bodowinter.com/tutorial/bw_LME_tutorial2.pdf
+
+Good additional insight: https://ourcodingclub.github.io/2017/03/15/mixed-models.html
+
+The lme4 paper: https://cran.r-project.org/web/packages/lme4/vignettes/lmer.pdf
+
+
+Week 7
+
+A quick primer: https://datascienceplus.com/imputing-missing-data-with-r-mice-package/
+
+Look under the "Vignettes": http://stefvanbuuren.github.io/mice/
+
+The mice paper: https://www.jstatsoft.org/index.php/jss/article/view/v045i03/v45i03.pdf
+
+
+Week 8
+
+A really great set of slides: http://www.stat.columbia.edu/~madigan/W2025/notes/clustering.pdf
+
+A bit more in-depth: https://www-users.cs.umn.edu/~kumar001/dmbook/ch8.pdf
+
+Week 10
+
+
+
+Week 11
+
+Week 12
+
+Week 14
+
+Week 15
+
+Blei's LDA paper: http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf
+
+Blei's God-tier primer: http://www.cs.columbia.edu/~blei/papers/Blei2012.pdf
+
+The stm resources page: https://www.structuraltopicmodel.com/
+

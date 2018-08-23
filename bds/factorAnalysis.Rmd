@@ -1,7 +1,13 @@
 ---
 title: "Factor Analysis"
 author: "Behavioral Data Science"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: zenburn
+    css: leviathan.css
 ---
 
 ```{r setup, include=FALSE}
@@ -30,7 +36,7 @@ There might be a feeling of dejavu creeping in here. You have already learned ab
   
   - Measurement error: PCA assumes perfect measurement
 
-Let's see what these difference mean in terms of our output:
+The <span class="pack">psyc</span> package will make life easy for us. Let's see what these differences mean in terms of our output:
 
 ```{r}
 library(dplyr)
@@ -62,7 +68,7 @@ psych::fa.parallel(testData)
 
 This is the most automated way of finding a potentially suitable number of factors. We are given some output appropriate for both factor analysis and principal components analysis, with a graphical representation provided. In this case, parallel analysis would suggest 4 factors to be retained for a factor analysis. If some theory exists, you can also use that information to guide your factor numbers. 
 
-While you will often get some different results, you can also use the nfactors function:
+While you will often get some different results, you can also use the <span class="func">nfactors</span> function:
 
 ```{r, eval = TRUE}
 testData %>% 
@@ -210,20 +216,20 @@ Let's calculate it on our own. We will need to recode our negatively correlated 
 agreeDatRecode = agreeDat %>% 
   mutate(A1 = abs(A1-7)) # This recodes our scale direction
 
-nvar <- length(agreeDatRecode)
+nvar = length(agreeDatRecode)
 
 # This computes the covariance matrix of our data.
 
-C <- cov(agreeDatRecode, use = "complete.obs")
+C = cov(agreeDatRecode, use = "complete.obs")
 
-n <- dim(C)[2]
+n = dim(C)[2]
 
-total <- rowMeans(agreeDatRecode, na.rm = TRUE)
+total = rowMeans(agreeDatRecode, na.rm = TRUE)
 
 # The tr function is just adding everything on the 
 # diagonal from our covariance matrix.
 
-alpha.raw <- (1 - psych::tr(C)/sum(C)) * (n/(n - 1))
+alpha.raw = (1 - psych::tr(C)/sum(C)) * (n/(n - 1))
 ```
 
 How did we do? We perfectly replicated our raw alpha value from the output. This is an easy example, but more elaborate ones don't take much more effort. 

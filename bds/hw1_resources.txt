@@ -1,6 +1,6 @@
 Homework # 1
 
-	Behavioral data is everywhere. The Behavioral Risk Factor Surveillance System is an annual survey about people's health behaviors. The survey covers a very broad range of behaviors, ranging from eating habits to drug use, and is a rich source of data. Using the codebook, https://www.cdc.gov/brfss/annual_data/2016/pdf/codebook16_llcp.pdf, develop 5 distinct research questions that could be answered with the data. Pay careful attention to the response options for each variable that you would use.
+Behavioral data is everywhere. The Behavioral Risk Factor Surveillance System is an annual survey about people's health behaviors. The survey covers a very broad range of behaviors, ranging from eating habits to drug use, and is a rich source of data. Using the codebook, https://www.cdc.gov/brfss/annual_data/2016/pdf/codebook16_llcp.pdf, develop 5 distinct research questions that could be answered with the data. Pay careful attention to the response options for each variable that you would use.
 
 Week 1
 

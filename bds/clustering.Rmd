@@ -162,7 +162,14 @@ mclustTest = Mclust(testData, 2, modelNames = "VEE")
 summary(mclustTest)
 ```
 
-We can see that the provided output is very different than our previous clustering efforts. We have a cluster table, demonstrating how many observations are grouped into the two clusters, and we have mixing probabilites. The mixing probabilities add up to 1 and are just the probabilities that an observation will wind up in one cluster or another.
+We can see that the provided output is very different than our previous clustering efforts. We have a cluster table, demonstrating how many observations are grouped into the two clusters. We also have mixing probabilites. 
+
+```{r}
+mclustTest$parameters$pro
+```
+
+
+The mixing probabilities add up to 1 and are just the probabilities that an observation will wind up in one cluster or another.
 
 Now, let's look at our clustering centers:
 

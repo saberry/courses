@@ -153,7 +153,18 @@ plot(faScores, facScores)
 
 We can see some very clear similarities and an undeniable correlation between our two different factor scores. While certainly similar, we can be pretty confident that our IRT scores are closer to *true scores*. 
 
+We can also put those scores back into our data to see how they correlate with the other items:
 
+```{r}
+library(dplyr)
+
+LSAT %>% 
+  mutate(scores = facScores) %>% 
+  cor() %>% 
+  GGally::ggcorr()
+```
+
+We can see that overall scores are most correlated with item 3, followed by item 2, and item 4. If we recall our ICC plot from above, this probably should not surprise us too much -- item 3 is definitely the best item, while items 1 and 5 don't look as nice.
 
 ## Different Measurement Levels
 

@@ -1,0 +1,50 @@
+Week 1
+
+Week 2
+  Data: leadership
+  Prompt: Using the leadership variable, complete the following data exploration and visualization tasks: 
+    - summarize (mean and sd are sufficient) the effect variable, by leaderID, OrganizationID, and the combination of both 
+    - using only OrganizationID == 4, create a scatterplot of effect and lvi01, colored by leaderID
+    - using only OrganizationID == 46, create a plot with variables lvi01, lvi13, lvi25, and lvi37 on the x-axis and the number of respondents (colored by leaderID) -- in other words, you are creating a bubble chart for those 4 variables
+
+Week 3
+
+Week 4 -- FA
+  Data: survey_results
+  Prompt: Perform exploratory factor analysis for all variables from ProblemSolving to ChangeWorld. Use any available techniques to determine an appropriate number of factors to retain. Once you have determined the number of factors, provide an explanation for the factor loadings and offer an interpretation for the items that load on an individual factor (i.e., provide the "name" of the factor). 
+  
+Week 5 -- IRT
+  Data: survey_results
+  Prompt: Using the same variables from last week, try a 1 factor IRT model. Which item performs best and which item performs worst? Next, perform an IRT model using the same number of factor that you found last week. Compare and contrast the factor loadings found using an IRT model to those found using factor analysis.  
+
+Week 6 -- Mixed Models
+  Data: leadership
+  Prompt: Create a score using the 12 variables from lvi01 to lvi12. After creating the score, perform a standard linear model with the created score as a predictor of the effect variable. Next, use a mixed model to include a random intercept for leaderID. Finally, create a model with a random intercept for leaderID nested within OrganizationID. With the 3 models, which performs best?
+
+Week 7 -- Imputation
+  Data: leadership
+  Prompt: Using the same data from last week, perform multiple imputation on the missing data (just imputing the score and effect will be suitable). After creating the imputed data, run the standard linear model from last week. Discuss how the imputed model compared to the model with missing value dropped and discuss the imputation model's convergence (e.g., how many iterations before you were comfortable that it converged).
+
+Week 8 -- Clustering
+  Data: PUBG_Player_Statistics
+  Prompt: Using all solo variables, determine the appropriate number of clusters for both k-means and pam clustering. Once you have determined an appropriate number of clusters, conduct your analyses and discuss your results. You discussion should include your interpretation of the clusters, the quality of the clusters, any discernable differences between the two different methods, and which method you would ultimately choose given the data. Provide any necessary visualizations and statistics in your discussion.
+
+Week 10 -- LCA
+  Data: foreveralone
+  Prompt: In this survey of people on r/foreveralone, use the following variables for a latent class analysis: gender, sexuality, bodyweight, social_fear, and depressed. With those variables, try models with 2, 3, 4, and 5 classes. Once you have determined the number of classes that provide the best fit, provide an interpretation for each of the classes. 
+
+Week 11 -- GAM & Random Forest
+  Data: leadership(GAM) & kiva_loans(RF)
+  Prompt: With no concern to the missingness present within the data, run the same standard linear model from week 6, but using GAM with a smooth term. Discuss how the GAM model compares to the standard linear model. Next, use the kiva loans data  and a random forest to classify the repayment types -- we are only concerned with the monthly and irregular values of repayment_interval. Use the following variables as predictors: loan_amount, sector, term_in_months, lender_count, and borrower_genders (for those observations with multiple genders, use the first gender listed). Discuss your prediction accuracy and report which variables were the most and least important.
+
+Week 12 -- Recommender
+  Data: full-data_recommender
+  Prompt: Create a top-5 recommendation for each user based upon the overall rating (rating). To find the recommendations, utilize the HybridRecommender function from recommenderlab. Include any 2 of the following methods: UBCF, IBCF, SVD, POPULAR, and RANDOM. Present all results and explain why you selected your methods.   
+
+Week 13 -- Sentiment
+  Data: Texas Executions
+  Prompt: Begin by exploring the final statements provided within the data. After exploring the data, perform any necessary cleaning and text prep. Once your data is prepared, use the sentiment package to find each inmate's overall sentiment. Provide examples of those statements with clear positive and negative valence, and discuss any limitations that you might have encountered. 
+
+Week 15 -- Topic Models
+  Data: Texas Executions
+  Prompt: Given your prep work on this text last week, start by determining a suitable number of topics for the the final statements. Once you have decided upon the number of topics, use a topic model to discover the latent topics within the statements. Present the results of your topic model and summarize each topic.

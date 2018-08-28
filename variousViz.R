@@ -1,3 +1,20 @@
+#################
+### Section 1 ###
+#################
+
+
+
+# Section 1
+
+library(dplyr)
+
+
+# Section 2
+
+library(dplyr)
+
+# Section 3
+
 library(psych)
 library(ggridges)
 library(viridis)

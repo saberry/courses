@@ -1,0 +1,199 @@
+---
+title: "Topic Models"
+output: html_document
+---
+
+We already know that text is everywhere and our sentiment analysis was a reasonable crack at extracting some meaning from text. A common line of inquiry relates to what is expressed within the text. In traditionally social sciences, this was done through some form of content analysis -- a coding scheme was developed by researchers, people read each comment and assigned it a code, some agreement statistics were computed, and any discrepencies were hashed out by the researchers. When this was the only option, it was servicable. Could you do this for thousands of tweets? With time, maybe. Could you do this with a few million articles? No. This is where topic models, and latent dirichlet allocation, come to save the day.
+
+What follows borrows heavily from documents produced by Michael Clark and by a collab between Michael Clark and Seth Berry.
+
+## Latent Dirichlet Allocation
+
+We will start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling. The basic idea is to first generate some documents based on the underlying model, and then we’ll use the topicmodels package to recover the topics via LDA.
+
+Suffice it to say, one can approach this in (at least) one of two ways. In one sense, LDA is a dimension reduction technique, much like the family of techniques that includes PCA, factor analysis, non-negative matrix factorization, etc. We will take a whole lot of terms, loosely defined, and boil them down to a few topics. In this sense, LDA is akin to discrete PCA. Another way to think about this is more from the perspective of factor analysis, where we are keenly interested in interpretation of the result, and want to know both what terms are associated with which topics, and what documents are more likely to present which topics. The following is the plate diagram and description for standard LDA from Blei, Jordan, and Ng (2003).
+
+![](bleiPlate.png)
+
+- $\alpha$ is the parameter of the Dirichlet prior on the per-document topic distributions
+- $\eta$ is the parameter of the Dirichlet prior on the per-topic word distribution
+- $\theta_m$θm is the topic distribution for document m
+- $\beta_k$ is the word distribution for topic k
+- $z_{mn}$ is the topic for the n-th word in document m
+- $w_{mn}$ is the specific word
+
+Both *z* and *w* are from a multinomial draw based on the θ and β distributions respectively. The key idea is that, to produce a given document, one draws a topic, and given the topic, words are drawn from it.
+
+## Generating Documents
+
+In the standard setting, to be able to conduct such an analysis from text, one needs a document-term matrix, where rows represent documents, and columns terms. Terms are typically words but could be any n-gram of interest. In practice, this is where you’ll spend most of your time, as text is never ready for analysis, and must be scraped, converted, stemmed, cleaned etc. We will initially create θ and β noted above, then given those, draw topics and words given topics based on the multinomial distribution.
+
+## Topic Probabilities
+
+We begin the simulation by creating topic probabilities. There will be *k* = 3 topics. Half of our documents will have probabilities of topics for them ($\theta1$) which will be notably different from the other half ($\theta2$). Specifically, the first half will show higher probability of topic "A" and "B", while the second half of documents show higher probability of topic "C". What we’ll end up with here is an m X k matrix of probabilities θ where each m document has a non-zero probability for each k topic. Note that in the plate diagram, these would come from a Dirichlet(α) draw rather than be fixed like this, but hopefully this will make things clear starting out.
+
+
+```{r}
+library(tidyverse)
+
+nDocs = 500                                       # Number of documents
+
+wordsPerDoc = rpois(nDocs, 100)                   # Total words/terms in a document
+
+thetaList = list(c(A = .60, B = .25, C = .15),    # Topic proportions for first and second half of data 
+                 c(A = .10, B = .10, C = .80))    # These values represent a Dir(alpha) draw
+
+theta_1 = t(replicate(nDocs / 2, thetaList[[1]]))
+
+theta_2 = t(replicate(nDocs / 2, thetaList[[2]]))
+
+theta = rbind(theta_1, theta_2)      
+```
+
+
+## Topic Assignments and Labels
+
+With topic probabilities in hand, we’ll draw topic assignments from a categorical distribution.
+
+```{r}
+firsthalf = 1:(nDocs / 2)
+secondhalf = (nDocs / 2 + 1):nDocs
+
+Z = apply(theta, 1, rmultinom, n = 1, size = 1)   # draw topic assignment
+
+rowMeans(Z[, firsthalf])                           # roughly equal to theta_1
+```
+
+Now, we can see which is the most likely topic.
+
+```{r}
+z = apply(Z, 2, which.max) 
+```
+
+We have our list of documents and each document's topic assignment. 
+
+
+## Topics
+
+Next we need the topics themselves. Topics are probability distributions of terms, and in what follows we’ll use the Dirichlet distribution to provide the prior probabilities for the terms. With topic A, we’ll make the first ~40% of terms have a higher probability of occurring, the last ~40% go with topic C, and the middle more associated with topic B. To give a sense of the alpha settings, alpha = c(8, 1, 1) would result in topic probabilities of .8, .1, .1, as would alpha = c(80, 10, 10). We’ll use the gtools package for the rdirichlet function. 
+
+```{r}
+nTerms = max(wordsPerDoc)
+
+breaks = quantile(1:nTerms, c(.4,.6,1)) %>% round()
+
+cuts = list(1:breaks[1], (breaks[1] + 1):breaks[2], 
+            (breaks[2] + 1):nTerms)
+
+library(gtools)
+
+B_k = matrix(0, ncol = 3, nrow = nTerms)
+
+B_k[,1] = rdirichlet(n=1, alpha=c(rep(10, length(cuts[[1]])),    # topics for 1st 40% of terms
+                                  rep(1,  length(cuts[[2]])),
+                                  rep(1,  length(cuts[[3]]))))
+
+B_k[,2] = rdirichlet(n=1, alpha=c(rep(1,  length(cuts[[1]])),    # topics for middle 20%
+                                  rep(10, length(cuts[[2]])),
+                                  rep(1,  length(cuts[[3]]))))
+
+B_k[,3] = rdirichlet(n=1, alpha=c(rep(1,  length(cuts[[1]])),    # topics for last 40%
+                                  rep(1,  length(cuts[[2]])),
+                                  rep(10, length(cuts[[3]]))))
+```
+
+
+Here is a visualization of the term-topic matrix, where the dark represents terms that are notably less likely to be associated with a particular topic.
+
+```{r}
+library(ggplot2)
+
+as.data.frame(B_k) %>%
+  mutate(document = 1:nrow(.)) %>% 
+  tidyr::gather(key = topic, value = prob, -document) %>% 
+  ggplot(., aes(topic, document, color = prob)) +
+  geom_tile()
+```
+
+Remember how we specified this -- we assigned 40% to topic 1, 40% to topic 3, and left the middle 20% to topic 2. This visualization clearly shows this.
+
+Now, given the topic assignment, we draw words for each document according to its size via a multinomial draw, and with that, we have our document-term matrix. However, we can also think of each document as merely a bag of words, where order, grammar etc. is ignored, but the frequency of term usage is retained.
+
+```{r}
+wordlist_1 = sapply(1:nDocs, 
+                    function(i) t(rmultinom(1, size = wordsPerDoc[i], prob = B_k[, z[i]])), 
+                    simplify = FALSE)  
+
+# smash to doc-term matrix
+dtm_1 = do.call(rbind, wordlist_1)
+
+colnames(dtm_1) = paste0('word', 1:nTerms)
+
+# bag of words representation
+wordlist_1 = lapply(wordlist_1, function(wds) rep(paste0('word', 1:length(wds)), wds))
+```
+
+If you print out the wordlist_1 object, you will see the words asssociated with each document.
+
+## Topic Models
+
+Now with some theory under our belt, we can take a look at analyzing some data. Just to keep everything light, we will be looking at the Last Statement of inmates executed in Texas.
+
+Just like our sentiment analysis, there is a fair chunk of cleaning to do:
+
+```{r}
+library(stm)
+
+executions = read.csv("txEx.csv", stringsAsFactors = FALSE)
+
+executionsText = textProcessor(documents = executions$correctedStatements, 
+                           metadata = executions)
+
+executionsPrep = prepDocuments(documents = executionsText$documents, 
+                               vocab = executionsText$vocab,
+                               meta = executionsText$meta)
+```
+The stm package has some pretty nice facilities for determining a number of topics:
+
+```{r}
+kTest = searchK(documents = executionsPrep$documents, 
+             vocab = executionsPrep$vocab, 
+             K = c(3, 4, 5, 10, 20), verbose = FALSE)
+
+plot(kTest)
+```
+
+The 4 plots that are returned are going to try to help us determine the best number of topics to take. I like to focus on semantic coherence (how well the words hang together) and the residuals. We want to have low residual and high semantic coherence. The residuals definitely take a sharp dive as we increase K. If we consider one of the major assumptions of LDA, we could almost always guess that we would need a great number of topics (i.e., if every topic that has ever existed, existed before writing, then we could have a huge numebr of topics). Our coherence seems to do pretty well with some of the lower numbers (not entirely surprising). With all of these together, we can settle on 5 topics for our subsequent analyses. 
+
+It is worthwhile to note that we can also do model selection with the stm package, but that is some work that will be best done if you want some additional playtime.
+
+With our 5 topics, we can start our actual model:
+```{r}
+topics5 = stm(documents = executionsPrep$documents, 
+             vocab = executionsPrep$vocab, 
+             K = 5, verbose = FALSE)
+```
+
+We can get a lot of output from our model, but we can focus on the expected topic proportions plot:
+
+```{r}
+plot(topics5)
+```
+
+We are essentially looking at the proportion of each topic, with a few of the highest probability words. 
+
+This is great, but it is really fun to see what emerges from the topics. 
+
+```{r}
+labelTopics(topics5)
+```
+
+Let's focus on the frex words (they occur *fr*equently within the topic and are *ex*clusive to that topic) and the highest probability words (i.e., the words that have the highest probability of occuring within that topic). The Lift and Score words (just a few different ways of weighting occurance) can be useful, but are a bit less intuitive than the other two. Let's put some names to the topics. Topic 1 is likely expressing "thanks for the love and the support", topic 2 is something along the lines of "everything is going to be alright", topic 3 is "you are murdering an innocent man", topic 4 is probably "I hope your family finds peace", and topic 5 is "I hope God forgives me".
+
+We can look at statements that have a high probability of being associated with each topic:
+
+```{r}
+findThoughts(topics5, texts = executionsPrep$meta$correctedStatements, n = 1)
+```
+
+We can see that the story we put to our topics makes sense, given what we see in the actual texts.

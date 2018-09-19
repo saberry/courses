@@ -1,12 +1,7 @@
 ---
 title: "Clustering"
-author: "Behavioral Data Science"
 output: html_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-```
 
 There is no shortage of ways to cluster data and the reasons to do it are just as numerous. Clustering is great for reducing the number of dimensions within your data (i.e., combining several variables into one), but it is equally well suited to finding natural groups within data. 
 
@@ -23,7 +18,7 @@ Careful attention needs to be paid to your data when clustering. Are they variab
 
 Determining the number of clusters is very much akin to determining the number of factors in factor analysis -- there can be theory guiding the practice, but various statistics can help us make our decisions too. When clustering, especially hard clustering, we need to be thoughtful about the clarity of our clusters -- too few clusters might not be helpful, but too many clusters might not separate very well. There are several ways to test the appropriate numbers of factors (scree plots, silhouette), but we are going to use the GAP statistic to select an appropriate number of *k*.
 
-As an example, let's use the data from the Holzinger Swineford article, found in the lavaan package.
+As an example, let's use the data from the Holzinger Swineford article, found in the <span class="pack">lavaan</span> package.
 
 ```{r}
 library(factoextra)
@@ -33,7 +28,7 @@ library(lavaan)
 library(dplyr)
 
 testData = HolzingerSwineford1939 %>% 
-  select(starts_with("x"))
+  dplyr::select(starts_with("x"))
 
 kTest = NbClust::NbClust(testData, method = "kmeans")
 
@@ -95,7 +90,7 @@ cluster::clusplot(testData, pamTest$clustering)
 ```
 
 
-If we look at both plots, we can notice some definite differences in cluster assignment when we are getting towards the 0s (PAM puts some observations in one cluster, while kmeans puts the same observation into a different cluster). This is purely a function of how the two methods compute the centroid.
+If we look at both plots, we can notice some definite differences in cluster assignment when we are getting towards the 0s (<span class="func">pam</span> puts some observations in one cluster, while <span class="func">kmean</span> puts the same observation into a different cluster). This is purely a function of how the two methods compute the centroid.
 
 ```{r}
 par(mfrow = c(1, 2))

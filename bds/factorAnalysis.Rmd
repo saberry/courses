@@ -1,18 +1,9 @@
 ---
 title: "Factor Analysis"
-author: "Behavioral Data Science"
-output:
-  html_document:
-    toc: true
-    toc_float: true
-    theme: flatly
-    highlight: zenburn
-    css: leviathan.css
+output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# Factor Analysis
 
 ## Measurement & Latent Variables
 
@@ -22,7 +13,7 @@ Now, if I were to ask you how you felt, what would you tell me? You might say th
 
 Affect is an example of a latent variable -- we have a pretty good idea that it exists and we have operationalized it, but there is no way that we can physically measure it. If we think of what latent tends to mean, hidden, we start to understand what latent variables are -- variables that are hidden, but still interesting. Instead, we have to rely on a series of questions that gets us close to what we think is affect. This process of "getting at" affect through questions is what is known as *measurement*. You have been involved with measurement for a very long time, even if you did not know it. If you ever took a high-stakes standardized test (e.g., GRE, GMAT, LSAT), then you were directly involved in measurement -- we can't actually measure the mass of your mathematical reasoning ability, so we have to ask questions to measure that ability.
 
-An important part of measurement concerns error. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
+An important part of measurement concerns <span title="Don't listen to him..."; style="text-decoration: none">error</span>. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
 
 ### On Principal Compenents Analysis And Factor Analysis
 

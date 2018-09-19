@@ -1,0 +1,47 @@
+---
+title: | 
+      | Behavioral Data Science
+      | Complete Print Version
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    css: leviathanClean.css
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
+```
+
+
+```{r, child = 'intro.Rmd'}
+```
+
+```{r, child = "factorAnalysis.Rmd"}
+```
+
+```{r, child = "irt.Rmd"}
+```
+
+```{r, child = "mixedModels.Rmd"}
+```
+
+```{r, child = "missingData.Rmd"}
+```
+
+```{r, child = "clustering.Rmd"}
+```
+
+```{r, child = "lca.Rmd"}
+```
+
+```{r, child = "gamTreeForest.Rmd"}
+```
+
+```{r, child = "recommenderSystems.Rmd"}
+```
+
+```{r, child = "sentiment.Rmd"}
+```
+
+```{r, child = "week15TopicModels.Rmd"}
+```

@@ -7,6 +7,26 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Centering
+
+```{r}
+happy = read.csv("http://nd.edu/~sberry5/data/happy.csv")
+
+library(dplyr)
+
+uncentered = lm(Happiness.Score ~ Economy..GDP.per.Capita., data = happy)
+
+summary(uncentered)
+```
+
+```{r}
+happy %>% 
+  mutate(gpdStandard = Economy..GDP.per.Capita. - mean(Economy..GDP.per.Capita.)) %>% 
+  lm(Happiness.Score ~ gpdStandard, data = .) %>% 
+  summary()
+```
+
+
 # Factor Variables
 
 Let's see if there might be anything interesting going on with the region variable:
@@ -21,7 +41,6 @@ happy %>%
 
 
 ```{r}
-happy = read.csv("http://nd.edu/~sberry5/data/happy.csv")
 
 factorTest = lm(Happiness.Score ~ Region, data = happy)
 ```
@@ -37,7 +56,12 @@ factorTest2 = lm(Happiness.Score ~ relevel(happy$Region, ref = "North America"),
 # Interactions
 
 ```{r}
-twoVars = lm(Happiness.Score ~ Freedom + Health..Life.Expectancy., data = happy)
+
+happy = happy %>% 
+  mutate(freedomCenter = Freedom - mean(Freedom), 
+         lifeCenter = Health..Life.Expectancy. - mean(Health..Life.Expectancy.))
+
+twoVars = lm(Happiness.Score ~ freedomCenter + lifeCenter, data = happy)
 
 summary(twoVars)
 ```
@@ -46,7 +70,7 @@ summary(twoVars)
 Let's explore interactions (moderation to some). 
 
 ```{r}
-intMod = lm(Happiness.Score ~ Freedom * Health..Life.Expectancy., data = happy)
+intMod = lm(Happiness.Score ~ freedomCenter * lifeCenter, data = happy)
 
 summary(intMod)
 ```
@@ -54,7 +78,16 @@ summary(intMod)
 
 The interpretation of our main effects don't really change. We see, though, that our interaction has some lovely stars -- this requires interpretation. 
 
-The effect of Freedom on Happiness increases by 7 units for every unit increase in life expectancy. If life expectancy is at 0, the slope between freedom and happiness -2.07. 
+With our interaction, for every increase in freedom or life expectancy, we would have a 7 unit increase in happiness.
+
+Plotting it can help to make sense:
+
+```{r}
+library(jtools)
+
+interact_plot(intMod, pred = freedomCenter, modx = lifeCenter)
+```
+
 
 # Prediction
 

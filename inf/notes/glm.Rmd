@@ -605,7 +605,6 @@ ggplot(plotDat, aes(cut, meanPrice, group = 1)) +
 From looking at the visualization, we can see how these different "approximations" can fit the data pretty well.
 
 
-
 Converting them to numeric will entail a careful theoretical examination of the question at hand and the nature of the ordinal categories, but you get the nice and easier numeric interpretation that comes along with the numeric.  Converting them to factors leads us to the treatment contrasts that we used earlier.
 
 
@@ -744,23 +743,67 @@ Hopefully, we can see that these are all *essentially* identical.
 
 We need to think about what exactly we are doing:
   
-  - Are we predicting something?
+- Are we predicting something?
   
-  - Are we concerned about group differences?
+- Are we concerned about group differences?
   
-  - Do we want to be limited?
+- Do we want to be limited?
   
-  - Are we doing experimental work?
-  
-  
-  
-## Rules Of Thumb
+- Are we doing experimental work?
+
+
+
+# Effect Sizes
+
+Effect sizes, in conjunction with our *p*-values, will provide a really good idea about the strength of the difference.
+
+With regard to effect sizes, you will most commonly come across Cohen's *d* -- it is generally used for *t*-tests.
+
+Computationally, it is pretty simple:
+
+$$ \frac{\mu_1 - \mu_2}{\sigma}$$
+We are subtracting the mean of one group from another and dividing by the standard deviation.
+
+```{r}
+library(dplyr)
+
+crimeScoreGender %>% 
+  group_by(SEX_CODE_CD) %>% 
+  summarize(mean = mean(SSL_SCORE),
+            sd = sd(SSL_SCORE),
+            n = n())
+
+sd(crimeScoreGender$SSL_SCORE)
+
+```
+
+
+We can do it by hand:
+
+```{r}
+(283.46-278.689) / 57.99564
+```
+
+
+Or use things already built:
+
+```{r}
+library(compute.es)
+
+tes(t = 23.674, n.1 = 96307, n.2 = 302320)
+
+mes(m.1 = 283.46, m.2 = 278.689,
+    sd.1 = 52.74889, sd.2 = 59.52397, 
+    n.1 = 96307, n.2 = 302320)
+```
+
+
+# Rules Of Thumb
 
 20 records per predictor...
 
-- Not happening here!
 
-## Power Analysis
+# Power Analysis
 
 Do you want to melt most people's brains?
 
@@ -768,7 +811,6 @@ Do you want to melt most people's brains?
 
 -  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
 
-## Power Analysis
 
 We need three of the following parameters:
 
@@ -790,9 +832,9 @@ Power is ability to detect an effect.
 
 - In NHST words, we are trying to determine if we correctly reject the null hypothesis.
 
-- Type I errors: Reject a true $H_{o}$ (false positive)
+- Type I errors: Reject a true $H_{o}$ (false positive -- saying something is there when it is not)
 
-- Type II errors: Reject a false $H_{o}$ (false negative)
+- Type II errors: Reject a false $H_{o}$ (false negative -- saying something is not there when it is)
 
 >- Which is more dangerous?
 
@@ -821,16 +863,6 @@ In the function:
 
 Power is typically set at .8, because it represents a 4 to 1 trade between Type II and Type I errors.
 
-## Your Turn!
-
-Use various values to do an *a priori* power analyses.
-
-How does the proposed sample size change as the number of predictors goes up?
-
-What if you tweak the significance level?
-
-What about power?
-
 
 ## Different Test, Different Power Tests
 
@@ -846,10 +878,12 @@ plot(tPower)
 ```
 
 
-## Congratulations
+## Your Turn!
 
--  Your knowledge now far exceeds most professionals!
-  
+Use various values to do an *a priori* power analyses.
 
+How does the proposed sample size change as the number of predictors goes up?
 
+What if you tweak the significance level?
 
+What about power?

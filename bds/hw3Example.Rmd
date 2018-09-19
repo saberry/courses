@@ -1,0 +1,27 @@
+---
+title: "hwExample"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(dplyr)
+
+library(ggplot2)
+
+leadership = haven::read_dta("leadership")
+
+leadership %>% 
+  filter(OrganizationID == 46) %>% 
+  select(lvi01, lvi13, lvi25, lvi37, leaderID) %>% 
+  tidyr::gather(key = item, value = response, -leaderID) %>% 
+  group_by(leaderID, item, response) %>% 
+  mutate(count = n()) %>% 
+  ggplot(., aes(item, response, color = as.factor(leaderID), size = count)) +
+  geom_point() + 
+  theme_minimal()
+```
+

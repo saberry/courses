@@ -1,0 +1,82 @@
+---
+title:  | 
+        | Pizza
+        | 
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+## Introduction
+
+I hate to give spoilers, but the likelihood that Rodion is going to be disappointed by the pizza choice is incredibly high (advanced, yet half-hearted, apologies if you fall into that camp too). To help soften that disappointment just a little, I wanted to do something with the pizza text.
+
+## Packages
+
+```{r}
+library(tm)
+
+library(rvest)
+
+library(dplyr)
+
+library(stringr)
+
+library(tidytext)
+
+library(wordcloud2)
+```
+
+
+## Data Read
+
+Sakai will dump everything into a zip folder. I don't want to keep unzipping on every knit, so I did it once with unzip(). The unzip function is a handy one to keep with you in case you ever need it.
+
+After unzipping you can get all of the relevant files in the directory and read them in. Since Sakai gives html files, we can use the rvest package to read the html, select p or li nodes (the comma serves like an "or" for css selectors), grab the text, and take the last line. We can wrap all of that in an lapply to get it done in one shot.
+
+```{r}
+allFiles = list.files(path = "C://Users/sberry5/Downloads/bulk_download/Week 7 Comprehension Check/",
+                      pattern = "*.html",
+                      full.names = TRUE, recursive = TRUE, 
+                      include.dirs = FALSE)
+
+pizzaResponse = lapply(allFiles, function(x) {
+  res = read_html(x, encoding = "UTF-8") %>% 
+    html_nodes("p,li") %>% 
+    html_text() %>% 
+    `[[`(length(.))
+  
+  return(res)
+})
+```
+
+Once we have our list, we can start cleaning up our text and tossing it into a wordcloud.
+
+If I were to be dealing with more text, I would do this in a completely different fashion. Given the general goofing around and the warm grip of melotonin squeezing around my brain, I am going to keep it simple.
+
+```{r, fig.align='center'}
+unlist(pizzaResponse) %>% 
+  tolower(.) %>%
+  removeWords(., words = c(stopwords("SMART"), "pizza", "topping")) %>%
+  removeNumbers(.) %>% 
+  removePunctuation(.) %>% 
+  removeWords(., words = c(stopwords("SMART"), "pizza", "toppings")) %>%
+  str_squish(.) %>% 
+  data.frame(row = 1:length(.), 
+             pref = ., stringsAsFactors = FALSE) %>% 
+  unnest_tokens(., words, pref) %>% 
+  count(words, sort = TRUE) %>%
+  filter(n > 1) %>% 
+  wordcloud2(., minSize = 2, shape = "cardioid", backgroundColor = "#fff", 
+                         color = RColorBrewer::brewer.pal(name = "Set3", n = 12))
+
+```
+
+
+</br>
+
+Much to my surprise, people like cheese on pizza! 
+
+Just as a note, wordclouds are cute visualizations only! They are goofy fun and should not be taken seriously. 

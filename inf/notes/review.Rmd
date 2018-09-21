@@ -10,31 +10,23 @@ output:
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, comment = "", warning = FALSE, message = FALSE)
 ```
 
-# Starting Places {.tabset .tabset-fade .tabset-pills}
+# Conceptual Grounding Places {.tabset .tabset-fade .tabset-pills}
 
 ## Hypothesis Generation
 
 The very first thing that needs to be done is to generate your hypotheses -- hypotheses are critical for exercises in inference (estimating parameters about a population through sampling). There needs to be a 1-to-1 link between your hypotheses and your data; in other words, you need to map your data onto your hypotheses. Remember the scientific process -- it is okay to tweak your hypotheses, but you need to be transparent about how those hypotheses were generated, tweaked, and then revised (not liking a result does not serve as grounds to tweaking).
 
-## Effect Sizes
-
-How do we know about the absolute magnitude of a finding? We use effect sizes. Each statistical test has its own effect size test.
-
-### *t*-test
-
-
-
-For Cohen's d, we typically see .01 as very small, .2 as small, .5 as medium, .8 as large, 1.2 as very large, and 2 as huge. What do these mean? Cohen's d is for group mean differences between 2 groups, so a 
-
-
-### $f^2$ 
-
-Anything that uses an *f*-test will use the $f^2$ effect size, which are generally seen as .02 is small, .15 is medium, and .35 as large.
-
 
 ## Power Analyses {.tabset .tabset-fade .tabset-pills}
 
 Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect (consider an effect to be a significant result and an effect size is the magnitude of that finding).  This is where power analysis becomes helpful.  Given a target power ($\beta$ = .8; it gives a good ratio of Type I to Type II error -- the higher the power, the less of a chance of making a Type II error), a hypothesized effect size, and the proposed *p*-value.  Remember that each statistical test has its own effect size measure and the hypothesized effects can come frome previous research or an informed guess (just be conservative).
+
+All power analyses will work the same: the bigger the anticipated effect, the smaller the needed sample. In situations were we have a large effect (remember, the magnitude of the effect), we need fewer people to find that effect. 
+
+As an example, I have two groups of people: C-suite folks (average salary of \$193K) and Target sales associates (average salary of roughly \$22758). If I am curious about the difference in salary between those two groups, how many from each group would I need to sample to be able to find a difference if one truly exists? Not very many; I could find the true difference with likely a dozen or so from each group. 
+
+As a counter-example, I have another two groups: people who live in Redmon Illinois (average number of teeth 23, sd = 1) and people who live in Paris Illinois (average number of teeth 24.5, sd = 1). I might be curious to know if there is any difference in the number of teeth that each of the respected townsfolks have in their mouth. Humans generally have 32 teeth, but the people in these two towns, on average, have less. If we wanted to know if there was a difference between these two groups, we would probably need to sample far more than a dozen people from each town to find a significant difference between the two groups.
+
 
 ### *t*-test
 
@@ -47,6 +39,7 @@ pwr::pwr.t.test(n = NULL,
                 power = .8)
 ```
 
+This will tell us how many people we would need in each group, given our proposed effect size (*d*).
 
 ### ANOVA
 
@@ -80,6 +73,69 @@ Afterwards, you will get the value for "v" -- the degrees of freedom in the deno
 ### Post-hoc
 
 If you need to know your observed power, then you can set the "power" argument to NULL in any of the functions and fill in the missing number for the sample.  
+
+
+## Effect Sizes {.tabset .tabset-fade .tabset-pills}
+
+How do we know about the absolute magnitude of a finding? We use effect sizes. Each statistical test has its own effect size test.
+
+### *t*-test
+
+For Cohen's d, we typically see .01 as very small, .2 as small, .5 as medium, .8 as large, 1.2 as very large, and 2 as huge. What do these mean? Cohen's d is for group mean differences between 2 groups, so a d of .2 means that the mean difference between the two groups is small. 
+
+It is computed as: $$ \frac{M_2-M_1}{SD_{pooled}} $$
+
+With pooled standard deviation as: $$ \sqrt\frac{SD_1^2 + SD_2^2}{2}$$
+
+In R, it would look like this:
+
+```{r}
+(M2 - M1) / (sqrt((SD1^2 + SD2^2) / 2)) 
+```
+
+
+More simply, you can get an effect size for a *t*-test like this:
+
+```{r, eval = TRUE}
+library(dplyr)
+
+mtcars %>% 
+  group_by(am) %>% 
+  summarize(mean = mean(mpg), 
+            sd = sd(mpg),
+            sdSquared = sd^2, 
+            n = n())
+
+tTest = t.test(mpg ~ am, data = mtcars)
+
+tTest
+
+compute.es::tes(t = -3.7671, 
+                n.1 = 19, 
+                n.2 = 13)
+```
+
+Cohen's *d* is the first thing reported and we have a value of -1.36. We can just take the absolute value of it and we know that we have a pretty large effect (i.e., the difference in mpg between automatic and manual transmissions is big difference). 
+
+### $f^2$ 
+
+One of the main model statistics in a linear regression is the *f*. Anything that uses an *f*-test will use the $f^2$ effect size, which are generally seen as .02 is small, .15 is medium, and .35 as large.
+
+The $f^2$ is computed as follows: $$ \frac{R^2}{1 - R^2} $$
+
+Since very little effort is required to produce it, we don't even need a function; we can just use our adjusted $R^2$ from a model.
+
+```{r, eval = TRUE}
+lmTest = lm(mpg ~ hp, mtcars)
+
+r2 = summary(lmTest)$adj.r.squared
+
+f2 = r2 / (1 - r2)
+
+f2
+```
+
+Given that we could consider .35 as being large, it would be safe to say that the effect(s) of our predictor variable (hp) on our dependent variable (mpg) is very large.
 
 
 
@@ -165,6 +221,8 @@ TukeyHSD(anovaTest)
 Like the *t*-test, an ANOVA will only tell you if any difference exists between the groups. If you have a significant ANOVA, then you will need to find out which groups differ from each other -- this is where Tukey's Honestly Significant Difference tests comes into play. Tukey's HSD will perform pairwise comparisons between the groups to find which groups are different from each other.
 
 And like the *t*-test, you cannot get predictions from an ANOVA -- you will only get differences.
+
+ANOVAs really prefer to work on balanced data (i.e., each group has the same size). They can work without, but might not yield the best results. The further out of balance they get, the worse they do.
 
 ### Linear Regression
 

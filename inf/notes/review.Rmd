@@ -12,16 +12,35 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, comment = "", warning = FALSE, 
 
 # Starting Places {.tabset .tabset-fade .tabset-pills}
 
+## Hypothesis Generation
+
+The very first thing that needs to be done is to generate your hypotheses -- hypotheses are critical for exercises in inference (estimating parameters about a population through sampling). There needs to be a 1-to-1 link between your hypotheses and your data; in other words, you need to map your data onto your hypotheses. Remember the scientific process -- it is okay to tweak your hypotheses, but you need to be transparent about how those hypotheses were generated, tweaked, and then revised (not liking a result does not serve as grounds to tweaking).
+
+## Effect Sizes
+
+How do we know about the absolute magnitude of a finding? We use effect sizes. Each statistical test has its own effect size test.
+
+### *t*-test
+
+
+
+For Cohen's d, we typically see .01 as very small, .2 as small, .5 as medium, .8 as large, 1.2 as very large, and 2 as huge. What do these mean? Cohen's d is for group mean differences between 2 groups, so a 
+
+
+### $f^2$ 
+
+Anything that uses an *f*-test will use the $f^2$ effect size, which are generally seen as .02 is small, .15 is medium, and .35 as large.
+
+
 ## Power Analyses {.tabset .tabset-fade .tabset-pills}
 
-Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect.  This is where power analysis becomes helpful.  Given a target power ($\beta$ = .8; it gives a good ratio of Type I to Type II error), a hypothesized effect size, and the proposed *p*-value.  All functions come from the "pwr" package.
+Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect (consider an effect to be a significant result and an effect size is the magnitude of that finding).  This is where power analysis becomes helpful.  Given a target power ($\beta$ = .8; it gives a good ratio of Type I to Type II error -- the higher the power, the less of a chance of making a Type II error), a hypothesized effect size, and the proposed *p*-value.  Remember that each statistical test has its own effect size measure and the hypothesized effects can come frome previous research or an informed guess (just be conservative).
 
 ### *t*-test
 
 The following is a pretty standard *t*-test power analysis. 
 
 ```{r}
-
 pwr::pwr.t.test(n = NULL, 
                 d = .2, 
                 sig.level = .05, 
@@ -45,7 +64,7 @@ pwr::pwr.anova.test(k = numberGroups,
 
 ### Regression 
 
-To compute sample size for a regression, you will need to know how many degrees of freedom you will have in your numerator -- this is equal to the number of predictors that you have in your model. 
+To compute sample size for a regression, you will need to know how many degrees of freedom you will have in your numerator -- this is equal to the number of terms that you have in your model (e.g., if you have an intercept and one predictor, the numerator df is 1). 
 
 ```{r}
 pwr::pwr.f2.test(u = numeratorDegreeFreedom, 
@@ -55,7 +74,7 @@ pwr::pwr.f2.test(u = numeratorDegreeFreedom,
                  power = .8)
 ```
 
-Afterwards, you will get the value for "v" -- the degrees of freedom in the denominator.  You get your total sample size from this by taking the value, adding 1, and then adding the number of predictors that you have.
+Afterwards, you will get the value for "v" -- the degrees of freedom in the denominator.  You get your total sample size from this by taking the value, adding 1, and then adding the number of terms that you have.
 
 
 ### Post-hoc
@@ -82,7 +101,7 @@ cor(yourData$x, yourData$y)
 cor(yourData)
 ```
 
-Do note that the cor() function will only work with numeric data.
+Do note that the cor() function will only work with numeric data and on whole data (if you have any NAs, you will need to drop them).
 
 Checking all of the bivariate relationships is easy with a scatterplot matrix:
 
@@ -98,6 +117,10 @@ car::scatterplotMatrix(youData)
 When your dependent variable is continuous (i.e., real numbers that could range from $-\infty$ to $\infty$), then the general linear model will be a good place to start.
 
 The general linear model is primarily composed of three nearly-identical tests: *t*-tests, Analysis of Variance (ANOVA), and linear regression.
+
+While these 3 tests have common computational underpinings, their uses are different.
+
+If you are interested in group differences only (e.g., differences between treatment and control groups), then *t*-tests and ANOVAs will work for you.
 
 ### *t*-tests
 
@@ -115,6 +138,8 @@ summary(tTest)
 ```{r}
 t.test(mpg ~ as.factor(am), data = mtcars)
 ```
+
+The *t*-test is only going to tell you the difference between two groups. You will not produce predicted values with a *t*-test.
 
 
 ### ANOVA
@@ -137,6 +162,9 @@ summary(anovaTest)
 TukeyHSD(anovaTest)
 ```
 
+Like the *t*-test, an ANOVA will only tell you if any difference exists between the groups. If you have a significant ANOVA, then you will need to find out which groups differ from each other -- this is where Tukey's Honestly Significant Difference tests comes into play. Tukey's HSD will perform pairwise comparisons between the groups to find which groups are different from each other.
+
+And like the *t*-test, you cannot get predictions from an ANOVA -- you will only get differences.
 
 ### Linear Regression
 
@@ -145,8 +173,8 @@ If you are trying to predict a response variable given a set of predictor variab
 In R, the basic linear model is as follows:
 
 ```{r}
-linearRegression = lm(y ~ x, 
-             data = yourDat)
+linearRegression = lm(formula = y ~ x, 
+                      data = yourDat)
 
 summary(linearRegression)
 
@@ -156,12 +184,13 @@ plot(linearRegression)
 #### Example
 
 ```{r, eval = TRUE}
-testMod = lm(mpg ~ hp + as.factor(am), data = mtcars)
+testMod = lm(formula = mpg ~ hp + as.factor(am), 
+             data = mtcars)
 
 summary(testMod)
 ```
 
-We want to focus most of our attention of the coefficients. The intercept is telling us the model's mean miles per gallon when horsepower (hp) is at 0 and am is at zero. The coefficient for hp is indicating that every unit increase in horsepower leads to a .06 reduction in the average mpg. Since am is being treated as a factor variable, we are going to compare the reference level (0 = automatic in this case) to the listed level(s). To that end, we would say that a vehicle with a manual transmission gets on average 5.28 more miles per gallon than an automatic transmission.
+We want to focus most of our attention on the coefficients. The intercept is telling us the model's mean miles per gallon when horsepower (hp) is at 0 and am is at zero. The coefficient for hp is indicating that every unit increase in horsepower leads to a .06 reduction in the average mpg. Since am is being treated as a factor variable, we are going to compare the reference level (0 = automatic in this case) to the listed level(s). To that end, we would say that a vehicle with a manual transmission gets on average 5.28 more miles per gallon than an automatic transmission.
 
 We might also want to check for heteroskedasticity
 
@@ -177,7 +206,7 @@ Linear regression models can be sensitive to outliers (they exert leverage on ou
 
 We should be looking at heteroskedasticity (we hope for constant variance).
 
-Pay careful attention to center your variables -- this impacts your intercepts interpretability.
+Pay careful attention to centering your variables -- this impacts your intercepts interpretability.
 
 Remember, we are talking about the conditional means.
 

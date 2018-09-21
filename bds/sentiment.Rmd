@@ -1,15 +1,9 @@
 ---
 title: "Sentiment Analysis"
-author: "Behavioral Data Science"
-date: "March 7, 2018"
-output:
-  html_document: default
-  pdf_document: default
+output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
-```
+# Sentiment Analysis
 
 ## Words As Data
 
@@ -25,7 +19,7 @@ Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we c
 
 What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "jump"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
 
-Let's take a look to see how this works (you will need to install "tm" and "SnowballC" first):
+Let's take a look to see how this works (you will need to install <span class="pack">tm</span> and <span class="pack">SnowballC</span> first):
 
 ```{r}
 jumpingStrings = c("jump", "jumping", "jumped", "jumper")
@@ -130,11 +124,11 @@ gsub(pattern = "(?!\\w)\\S", " ", exampleStrings, perl = TRUE)
 
 By using some pattern matching, we are able to get out everything between words, no matter what it might be. This particular little bit of regex is using what is known as a negative lookahead. We have our main expression, the non-space character, \\S. Next, we put an expression in front of our main expression (this is the chunk in the parenthesis that starts with "?!"). When we read this, we would say, "don't match any word characters and then find non-whitespace characters."
 
-While this is certainly a contrived example and would need addition robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.
+While this is certainly a contrived example and would need additional robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.
 
 ## Text Processing Tools
 
-There are several R packages that will help us process text. The **tm** package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
+There are several R packages that will help us process text. The <span class="pack">tm</span> package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but <span class="pack">tm</span> is full of fun stuff and allows for one pass text processing.
 
 ```{r, eval = FALSE}
 
@@ -171,7 +165,7 @@ library(wordcloud2)
 txExecutions = read.csv("txEx.csv", stringsAsFactors = FALSE)
 
 txExecutions %>% 
-  select(correctedStatements, inmateNumber) %>% 
+  dplyr::select(correctedStatements, inmateNumber) %>% 
   unnest_tokens(word, correctedStatements) %>% 
   anti_join(stop_words) %>% 
   count(word, sort = TRUE) %>% 
@@ -259,17 +253,17 @@ For example, it is probably fair to say that "really love" is stronger than just
 
 When we use sentiment analysis that is aware of context, valence ("love" is stronger than "like"), modifiers (e.g., "really love"), and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
 
-We will use the *vader* sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.
+We will use the *jockers* sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.
 
 Before we engage in our whole sentiment analysis, let's take a look at a few things.
 
-Here is the dictionary that *vader* will use.
+Here is the dictionary that *jockers* will use.
 
 ```{r}
-lexicon::hash_sentiment_vadar
+lexicon::hash_sentiment_jockers
 ```
 
-You might want to use View() to get a complete look at what is happening in there.
+You might want to use <span class="func">View</span>() to get a complete look at what is happening in there.
 
 We should also take a peak at our valence shifters:
 
@@ -284,7 +278,7 @@ library(sentimentr); library(lexicon); library(magrittr)
 
 statement = "I dislike programming, but I really love R."
 
-sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)
 ```
 
 We can see that we get a much stronger sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really") sentiment of "love" (with a weight of 3.2 in our dictionary).
@@ -301,7 +295,7 @@ Let's consider the following data:
 ```{r}
 
 txExecutionsShort = txExecutions %>% 
-  select(inmateNumber, correctedStatements) %>% 
+  dplyr::select(inmateNumber, correctedStatements) %>% 
   filter(inmateNumber == 529|
            inmateNumber == 843|
            inmateNumber == 714|
@@ -309,7 +303,7 @@ txExecutionsShort = txExecutions %>%
 
 
 sentiment(get_sentences(txExecutionsShort), 
-          polarity_dt = lexicon::hash_sentiment_vadar) %>% 
+          polarity_dt = lexicon::hash_sentiment_jockers) %>% 
   group_by(inmateNumber) %>% 
   summarize(meanSentiment = mean(sentiment))
 ```
@@ -318,9 +312,9 @@ sentiment(get_sentences(txExecutionsShort),
 
 Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.
 
-The "koRpus" package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
+The <span class="pack">koRpus</span> package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
 
-We need to tokenize our text in a manner that will please koRpus.
+We need to tokenize our text in a manner that will please <span class="pack">koRpus</span>.
 
 ```{r}
 library(koRpus)
@@ -333,10 +327,5 @@ statementTokens
 
 
 ```{r}
-lapply(statementTokens, function(x) readability(x, index = "Flesch.Kincaid"))
+lapply(statementTokens, function(x) readability(x, index = "Flesch.Kincaid", quiet = TRUE))
 ```
-
-
-## Do Me A Favor
-
-There are some hushed words about employer reviews on the web. Why don't you take a look at them and see what you can find out. 

@@ -9,7 +9,6 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Behavioral Data Science" />
 
 
 <title>Sentiment Analysis</title>
@@ -96,6 +95,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -124,12 +126,12 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Sentiment Analysis</h1>
-<h4 class="author"><em>Behavioral Data Science</em></h4>
-<h4 class="date"><em>March 7, 2018</em></h4>
 
 </div>
 
 
+<div id="sentiment-analysis" class="section level1">
+<h1>Sentiment Analysis</h1>
 <div id="words-as-data" class="section level2">
 <h2>Words As Data</h2>
 <p>Words are everywhere. Believe it or not, you are reading words right now! Given our penchant for taking things and making numbers out of them, you are probably already guessing that we can somehow make words tell a story with numbers. If that is what you are guessing, then you are absolutely correct.</p>
@@ -141,17 +143,17 @@ $(document).ready(function () {
 <h3>Stemming</h3>
 <p>Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. We have a string with 6, 4, and 7 characters, respectively.</p>
 <p>What if we remove the suffixes, “ed” and “ing” – we are left with three instances of “jump”? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.</p>
-<p>Let’s take a look to see how this works (you will need to install “tm” and “SnowballC” first):</p>
+<p>Let’s take a look to see how this works (you will need to install <span class="pack">tm</span> and <span class="pack">SnowballC</span> first):</p>
 <pre class="r"><code>jumpingStrings = c(&quot;jump&quot;, &quot;jumping&quot;, &quot;jumped&quot;, &quot;jumper&quot;)
 
 tm::stemDocument(jumpingStrings)</code></pre>
-<pre><code>[1] &quot;jump&quot;   &quot;jump&quot;   &quot;jump&quot;   &quot;jumper&quot;</code></pre>
+<pre><code>## [1] &quot;jump&quot;   &quot;jump&quot;   &quot;jump&quot;   &quot;jumper&quot;</code></pre>
 <p>We got exactly what we expected, right? You might have noticed that “jumper” did not get stemmed. Do you have any idea why? Let’s think through it together. “Jump”, “jumping”, and “jumped” are all verbs related to the act of jumping. “Jumper”, on the other hand, is a person who jumps – it is a noun. Martin Porter’s stemming algorithm works incredibly well!</p>
 <p>Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document – this is know as a document-term matrix. If we know that “jump”, “jumping”, and “jumped” all refer to the same thing, we want it just represented once within our document-term matrix.</p>
 <p>Shall we take a look?</p>
-<pre class="r"><code>library(tm)
-
-documents = c(&quot;I like to jump.&quot;, 
+<pre class="r"><code>library(tm)</code></pre>
+<pre><code>## Loading required package: NLP</code></pre>
+<pre class="r"><code>documents = c(&quot;I like to jump.&quot;, 
               &quot;I have jumped my whole life.&quot;, 
               &quot;Jumping is in my blood.&quot;, 
               &quot;I am a jumper.&quot;)
@@ -161,42 +163,42 @@ documentsCorp = tm::SimpleCorpus(VectorSource(documents))
 documentsDTM = DocumentTermMatrix(documentsCorp)
 
 inspect(documentsDTM)</code></pre>
-<pre><code>&lt;&lt;DocumentTermMatrix (documents: 4, terms: 9)&gt;&gt;
-Non-/sparse entries: 9/27
-Sparsity           : 75%
-Maximal term length: 7
-Weighting          : term frequency (tf)
-Sample             :
-    Terms
-Docs blood have jump jumped jumper jumping life like whole
-   1     0    0    1      0      0       0    0    1     0
-   2     0    1    0      1      0       0    1    0     1
-   3     1    0    0      0      0       1    0    0     0
-   4     0    0    0      0      1       0    0    0     0</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 4, terms: 9)&gt;&gt;
+## Non-/sparse entries: 9/27
+## Sparsity           : 75%
+## Maximal term length: 7
+## Weighting          : term frequency (tf)
+## Sample             :
+##     Terms
+## Docs blood have jump jumped jumper jumping life like whole
+##    1     0    0    1      0      0       0    0    1     0
+##    2     0    1    0      1      0       0    1    0     1
+##    3     1    0    0      0      0       1    0    0     0
+##    4     0    0    0      0      1       0    0    0     0</code></pre>
 <p>We can see that without stemming, we have 9 terms (things like “I”, “a”, and “to” get removed automatically). Let’s do some stemming now:</p>
 <pre class="r"><code>documentsStemmed = stemDocument(documents)
 
 documentsStemmed</code></pre>
-<pre><code>[1] &quot;I like to jump.&quot;            &quot;I have jump my whole life.&quot;
-[3] &quot;Jump is in my blood.&quot;       &quot;I am a jumper.&quot;            </code></pre>
+<pre><code>## [1] &quot;I like to jump.&quot;            &quot;I have jump my whole life.&quot;
+## [3] &quot;Jump is in my blood.&quot;       &quot;I am a jumper.&quot;</code></pre>
 <p>And now the document-term matrix:</p>
 <pre class="r"><code>stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
 
 stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
 
 inspect(stemmedDocDTM)</code></pre>
-<pre><code>&lt;&lt;DocumentTermMatrix (documents: 4, terms: 7)&gt;&gt;
-Non-/sparse entries: 9/19
-Sparsity           : 68%
-Maximal term length: 6
-Weighting          : term frequency (tf)
-Sample             :
-    Terms
-Docs blood have jump jumper life like whole
-   1     0    0    1      0    0    1     0
-   2     0    1    1      0    1    0     1
-   3     1    0    1      0    0    0     0
-   4     0    0    0      1    0    0     0</code></pre>
+<pre><code>## &lt;&lt;DocumentTermMatrix (documents: 4, terms: 7)&gt;&gt;
+## Non-/sparse entries: 9/19
+## Sparsity           : 68%
+## Maximal term length: 6
+## Weighting          : term frequency (tf)
+## Sample             :
+##     Terms
+## Docs blood have jump jumper life like whole
+##    1     0    0    1      0    0    1     0
+##    2     0    1    1      0    1    0     1
+##    3     1    0    1      0    0    0     0
+##    4     0    0    0      1    0    0     0</code></pre>
 <p>If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.</p>
 <p>This is going to be especially important for next week’s topic: topic models.</p>
 </div>
@@ -204,41 +206,41 @@ Docs blood have jump jumper life like whole
 <h3>Stop Words</h3>
 <p>Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don’t have to do this on your own – a great many dictionaries exist that contain words ready for removal.</p>
 <pre class="r"><code>tm::stopwords(&quot;en&quot;)</code></pre>
-<pre><code>  [1] &quot;i&quot;          &quot;me&quot;         &quot;my&quot;         &quot;myself&quot;     &quot;we&quot;        
-  [6] &quot;our&quot;        &quot;ours&quot;       &quot;ourselves&quot;  &quot;you&quot;        &quot;your&quot;      
- [11] &quot;yours&quot;      &quot;yourself&quot;   &quot;yourselves&quot; &quot;he&quot;         &quot;him&quot;       
- [16] &quot;his&quot;        &quot;himself&quot;    &quot;she&quot;        &quot;her&quot;        &quot;hers&quot;      
- [21] &quot;herself&quot;    &quot;it&quot;         &quot;its&quot;        &quot;itself&quot;     &quot;they&quot;      
- [26] &quot;them&quot;       &quot;their&quot;      &quot;theirs&quot;     &quot;themselves&quot; &quot;what&quot;      
- [31] &quot;which&quot;      &quot;who&quot;        &quot;whom&quot;       &quot;this&quot;       &quot;that&quot;      
- [36] &quot;these&quot;      &quot;those&quot;      &quot;am&quot;         &quot;is&quot;         &quot;are&quot;       
- [41] &quot;was&quot;        &quot;were&quot;       &quot;be&quot;         &quot;been&quot;       &quot;being&quot;     
- [46] &quot;have&quot;       &quot;has&quot;        &quot;had&quot;        &quot;having&quot;     &quot;do&quot;        
- [51] &quot;does&quot;       &quot;did&quot;        &quot;doing&quot;      &quot;would&quot;      &quot;should&quot;    
- [56] &quot;could&quot;      &quot;ought&quot;      &quot;i'm&quot;        &quot;you're&quot;     &quot;he's&quot;      
- [61] &quot;she's&quot;      &quot;it's&quot;       &quot;we're&quot;      &quot;they're&quot;    &quot;i've&quot;      
- [66] &quot;you've&quot;     &quot;we've&quot;      &quot;they've&quot;    &quot;i'd&quot;        &quot;you'd&quot;     
- [71] &quot;he'd&quot;       &quot;she'd&quot;      &quot;we'd&quot;       &quot;they'd&quot;     &quot;i'll&quot;      
- [76] &quot;you'll&quot;     &quot;he'll&quot;      &quot;she'll&quot;     &quot;we'll&quot;      &quot;they'll&quot;   
- [81] &quot;isn't&quot;      &quot;aren't&quot;     &quot;wasn't&quot;     &quot;weren't&quot;    &quot;hasn't&quot;    
- [86] &quot;haven't&quot;    &quot;hadn't&quot;     &quot;doesn't&quot;    &quot;don't&quot;      &quot;didn't&quot;    
- [91] &quot;won't&quot;      &quot;wouldn't&quot;   &quot;shan't&quot;     &quot;shouldn't&quot;  &quot;can't&quot;     
- [96] &quot;cannot&quot;     &quot;couldn't&quot;   &quot;mustn't&quot;    &quot;let's&quot;      &quot;that's&quot;    
-[101] &quot;who's&quot;      &quot;what's&quot;     &quot;here's&quot;     &quot;there's&quot;    &quot;when's&quot;    
-[106] &quot;where's&quot;    &quot;why's&quot;      &quot;how's&quot;      &quot;a&quot;          &quot;an&quot;        
-[111] &quot;the&quot;        &quot;and&quot;        &quot;but&quot;        &quot;if&quot;         &quot;or&quot;        
-[116] &quot;because&quot;    &quot;as&quot;         &quot;until&quot;      &quot;while&quot;      &quot;of&quot;        
-[121] &quot;at&quot;         &quot;by&quot;         &quot;for&quot;        &quot;with&quot;       &quot;about&quot;     
-[126] &quot;against&quot;    &quot;between&quot;    &quot;into&quot;       &quot;through&quot;    &quot;during&quot;    
-[131] &quot;before&quot;     &quot;after&quot;      &quot;above&quot;      &quot;below&quot;      &quot;to&quot;        
-[136] &quot;from&quot;       &quot;up&quot;         &quot;down&quot;       &quot;in&quot;         &quot;out&quot;       
-[141] &quot;on&quot;         &quot;off&quot;        &quot;over&quot;       &quot;under&quot;      &quot;again&quot;     
-[146] &quot;further&quot;    &quot;then&quot;       &quot;once&quot;       &quot;here&quot;       &quot;there&quot;     
-[151] &quot;when&quot;       &quot;where&quot;      &quot;why&quot;        &quot;how&quot;        &quot;all&quot;       
-[156] &quot;any&quot;        &quot;both&quot;       &quot;each&quot;       &quot;few&quot;        &quot;more&quot;      
-[161] &quot;most&quot;       &quot;other&quot;      &quot;some&quot;       &quot;such&quot;       &quot;no&quot;        
-[166] &quot;nor&quot;        &quot;not&quot;        &quot;only&quot;       &quot;own&quot;        &quot;same&quot;      
-[171] &quot;so&quot;         &quot;than&quot;       &quot;too&quot;        &quot;very&quot;      </code></pre>
+<pre><code>##   [1] &quot;i&quot;          &quot;me&quot;         &quot;my&quot;         &quot;myself&quot;     &quot;we&quot;        
+##   [6] &quot;our&quot;        &quot;ours&quot;       &quot;ourselves&quot;  &quot;you&quot;        &quot;your&quot;      
+##  [11] &quot;yours&quot;      &quot;yourself&quot;   &quot;yourselves&quot; &quot;he&quot;         &quot;him&quot;       
+##  [16] &quot;his&quot;        &quot;himself&quot;    &quot;she&quot;        &quot;her&quot;        &quot;hers&quot;      
+##  [21] &quot;herself&quot;    &quot;it&quot;         &quot;its&quot;        &quot;itself&quot;     &quot;they&quot;      
+##  [26] &quot;them&quot;       &quot;their&quot;      &quot;theirs&quot;     &quot;themselves&quot; &quot;what&quot;      
+##  [31] &quot;which&quot;      &quot;who&quot;        &quot;whom&quot;       &quot;this&quot;       &quot;that&quot;      
+##  [36] &quot;these&quot;      &quot;those&quot;      &quot;am&quot;         &quot;is&quot;         &quot;are&quot;       
+##  [41] &quot;was&quot;        &quot;were&quot;       &quot;be&quot;         &quot;been&quot;       &quot;being&quot;     
+##  [46] &quot;have&quot;       &quot;has&quot;        &quot;had&quot;        &quot;having&quot;     &quot;do&quot;        
+##  [51] &quot;does&quot;       &quot;did&quot;        &quot;doing&quot;      &quot;would&quot;      &quot;should&quot;    
+##  [56] &quot;could&quot;      &quot;ought&quot;      &quot;i'm&quot;        &quot;you're&quot;     &quot;he's&quot;      
+##  [61] &quot;she's&quot;      &quot;it's&quot;       &quot;we're&quot;      &quot;they're&quot;    &quot;i've&quot;      
+##  [66] &quot;you've&quot;     &quot;we've&quot;      &quot;they've&quot;    &quot;i'd&quot;        &quot;you'd&quot;     
+##  [71] &quot;he'd&quot;       &quot;she'd&quot;      &quot;we'd&quot;       &quot;they'd&quot;     &quot;i'll&quot;      
+##  [76] &quot;you'll&quot;     &quot;he'll&quot;      &quot;she'll&quot;     &quot;we'll&quot;      &quot;they'll&quot;   
+##  [81] &quot;isn't&quot;      &quot;aren't&quot;     &quot;wasn't&quot;     &quot;weren't&quot;    &quot;hasn't&quot;    
+##  [86] &quot;haven't&quot;    &quot;hadn't&quot;     &quot;doesn't&quot;    &quot;don't&quot;      &quot;didn't&quot;    
+##  [91] &quot;won't&quot;      &quot;wouldn't&quot;   &quot;shan't&quot;     &quot;shouldn't&quot;  &quot;can't&quot;     
+##  [96] &quot;cannot&quot;     &quot;couldn't&quot;   &quot;mustn't&quot;    &quot;let's&quot;      &quot;that's&quot;    
+## [101] &quot;who's&quot;      &quot;what's&quot;     &quot;here's&quot;     &quot;there's&quot;    &quot;when's&quot;    
+## [106] &quot;where's&quot;    &quot;why's&quot;      &quot;how's&quot;      &quot;a&quot;          &quot;an&quot;        
+## [111] &quot;the&quot;        &quot;and&quot;        &quot;but&quot;        &quot;if&quot;         &quot;or&quot;        
+## [116] &quot;because&quot;    &quot;as&quot;         &quot;until&quot;      &quot;while&quot;      &quot;of&quot;        
+## [121] &quot;at&quot;         &quot;by&quot;         &quot;for&quot;        &quot;with&quot;       &quot;about&quot;     
+## [126] &quot;against&quot;    &quot;between&quot;    &quot;into&quot;       &quot;through&quot;    &quot;during&quot;    
+## [131] &quot;before&quot;     &quot;after&quot;      &quot;above&quot;      &quot;below&quot;      &quot;to&quot;        
+## [136] &quot;from&quot;       &quot;up&quot;         &quot;down&quot;       &quot;in&quot;         &quot;out&quot;       
+## [141] &quot;on&quot;         &quot;off&quot;        &quot;over&quot;       &quot;under&quot;      &quot;again&quot;     
+## [146] &quot;further&quot;    &quot;then&quot;       &quot;once&quot;       &quot;here&quot;       &quot;there&quot;     
+## [151] &quot;when&quot;       &quot;where&quot;      &quot;why&quot;        &quot;how&quot;        &quot;all&quot;       
+## [156] &quot;any&quot;        &quot;both&quot;       &quot;each&quot;       &quot;few&quot;        &quot;more&quot;      
+## [161] &quot;most&quot;       &quot;other&quot;      &quot;some&quot;       &quot;such&quot;       &quot;no&quot;        
+## [166] &quot;nor&quot;        &quot;not&quot;        &quot;only&quot;       &quot;own&quot;        &quot;same&quot;      
+## [171] &quot;so&quot;         &quot;than&quot;       &quot;too&quot;        &quot;very&quot;</code></pre>
 <p>Removing stopwords takes little effort!</p>
 <pre class="r"><code>documents = c(&quot;I like to jump.&quot;, 
               &quot;I have jumped my whole life.&quot;, 
@@ -246,12 +248,12 @@ Docs blood have jump jumper life like whole
               &quot;I am a jumper.&quot;)
 
 tm::removeWords(documents, words = stopwords(&quot;en&quot;))</code></pre>
-<pre><code>[1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
-[3] &quot;Jumping    blood.&quot;      &quot;I   jumper.&quot;           </code></pre>
+<pre><code>## [1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
+## [3] &quot;Jumping    blood.&quot;      &quot;I   jumper.&quot;</code></pre>
 <p>We can even include custom stopwords:</p>
 <pre class="r"><code>tm::removeWords(documents, words = c(&quot;blood&quot;, stopwords(&quot;en&quot;)))</code></pre>
-<pre><code>[1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
-[3] &quot;Jumping    .&quot;           &quot;I   jumper.&quot;           </code></pre>
+<pre><code>## [1] &quot;I like  jump.&quot;          &quot;I  jumped  whole life.&quot;
+## [3] &quot;Jumping    .&quot;           &quot;I   jumper.&quot;</code></pre>
 </div>
 <div id="regular-expressions" class="section level3">
 <h3>Regular Expressions</h3>
@@ -262,21 +264,21 @@ tm::removeWords(documents, words = stopwords(&quot;en&quot;))</code></pre>
                    &quot;This is something that came from the darkest recesses of ill—conceived web design&quot;)</code></pre>
 <p>We can turn to our regular expression to see what we can do:</p>
 <pre class="r"><code>gsub(pattern = &quot;-&quot;, replacement = &quot; &quot;, exampleStrings)</code></pre>
-<pre><code>[1] &quot;This is a regularly occuring hyphen&quot;                                              
-[2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
-[3] &quot;This is something that came from the darkest recesses of ill—conceived web design&quot;</code></pre>
+<pre><code>## [1] &quot;This is a regularly occuring hyphen&quot;                                              
+## [2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
+## [3] &quot;This is something that came from the darkest recesses of ill—conceived web design&quot;</code></pre>
 <p>Using gsub and just specifying a regular “-” will remove just about everything, except for whatever is in the last sentence. What is it? It looks like a hyphen, but it is not. To remove it, we will need to get creative:</p>
 <pre class="r"><code>gsub(pattern = &quot;(?!\\w)\\S&quot;, &quot; &quot;, exampleStrings, perl = TRUE)</code></pre>
-<pre><code>[1] &quot;This is a regularly occuring hyphen&quot;                                              
-[2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
-[3] &quot;This is something that came from the darkest recesses of ill conceived web design&quot;</code></pre>
+<pre><code>## [1] &quot;This is a regularly occuring hyphen&quot;                                              
+## [2] &quot;This is something that more closely  resembles a manually produced em dash&quot;       
+## [3] &quot;This is something that came from the darkest recesses of ill conceived web design&quot;</code></pre>
 <p>By using some pattern matching, we are able to get out everything between words, no matter what it might be. This particular little bit of regex is using what is known as a negative lookahead. We have our main expression, the non-space character, \S. Next, we put an expression in front of our main expression (this is the chunk in the parenthesis that starts with “?!”). When we read this, we would say, “don’t match any word characters and then find non-whitespace characters.”</p>
-<p>While this is certainly a contrived example and would need addition robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.</p>
+<p>While this is certainly a contrived example and would need additional robustness testing, it goes to show you that working with interesting data will yield interesting problems. I have been telling you all along that nothing is ever as it seems.</p>
 </div>
 </div>
 <div id="text-processing-tools" class="section level2">
 <h2>Text Processing Tools</h2>
-<p>There are several R packages that will help us process text. The <strong>tm</strong> package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.</p>
+<p>There are several R packages that will help us process text. The <span class="pack">tm</span> package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but <span class="pack">tm</span> is full of fun stuff and allows for one pass text processing.</p>
 <pre class="r"><code>documents = c(&quot;I like to jump.&quot;, 
               &quot;I have jumped my whole life.&quot;, 
               &quot;Jumping is in my blood.&quot;, 
@@ -296,9 +298,16 @@ textPrepFunctions = list(removePunctuation,
 
 tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)</code></pre>
 <p>Once you get your text tidied up (or even before), you can produce some visualizations!</p>
-<pre class="r"><code>library(dplyr)
-
-library(tidytext)
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidytext)
 
 library(wordcloud2)
 
@@ -312,10 +321,11 @@ txExecutions %&gt;%
   filter(n &gt; 25) %&gt;% 
   na.omit() %&gt;% 
   wordcloud2(shape = &quot;cardioid&quot;)</code></pre>
-<div id="htmlwidget-b6197098325ec38e8f66" style="width:672px;height:480px;" class="wordcloud2 html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b6197098325ec38e8f66">{"x":{"word":["love","family","god","life","forgive","hope","lord","people","ya'll","peace","jesus","warden","y'all","pain","strong","death","ready","father","heart","friends","care","stay","home","pray","forgiveness","time","christ","caused","mom","day","loved","innocent","sir","heaven","apologize","lot","support","bless","world","row","sister","brother","continue","happened","hate","kill","son","tonight","wrong","allah","hurt","thy","murder","brothers","feel"],"freq":[671,289,203,148,143,141,135,112,108,103,97,86,82,81,81,80,78,75,72,63,60,59,56,56,53,53,52,50,50,47,46,45,45,43,40,40,39,38,36,35,34,33,33,32,32,32,32,32,32,29,28,28,27,26,26],"fontFamily":"Segoe UI","fontWeight":"bold","color":"random-dark","minSize":0,"weightFactor":0.268256333830104,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":true,"rotateRatio":0.4,"shape":"cardioid","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
+<pre><code>## Joining, by = &quot;word&quot;</code></pre>
+<div id="htmlwidget-8ec06a6c2d5eda3d6de5" style="width:672px;height:480px;" class="wordcloud2 html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8ec06a6c2d5eda3d6de5">{"x":{"word":["love","family","god","life","forgive","hope","lord","people","ya'll","peace","jesus","warden","y'all","pain","strong","death","ready","father","heart","friends","care","stay","home","pray","forgiveness","time","christ","caused","mom","day","loved","innocent","sir","heaven","apologize","lot","support","bless","world","row","sister","brother","continue","happened","hate","kill","son","tonight","wrong","allah","hurt","thy","murder","brothers","feel"],"freq":[671,289,203,148,143,141,135,112,108,103,97,86,82,81,81,80,78,75,72,63,60,59,56,56,53,53,52,50,50,47,46,45,45,43,40,40,39,38,36,35,34,33,33,32,32,32,32,32,32,29,28,28,27,26,26],"fontFamily":"Segoe UI","fontWeight":"bold","color":"random-dark","minSize":0,"weightFactor":0.268256333830104,"backgroundColor":"white","gridSize":0,"minRotation":-0.785398163397448,"maxRotation":0.785398163397448,"shuffle":true,"rotateRatio":0.4,"shape":"cardioid","ellipticity":0.65,"figBase64":null,"hover":null},"evals":[],"jsHooks":{"render":[{"code":"function(el,x){\n                        console.log(123);\n                        if(!iii){\n                          window.location.reload();\n                          iii = False;\n\n                        }\n  }","data":null}]}}</script>
 </div>
-<div id="sentiment-analysis" class="section level2">
+<div id="sentiment-analysis-1" class="section level2">
 <h2>Sentiment Analysis</h2>
 <p>Sentiment analysis is commonly used when we want to know the general <em>feelings</em> of what someone has written or said. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written/said something (product reviews, song lyrics, final statements).</p>
 <p>Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.</p>
@@ -331,23 +341,23 @@ tokens = data_frame(text = statement) %&gt;%
   unnest_tokens(tbl = ., output = word, input = text)
 
 tokens</code></pre>
-<pre><code># A tibble: 8 x 1
-  word       
-  &lt;chr&gt;      
-1 i          
-2 dislike    
-3 programming
-4 but        
-5 i          
-6 really     
-7 love       
-8 r          </code></pre>
+<pre><code>## # A tibble: 8 x 1
+##   word       
+##   &lt;chr&gt;      
+## 1 i          
+## 2 dislike    
+## 3 programming
+## 4 but        
+## 5 i          
+## 6 really     
+## 7 love       
+## 8 r</code></pre>
 <p>From there, we get every individual <em>token</em>. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, <em>n</em>-grams). While we won’t dive into them too deeply, <em>n</em>-grams are also interesting. Just like our typical notion of <em>n</em>, an <em>n</em>-gram is an <em>n</em> length group of words. We can set <em>n</em> to be anything, but we would typically look at 2-gram and 3-grams chunks.</p>
 <pre class="r"><code>tokenizers::tokenize_ngrams(statement, n = 2)</code></pre>
-<pre><code>[[1]]
-[1] &quot;i dislike&quot;           &quot;dislike programming&quot; &quot;programming but&quot;    
-[4] &quot;but i&quot;               &quot;i really&quot;            &quot;really love&quot;        
-[7] &quot;love r&quot;             </code></pre>
+<pre><code>## [[1]]
+## [1] &quot;i dislike&quot;           &quot;dislike programming&quot; &quot;programming but&quot;    
+## [4] &quot;but i&quot;               &quot;i really&quot;            &quot;really love&quot;        
+## [7] &quot;love r&quot;</code></pre>
 <p>These are helpful for looking at frequently occuring combinations of words. They are also going to be helpful for us in just a bit.</p>
 <p>Now back to the matter at hand.</p>
 <p>Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.</p>
@@ -358,29 +368,32 @@ tokens %&gt;%
   count(sentiment) %&gt;% 
   spread(sentiment, n, fill = 0) %&gt;% 
   mutate(sentiment = positive - negative)</code></pre>
-<pre><code># A tibble: 1 x 3
-  negative positive sentiment
-     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-1     1.00     1.00         0</code></pre>
+<pre><code>## Joining, by = &quot;word&quot;</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   negative positive sentiment
+##      &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+## 1        1        1         0</code></pre>
 <p>When we use Bing’s dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment (a sentiment of 0 would indicate neutrality, while anything above 0 has an increasing amount of positivity and anything below 0 has an increasing amount of negativity).</p>
 <p>Do you think that disklike and love are of the same magnitude? If I had to make a wild guess, I might say that love is stronger than dislike. Let’s switch out our sentiment library to get something with a little better notion of polarity magnitute.</p>
 <pre class="r"><code>tokens %&gt;%
   inner_join(get_sentiments(&quot;afinn&quot;))</code></pre>
-<pre><code># A tibble: 2 x 2
-  word    score
-  &lt;chr&gt;   &lt;int&gt;
-1 dislike    -2
-2 love        3</code></pre>
+<pre><code>## Joining, by = &quot;word&quot;</code></pre>
+<pre><code>## # A tibble: 2 x 2
+##   word    score
+##   &lt;chr&gt;   &lt;int&gt;
+## 1 dislike    -2
+## 2 love        3</code></pre>
 <p>Now this looks a bit more interesting! “Love” has a stronger positive polarity than “dislike” has negative polarity. So, we could guess that we would have some positive sentiment.</p>
 <p>If we divide the sum of our word sentiments by the number of words within the dictionary, we should get an idea of our sentences overall sentiment.</p>
 <pre class="r"><code>tokens %&gt;%
   inner_join(get_sentiments(&quot;afinn&quot;)) %&gt;% 
   summarize(n = nrow(.), sentSum = sum(score)) %&gt;% 
   mutate(sentiment = sentSum / n)</code></pre>
-<pre><code># A tibble: 1 x 3
-      n sentSum sentiment
-  &lt;int&gt;   &lt;int&gt;     &lt;dbl&gt;
-1     2       1     0.500</code></pre>
+<pre><code>## Joining, by = &quot;word&quot;</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##       n sentSum sentiment
+##   &lt;int&gt;   &lt;int&gt;     &lt;dbl&gt;
+## 1     2       1       0.5</code></pre>
 <p>Our sentiment of .5 tells us that our sentence is positive, even if only slightly so.</p>
 <p>While these simple sentiment analyses provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.</p>
 <p>For example, it is probably fair to say that “really love” is stronger than just “love”. We might want to switch over to some techniques that consider <em>n</em>-grams and other text features to calculate sentiment.</p>
@@ -388,45 +401,49 @@ tokens %&gt;%
 <div id="smarter-sentiment-analysis" class="section level3">
 <h3>Smarter Sentiment Analysis</h3>
 <p>When we use sentiment analysis that is aware of context, valence (“love” is stronger than “like”), modifiers (e.g., “really love”), and adversative statements (“but,…”, “however,…”), we get a better idea about the real sentiment of the text.</p>
-<p>We will use the <em>vader</em> sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.</p>
+<p>We will use the <em>jockers</em> sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.</p>
 <p>Before we engage in our whole sentiment analysis, let’s take a look at a few things.</p>
-<p>Here is the dictionary that <em>vader</em> will use.</p>
-<pre class="r"><code>lexicon::hash_sentiment_vadar</code></pre>
-<pre><code>              x    y
-   1:       aas  2.5
-   2:      aayf  2.7
-   3:   abandon -1.9
-   4: abandoned -2.0
-   5: abandoner -1.9
-  ---               
-7232:      ywia  2.5
-7233:    zealot -1.9
-7234:   zealots -0.8
-7235:   zealous  0.5
-7236:       zzz -1.2</code></pre>
-<p>You might want to use View() to get a complete look at what is happening in there.</p>
+<p>Here is the dictionary that <em>jockers</em> will use.</p>
+<pre class="r"><code>lexicon::hash_sentiment_jockers</code></pre>
+<pre><code>##                  x     y
+##     1:     abandon -0.75
+##     2:   abandoned -0.50
+##     3:   abandoner -0.25
+##     4: abandonment -0.25
+##     5:    abandons -1.00
+##    ---                  
+## 10734:     zealous  0.40
+## 10735:      zenith  0.40
+## 10736:        zest  0.50
+## 10737:      zombie -0.25
+## 10738:     zombies -0.25</code></pre>
+<p>You might want to use <span class="func">View</span>() to get a complete look at what is happening in there.</p>
 <p>We should also take a peak at our valence shifters:</p>
 <pre class="r"><code>lexicon::hash_valence_shifters</code></pre>
-<pre><code>              x y
-  1: absolutely 2
-  2:      acute 2
-  3:    acutely 2
-  4:      ain't 1
-  5:       aint 1
- ---             
-136:    whereas 4
-137:      won't 1
-138:       wont 1
-139:   wouldn't 1
-140:    wouldnt 1</code></pre>
+<pre><code>##               x y
+##   1: absolutely 2
+##   2:      acute 2
+##   3:    acutely 2
+##   4:      ain't 1
+##   5:       aint 1
+##  ---             
+## 136:    whereas 4
+## 137:      won't 1
+## 138:       wont 1
+## 139:   wouldn't 1
+## 140:    wouldnt 1</code></pre>
 <p>With all of that out of the way, let’s get down to the matter at hand:</p>
-<pre class="r"><code>library(sentimentr); library(lexicon); library(magrittr)
+<pre class="r"><code>library(sentimentr); library(lexicon); library(magrittr)</code></pre>
+<pre><code>## 
+## Attaching package: 'magrittr'</code></pre>
+<pre><code>## The following object is masked from 'package:tidyr':
+## 
+##     extract</code></pre>
+<pre class="r"><code>statement = &quot;I dislike programming, but I really love R.&quot;
 
-statement = &quot;I dislike programming, but I really love R.&quot;
-
-sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)</code></pre>
-<pre><code>   element_id sentence_id word_count sentiment
-1:          1           1          8  3.145211</code></pre>
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)</code></pre>
+<pre><code>##    element_id sentence_id word_count sentiment
+## 1:          1           1          8  0.516188</code></pre>
 <p>We can see that we get a much stronger sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial “but” that will downweight whatever is in the initial phrase and then we will have the amplified (from “really”) sentiment of “love” (with a weight of 3.2 in our dictionary).</p>
 <p>With all of this together, we get a much better idea about the sentiment of our text.</p>
 </div>
@@ -443,548 +460,195 @@ sentiment(statement, polarity_dt = lexicon::hash_sentiment_vadar)</code></pre>
 
 
 sentiment(get_sentences(txExecutionsShort), 
-          polarity_dt = lexicon::hash_sentiment_vadar) %&gt;% 
+          polarity_dt = lexicon::hash_sentiment_jockers) %&gt;% 
   group_by(inmateNumber) %&gt;% 
   summarize(meanSentiment = mean(sentiment))</code></pre>
-<pre><code># A tibble: 4 x 2
-  inmateNumber meanSentiment
-         &lt;int&gt;         &lt;dbl&gt;
-1          529        0.565 
-2          714        0.171 
-3          843        1.55  
-4       999253       -0.0590</code></pre>
+<pre><code>## # A tibble: 4 x 2
+##   inmateNumber meanSentiment
+##          &lt;int&gt;         &lt;dbl&gt;
+## 1          529        0.0972
+## 2          714        0.0763
+## 3          843        0.561 
+## 4       999253        0.0121</code></pre>
 </div>
 </div>
 <div id="other-text-fun" class="section level2">
 <h2>Other Text Fun</h2>
 <p>Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.</p>
-<p>The “koRpus” package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).</p>
-<p>We need to tokenize our text in a manner that will please koRpus.</p>
-<pre class="r"><code>library(koRpus)
-
-statementTokens = lapply(txExecutionsShort$correctedStatements, function(x) tokenize(x, 
+<p>The <span class="pack">koRpus</span> package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).</p>
+<p>We need to tokenize our text in a manner that will please <span class="pack">koRpus</span>.</p>
+<pre class="r"><code>library(koRpus)</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## 
+## Attaching package: 'data.table'</code></pre>
+<pre><code>## The following objects are masked from 'package:dplyr':
+## 
+##     between, first, last</code></pre>
+<pre class="r"><code>statementTokens = lapply(txExecutionsShort$correctedStatements, function(x) tokenize(x, 
                            format = &quot;obj&quot;, lang = &quot;en&quot;))
 
 statementTokens</code></pre>
-<pre><code>[[1]]
-        token      tag lemma lttr       wclass
-1        What word.kRp          4         word
-2          is word.kRp          2         word
-3       about word.kRp          5         word
-4          to word.kRp          2         word
-5   transpire word.kRp          9         word
-6          in word.kRp          2         word
-                                         [...]
-172      well word.kRp          4         word
-173        by word.kRp          2         word
-174       all word.kRp          3         word
-175    T.D.C. abbr.kRp          6 abbreviation
-176 personnel word.kRp          9         word
-177         .     .kRp          1     fullstop
-                                          desc stop stem
-1                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-2                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-3                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-4                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-5                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-6                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-                                                        
-172                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-173                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-174                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-175                Abbreviation (kRp internal) &lt;NA&gt; &lt;NA&gt;
-176                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-177 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+<pre><code>## [[1]]
+##         token      tag lemma lttr       wclass
+## 1        What word.kRp          4         word
+## 2          is word.kRp          2         word
+## 3       about word.kRp          5         word
+## 4          to word.kRp          2         word
+## 5   transpire word.kRp          9         word
+## 6          in word.kRp          2         word
+##                                          [...]
+## 172      well word.kRp          4         word
+## 173        by word.kRp          2         word
+## 174       all word.kRp          3         word
+## 175    T.D.C. abbr.kRp          6 abbreviation
+## 176 personnel word.kRp          9         word
+## 177         .     .kRp          1     fullstop
+##                                           desc stop stem
+## 1                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 2                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 3                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 4                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 5                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 6                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+##                                                         
+## 172                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 173                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 174                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 175                Abbreviation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 176                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 177 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 
+## [[2]]
+##      token      tag lemma lttr      wclass
+## 1        I word.kRp          1        word
+## 2        '    ''kRp          1 punctuation
+## 3        m word.kRp          1        word
+## 4    sorry word.kRp          5        word
+## 5      for word.kRp          3        word
+## 6     what word.kRp          4        word
+##                                      [...]
+## 14    this word.kRp          4        word
+## 15       .     .kRp          1    fullstop
+## 16   Jesus word.kRp          5        word
+## 17 forgive word.kRp          7        word
+## 18      me word.kRp          2        word
+## 19       .     .kRp          1    fullstop
+##                                          desc stop stem
+## 1                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 2                        Quote (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 3                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 4                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 5                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 6                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+##                                                        
+## 14                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 15 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 16                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 17                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 18                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 19 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 
+## [[3]]
+##    token      tag lemma lttr   wclass
+## 1      I word.kRp          1     word
+## 2     am word.kRp          2     word
+## 3     so word.kRp          2     word
+## 4   glad word.kRp          4     word
+## 5      I word.kRp          1     word
+## 6  found word.kRp          5     word
+##                                 [...]
+## 10    am word.kRp          2     word
+## 11    so word.kRp          2     word
+## 12 happy word.kRp          5     word
+## 13   for word.kRp          3     word
+## 14    it word.kRp          2     word
+## 15     .     .kRp          1 fullstop
+##                                          desc stop stem
+## 1                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 2                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 3                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 4                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 5                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 6                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+##                                                        
+## 10                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 11                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 12                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 13                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 14                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 15 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 
+## [[4]]
+##        token      tag lemma lttr      wclass
+## 1        Yes word.kRp          3        word
+## 2          I word.kRp          1        word
+## 3         do word.kRp          2        word
+## 4          .     .kRp          1    fullstop
+## 5      There word.kRp          5        word
+## 6        has word.kRp          3        word
+##                                        [...]
+## 389        I word.kRp          1        word
+## 390        '    ''kRp          1 punctuation
+## 391        m word.kRp          1        word
+## 392 finished word.kRp          8        word
+## 393  talking word.kRp          7        word
+## 394        .     .kRp          1    fullstop
+##                                           desc stop stem
+## 1                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 2                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 3                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 4   Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 5                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 6                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+##                                                         
+## 389                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 390                       Quote (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 391                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 392                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 393                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
+## 394 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;</code></pre>
+<pre class="r"><code>lapply(statementTokens, function(x) readability(x, index = &quot;Flesch.Kincaid&quot;, quiet = TRUE))</code></pre>
+<pre><code>## Warning: Text is relatively short (&lt;100 tokens), results are probably not
+## reliable!
 
-[[2]]
-     token      tag lemma lttr      wclass
-1        I word.kRp          1        word
-2        '    ''kRp          1 punctuation
-3        m word.kRp          1        word
-4    sorry word.kRp          5        word
-5      for word.kRp          3        word
-6     what word.kRp          4        word
-                                     [...]
-14    this word.kRp          4        word
-15       .     .kRp          1    fullstop
-16   Jesus word.kRp          5        word
-17 forgive word.kRp          7        word
-18      me word.kRp          2        word
-19       .     .kRp          1    fullstop
-                                         desc stop stem
-1                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-2                        Quote (kRp internal) &lt;NA&gt; &lt;NA&gt;
-3                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-4                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-5                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-6                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-                                                       
-14                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-15 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
-16                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-17                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-18                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-19 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
-
-[[3]]
-   token      tag lemma lttr   wclass
-1      I word.kRp          1     word
-2     am word.kRp          2     word
-3     so word.kRp          2     word
-4   glad word.kRp          4     word
-5      I word.kRp          1     word
-6  found word.kRp          5     word
-                                [...]
-10    am word.kRp          2     word
-11    so word.kRp          2     word
-12 happy word.kRp          5     word
-13   for word.kRp          3     word
-14    it word.kRp          2     word
-15     .     .kRp          1 fullstop
-                                         desc stop stem
-1                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-2                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-3                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-4                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-5                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-6                         Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-                                                       
-10                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-11                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-12                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-13                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-14                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-15 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
-
-[[4]]
-       token      tag lemma lttr      wclass
-1        Yes word.kRp          3        word
-2          I word.kRp          1        word
-3         do word.kRp          2        word
-4          .     .kRp          1    fullstop
-5      There word.kRp          5        word
-6        has word.kRp          3        word
-                                       [...]
-389        I word.kRp          1        word
-390        '    ''kRp          1 punctuation
-391        m word.kRp          1        word
-392 finished word.kRp          8        word
-393  talking word.kRp          7        word
-394        .     .kRp          1    fullstop
-                                          desc stop stem
-1                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-2                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-3                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-4   Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;
-5                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-6                          Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-                                                        
-389                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-390                       Quote (kRp internal) &lt;NA&gt; &lt;NA&gt;
-391                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-392                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-393                        Word (kRp internal) &lt;NA&gt; &lt;NA&gt;
-394 Sentence ending punctuation (kRp internal) &lt;NA&gt; &lt;NA&gt;</code></pre>
-<pre class="r"><code>lapply(statementTokens, function(x) readability(x, index = &quot;Flesch.Kincaid&quot;))</code></pre>
-<pre><code>
-  |                                                                       
-  |                                                                 |   0%
-  |                                                                       
-  |=                                                                |   2%
-  |                                                                       
-  |==                                                               |   3%
-  |                                                                       
-  |===                                                              |   5%
-  |                                                                       
-  |====                                                             |   7%
-  |                                                                       
-  |=====                                                            |   8%
-  |                                                                       
-  |======                                                           |  10%
-  |                                                                       
-  |=======                                                          |  11%
-  |                                                                       
-  |=========                                                        |  13%
-  |                                                                       
-  |==========                                                       |  15%
-  |                                                                       
-  |===========                                                      |  16%
-  |                                                                       
-  |============                                                     |  18%
-  |                                                                       
-  |=============                                                    |  20%
-  |                                                                       
-  |==============                                                   |  21%
-  |                                                                       
-  |===============                                                  |  23%
-  |                                                                       
-  |================                                                 |  25%
-  |                                                                       
-  |=================                                                |  26%
-  |                                                                       
-  |==================                                               |  28%
-  |                                                                       
-  |===================                                              |  30%
-  |                                                                       
-  |====================                                             |  31%
-  |                                                                       
-  |=====================                                            |  33%
-  |                                                                       
-  |======================                                           |  34%
-  |                                                                       
-  |=======================                                          |  36%
-  |                                                                       
-  |=========================                                        |  38%
-  |                                                                       
-  |==========================                                       |  39%
-  |                                                                       
-  |===========================                                      |  41%
-  |                                                                       
-  |============================                                     |  43%
-  |                                                                       
-  |=============================                                    |  44%
-  |                                                                       
-  |==============================                                   |  46%
-  |                                                                       
-  |===============================                                  |  48%
-  |                                                                       
-  |================================                                 |  49%
-  |                                                                       
-  |=================================                                |  51%
-  |                                                                       
-  |==================================                               |  52%
-  |                                                                       
-  |===================================                              |  54%
-  |                                                                       
-  |====================================                             |  56%
-  |                                                                       
-  |=====================================                            |  57%
-  |                                                                       
-  |======================================                           |  59%
-  |                                                                       
-  |=======================================                          |  61%
-  |                                                                       
-  |========================================                         |  62%
-  |                                                                       
-  |==========================================                       |  64%
-  |                                                                       
-  |===========================================                      |  66%
-  |                                                                       
-  |============================================                     |  67%
-  |                                                                       
-  |=============================================                    |  69%
-  |                                                                       
-  |==============================================                   |  70%
-  |                                                                       
-  |===============================================                  |  72%
-  |                                                                       
-  |================================================                 |  74%
-  |                                                                       
-  |=================================================                |  75%
-  |                                                                       
-  |==================================================               |  77%
-  |                                                                       
-  |===================================================              |  79%
-  |                                                                       
-  |====================================================             |  80%
-  |                                                                       
-  |=====================================================            |  82%
-  |                                                                       
-  |======================================================           |  84%
-  |                                                                       
-  |=======================================================          |  85%
-  |                                                                       
-  |========================================================         |  87%
-  |                                                                       
-  |==========================================================       |  89%
-  |                                                                       
-  |===========================================================      |  90%
-  |                                                                       
-  |============================================================     |  92%
-  |                                                                       
-  |=============================================================    |  93%
-  |                                                                       
-  |==============================================================   |  95%
-  |                                                                       
-  |===============================================================  |  97%
-  |                                                                       
-  |================================================================ |  98%
-  |                                                                       
-  |=================================================================| 100%
-
-  |                                                                       
-  |                                                                 |   0%
-  |                                                                       
-  |===========                                                      |  17%
-  |                                                                       
-  |======================                                           |  33%
-  |                                                                       
-  |================================                                 |  50%
-  |                                                                       
-  |===========================================                      |  67%
-  |                                                                       
-  |======================================================           |  83%
-  |                                                                       
-  |=================================================================| 100%
-
-  |                                                                       
-  |                                                                 |   0%
-  |                                                                       
-  |======================                                           |  33%
-  |                                                                       
-  |===========================================                      |  67%
-  |                                                                       
-  |=================================================================| 100%
-
-  |                                                                       
-  |                                                                 |   0%
-  |                                                                       
-  |=                                                                |   1%
-  |                                                                       
-  |=                                                                |   2%
-  |                                                                       
-  |==                                                               |   3%
-  |                                                                       
-  |==                                                               |   4%
-  |                                                                       
-  |===                                                              |   5%
-  |                                                                       
-  |====                                                             |   6%
-  |                                                                       
-  |=====                                                            |   7%
-  |                                                                       
-  |=====                                                            |   8%
-  |                                                                       
-  |======                                                           |   9%
-  |                                                                       
-  |=======                                                          |  10%
-  |                                                                       
-  |=======                                                          |  11%
-  |                                                                       
-  |========                                                         |  12%
-  |                                                                       
-  |========                                                         |  13%
-  |                                                                       
-  |=========                                                        |  14%
-  |                                                                       
-  |==========                                                       |  15%
-  |                                                                       
-  |==========                                                       |  16%
-  |                                                                       
-  |===========                                                      |  17%
-  |                                                                       
-  |===========                                                      |  18%
-  |                                                                       
-  |============                                                     |  19%
-  |                                                                       
-  |=============                                                    |  19%
-  |                                                                       
-  |=============                                                    |  20%
-  |                                                                       
-  |==============                                                   |  21%
-  |                                                                       
-  |==============                                                   |  22%
-  |                                                                       
-  |===============                                                  |  23%
-  |                                                                       
-  |================                                                 |  24%
-  |                                                                       
-  |================                                                 |  25%
-  |                                                                       
-  |=================                                                |  26%
-  |                                                                       
-  |=================                                                |  27%
-  |                                                                       
-  |==================                                               |  28%
-  |                                                                       
-  |===================                                              |  29%
-  |                                                                       
-  |===================                                              |  30%
-  |                                                                       
-  |====================                                             |  31%
-  |                                                                       
-  |=====================                                            |  32%
-  |                                                                       
-  |======================                                           |  33%
-  |                                                                       
-  |======================                                           |  34%
-  |                                                                       
-  |=======================                                          |  35%
-  |                                                                       
-  |=======================                                          |  36%
-  |                                                                       
-  |========================                                         |  37%
-  |                                                                       
-  |=========================                                        |  38%
-  |                                                                       
-  |=========================                                        |  39%
-  |                                                                       
-  |==========================                                       |  40%
-  |                                                                       
-  |==========================                                       |  41%
-  |                                                                       
-  |===========================                                      |  42%
-  |                                                                       
-  |============================                                     |  43%
-  |                                                                       
-  |============================                                     |  44%
-  |                                                                       
-  |=============================                                    |  44%
-  |                                                                       
-  |=============================                                    |  45%
-  |                                                                       
-  |==============================                                   |  46%
-  |                                                                       
-  |===============================                                  |  47%
-  |                                                                       
-  |===============================                                  |  48%
-  |                                                                       
-  |================================                                 |  49%
-  |                                                                       
-  |================================                                 |  50%
-  |                                                                       
-  |=================================                                |  51%
-  |                                                                       
-  |==================================                               |  52%
-  |                                                                       
-  |==================================                               |  53%
-  |                                                                       
-  |===================================                              |  54%
-  |                                                                       
-  |====================================                             |  55%
-  |                                                                       
-  |====================================                             |  56%
-  |                                                                       
-  |=====================================                            |  56%
-  |                                                                       
-  |=====================================                            |  57%
-  |                                                                       
-  |======================================                           |  58%
-  |                                                                       
-  |=======================================                          |  59%
-  |                                                                       
-  |=======================================                          |  60%
-  |                                                                       
-  |========================================                         |  61%
-  |                                                                       
-  |========================================                         |  62%
-  |                                                                       
-  |=========================================                        |  63%
-  |                                                                       
-  |==========================================                       |  64%
-  |                                                                       
-  |==========================================                       |  65%
-  |                                                                       
-  |===========================================                      |  66%
-  |                                                                       
-  |===========================================                      |  67%
-  |                                                                       
-  |============================================                     |  68%
-  |                                                                       
-  |=============================================                    |  69%
-  |                                                                       
-  |==============================================                   |  70%
-  |                                                                       
-  |==============================================                   |  71%
-  |                                                                       
-  |===============================================                  |  72%
-  |                                                                       
-  |================================================                 |  73%
-  |                                                                       
-  |================================================                 |  74%
-  |                                                                       
-  |=================================================                |  75%
-  |                                                                       
-  |=================================================                |  76%
-  |                                                                       
-  |==================================================               |  77%
-  |                                                                       
-  |===================================================              |  78%
-  |                                                                       
-  |===================================================              |  79%
-  |                                                                       
-  |====================================================             |  80%
-  |                                                                       
-  |====================================================             |  81%
-  |                                                                       
-  |=====================================================            |  81%
-  |                                                                       
-  |======================================================           |  82%
-  |                                                                       
-  |======================================================           |  83%
-  |                                                                       
-  |=======================================================          |  84%
-  |                                                                       
-  |=======================================================          |  85%
-  |                                                                       
-  |========================================================         |  86%
-  |                                                                       
-  |=========================================================        |  87%
-  |                                                                       
-  |=========================================================        |  88%
-  |                                                                       
-  |==========================================================       |  89%
-  |                                                                       
-  |==========================================================       |  90%
-  |                                                                       
-  |===========================================================      |  91%
-  |                                                                       
-  |============================================================     |  92%
-  |                                                                       
-  |============================================================     |  93%
-  |                                                                       
-  |=============================================================    |  94%
-  |                                                                       
-  |==============================================================   |  95%
-  |                                                                       
-  |===============================================================  |  96%
-  |                                                                       
-  |===============================================================  |  97%
-  |                                                                       
-  |================================================================ |  98%
-  |                                                                       
-  |================================================================ |  99%
-  |                                                                       
-  |=================================================================| 100%</code></pre>
-<pre><code>[[1]]
-
-Flesch-Kincaid Grade Level
-  Parameters: default 
-       Grade: 5.83 
-         Age: 10.83 
-
-Text language: en 
-
-[[2]]
-
-Flesch-Kincaid Grade Level
-  Parameters: default 
-       Grade: 0.56 
-         Age: 5.56 
-
-Text language: en 
-
-[[3]]
-
-Flesch-Kincaid Grade Level
-  Parameters: default 
-       Grade: 2.51 
-         Age: 7.51 
-
-Text language: en 
-
-[[4]]
-
-Flesch-Kincaid Grade Level
-  Parameters: default 
-       Grade: 1.45 
-         Age: 6.45 
-
-Text language: en </code></pre>
+## Warning: Text is relatively short (&lt;100 tokens), results are probably not
+## reliable!</code></pre>
+<pre><code>## [[1]]
+## 
+## Flesch-Kincaid Grade Level
+##   Parameters: default 
+##        Grade: 5.83 
+##          Age: 10.83 
+## 
+## Text language: en 
+## 
+## [[2]]
+## 
+## Flesch-Kincaid Grade Level
+##   Parameters: default 
+##        Grade: 0.56 
+##          Age: 5.56 
+## 
+## Text language: en 
+## 
+## [[3]]
+## 
+## Flesch-Kincaid Grade Level
+##   Parameters: default 
+##        Grade: 2.51 
+##          Age: 7.51 
+## 
+## Text language: en 
+## 
+## [[4]]
+## 
+## Flesch-Kincaid Grade Level
+##   Parameters: default 
+##        Grade: 1.45 
+##          Age: 6.45 
+## 
+## Text language: en</code></pre>
 </div>
-<div id="do-me-a-favor" class="section level2">
-<h2>Do Me A Favor</h2>
-<p>There are some hushed words about employer reviews on the web. Why don’t you take a look at them and see what you can find out.</p>
 </div>
 
 

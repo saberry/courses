@@ -1,13 +1,10 @@
 ---
 title: "Recommender Systems"
-author: "Behavioral Data Science"
-date: "March 13, 2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-```
+
+# Recommender Systems
 
 ## Overview
 
@@ -19,7 +16,7 @@ While our little contrived scenario serves as a clean example, recommender syste
 
 ## Package Installation
 
-While we are going to use recommenderlab (for ease and speed), recosystem is an excellent package and one that you should keep in mind.
+While we are going to use <span class="pack">recommenderlab</span> (for ease and speed), <span class="pack">recosystem</span> is an excellent package and one that you should keep in mind.
 
 ```{r, eval = FALSE}
 install.packages("recommenderlab")

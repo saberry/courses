@@ -1,4 +1,8 @@
-Employee turnover is an important issue for all organization, but it is a problem for some organizations. In our data, we have the number of days employed (daysEmployed) in the last 365 days. Anyone who worked less than 365 days, quit. You will notice that very few employees actually stuck around all year. 
+# Bronze #
+
+For up to 15 points
+
+Employee turnover is an important issue for all organization, but it is a big problem for some organizations. In our data, we have the number of days employed (daysEmployed) in the last 365 days. Anyone who worked less than 365 days, quit. You will notice that very few employees actually stuck around all year. 
 
 Task 1
 
@@ -15,3 +19,15 @@ Use one of the functions that will cover glm techniques (lm for a linear regress
 Task 4
 
 Explore the data a little bit more. Produce one visualization and explain the relationship.
+
+# Silver #
+
+For up to an additional 6 points
+
+Given the hypotheses that you tested before, run the appropriate power analyses. Were your analyses appropriately powered?
+
+# Gold #
+
+For up to an additional 9 points
+
+Test for any potential interactions. If you find something that might be interesting, visualize it and offer an explanation.

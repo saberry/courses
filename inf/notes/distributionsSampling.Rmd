@@ -11,9 +11,78 @@ output:
     css: documentCSS.css
 ---
 
-```{r setup, include=FALSE, echo = FALSE}
-knitr::opts_chunk$set(echo = FALSE, comment = "")
+```{r setup, include=FALSE, echo = FALSE, warning=FALSE, message = FALSE, comment = ""}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 ```
+
+## Probability
+
+Vampirism, while on a tempory cultural downward trend, will always be of interest to some. Let's suppose that we have a test for vampirism. This test will correctly detect vampirism 95% of the time, but 1% of the time there is a false positive (i.e., it says that someone is a vampire, when they are just a mere mortal). Thankfully, vampires are an exceedingly rare lot -- only .1% of the population is actually a vampire. 
+
+So the natural question would be: what is the probability that you are actually a vampire if you test positive?
+
+We can uses the Bayes Theorem to find our answer.
+
+We can first see it in the standard form:
+
+$$ Pr(vampire|positive) = \frac{Pr(positive|vampire)Pr(vampire)}{Pr(positive)} $$
+
+We can get the average probability of a positive test as follows:
+
+$$ Pr(positive) = Pr(positive|vampire)Pr(vampire)+Pr(positive|mortal)(1-Pr(vampire)$$
+
+We can code this in R as follows:
+
+```{r}
+positiveVampire = .95
+
+falsePositive = .01
+
+probabilityVampire = .001
+
+probabilityPositive = positiveVampire * probabilityVampire + 
+  falsePositive * (1 - probabilityVampire)
+
+probabilityActualVampire = positiveVampire * probabilityVampire / probabilityPositive
+
+probabilityActualVampire
+```
+
+So, there is roughly an 8.7% chance that a person who tests positive as a vampire is actually a vampire.
+
+This notation for probability, while certainly useful, can be a bit difficult to get your head into -- mostly because we don't deal in probability very much. We do, however, deal with frequency...frequently.
+
+Let's restate our problem in terms of frequency:
+
+1.  In a population of 100000 people, 100 of them are vampires (.01%)
+2.  Of those 100 vampires, 95 will test positive for vampirism (95% true positive)
+3.  Of the 99900 mortal, 999 will test positive (1% false positive)
+
+How many people, in total, will test positive?
+
+```{r}
+truePositive = 95
+
+falsePositive = 999
+
+totalPositive = truePositive + falsePositive
+
+totalPositive
+```
+
+Now, of those `R totalPositive` positive tests, what is the probability of being a vampire:
+
+```{r}
+truePositive / totalPositive
+```
+
+While this might seem silly and contrived (it is), it provides a nice demostration for what happens in most of our statistics:
+
+1. We specify some state of the world (e.g., our hypotheses is false or not)
+2. We get some type of imperfect information about our hypothesis (data)
+3. We determine some type of uncertainty estimate
+
+While we will get into during the coming weeks, this is essentially what we are doing when we are specifying the power of a test (probability of a hypothesis being correct is .8) and our significance level (there is less than a .05 chance that we have a false positive).
 
 ## The Normal Distribution
 
@@ -59,6 +128,43 @@ ggplot(population, aes(population)) +
 
 The normal distribution is important, as many things are naturally normally distributed.
 
+
+```{r}
+pos = replicate(1000, sum(runif(16, -1, 1)))
+
+plot(density(pos))
+```
+
+
+```{r}
+library(plyr)
+
+library(ggplot2)
+
+dataSteps = function(stepSize) {
+  walks = data.frame(person = rep(1:100, each = stepSize), 
+           position = unlist(rlply(100, cumsum(c(0, runif((stepSize - 1), -1, 1))))), 
+           step = rep(1:stepSize, times = 100))
+  
+  return(walks)
+}
+
+walks = dataSteps(16)
+
+ggplot(walks, aes(step, position, group = person)) + 
+  geom_line(color = "#ff5500", alpha = .5) + 
+  theme_minimal()
+```
+
+
+```{r, eval = FALSE}
+library(animation)
+
+ani.options(nmax = 215, interval = .5, autoplay = FALSE)
+
+quincunx()
+```
+
 If we look at the density plots above, we can see that we are likely dealing with a standard normal distribution ($\mu=0$, $\sigma=1$). Although not requisite, we might want to standardize our variables to fit a standard normal distribution: $z = \frac{x_i-\mu}{\sigma}$. Transforming variables into *z*-scores makes it easy to compare values.
 
 For example, we might take a person who scored a 3.2 on the auditor exam (CIA) in 2015. In 2014, a different auditor also scored a 3.2. Clearly, they both scored the same; however, the story should not end there. Let's consider the following information:
@@ -70,9 +176,9 @@ In 2015, the CIA had $\mu=2.86$ with a $\sigma=1.34$.
 With that knowledge, which CIA examinee performed better compared to the population of examinees?
 
 ```{r, echo = TRUE}
-person2014Z = (3.2-3.04) / 1.41
+person2014Z = (3.2 - 3.04) / 1.41
 
-person2015Z = (3.2-2.86) / 1.34
+person2015Z = (3.2 - 2.86) / 1.34
 ```
 
 Let's play with this for a little bit:
@@ -88,6 +194,7 @@ abline(v = c(3.04, 3.2), col = c("black", "red"))
 We can find out how many people our person in 2014 bested:
 ```{r, echo = TRUE}
 pnorm(3.2, 3.04, 1.41)
+
 pnorm(person2014Z)
 ```
 
@@ -104,7 +211,7 @@ We can consider that everything that falls under our curve is 1 (i.e., it is 100
 If we use pnorm to find the proportion/probability, we can feed a proportion to qnorm to find z.
 
 ```{r, echo = TRUE}
-qnorm(.25)
+qnorm(.45)
 ```
 
 
@@ -145,14 +252,21 @@ generate.plots = function(samps, samp.means) {
   grid.arrange(p1,p2,ncol=2)
 }
 
+```
+
+
+### Uniform
+
+```{r}
 samps = runif(r*n)
 
 samp.means = sample.means(samps, r, n)
 
 generate.plots(samps, samp.means)
-
 ```
 
+
+### Poisson
 
 ```{r}
 samps = rpois(r*n,lambda=3)
@@ -163,6 +277,7 @@ generate.plots(samps, samp.means)
 ```
 
 
+### Exponential
 ```{r}
 samps = rexp(r*n,rate=1)
 
@@ -184,7 +299,7 @@ population = rnorm(10000)
 plot(density(population))
 ```
 
-Now, let's take a small sample of our population:
+Now, let's take a small sample (*n* = 75) of our population:
 
 ```{r, echo = TRUE}
 
@@ -195,7 +310,7 @@ smallSample = sample(population, 75, replace = FALSE)
 plot(density(smallSample))
 ```
 
-And now something a little bigger:
+And now something a little bigger (*n* = 250):
 
 ```{r, echo = TRUE}
 set.seed(1001)
@@ -205,7 +320,7 @@ mediumSample = sample(population, 250, replace = FALSE)
 plot(density(mediumSample))
 ```
 
-And bigger still:
+And bigger still (*n* = 1000):
 
 ```{r, echo = TRUE}
 set.seed(1001)
@@ -216,7 +331,7 @@ plot(density(biggerSample))
 ```
 
 
-And finally:
+And finally *n* = 2500:
 
 ```{r, echo = TRUE}
 set.seed(1001)

@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
 ```
 
 
@@ -87,6 +87,8 @@ From a conceptual perspective, all they are doing is allowing the linear predict
 - If you know a distribution's canonical link function, that is all the deeper you will probably every need.
 
 
+At the end of the day, these link functions will do *something* to convert the outcome (dv) to an unbounded continuous variable.
+
 ## Linear Regression
 
 We already saw linear regression.
@@ -120,6 +122,8 @@ We can test it with the following:
 
 The value of AIC is not really interpretable -- it is used only for model comparison.
 
+We can also produce our confidence intervals:
+
 ```{r}
 confint(lmTest)
 ```
@@ -131,6 +135,10 @@ Confidence intervals express that 95% of samples will contain the true value, wh
 
 They are not related to the probability of a result being correct.
 
+They are not a 95% chance that the true estimate falls within.
+
+They are not meant to say that the mean will fall into the confidence interval 95% of the time.
+
 "Doesn't contain 0" does not apply to everything.
 
 ## Logistic Regression
@@ -139,9 +147,10 @@ Logistic regression is substantially different than linear regression.
 
 - It is also a bit confusing, because it is named after its link function.
 
-Instead of that nice continuous dv, we are dealing with a binomial distribution.
+Instead of that nice continuous dv, we are dealing with a binomially distributed dv.
 
 - 0's and 1's as responses.
+- no $\mu$ or $\sigma^2$; instead we have *p* and *n* 
 
 
 ```{r}
@@ -157,12 +166,25 @@ kickstarter = kickstarter %>%
 library(ggplot2)
 
 ggplot(kickstarter, aes(state)) +
-  geom_density() +
+  geom_bar() +
   theme_minimal()
 ```
 
+And a table:
 
-## In R
+```{r}
+addmargins(table(kickstarter$state))
+```
+
+If we take the number of successes and divide by the total, we will get the probability of being funded:
+
+```{r}
+113081 / 281302
+```
+
+
+
+## Continuous
 
 ```{r}
 logTest = glm(state ~ backers, data = kickstarter, 
@@ -233,7 +255,7 @@ Let's start at the median value of backers:
 median(kickstarter$backers)
 ```
 
-Now, let's solve our equation for that one.
+Now, let's solve our equation for that one. This will produce the conditional logit.
 
 ```{r}
 medLogit = logTest$coefficients["(Intercept)"] + 
@@ -244,8 +266,7 @@ names(medLogit) = NULL
 medLogit
 ```
 
-
-Let's do the same thing for the next sequential value of HP:
+Let's do the same thing for the next sequential value of backers:
 
 ```{r}
 medLogitPlus1 = logTest$coefficients["(Intercept)"] + 
@@ -271,6 +292,14 @@ exp(backersCoef)
 ```
 
 For every unit increase in backer, we have a 2% increase in the odds that the campaign will be successful. These odds are stacking as we increase (see the plot below). When we look at the odds, anything above 1 is in favor of moving from the "0" category to the "1" category, whereas anything below 1 is in favor of not moving from the "0".  From a technical question perspective, this makes absolute sense -- we would expect that having more backers contributes to a better chance of funding.
+
+You can also take those odds back to probability:
+
+```{r}
+exp(backersCoef) / (1 + exp(backersCoef))
+```
+
+
 
 ## Putting It Together (Hopefully)
 
@@ -303,6 +332,94 @@ For our data, once you start to get above 250 backers, there is a probablity of 
 If we wanted to apply new data to our model, we would also use the predict() function, but give it new data.
 
 
+## Categorical
+
+Let's pick a few categories to work on.
+
+```{r}
+catData = kickstarter %>% 
+  select(state, main_category) %>% 
+  filter(main_category == "Film & Video" |
+           main_category == "Music" |
+           main_category == "Games")
+```
+
+
+Let's look a the crosstabs for those variables:
+
+```{r}
+addmargins(table(catData))
+```
+
+
+We can start to look at the odds for each category being successful:
+
+```{r}
+filmOdds = (21404 / 51057) / (29653 / 51057) # You can reduce this to 21404 / 29653
+
+gamesOdds = (9385 / 22398) / (13013 / 22398)
+
+musicOdds = (21763 / 40956) / (19193 / 40956)
+```
+
+And we can take each one back to a probability:
+
+```{r}
+filmOdds / (1 + filmOdds)
+
+gamesOdds / (1 + gamesOdds)
+
+musicOdds / (1 + musicOdds)
+```
+
+We cam convert our odds to probabilities and back like this:
+
+```{r}
+filmOdds / (1 + filmOdds) / (1 - (filmOdds / (1 + filmOdds)))
+
+musicOdds / (1 + musicOdds) / (1 - (musicOdds / (1 + musicOdds)))
+```
+
+
+We could also make statements like this: the odds for a film being successful are about 21 to 29.7, where the odds for music are 21.7 to 19.
+
+We could also compare those two directly:
+
+```{r}
+(21763 / 19193) / (21404 / 29653)
+```
+
+So the odds that a music campaign will be funded are about 57% higher than the odds for a film.
+
+
+And we could also compare film to games:
+
+```{r}
+(9385 / 13013) / (21404 / 29653)
+```
+
+Here, the odds that a game will be funded are less than 1% lower than the odds for a film.
+
+
+Let's run our logistic regression now:
+
+```{r}
+categoryLogTest = glm(state ~ main_category, data = catData, family = binomial)
+
+summary(categoryLogTest)
+```
+
+
+```{r}
+exp(coef(categoryLogTest))
+```
+
+```{r}
+filmOdds
+```
+
+The film group is about 28% less likely to be funded.
+
 ## Cautions About Logistic Regression
 
 Bivariate relationships are really important for logistic models.
@@ -324,4 +441,171 @@ $R^2$ does not apply to a logistic regression.
 - There are many pseudo-$R^2$, but they really do not mean the same thing as in linear regression.
 
 - You might be asked for them and many people present them.
+
+
+# Poisson Regression
+
+Poisson regression is something completely different.
+
+It is used to predict counts.
+
+## The (Sometimes) Thin Line
+
+This gets into an area where we need to think long and hard about our dependent variable and what it actually might be.
+
+- Since Poisson regression gets its name from the Poisson distribution, we should probably see if it follows the Poisson distribution.
+
+## Checking...
+
+```{r}
+library(vcd)
+
+shroudData = readr::read_csv("https://www.nd.edu/~sberry5/data/shroudData.csv")
+
+poissonTest = goodfit(shroudData$shroudsProduced, type = "poisson")
+
+summary(poissonTest)
+```
+
+This is a $\chi^2$ to test if the distribution deviates from a poisson.
+
+- It probably does not.
+
+# Poisson and Its Friends
+
+For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the poisson distribution or the negative binomial distribution.
+
+Let’s check this out (it will be important later on!).
+
+```{r}
+library(dplyr)
+
+shroudData %>% 
+  dplyr::select(shroudsProduced, employeeCount) %>% 
+  group_by(employeeCount) %>% 
+  summarize(mean = mean(shroudsProduced), var = var(shroudsProduced))
+```
+
+
+What is the purpose of this? We are checking the conditional means and variances. Why is this important? If our variances are larger than our means, we have “over dispersion”. We would expect values to be distributed over levels, but if they are really spread out, this qualifies as over dispersion – this is not good for our poisson model because it will cause downward bias (bias, while not tricky conceptually, presents interesting thought questions).
+
+It looks like everything is mostly okay (for now), so let’s proceed onward with our poisson model:
+
+```{r}
+poissonTest = glm(shroudsProduced ~ employeeCount, 
+                  data = shroudData, 
+                  family = poisson)
+
+summary(poissonTest)
+```
+
+
+
+```{r}
+library(AER)
+
+dispersiontest(poissonTest)
+```
+
+
+**Important Note:** We are going to interpret this almost the same as a linear regression. The slight wrinkle here, though, is that we are looking at the log counts. In other words, an increase in one employee leads to an expected log count increase of ~.029. Just like our logisitc regression, we could exponentiate this to get 1.029189 – every employee we add gets us a 3% increase in shrouds produced. Let’s see what this looks like in action:
+
+```{r}
+shroudData = shroudData %>% 
+  mutate(predValues = predict(poissonTest, type = "response"))
+
+library(ggplot2)
+
+ggplot(shroudData, aes(employeeCount, predValues)) + 
+  geom_count() +
+  scale_size_area() +
+  theme_minimal()
+```
+
+
+Finally, we can look at the residual deviance (it is comparing our model to a model with perfect prediction) to get at our model fit:
+
+```{r}
+pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE)
+```
+
+
+This is a *p*-value – it should not be significant.
+
+With everything coupled together, we have a meaningful coefficient, a clear plot, and adequate model fit. Therefore, we might conclude that there is a positive relationship between number of employees on shift and shrouds produced.
+
+
+# Zero-inflated (ZIP)
+
+Sometimes we have a seeming abundance of zero values within our data. We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues. What is the process that generated the zeros? Are they coming from our count model (“true” zeroes) or something else (some random process)? This is where zero-inflated models become important. ZIP models are mixture models. We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a “mixture” of different distributions.
+
+```{r}
+redlights = readr::read_csv("https://www.nd.edu/~sberry5/data/redlights.csv")
+
+poissonRedlight = glm(citation_count ~ as.factor(camera_installed_ny), 
+            data = redlights, 
+            family = poisson)
+
+summary(poissonRedlight)
+```
+
+With this output, we are comparing citation counts against intersection without a camera and those with a camera.
+
+We see that our coefficient is -.88529 – this means that having a camera leads to having .88529 less log counts than without having a camera.
+
+We can also exponentiate that value to get an indicent rate:
+
+```{r}
+exp(poissonRedlight$coefficients["as.factor(camera_installed_ny)1"])
+```
+
+Now, we could say that the incident rate (redlight citations) for intersections with a camera is -.42 times less than for intersections without a camera.
+
+If, however, we take a look at citation_count’s distribution, we will see more than a few 0’s.
+
+For our redlight data, we saw that having a camera present had an effect on citations, but would it cause 0 citations? Or might there be something else contributing to the 0’s (e.g., no cars going through that intersection due to construction, no police nearby)? If there are no cars going through the intersection due to construction, is there even a chance of obtaining a non-zero response?
+
+```{r}
+library(pscl)
+
+zipTest = zeroinfl(citation_count ~ as.factor(camera_installed_ny),
+                   dist = "poisson", data = redlights)
+
+summary(zipTest)
+```
+
+
+# Negative Binomial
+
+
+Remember that whole issue with our conditional means and standard deviations? If we would have had problems those means and sds, we would need to abandon our poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely.
+
+Remember this:
+
+```{r}
+redlights %>% 
+  dplyr::select(citation_count, camera_installed_ny) %>% 
+  group_by(camera_installed_ny) %>% 
+  summarize(mean = mean(citation_count), var = var(citation_count))
+```
+
+Those look like the start of problems. Let’s check our whole sample now:
+
+```{r}
+mean(redlights$citation_count)
+```
+
+
+```{r}
+var(redlights$citation_count)
+```
+
+
+```{r}
+library(MASS)
+
+nbTest = glm.nb(citation_count ~ as.factor(camera_installed_ny), data = redlights)
+
+summary(nbTest)
+```
 

@@ -1,13 +1,9 @@
 ---
 title: "Latent Class Analysis"
-author: "Behavioral Data Science"
-date: "March 7, 2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-```
+# Latent Class Analysis
 
 ## Can There Really Be More Latent Stuff?
 
@@ -17,7 +13,7 @@ We have covered a big slice of models that deal with some type of latent structu
 
 LCA has definite conceptual relationships to cluster analysis and factor analysis. From a technical standpoint, however, they are different. While we saw that certain variable types work better for different types of cluster analyses, categorical variables are the only variables that can be used in LCA (e.g., it could not use raw age -- you would unfortuantely need to discretize it first). The latent classes that emerge in LCA are often noted as "profiles" (some people even call it latent profile analysis) -- thinking of them as profiles allows you to think about constructing general profiles and grouping people into those profiles. 
 
-Let's try to fit a model with 2 latent classes based upon education, gender, and party identification. We can use the election data from poLCA.
+Let's try to fit a model with 2 latent classes based upon education, gender, and party identification. We can use the election data from <span class="pack">poLCA</span>.
 
 ```{r}
 library(poLCA)

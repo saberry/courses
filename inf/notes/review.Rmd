@@ -2,8 +2,10 @@
 title: "Your Path To Statistical Enlightenment"
 output:
   html_document:
-    theme: "readable"
-    highligh: "tango"
+    theme: flatly
+    highlight: zenburn
+    css: documentCSS.css
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
@@ -12,16 +14,37 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, comment = "", warning = FALSE, 
 
 # Conceptual Grounding Places {.tabset .tabset-fade .tabset-pills}
 
+The research process has multiple steps:
+
+1.  Hypothesis generation and power analysis
+
+2.  Data collection
+
+3.  Data exploration (summaries, correlations, and visualizations)
+
+4.  Hypothesis testing (statistical models and effect sizes)
+
+The following sections are not in this precise order, but are instead arranged in a way that makes linked concepts closer together (e.g., power analyses are predicated on effect sizes, so they are presented closer together).
+
+Code has been kept to a bare minimum, so as to *try* to focus on the concepts. However, these things cannot live apart from each other.
+
+A note on programming from Hadley Wickham:
+
+> The bad news is that whenever you learn a new skill you're going to suck. It's going to be frustrating. The good news is that it is typical and happens to everyone and it is only temporary. You can't go from knowing nothing to becoming an expert without going through a period of great frustration and great suckiness.
+
+This becomes even trickier when trying to learn content (stats) and skills (programming) together.
+
+
 ## Hypothesis Generation
 
-The very first thing that needs to be done is to generate your hypotheses -- hypotheses are critical for exercises in inference (estimating parameters about a population through sampling). There needs to be a 1-to-1 link between your hypotheses and your data; in other words, you need to map your data onto your hypotheses. Remember the scientific process -- it is okay to tweak your hypotheses, but you need to be transparent about how those hypotheses were generated, tweaked, and then revised (not liking a result does not serve as grounds to tweaking).
+The very first thing that needs to be done is to generate your hypotheses -- hypotheses are critical for exercises in inference (estimating parameters about a population through sampling). There needs to be a 1-to-1 link between your hypotheses and your data; in other words, you need to be able to map your data onto your hypotheses. Remember the scientific process -- it is okay to tweak your hypotheses, but you need to be transparent about how those hypotheses were generated, tweaked, and then revised (not liking a result does not serve as grounds to tweaking).
 
 
 ## Power Analyses {.tabset .tabset-fade .tabset-pills}
 
-Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect (consider an effect to be a significant result and an effect size is the magnitude of that finding).  This is where power analysis becomes helpful.  Given a target power ($\beta$ = .8; it gives a good ratio of Type I to Type II error -- the higher the power, the less of a chance of making a Type II error), a hypothesized effect size, and the proposed *p*-value.  Remember that each statistical test has its own effect size measure and the hypothesized effects can come frome previous research or an informed guess (just be conservative).
+Before you embark on any data collection procedures, you need to have an idea about how many rows of data you need to be able to actually find an effect (consider an effect to be a significant result and an effect size is the magnitude of that finding).  This is where power analysis becomes helpful. Power is defined as 1 - $\beta$, where $\beta$ is the probability of a Type II error. Given a target power (usually .8; it gives a good ratio of Type I to Type II error -- the higher the power, the less of a chance of making a Type II error), a hypothesized effect size, and the proposed *p*-value.  Remember that each statistical test has its own effect size measure and the hypothesized effects can come frome previous research or an informed guess (just be conservative).
 
-All power analyses will work the same: the bigger the anticipated effect, the smaller the needed sample. In situations were we have a large effect (remember, the magnitude of the effect), we need fewer people to find that effect. 
+All power analyses will work the same: the bigger the anticipated effect, the smaller the needed sample. In situations were we have a large effect (remember, the magnitude of the effect), we need fewer people to find that effect. This can commonly be seen in regression analyses -- a coefficient might not be significant when you have 50 rows within your data, but will become significant when you have 150 rows within your data. You increased the power to find small effects when you increased your sample size.
 
 As an example, I have two groups of people: C-suite folks (average salary of \$193K) and Target sales associates (average salary of roughly \$22758). If I am curious about the difference in salary between those two groups, how many from each group would I need to sample to be able to find a difference if one truly exists? Not very many; I could find the true difference with likely a dozen or so from each group. 
 
@@ -30,7 +53,7 @@ As a counter-example, I have another two groups: people who live in Redmon Illin
 
 ### *t*-test
 
-The following is a pretty standard *t*-test power analysis. 
+The following is a pretty standard *t*-test power analysis. Whatever we set to *NULL* will be what is solved for. Below, we see that we are solving for n.
 
 ```{r}
 pwr::pwr.t.test(n = NULL, 
@@ -45,8 +68,8 @@ This will tell us how many people we would need in each group, given our propose
 
 The ANOVA power analysis is just a bit different than the *t*-test power analysis.  Remember that ANOVA is testing the difference in means between more than two groups.  To that end, we need to specify how many groups we will have.
 
-```{r}
 
+```{r}
 pwr::pwr.anova.test(k = numberGroups, 
                     n = NULL, 
                     f = .1, 
@@ -54,6 +77,7 @@ pwr::pwr.anova.test(k = numberGroups,
                     power = .8)
 ```
 
+Here, we also have the number of people needed per group.
 
 ### Regression 
 
@@ -117,6 +141,39 @@ compute.es::tes(t = -3.7671,
 
 Cohen's *d* is the first thing reported and we have a value of -1.36. We can just take the absolute value of it and we know that we have a pretty large effect (i.e., the difference in mpg between automatic and manual transmissions is big difference). 
 
+
+### *f*
+
+For an ANOVA, we can use Cohen's *f*.
+
+It is computed as follows: $$ \frac{\sigma_{mean}}{\sigma} $$
+
+We can do this:
+
+```{r}
+groupSD = mtcars %>% 
+  group_by(cyl) %>% 
+  summarize(sd = sd(mpg)) 
+
+mean(groupSD$sd) / sd(mtcars$mpg)
+```
+
+Cohen proposed that .1 is small, .25 is medium, and .4 is large.
+
+### $\eta^2$
+
+Cohen's $\eta^2$ can also be used for an ANOVA, but has an expanded interpretation of an effect: it measures how much variation in the dependent variable can be attributed to the groups. 
+
+It is computed as: $$ \frac{\sigma_m^2}{\sigma_m^2 + \sigma^2} $$
+
+Pretty easy to compute:
+
+```{r}
+mean(groupSD$sd)^2 / (mean(groupSD$sd)^2 + sd(mtcars$mpg)^2)
+```
+
+We could say that about 18% of the variation in mpg can be attributed to the cylinder groups. 
+
 ### $f^2$ 
 
 One of the main model statistics in a linear regression is the *f*. Anything that uses an *f*-test will use the $f^2$ effect size, which are generally seen as .02 is small, .15 is medium, and .35 as large.
@@ -137,8 +194,6 @@ f2
 
 Given that we could consider .35 as being large, it would be safe to say that the effect(s) of our predictor variable (hp) on our dependent variable (mpg) is very large.
 
-
-
 ## Data Exploration
 
 Before analyses began, it is a good idea to explore your data.  This can be done by checking out summary tables, correlations, and visualizations.
@@ -149,7 +204,7 @@ To get a quick summary of your data, the summary() function is helpful:
 summary(yourData)
 ```
 
-You can also explore the correlations within your data:
+You can also explore the correlations within your data.
 
 ```{r}
 cor(yourData$x, yourData$y)
@@ -157,7 +212,7 @@ cor(yourData$x, yourData$y)
 cor(yourData)
 ```
 
-Do note that the cor() function will only work with numeric data and on whole data (if you have any NAs, you will need to drop them).
+Do note that the cor() function will only work with numeric data and on whole data (if you have any NAs, you will need to drop them or specify the *use* argument appropriately).
 
 Checking all of the bivariate relationships is easy with a scatterplot matrix:
 
@@ -165,6 +220,7 @@ Checking all of the bivariate relationships is easy with a scatterplot matrix:
 car::scatterplotMatrix(youData)
 ```
 
+# Hypothesis Testing
 
 # Generalized Linear Models {.tabset .tabset-fade .tabset-pills}
 
@@ -180,7 +236,7 @@ If you are interested in group differences only (e.g., differences between treat
 
 ### *t*-tests
 
-If you want to compare two groups' mean values on a variable (e.g., wage differences between men and women within an organization), the *t*-test is the appropriate test to use.  You will need to decide about your tails (one or two tails) and the precise type of *t*-test (paired, independent, etc.), but the basic *t*-test can be performed as follows:
+If you want to compare two, and only, groups' mean values on a variable (e.g., wage differences between men and women within an organization), the *t*-test is the appropriate test to use.  You will need to decide about your tails (one tail is putting all of the probability of the finding in one tail of the distribution -- you are specifying that one group will be more or less than the other -- and two tails puts that probability of the finding over both tails -- you are saying that the result could go either way) and the precise type of *t*-test (paired -- observations from one group and paired to observations from another group; independent -- you have two separate groups without any pairings; one sample -- a sample is compared to the population), but the basic independent samples *t*-test can be performed as follows:
 
 ```{r}
 tTest = t.test(x = score, y = group, 
@@ -191,16 +247,18 @@ summary(tTest)
 
 #### Example
 
-```{r}
+```{r, eval = TRUE}
 t.test(mpg ~ as.factor(am), data = mtcars)
 ```
 
 The *t*-test is only going to tell you the difference between two groups. You will not produce predicted values with a *t*-test.
 
 
+They also work best when there is group number balance between the two groups, but corrections exist when that balance is not achieved (R takes care of it for you).
+
 ### ANOVA
 
-The ANOVA is very much like the *t*-test; the only exception is that it can handle more groups (is there a performance difference between 1st, 2nd, and 3rd shift employees on the floor).  
+The ANOVA is very much like the *t*-test; the only exception is that it can handle more groups (is there a performance difference between 1st, 2nd, and 3rd shift employees on the sales floor).  
 
 ```{r}
 anovaTest = aov(y ~ x, 
@@ -210,23 +268,29 @@ anovaTest = aov(y ~ x,
 
 #### Example
 
-```{r}
+```{r, eval = TRUE}
 anovaTest = aov(mpg ~ as.factor(cyl), data = mtcars)
 
 summary(anovaTest)
+```
 
+Like the *t*-test, an ANOVA will only tell you if any difference exists between the groups -- in our example above, we see that we have a significant difference between the different number of cylinders a car has and the number of miles per gallon. 
+
+If you have a significant ANOVA, then you will need to find out which groups differ from each other -- this is where Tukey's Honestly Significant Difference tests comes into play. Tukey's HSD will perform pairwise comparisons between the groups to find which groups are different from each other.
+
+```{r}
 TukeyHSD(anovaTest)
 ```
 
-Like the *t*-test, an ANOVA will only tell you if any difference exists between the groups. If you have a significant ANOVA, then you will need to find out which groups differ from each other -- this is where Tukey's Honestly Significant Difference tests comes into play. Tukey's HSD will perform pairwise comparisons between the groups to find which groups are different from each other.
+In the output above, we see that there are significant differences between every combination of groups.
 
-And like the *t*-test, you cannot get predictions from an ANOVA -- you will only get differences.
+Like the *t*-test, you cannot get predictions from an ANOVA -- you will only get differences.
 
 ANOVAs really prefer to work on balanced data (i.e., each group has the same size). They can work without, but might not yield the best results. The further out of balance they get, the worse they do.
 
 ### Linear Regression
 
-If you are trying to predict a response variable given a set of predictor variables (e.g., I want to predict ad clicks, using gender and age to make the prediction), linear regression will be the best test to use.
+If you are trying to predict a response variable given a set of predictor variables (e.g., I want to predict dollars spent on merchandise, using gender and age to make the prediction), linear regression will be the best test to use.
 
 In R, the basic linear model is as follows:
 
@@ -250,9 +314,9 @@ summary(testMod)
 
 We want to focus most of our attention on the coefficients. The intercept is telling us the model's mean miles per gallon when horsepower (hp) is at 0 and am is at zero. The coefficient for hp is indicating that every unit increase in horsepower leads to a .06 reduction in the average mpg. Since am is being treated as a factor variable, we are going to compare the reference level (0 = automatic in this case) to the listed level(s). To that end, we would say that a vehicle with a manual transmission gets on average 5.28 more miles per gallon than an automatic transmission.
 
-We might also want to check for heteroskedasticity
+We might also want to check for heteroskedasticity.
 
-We need to know if we have contant variance (good) or not (bad).  We can get a good look by plotting our fitted values against our residuals.
+We need to know if we have constant variance (good) or not (bad) -- this essentially means that our prediction performs the same over the entire distribution of our variables.  We can get a good look by plotting our fitted values against our residuals. It the points appear random, then we are fine. If there is a pattern, however, we have issues that will make us turn to different standard error estimations.
 
 ```{r, eval = TRUE}
 plot(testMod$fitted, testMod$residuals)
@@ -266,11 +330,11 @@ We should be looking at heteroskedasticity (we hope for constant variance).
 
 Pay careful attention to centering your variables -- this impacts your intercepts interpretability.
 
-Remember, we are talking about the conditional means.
-
 ## Dichotomous DV
 
-If your dependent variable is binary (no/yes, absent/present, etc.), a logistic regression is what you seek.
+If your dependent variable is binary (no/yes, absent/present, dead/alive), a logistic regression is what you seek.
+
+Our logistic regression takes the binomial distribution of the outcome variable and uses a logistic function to convert the response to logs -- this allows for a linear model to be estimated. 
 
 ```{r}
 logisticRegression = glm(yBinary ~ x, 
@@ -292,6 +356,10 @@ We can exponentiate it to get odds:
 exp(.3070)
 ```
 
+Since our exponentiated coefficient is above 1, we would say that for every unit increase in mpg, we have a ~31% increase in the chances of a car being a manual transmission.
+
+We can plot our predicted values over the distribution of our predictor variable.
+
 ```{r, eval = TRUE}
 
 library(dplyr)
@@ -305,6 +373,7 @@ mtcars %>%
   theme_minimal()
 ```
 
+That is a beautiful logistic curve. At low levels of mpg, we have a very small probability of a car having a manual transmission. As we progress through our values of mpg (around 17 mpg), we start having a sharper increase in the probability of having a manual transmission. Once we get to about 25 mpg, our increase tapers off as we start to approach a probability of 1. This is nearly ideal; we don't really get to a probability of 0 or 1. Our logisitc curve takes this shape for one simple reason -- it is essentially a linear line that gets smushed to fit the lower and upper bounds of probability.
 
 ### Cautions About Logistic Regression
 

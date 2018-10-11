@@ -1,12 +1,9 @@
 ---
 title: "Mixed Models"
-author: "Behavioral Data Science"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
-```
+# Mixed Models
 
 ## Packages
 
@@ -68,7 +65,7 @@ Mixed models don't get bogged down by large groups and the smaller groups do not
 
 ## Random Intercepts Model
 
-Let's include borough in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The **lme4** package will make this very easy:
+Let's include borough in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The <span class="pack">lme4</span> package will make this very easy:
 
 ```{r}
 library(lme4)
@@ -78,7 +75,7 @@ riMod = lmer(SCORE ~ distanceCentered + (1|BORO), data = healthData)
 
 Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. 
 
-The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The *|* specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
+The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The <span class="func">|</span> specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
 
 We should probably check out the summary:
 
@@ -139,7 +136,7 @@ summary(riModP)
 
 ```
 
-**NOTE:** I would never load the lmerTest package, but would attach with colons! If you load it, you will find that it masks things from lme4 that you don't want to have masked (i.e., lmer) and they are not equivalent objects!
+**NOTE:** I would never load the <span class="pack">lmerTest</span> package, but would attach with colons! If you load it, you will find that it masks things from <span class="pack">lme4</span> that you don't want to have masked (i.e., lmer) and they are not equivalent objects!
 
 Getting predicted values from our mixed model is no different then getting them from any other model:
 

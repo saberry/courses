@@ -9,9 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Behavioral Data Science" />
 
-<meta name="date" content="2018-03-13" />
 
 <title>Recommender Systems</title>
 
@@ -92,6 +90,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -120,12 +121,12 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Recommender Systems</h1>
-<h4 class="author"><em>Behavioral Data Science</em></h4>
-<h4 class="date"><em>March 13, 2018</em></h4>
 
 </div>
 
 
+<div id="recommender-systems" class="section level1">
+<h1>Recommender Systems</h1>
 <div id="overview" class="section level2">
 <h2>Overview</h2>
 <p>While provacative statements are often fun to make, you will not get one here. Instead, I would prefer to play it safe and make an assumption that you have used some form of online commerce during the past year. Maybe you bought something off Amazon or you used Netflix to make poor choices around bedtime. If you have used any such services, you have interacted with a <em>recommender system</em>. Recommender systems are a class of models designed to make predictions about items that people might like/endorse/want, despite never having seen those items. It is exactly how Netflix makes recommendations (see how that works?) and how Amazon gives you items inspired by your viewing history.</p>
@@ -134,7 +135,7 @@ $(document).ready(function () {
 </div>
 <div id="package-installation" class="section level2">
 <h2>Package Installation</h2>
-<p>While we are going to use recommenderlab (for ease and speed), recosystem is an excellent package and one that you should keep in mind.</p>
+<p>While we are going to use <span class="pack">recommenderlab</span> (for ease and speed), <span class="pack">recosystem</span> is an excellent package and one that you should keep in mind.</p>
 <pre class="r"><code>install.packages(&quot;recommenderlab&quot;)
 
 install.packages(&quot;recosystem&quot;)
@@ -181,9 +182,28 @@ devtools::install_github(&quot;tarashnot/SVDApproximation&quot;)</code></pre>
 <div id="user-based-collaborative-filtering" class="section level3">
 <h3>User-based Collaborative Filtering</h3>
 <p>We can get the top recommendations for a few people given a trained model and predict ratings:</p>
-<pre class="r"><code>library(recommenderlab)
-
-data(&quot;Jester5k&quot;)
+<pre class="r"><code>library(recommenderlab)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## Loading required package: arules</code></pre>
+<pre><code>## 
+## Attaching package: 'arules'</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     abbreviate, write</code></pre>
+<pre><code>## Loading required package: proxy</code></pre>
+<pre><code>## 
+## Attaching package: 'proxy'</code></pre>
+<pre><code>## The following object is masked from 'package:Matrix':
+## 
+##     as.matrix</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     as.dist, dist</code></pre>
+<pre><code>## The following object is masked from 'package:base':
+## 
+##     as.matrix</code></pre>
+<pre><code>## Loading required package: registry</code></pre>
+<pre class="r"><code>data(&quot;Jester5k&quot;)
 
 ubcfTest = Recommender(Jester5k[1:1000], method = &quot;UBCF&quot;)
 
@@ -426,9 +446,10 @@ ibcfPredict = predict(ibcfTrain, getData(e, &quot;known&quot;), type=&quot;ratin
 <pre class="r"><code>rbind(UBCF = calcPredictionAccuracy(ubcfPredict, getData(e, &quot;unknown&quot;)), 
       IBCF = calcPredictionAccuracy(ibcfPredict, getData(e, &quot;unknown&quot;)))</code></pre>
 <pre><code>##          RMSE      MSE      MAE
-## UBCF 4.664016 21.75304 3.697332
-## IBCF 5.308612 28.18136 4.117378</code></pre>
+## UBCF 4.455829 19.85441 3.533530
+## IBCF 5.183241 26.86599 4.064213</code></pre>
 <p>Since we want as little error as possible, we can conclude that the user-based collaborative filter performed better on root mean squared error, mean squared error, and mean average error.</p>
+</div>
 </div>
 </div>
 

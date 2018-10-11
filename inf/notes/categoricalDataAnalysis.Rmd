@@ -1,0 +1,436 @@
+---
+title: "Categorical Data Analysis"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    highlight: zenburn
+    css: leviathan.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+Categorical data is common. You will see it in just about any domain that you would want to explore. It does, however, have its own unique set of challenges. For example, we cannot get means for categorical variables and we cannot get correlations between two categorical values. 
+
+What is important, though, is what we can do with categorical data. 
+
+
+## As A Data Type
+
+Our previous visualization work leads us nicely up to this point. Recall one of our previous visualizations:
+
+```{r}
+library(ggplot2)
+
+ggplot(mtcars, aes(mpg, hp, color = cyl)) + 
+  geom_point() + 
+  theme_minimal()
+```
+
+
+Nothing really looks amiss here, right? We have our x and y axes and we have the points colored by cylinder. But...what do you know about cylinders in a vehicle? I am not a mechanic, but I am pretty sure that there are not many 8.5 cylinder cars on the road.
+
+This gets us into an area where we need to make a decision about how to treat such a variable. There is no doubt that the number of cylinders a car has is indeed a number, but would it make sense to treat that variable as categorical here? For this visualization, I think it makes a big difference.
+
+```{r}
+ggplot(mtcars, aes(mpg, hp, color = as.factor(cyl))) + 
+  geom_point() + 
+  theme_minimal()
+```
+
+Instead of a color gradient, we have a nice discreet color scheme that makes it very clear what we are looking at with regard to our cylinders (it also gives a very clear indication of the nature of that variable within our data). 
+
+In the second <span class="func">ggplot</span> chunk, you might have noticed that we converted our cyl variable to a factor with the <span class="func">as.factor</span> function. This function, and the related <span class="func">as.numeric</span> and <span class="func">as.character</span>, serve the same purpose. You will often see data like the following:
+
+```{r}
+factorExample = data.frame(numeric = 1:10, 
+                           factor = factor(seq(1, 5.5, by = .5)))
+
+factorExample
+```
+
+
+Great! The data looks perfect the way we see it. You might be interested in looking at the means of your variables:
+
+```{r}
+mean(factorExample$numeric)
+```
+
+That makes sense.
+
+```{r, eval = FALSE}
+mean(factorExample$factor)
+```
+
+And that is going to cause a problem. So, you look at the structure with <span class="func">str</span>:
+
+```{r}
+str(factorExample)
+```
+
+And determine that you just need to convert that variable to a numeric. You know how to do this!
+
+```{r}
+mean(as.numeric(factorExample$factor))
+```
+
+Perfect. We get 5.5 -- is that right?
+
+```{r}
+factorExample$factor
+```
+
+Here is the trouble with factor variables -- what you see is not necessarily what you get. While R is showing you the level of the value, it still needs a number on the backend for its own use. Since the values were not explictly set for that variable, it just numbered them sequentially.
+
+If you noticed when we looked at the structure of our data, the levels for the factor variable were in quotes -- this gives us a pretty good idea that the level is a character.
+
+If we look at them as characters, we should get the levels:
+
+```{r}
+as.character(factorExample$factor)
+```
+
+Now, we might have some success in converting them again:
+
+```{r}
+as.numeric(as.character(factorExample$factor))
+```
+
+Finally!
+
+```{r}
+mean(as.numeric(as.character(factorExample$factor)))
+```
+
+
+## Data
+
+When dealing with categorical data, another issue that we see deals with balance. If our categories are perfectly balanced, we have an even split between groups. As we get more and more unbalanced, we tend to run into trouble.
+
+### Pretty Well Balanced
+
+```{r}
+set.seed(1001)
+
+balanced = data.frame(managerNY = sample(0:1, 100, replace = TRUE, prob = c(.5, .5)), 
+                       exemptNY = sample(0:1, 100, replace = TRUE, prob = c(.5, .5)))
+
+table(balanced)
+```
+
+
+### Ehhh...
+
+```{r}
+set.seed(1000)
+
+unbalanced = data.frame(managerNY = sample(0:1, 100, replace = TRUE, prob = c(.7, .3)), 
+                       exemptNY = sample(0:1, 100, replace = TRUE, prob = c(.3, .7)))
+
+table(unbalanced)
+```
+
+
+## Visualizations
+
+The <span class="pack">vcd</span> package has a lot of methods for visualizing categorical data (one of the contributors, Michael Friendly, wrote *the* book on categorical data analysis in R and is very well respected for his viz work). 
+
+```{r}
+library(vcd)
+
+mosaic(managerNY ~ exemptNY, data = balanced)
+
+mosaic(managerNY ~ exemptNY, data = unbalanced)
+```
+
+Association tables provide the Pearson residuals for independence.
+
+```{r}
+assoc(table(balanced))
+```
+
+We will come back to this later.
+
+
+The <span class="pack">vcdExtra</span> package (you will need to install <span class="pack">rgl</span> along with it) extends the functionality of <span class="pack">vcd</span> and let's you create some interesting plots:
+
+```{r, eval = FALSE}
+library(vcdExtra)
+
+library(dplyr)
+
+mtcars %>% 
+  select(am, cyl, gear) %>% 
+  table %>% 
+  mosaic3d(., box = TRUE)
+```
+
+If you want to keep yourself firmly planted in the <span class="pack">ggplot2</span> ecosystem, then you can use <span class="pack">ggmosaic</span>:
+
+```{r}
+library(ggmosaic)
+
+library(dplyr)
+
+balancedTableDF = balanced %>% 
+  table() %>%
+  as.data.frame()
+
+ggplot(data = balancedTableDF) +
+  geom_mosaic(aes(weight = Freq, x = product(exemptNY), fill = managerNY)) + 
+  ggthemes::theme_tufte() +
+  scale_fill_brewer(type = "qual")
+```
+
+
+## Contingency Tables
+
+
+The contingency table is the *insert plain, but high utility trope of your choice* worker behind many things. We previously saw what it could do with our visualizations, but it can be useful in its own right.
+
+```{r}
+contTable = table(balanced)
+
+contTable
+```
+
+Let's not forget about this -- we are going to be coming back to it soon.
+
+## Association
+
+When we are dealing with purely categorical variables, it is not *proper* to say correlation (it is not proper in the same way that it is not proper to wear white after Labor Day). 
+
+When we want to see the association between two categorical variables, we can use a few different techniques. The ones that you will most commonly see are Cramer's *V* (also noted as $\phi_c$) and the $\phi$ coefficient. Cramer's *V* is handy because it ranges from 0 (no association) to 1 (perfect association). The $\phi$ coefficient's range will change based upon the distribution of the variables (but only if one of those variables has more than two categories).
+
+In the case of a 2 x 2 contingency table, both Cramer's *V* and the $\phi$ coefficient will be the same (they will also be the same as our old friend Pearson's *r*).
+
+A number of packages will run $\phi_c$ and $\phi$, but you can get them both through the <span class="func">assocstats</span> function in <span class="pack">vcd</span>:
+
+```{r}
+
+summary(assocstats(table(balanced)))
+```
+
+
+### Independence
+
+## $chi^2$
+
+If we take our contingency table, we can continue to do some interesting things with it. One such thing is to figure out the expected proportion of each cell within our table.
+
+We can compute our expected cell size as follows:
+
+$$ e = \frac{row.sum * column.sum}{grand.total} $$
+
+With that, let's take a look at our contingency table for the balanced data that we saw earlier:
+
+```{r}
+table(balanced)
+```
+
+We need the information about the margins to be able to compute the expected size, so let's use the <span class="func">addmargins</span> function:
+
+```{r}
+tabs = addmargins(table(balanced))
+
+tabs
+```
+
+Let's put all of these into individual objects:
+
+```{r}
+nonManagerNonExemptObserved = tabs[1, 1]
+
+nonManagerExemptObserved = tabs[1, 2]
+
+managerNonExemptObserved = tabs[2, 1]
+
+managerExemptObserved = tabs[2, 2]
+
+row1Total = tabs[1, 3]
+
+row2Total = tabs[2, 3]
+
+column1Total = tabs[3, 1]
+
+column2Total = tabs[3, 2]
+```
+
+
+We can start with non-manager (0) and non-exempt (0):
+
+```{r}
+nonManagerNonExemptExpected = (row1Total * column1Total) / 100
+
+nonManagerNonExemptExpected
+```
+
+So the expected count for that particular cell is 18.8.
+
+We can do the same for the remaining groups now:
+
+```{r}
+nonManagerExemptExpected = (row1Total * column2Total) / 100
+
+managerNonExemptExpected = (row2Total * column1Total) / 100
+
+managerExemptExpected = (row2Total * column2Total) / 100
+```
+
+
+Now that we have the expected values for each of the 4 cells, we can use the $\chi^2$ test to see if our observed values are different from our expected values.
+
+$$\chi^2 = \sum\frac{(o - e)^2}{e}$$
+
+In a $\chi^2$ test, we take our expected frequencies and test them against our observed frequencies. If they are pretty close (i.e., our expected values are close to our observed values), we have a small $\chi^2$. In this small $\chi^2$, we are going to retain our null hypothesis (i.e., we fail to reject the null hypothesis that the variables are different). 
+
+In our null hypothesis, we are essentially saying that the variables are independent of each other -- they are not associated.
+
+```{r}
+nonManNonEx = (nonManagerNonExemptObserved - nonManagerNonExemptExpected)^2 / 
+  nonManagerNonExemptExpected
+
+nonManEx = (nonManagerExemptObserved - nonManagerExemptExpected)^2 / 
+  nonManagerExemptExpected
+
+manNonEx = (managerNonExemptObserved - managerNonExemptExpected)^2 / 
+  managerNonExemptExpected
+
+manEx = (managerExemptObserved - managerExemptExpected)^2 / 
+  managerExemptExpected
+
+chiSquareRes = nonManNonEx + nonManEx + manNonEx + manEx
+```
+
+We can save all of that hassle and just use the <span class="func">chisq.test</span> function. 
+
+
+```{r}
+test = chisq.test(balanced$exemptNY, balanced$managerNY, correct = FALSE)
+```
+
+In a $\chi^2$ test, we can use the *p*-value to tell us whether or not the rows and columns fit the expected distribution or are significantly associated. Given our small $\chi^2$ and our large *p*-value, we can be pretty certain that our rows and columns are not associated (which we have already seen in our association measures above) and the number expected versus the number observed are not significantly different.
+
+
+### The Yates Correction
+
+You might have noticed the correct = FALSE argument above. If we set that argument to TRUE, we are doing what is called Yate's correction. Our contingency table has binomial frequencies with discreet probability. In our $\chi^2$ test, we are taking those binomial frequencies and applying them a continuous $\chi^2$ distribution (the $\chi^2$ distribution is a distribution of *k* -- meaning number of variables -- sums of squares for normal variables). Yates found this to be tenuous, so subtracted .5 from the difference between expected and observed values.
+
+```{r}
+chisq.test(balanced$exemptNY, balanced$managerNY, correct = TRUE)
+```
+
+We can see that it shrunk our $\chi^2$ and increased our *p*-value. Most statistics behave differently with varying sample sizes -- $\chi^2$ is no different. When sample sizes are small (what's small -- who knows), $\chi^2$ will have an increased chance of being significant.
+
+### Exact Tests
+
+Small samples cause problems for a variety of tests (we will learn about others later on). To help combat this problem, a family of *exact* tests come to help.
+
+Exact tests provide exact *p*-values (or other test statistics), instead of approximations when the sample size gets large. The <span class="func">fisher.test</span> function will get us our exact *p*-values.
+
+```{r}
+fisher.test(balanced$managerNY, balanced$exemptNY)
+```
+
+You can see that we did not get a new $\chi^2$ value, but we did get a new *p*-value. 
+
+
+At the end of the day, though, you will not be likely to get much guff from just running a standard $\chi^2$ test.
+
+Let's see what would happen with our unbalanced data:
+
+```{r}
+unbalancedTest = chisq.test(unbalanced$exemptNY, unbalanced$managerNY, correct = FALSE)
+```
+
+
+Before we look at the results, let's check a few things out:
+
+```{r}
+unbalancedTest$observed
+```
+
+```{r}
+unbalancedTest$expected
+```
+
+Wow...what do you expect our $\chi^2$ value will be?
+
+```{r}
+unbalancedTest$statistic
+```
+
+How about this one:
+
+```{r}
+shipCount = as.table(rbind(c(762, 327, 468), c(484, 239, 477)))
+
+dimnames(shipCount) = list(shipType = c("Foreign", "Domestic"),
+                    port = c("South Louisiana", "Houston", "Long Beach"))
+
+shipCount
+```
+
+
+```{r}
+shipChiSquare = chisq.test(shipCount)
+```
+
+
+
+```{r}
+shipChiSquare$expected
+```
+
+How do you think our $\chi^2$ will look. 
+
+```{r}
+shipChiSquare
+```
+
+If you said, "Bigger", you are correct. 
+
+
+Let's look at our expected and observed again.
+
+Expected:
+
+```{r}
+shipChiSquare$expected
+```
+
+Observed: 
+```{r}
+shipChiSquare$observed
+```
+
+Remember that our $\chi^2$ looking at $observed - expected$ and then dividing by expected. If we take our $observed - expected$ and divide it by square root of expected counts, we get a signed value that we can use for plotting the *directional* associaiton for a particular cell.
+
+```{r}
+assoc(shipCount, shade = TRUE)
+```
+
+We can see what we get, just by using our values for foreign and South Louisiana:
+
+```{r}
+(762 - 703.6714) / sqrt(703.6714)
+```
+
+
+
+## Practical Applications
+
+Aircraft Carriers and Aircraft
+
+Computational Engines (Tensorflow, Microsoft Cognitive Toolkit, Theano) and Languages (F#, R, Python, Scala)
+
+D&D Character classes (fighting-man, magic-user, cleric) and races (human, elf, halfling)
+
+Age Group and Media-type consumption
+
+Political affiliation and region
+
+##

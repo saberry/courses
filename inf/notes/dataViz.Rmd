@@ -11,6 +11,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 knitr::opts_knit$set(animation.fun = knitr::hook_scianimator)
+
 library(ggplot2); library(lazerhawk); library(plotly); library(dygraphs)
 library(dplyr); library(gganimate); library(ggthemes)
 
@@ -164,14 +165,25 @@ hotCor = ggplot(carCor, aes(item, key, fill = corrVal)) +
   geom_raster() +
   scale_y_discrete(limits = rev(levels(as.factor(carCor$key)))) +
   scale_fill_gradient2(low = "#3d52a1", mid = "#ffffff", high = "#ae1c3e") +
-  theme_trueMinimal()
+  visibly::theme_trueMinimal()
 
 ggplotly(hotCor)
 ```
 
+
+## More Heat
+
+```{r}
+library(GGally)
+
+df <- mtcars[, c(1,3,4,5,6,7)]
+
+ggcorr(df, palette = "RdBu", label = TRUE)
+```
+
 ## Inference
 
-Currently, most journals "need" to see test statistics to know if there is a relationship.
+Currently, most journals and clients "need" to see test statistics to know if there is a relationship.
 
 - The golden *p*-value is the driver of science!
 
@@ -323,7 +335,7 @@ ggplot(mpg, aes(factor(class), fill = factor(cyl))) +
 ggplot(faithfuld, aes(waiting, eruptions, fill = density)) + 
   geom_raster(interpolate = TRUE) + 
   scale_fill_gradient(low = "#f2f0f7", high = "#4a1486") + 
-  theme_trueMinimal()
+  visibly::theme_trueMinimal()
 
 ```
 
@@ -347,11 +359,11 @@ scales::show_col(ptol_pal() (6))
 
 
 ```{r, fig.height=5, fig.width=5, echo = FALSE, eval = FALSE}
-scales::show_col(few_pal("light")(6))
+scales::show_col(few_pal("Light")(6))
 ```
 
 ```{r, fig.height=5, fig.width=5}
-scales::show_col(few_pal("dark")(6))
+scales::show_col(few_pal("Dark")(6))
 ```
 
 
@@ -373,7 +385,7 @@ You need to be very explicit to which you are referring!
 ```{r, fig.height=5, fig.width=10, fig.align="center"}
 valSize = ggplot(mtcars, aes(wt, mpg)) + 
   geom_point(aes(size = qsec), color = "#117777", alpha = .5) + 
-  theme_trueMinimal()
+  visibly::theme_trueMinimal()
 
 countSize = ggplot(mpg, aes(class, as.factor(cyl))) +
   geom_count(color = "#117777") +
@@ -634,7 +646,7 @@ We just saw a glimpse about how we can use multiple principles to convey informa
 ggplot(diamonds, aes(carat, price)) +
   geom_point(alpha = .1) +
   geom_rug() +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   ggtitle("Uninformative Margins")
 
 ```
@@ -696,7 +708,7 @@ slim = ggplot(mtcars, aes(wt, mpg)) +
 
 none = ggplot(mtcars, aes(wt, mpg)) + 
   geom_point(size = 4) +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   ggtitle("Data!")
 
 multiplot(full, slim, none, cols = 3)
@@ -722,7 +734,7 @@ When you do use them, they should be very faint.
 ```{r, fig.width = 10, fig.height = 5.75}
 noLines = ggplot(economics, aes(date, unemploy)) +
   geom_line() +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   ggtitle("Maybe Tough To Follow")
 
 lightLines = ggplot(economics, aes(date, unemploy)) +
@@ -740,7 +752,7 @@ multiplot(noLines, lightLines)
 ```{r, fig.width = 10, fig.height = 5.75}
 noLines = ggplot(mpg, aes(class, hwy)) +
   geom_boxplot() +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   coord_flip() +
   ggtitle("Hard To Judge Differences")
 
@@ -768,7 +780,7 @@ df = data.frame(
 
 noLines = ggplot(sample(df, 100, replace = TRUE), aes(x=x, y=y, group=group)) +
   geom_line(aes(color = group), size = 1.25) +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   scale_color_ptol() +
   ggtitle("Hard To Compare Groups")
 
@@ -788,7 +800,7 @@ multiplot(noLines, lightLines)
 ```{r, fig.width = 10, fig.height = 6}
 noLines = ggplot(mpg, aes(hwy, cty)) +
   geom_point(alpha = .5) +
-  theme_trueMinimal() +
+  visibly::theme_trueMinimal() +
   ggtitle("Finding Chunks Is Tricky")
 
 lightLines = ggplot(mpg, aes(hwy, cty)) +
@@ -813,7 +825,7 @@ Grid lines...who needs them?
 ```{r, fig.align = "center", fig.width = 10}
 noLines = ggplot(mpg, aes(hwy, cty)) +
   geom_point(aes(text = paste(manufacturer, model, sep = " ")), alpha = .5) +
-  theme_trueMinimal()
+  visibly::theme_trueMinimal()
 
 ggplotly(noLines)
 ```
@@ -867,6 +879,24 @@ countSize = ggplot(mpg, aes(class, as.factor(cyl))) +
   theme_bw()
 
 ggplotly(countSize)
+```
+
+
+## Movement
+
+```{r}
+library(gapminder)
+
+ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  scale_x_log10() +
+  facet_wrap(~continent) +
+  # Here comes the gganimate specific bits
+  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
+  transition_time(year) +
+  ease_aes('linear')
 ```
 
 

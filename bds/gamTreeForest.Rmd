@@ -3,13 +3,9 @@ title: |
         Generalized Additive Models |
         Decision Trees  |
         Random Forest   |
-author: "Behavioral Data Science"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-```
 
 # Generalized Additive Models
 
@@ -35,7 +31,7 @@ During the last few weeks, we have largely been working in the generalized linea
 
 What if we fit a smooth line to our data instead of trying to jam a single straight line somewhere it does not want to be or do something like throwing a single quadratic term into the model? Now we are doing something interesting.
 
-The car package is old-school R, but still has some handy stuff for us. 
+The <span class="pack">car</span> package is old-school R, but still has some handy stuff for us. 
 
 ```{r}
 library(car)
@@ -51,7 +47,7 @@ The splom that we just saw gives us a really good idea about the relationships w
 
 ```{r}
 plotDat = noLeaders %>% 
-  select(effect, enabling) %>% 
+  dplyr::select(effect, enabling) %>% 
   na.omit
 
 plot(effect ~ enabling, data = plotDat)
@@ -89,7 +85,7 @@ summary(gamTest)
 
 You should notice that there is no difference between our standard linear model and our gam with regard to the coefficient. If we do not smooth a variable, it gets treated just like it would in a linear regression model. We also get some output such as adjusted R^2 (interpreted as per normal) and we also have deviance explained, which is giving us very similiar information to adjusted R^2 (instead of looking at the sums of square error between fitted and observed, it just uses a different error calculation). The scale estimate, in this case, is the residual standard error squared. GCV is the minimized generalised cross-validation and it gives us an idea about our prediction error (ideally, we want this to be a small value).
 
-Let’s try to smooth. In the following code, you will notice how we wrapped out term in s(). Believe it or not, this is to specify a smooth term. We could spend a whole week on different ways to smooth things, but we will just stick with s() and its defaults for now.
+Let’s try to smooth. In the following code, you will notice how we wrapped out term in <span class="func">s</span>(). Believe it or not, this is to specify a smooth term. We could spend a whole week on different ways to smooth things, but we will just stick with <span class="func">s</span>() and its defaults for now.
 
 ```{r}
 gamTestSmooth = gam(effect ~ s(enabling), data = noLeaders)
@@ -222,7 +218,7 @@ Let’s check one out with some more variables:
 set.seed(10001)
 
 noRecodes = creditScores %>% 
-  select(-ends_with("R"))
+  dplyr::select(-ends_with("R"))
 
 bigTree = rpart(Status ~ ., data = noRecodes, 
                 method = "class")
@@ -244,7 +240,7 @@ And we can mess around with a few different parameters. The “cp” argument re
 set.seed(10001)
 
 noRecodes = creditScores %>% 
-  select(-ends_with("R"))
+  dplyr::select(-ends_with("R"))
 
 overgrownTree = rpart(Status ~ ., data = noRecodes,
                       method = "class",
@@ -296,7 +292,7 @@ confusionMatrix(rfTest$predicted, noRecodes$Status, positive = "good")
 ```
 
 
-Next, let’s look at our variable importance:
+Next, let’s look at our variable <span class="func">importance</span>:
 
 ```{r}
 importance(rfTest)
@@ -316,7 +312,7 @@ Now we know what variables are important for our random forest, so when do we in
 Outside of Breiman, that does not satisfy anybody.
 
 ```{r}
-# devtools::install_github('araastat/reprtree')
+# devtools::install_github('saberry/reprtree')
 
 library(reprtree)
 
@@ -327,7 +323,7 @@ plot(repTree)
 
 What happened? While we do not want to overgrow a tree, a random forest does not care in the slightest. In fact, it will grow the deepest tree that it possibly can. If you would say that this causes over-fitting, then you would be absolutely correct. Remember, though, that we are generating a lot of trees and using all of these trees to votes on the outcomes. Therefore, the over-fitting within one tree really does not make a big differenece – it will come out in the wash. But, you can see where interpretting a tree from a forest is practically nonsense!
 
-While interpretting a tree is indeed nonsense, we can do some work with exploring what happens within the tree and specific observations a bit more. This is certainly not requisite, thus the output of the code is not provided, but you could use the following code from the lime package to do some exploring on your own.
+While interpretting a tree is indeed nonsense, we can do some work with exploring what happens within the tree and specific observations a bit more. This is certainly not requisite, thus the output of the code is not provided, but you could use the following code from the <span class="pack">lime</span> package to do some exploring on your own.
 
 ```{r, eval = FALSE}
 library(lime)
@@ -351,7 +347,7 @@ plot_features(explanation)
 ```
 
 
-This is but one type of classification tree/random forest scenario. The “party” package has some different tree/forest algorithms. Let’s take a look at a random forest fit with conditional inference. Instead of using something like the Gini index to maximize information, conditional inference trees use significance testing to perform the splits.
+This is but one type of classification tree/random forest scenario. The <span class="pack">party</span> package has some different tree/forest algorithms. Let’s take a look at a random forest fit with conditional inference. Instead of using something like the Gini index to maximize information, conditional inference trees use significance testing to perform the splits.
 
 ```{r}
 library(party)

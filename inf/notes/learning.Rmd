@@ -19,71 +19,37 @@ install.packages(c("RCurl", "caret", "gam",
                    "rpart", "rpart.plot", "e1071", 
                    "randomForest"))
 
-devtools::install_github('araastat/reprtree')
+devtools::install_github('saberry/reprtree')
 ```
 
 
-## Our Data
+# Decision Trees
+
+Decision trees are great for classification (i.e., which category does something belong to). For the type of decision tree that we are going to use, we can think about it almost like we would a logistic model. There are, however, some major differences. The first is that we feed any number of predictors to the tree. At our root node, we will have all of the data and all of the predictors. A scan of the predictor variables is then computed that will result in a “pure” branch – it will select a variable and a split of that variable that will result in a good separation between “0” and “1”. We then create another branch and repeat the process. We do this until we have all of the observations classified.
+
+One beauty of the decision tree is in its ability to select important variables. One drawback, however, is that it does this in a greedy fashion. It finds what splits best and goes with it at that node; it does this without consideration of what variables might help to split better later on.
+
+Another great thing about these trees is the ability to use classification *or* regression.
 
 ```{r}
 library(RCurl)
 
 url = "https://raw.githubusercontent.com/gastonstat/CreditScoring/master/CleanCreditScoring.csv"
+
 creditScores = getURL(url)
+
 creditScores = read.csv(textConnection(creditScores))
 ```
 
-Not that we will cover it in here, but the "RCurl" package is most excellent for making API calls, among other things.
-
-
-## Cross Validation
 
 ```{r}
-library(caret); library(dplyr); library(gam)
+library(caret)
 
-modVars = creditScores %>% 
-  dplyr::select(Savings, Income, Age)
+library(rpart)
 
-car::scatterplotMatrix(modVars)
+library(rpart.plot)
 
-trainingPartition = createDataPartition(modVars$Savings, 
-                                        p = .85, list = FALSE)
-
-trainingData = modVars[trainingPartition, ]
-
-testingData = modVars[-trainingPartition, ]
-
-cvLM = train(Savings ~ ., 
-               data = trainingData, 
-               method = "lm", 
-               preProcess = c("center"), 
-               trControl = trainControl(method = "repeatedcv", 
-                                        number = 10, 
-                                        repeats = 3))
-
-predictedNew = predict(cvLM, newdata = testingData)
-
-postResample(pred = predictedNew, obs = testingData$Savings)
-```
-
-
-
-# Supervised Learning
-
-We are going to detour into supervised learning now.  It sounds fancy, but we have pretty much been doing this from the beginning.  In supervised learning, we are specifying the dependent variable.
-
-## Decision Trees
-
-Decision trees are great for classification (i.e., which category does something belong to).  For the type of decision tree that we are going to use, we can think about it almost like we would a logistic model.  There are, however, some major differences.  The first is that we feed any number of predictors to the tree.  At our root node, we will have all of the data and all of the predictors.  A *scan* of the predictor variables is then computed that will result in a "pure" branch -- it selects a variable and a split of that variable that will result in a good separation between "0" and "1".  We then create another branch and repeat the process.  We do this until we have all of the observations classified.
-
-
-One beauty of the decision tree is in its ability to select important variables.  One drawback, however, is that it does this in a greedy fashion.  It finds what splits best and goes with it at that node; it does this without consideration of what variables might help to split better later on.
-
-Another great thing about these trees is the ability to use classification (think logistic regression) or regression.
-
-
-```{r}
-library(rpart); library(rpart.plot); library(e1071)
+library(e1071)
 
 set.seed(10001)
 
@@ -93,43 +59,47 @@ tree1 = rpart(Status ~ Income + Savings + Debt,
 rpart.plot::prp(tree1, box.palette = "Blues", extra = 8)
 ```
 
-If we notice the "extra" argument in our prp function, we will see an 8.  This option is giving us the probability of belonging to that class (e.g., for everyone with a savings over 2, there is a .78 percent chance of them having good credit).  There are many options, so be sure to look at the help file for the different options.  
+
+If we notice the “extra” argument in our prp function, we will see an 8. This option is giving us the probability of belonging to that class (e.g., for everyone with a savings over 2, there is a .78 percent chance of them having good credit). There are many options, so be sure to look at the help file for the different options and play around with them.
 
 
 ```{r}
 confusionMatrix(predict(tree1, type = "class"), 
                 creditScores$Status)
-
 ```
 
 
-Let's check one out with some more variables:
+Let’s check one out with some more variables:
 
 ```{r}
+library(dplyr)
 
 set.seed(10001)
 
 noRecodes = creditScores %>% 
-  select(-ends_with("R"))
+  dplyr::select(-ends_with("R"))
 
 bigTree = rpart(Status ~ ., data = noRecodes, 
                 method = "class")
 
 rpart.plot::prp(bigTree, box.palette = "Blues", extra = 8)
 
+```
+
+
+```{r}
 confusionMatrix(predict(bigTree, type = "class"), 
                 noRecodes$Status)
 ```
 
 
-And we can mess around with a few different parameters.  The "cp" argument represents the complexity parameter (whether a node decreases the lack of fit) and the minsplit represents the minimum number of observations that can be in any bucket.
+And we can mess around with a few different parameters. The “cp” argument represents the complexity parameter (whether a node decreases the lack of fit) and the minsplit represents the minimum number of observations that can be in any bucket.
 
 ```{r}
-
 set.seed(10001)
 
 noRecodes = creditScores %>% 
-  select(-ends_with("R"))
+  dplyr::select(-ends_with("R"))
 
 overgrownTree = rpart(Status ~ ., data = noRecodes,
                       method = "class",
@@ -137,24 +107,27 @@ overgrownTree = rpart(Status ~ ., data = noRecodes,
                                               minsplit = 5))
 
 rpart.plot::prp(overgrownTree, box.palette = "Blues", extra = 8)
+```
 
+
+```{r}
 confusionMatrix(predict(overgrownTree, type = "class"), 
                 noRecodes$Status)
 ```
 
+We can see what happens when we reduce the number of observation in any one split and we completely relax the need to improve our fit at every node -- our tree is allowed to grow almost unchecked. Although our decision tree is now absolutely crazy and nearly impossible to follow, we have greatly improved our accuracy. Again, this in-sample accuracy is likely going to come with the cost of poor out-of-sample accuracy. 
 
-For the love of all that is holy, is this really necessary?  We already have regression, why do we need to have something else to further cloud the skies?  Here is a big hint -- if you have a limited set of predictors with clearly linear relationships that are bound by concrete theory, then a linear regression model will outperform these trees.  If, on the other hand, you have more than a few predictors and no clear theory to guide variable selection, then the trees will be great.
 
-For the sake of simplicity, we have been dealing with pretty sterile data in class.  Unfortunately, not all data is clean and missingness and statistics do not really hang out with each other (i.e., most statistics will drop rows with missing data or fail).  There are many ways to impute data, ranging from mean/median imputation (don't do this) to multiple imputation (e.g. MICE).  You could also impute missing data with such a decision tree.
+For the love of all that is holy, is this really necessary? Here is a big hint – if you have a limited set of predictors with clearly linear relationships that are bound by concrete theory, then a linear regression model will outperform these trees. If, on the other hand, you have more than a few predictors and no clear theory to guide variable selection, then the trees will be great.
 
-## Random Forest
 
-Decision trees are clearly a lot of fun and have a wide variety of uses.  While sometimes one tree is helpful, everything I know about horror movies leads me to believe that a single tree (perhaps on a desolate hill) always leads to some type of danger.  If we remember the issue with trees being greedy and just splitting things how it finds it best.  
+# Random Forest
 
-This brings us to ensemble methods.  If we think about what an ensemble is, we can start to imagine what ensemble methods might be.  There are many ensemble methods, but the one we are going to talk about now is random forests.  Trees...forest...ensemble...are the connections starting to happen?
+Decision trees are clearly a lot of fun and have a wide variety of uses. While sometimes one tree is helpful, everything I know about horror movies leads me to believe that a single tree (perhaps on a desolate hill) always leads to some type of danger. If we remember the issue with trees being greedy and just splitting things how it finds it best, we can imagine what might happen if we only consider one tree.
 
-*Forest* is probably less pretentious than "tree ensemble", but where does the "random" come into play?  What would be the likely result of running the exact same tree 1000 times?  Some minor differences aside, almost nothing.  In our random forest, we will create randomness in 2 ways: by drawing a random sample of observations for each tree and by drawing a random sample of predictors for each tree.     
+This brings us to ensemble methods. If we think about what an ensemble is, we can start to guess what ensemble methods might be. There are many ensemble methods, but the one we are going to talk about now is random forests. Trees..forest…ensemble…are the connections starting to happen?
 
+Forest is probably less pretentious than “tree ensemble”, but where does the “random” come into play? What would be the likely result of running the exact same tree 1000 times? Some minor differences aside, almost nothing. In our random forest, we will create randomness in 2 ways: by drawing a random sample of observations for each tree and by drawing a random sample of predictors for each tree.
 
 ```{r}
 library(randomForest)
@@ -168,8 +141,8 @@ rfTest = randomForest(Status ~ ., data = noRecodes,
 rfTest
 ```
 
-Here we see some simple summary output, with our out-of-bag error rate and the same type of confusion matrix we saw earlier.  You might be wondering what "out-of-bag" means, and rightfully so!  What makes the random forest random?  Instead of wasting the unsampled data, it uses it as a testing set (i.e., the data that was not in the sample "bag" gets used to help perform a very basic cross validation).  
 
+Here we see some simple summary output, with our out-of-bag error rate and the same type of confusion matrix we saw earlier. You might be wondering what “out-of-bag” means, and rightfully so! What makes the random forest random? Instead of wasting the unsampled data, it uses it as a testing set (i.e., the data that was not in the sample “bag” gets used to help perform a very basic cross validation).
 
 We can also get the more elaborate confusion matrix from caret (note that the matrix is flipped from the previous output!):
 
@@ -178,23 +151,27 @@ confusionMatrix(rfTest$predicted, noRecodes$Status, positive = "good")
 ```
 
 
-Next, let's look at our variable importance:
+Next, let’s look at our variable <span class="func">importance</span>:
 
 ```{r}
 importance(rfTest)
+```
+
+
+```{r}
 varImpPlot(rfTest)
 ```
 
-We can look at the "MeanDecreaseAccuracy" and the "MeanDecreaseGini" to get a sense of how important each variable might be.  The help file for importance sheds light on how "MeanDecreaseAccuracy" is computed, but all you really need to know is that it is telling us how poorly a model performed without the variable (variables with a higher value are more important for predicition).  Gini is always used as an inequality measure, but it is conceptualized as node impurity here -- variables with higher values means that removing those variables resulted in greater node impurity. 
+We can look at the “MeanDecreaseAccuracy” and the “MeanDecreaseGini” to get a sense of how important each variable might be. The help file for importance sheds light on how “MeanDecreaseAccuracy” is computed, but all you really need to know is that it is telling us how poorly a model performed without the variable (variables with a higher value are more important for predicition). Gini is always used as an inequality measure, but it is conceptualized as node impurity here – variables with higher values means that removing those variables resulted in greater node impurity.
 
-### The Black Box!
+## The Black Box!
 
-Now we know what variables are important for our random forest, so when do we interpret our trees!?!  We can't...so we don't!!! Interpreting a single tree is statistically non-sense when we are dealing with a random forest.  We are really only concerned with prediction at this point.
+Now we know what variables are important for our random forest, so when do we interpret our trees from the forest!?! We can’t...so we don’t!!! Interpreting a single tree is statistically non-sense when we are dealing with a random forest. We are really only concerned with prediction at this point.
 
 Outside of Breiman, that does not satisfy anybody.
 
 ```{r}
-#devtools::install_github('araastat/reprtree')
+# devtools::install_github('saberry/reprtree')
 
 library(reprtree)
 
@@ -203,9 +180,33 @@ repTree = ReprTree(rfTest, noRecodes)
 plot(repTree)
 ```
 
-What happened?  While we do not want to overgrow a tree, a random forest does not care in the slightest.  In fact, it will grow the deepest tree that it possible can.  If you would say that this causes over-fitting, then you would be absolutely correct.  Remember, though, that we are generating a lot of trees and using all of these trees to votes on the outcomes.  Therefore, the over-fitting within one tree really does not make a big differenece -- it will come out in the wash.  But, you can see where interpretting a tree from a forest is practically nonsense!
+What happened? While we do not want to overgrow a tree, a random forest does not care in the slightest. In fact, it will grow the deepest tree that it possibly can. If you would say that this causes over-fitting, then you would be absolutely correct. Remember, though, that we are generating a lot of trees and using all of these trees to votes on the outcomes. Therefore, the over-fitting within one tree really does not make a big differenece – it will come out in the wash. But, you can see where interpretting a tree from a forest is practically nonsense!
 
-This is but one type of classification tree/random forest scenario.  The "party" package has some different tree/forest algorithms.  Let's take a look at a random forest fit with conditional inference. Instead of using something like the Gini index to maximize information, conditional inference trees use significance testing to perform the splits.
+While interpretting a tree is indeed nonsense, we can do some work with exploring what happens within the tree and specific observations a bit more. This is certainly not requisite, thus the output of the code is not provided, but you could use the following code from the <span class="pack">lime</span> package to do some exploring on your own.
+
+```{r, eval = FALSE}
+library(lime)
+
+sampleObs = sample.int(n = nrow(noRecodes),
+                       size = floor(.75 * nrow(noRecodes)), replace = F)
+
+train = noRecodes[sampleObs, ]
+
+test = noRecodes[-sampleObs, ]
+
+modelTrain = train(Status ~ ., data = train, method = 'rf')
+
+explainer = lime(train, modelTrain)
+
+explanation = explain(test, explainer, n_labels = 2, n_features = 3)
+
+head(explanation)
+
+plot_features(explanation)
+```
+
+
+This is but one type of classification tree/random forest scenario. The <span class="pack">party</span> package has some different tree/forest algorithms. Let’s take a look at a random forest fit with conditional inference. Instead of using something like the Gini index to maximize information, conditional inference trees use significance testing to perform the splits.
 
 ```{r}
 library(party)
@@ -214,11 +215,13 @@ crfTest = cforest(Status ~ ., data = noRecodes,
                   controls = cforest_control(ntree = 1000))
 ```
 
-Let's see if we did any better:
+
+Let’s see if we did any better:
 
 ```{r}
 confusionMatrix(predict(crfTest), noRecodes$Status, positive = "good")
 ```
 
+We certainly did! This all boils down to tweaking the parameters of your forest. It is not terribly hard to make incremental improvements to your prediction rates, but sometimes you can make pretty significant jumps just by switching up the way the nodes are split.
 
-We *can* get a sample tree from this forest, but we are not going to do it.  One important thing to note is that party will not create a deep tree by default.
+We could get a sample tree from this forest, but we are not going to do it. One important thing to note is that party will not create a deep tree by default.

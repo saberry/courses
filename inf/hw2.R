@@ -42,6 +42,12 @@ employment$education = ordered(employment$education, levels = 1:3,
 employment$gender = factor(employment$gender, levels = 1:2, 
                            labels = c("female", "male"))
 
+employment$salary[employment$gender == "female"] = employment$salary - rnorm(1, mean = 1500, 500)
+
+employment$daysEmployed = round(employment$daysEmployed)
+
+employment$daysAbsent = round(employment$daysAbsent)
+
 write.csv(employment, "inf/hw2Dat.csv", row.names = FALSE)
 
 save(employment, file = "inf/hw2Dat.RData")

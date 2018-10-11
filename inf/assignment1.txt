@@ -7,16 +7,17 @@
 
 # Task 1 #
 
-Read in the following data: "https://www3.nd.edu/~sberry5/data/allReviews.RData"
+Use the following data: "https://www3.nd.edu/~sberry5/data/allReviews.RData"
 
-You will need to download the data and then read it in with the following:
+You will need to download the data (i.e., save it somewhere that you can find it) and then read it in with the following:
 
-load("folder/allReviews.RData")
+load("path/to/allReviews.RData")
 
 The object is called "allReviews".
 
-Engage in some data exploration by using different summary functions. 
-In addition to the summary() function, the describe functions from the psych and Hmisc packages are great (but for slightly different purposes). 
+Engage in some data exploration by using different summary functions. Don't find yourself spending time on the topic variables, but the Flesch variables are certainly worth a check. 
+
+In addition to the summary() function, the describe functions from the psych and Hmisc packages are great (but for slightly different purposes). Pick one of them to use. 
 
 
 # Task 2 #
@@ -58,3 +59,24 @@ When you run it the first time, keep the distractors argument at the default val
 How did you do? Where you able to spot the real relationship or were you fooled by your basic human need for pattern finding?
 
 Discuss what you think this means.
+
+
+## Silver Tier ##
+
+Use the leadershipRatingsAgreement.csv file on Sakai. 
+
+Which variables have the strongest positive relationship and which have the strongest negative relationship? Once you have found those relationships, plot them both.
+
+Which 4 variables have the strongest relationship with the effect variable? Explain how you found this relationship. Produce plots for each of those relationships and include both linear trend lines and smoothed trend lines.  
+
+
+
+## Gold Tier ##
+
+Use the leadership data found on Sakai. This is a .dta file (from Stata) and can be read in using a function from the haven package. 
+
+Using verbs from the dplyr package (specifically, group_by and summarize), find the *effect* mean for each leaderID. Which leader(s) had the highest effect mean and which leader(s) had the lowest effect mean.
+
+Take your highest and lowest leaders and keep the leaderID. With the leaderID in hand, find those leaders in the leadershipRatingsAgreement data.
+
+Excluding effect, construct a plot with forceful, enabling, strategic, operational, vitality, and productivity on the x-axis (the y-axis will contain the value for each variable). Next color the points by leaderID.

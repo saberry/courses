@@ -1,13 +1,9 @@
 ---
 title: "Item Response Theory"
-author: "Behavioral Data Science"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-```
-
+# Item Response Theory
 
 ## Item Response Theory And Factor Analysis
 
@@ -33,7 +29,7 @@ The ability to explore individual items within IRT is based upon three different
 
 In IRT, the location parameter (denoted as $\\b_i$) described the difficulty of the item. If we are talking about a testing situation (e.g., a math or science test), the meaning of $\\b_i$ is nearly self-evident -- it is simply the probability of a correct response to the question in a dichotomous model and the probability of moving from one category to another in polytomous models (the level of passing from one category to the next is called a *threshold*).
 
-Let's look at some examples from the *mirt* documentation of different item locations. The *ltm* package is also a great package for IRT models.
+Let's look at some examples from the <span class="pack">mirt</span> documentation of different item locations. The <span class="pack">ltm</span> package is also a great package for IRT models.
 
 ```{r}
 library(mirt)

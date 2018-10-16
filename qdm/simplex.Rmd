@@ -157,6 +157,19 @@ x2 = 5
 ```
 
 
+```{r}
+library(linprog)
+
+c = c(4, 5)
+
+b = c(120, 80)
+
+A = rbind(c(2, 3), c(2, 1.5))
+
+res = solveLP(c, b, A, maximum = TRUE)
+```
+
+
 ### Your Turn
 
 Try to find an optimal solution to this problem:

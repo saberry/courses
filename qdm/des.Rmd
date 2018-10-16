@@ -1,0 +1,137 @@
+---
+title: "Process Simulation"
+description: |
+  Examples using simmer
+author:
+  - name: Seth Berry
+    affiliation: QDM
+output: radix::radix_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Packages 
+
+```{r, eval = FALSE}
+install.packages(c("tidyverse", "simmer"))
+```
+
+```{r}
+library(dplyr)
+
+library(simmer)
+```
+
+## The Bank
+
+### Single Counter
+
+```{r}
+set.seed(1001)
+
+customer = trajectory("Customer's path") %>%
+  log_("Here I am") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("counter") %>%
+  log_(function() {paste("Waited: ", now(bank) - get_attribute(bank, "start_time"))}) %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter") %>%
+  log_(function() {paste("Finished: ", now(bank))})
+
+bank = simmer("bank") %>%
+  add_resource("counter") %>%
+  add_generator("Customer", customer, function() {c(0, rexp(4, 1/10), -1)})
+
+
+bank %>% run(until = 400)
+
+customerInfo = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+```
+
+### Two Counters -- One Line
+
+```{r}
+set.seed(1001)
+
+customer = trajectory("Customer's path") %>%
+  log_("Enter") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("counter") %>%
+  log_(function() {paste("Waited: ", now(bank) - get_attribute(bank, "start_time"))}) %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter") %>%
+  log_(function() {paste("Finished: ", now(bank))})
+
+bank = simmer("bank") %>%
+  add_resource("counter", 2) %>%
+  add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+
+bank %>% run(until = 400)
+
+customerInfo2Counters = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+
+```
+
+
+
+### Two Counters -- Two Lines
+
+```{r}
+set.seed(1001)
+
+customer = trajectory("Customer's path") %>%
+  log_("Enter") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  select(c("counter1", "counter2"), policy = "shortest-queue") %>%
+  seize_selected() %>%
+  log_(function() {paste("Waited: ", now(bank) - get_attribute(bank, "start_time"))}) %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release_selected() %>%
+  log_(function() {paste("Finished: ", now(bank))})
+
+bank = simmer("bank") %>%
+  add_resource("counter1", 1) %>%
+  add_resource("counter2", 1) %>%
+  add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+
+bank %>% run(until = 400)
+
+customerInfo2Counters = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+
+```
+
+### Sensible Queue Sizes
+
+```{r}
+set.seed(1002)
+
+customer = trajectory("Customer's path") %>%
+  log_("Enter") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("counter1", continue = FALSE, reject = trajectory("Balked customer") %>%
+  log_("BALKING")) %>% 
+  log_(function() {paste("Waited: ", now(bank) - get_attribute(bank, "start_time"))}) %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter1") %>% 
+  log_(function() {paste("Finished: ", now(bank))})
+
+bank = simmer("bank") %>%
+  add_resource("counter1", capacity = 1, queue_size = 4) %>%
+  add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+
+bank %>% run(until = 400)
+
+customerInfo2Counters = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+
+nBalked = sum(!get_mon_arrivals(bank)$finished)
+```

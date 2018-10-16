@@ -1,0 +1,243 @@
+*node data
+ID	Name	Section	Gender	Year
+1	"Elizabeth Akpadiaha"	1	F	4
+2	"Holly Backstrom"	1	F	4
+3	"Kyle Borbi"	1	M	3
+4	"Ryan Casserly"	1	M	4
+5	"Cate Devey"	1	F	4
+6	"Rob Giambone"	1	M	4
+7	"Ryan Gurbatri"	1	M	4
+8	"John Hennessey"	1	M	4
+9	"Jade Jennings"	1	F	4
+10	"Claudia Kulmacz"	1	F	3
+11	"Nia McGill"	1	F	4
+12	"David Milligan"	1	M	4
+13	"Kara Mlynski"	1	F	4
+14	"Bethany Pacheco"	1	F	4
+15	"James Reilly"	1	M	4
+16	"Areli Rodriguez"	1	F	4
+17	"Arianna Rominski"	1	F	4
+18	"Bre Sarubbi"	1	F	3
+19	"Chris Scully"	1	M	4
+20	"Diamond Thompson"	1	F	4
+21	"Montgomery VanGorder"	1	M	3
+22	"Dan Verzuh"	1	M	4
+23	"Nick Watkins"	1	M	3
+24	"Rob Whitacre"	1	M	3
+25	"Matthew Ainbinder"	2	M	4
+26	"Lindsay Allen"	2	F	4
+27	"Monica Barboza"	2	F	4
+28	"Matt Brendza"	2	M	4
+29	"Guillermo Chavez"	2	M	4
+30	"Alex Ciesla"	2	F	4
+31	"Mary Closs"	2	F	4
+32	"Jordyn Coyne"	2	F	4
+33	"Roberto Cruz"	2	M	4
+34	"Niki Dirksen"	2	F	4
+35	"Garrett Epple"	2	M	4
+36	"Kinga Fluder"	2	F	4
+37	"Nora Garvin"	2	F	4
+38	"Elizabeth House"	2	F	4
+39	"Elle Huang"	2	F	4
+40	"Omar Hunter"	2	M	4
+41	"Zach Llorens"	2	M	4
+42	"Larry Miller"	2	M	4
+43	"Riley Reuvers"	2	M	4
+44	"Courtney Sampson"	2	F	4
+45	"Ayden Syal"	2	M	4
+46	"Tom Taylor"	2	M	4
+47	"Andrew Trumbetti"	2	M	4
+48	"Ben Woodley"	2	M	4
+49	"Catherine Young"	2	F	4
+*tie data
+1	36
+1	39
+1	41
+2	13
+2	17
+2	18
+2	27
+2	30
+2	34
+2	36
+4	12
+4	15
+4	25
+4	45
+5	15
+5	17
+5	34
+5	39
+5	42
+6	15
+6	26
+6	27
+6	29
+6	41
+6	45
+6	48
+6	49
+7	14
+7	16
+7	36
+10	3
+11	47
+12	4
+12	15
+12	45
+13	30
+14	7
+14	25
+14	37
+14	38
+15	2
+15	4
+15	5
+15	6
+15	12
+15	18
+15	34
+15	39
+15	40
+16	7
+16	9
+16	19
+17	2
+17	27
+18	2
+18	10
+18	15
+18	47
+19	16
+19	49
+20	23
+20	26
+21	23
+21	40
+21	47
+23	10
+23	20
+23	21
+23	24
+23	26
+23	40
+23	47
+24	23
+24	37
+25	4
+25	14
+25	15
+25	27
+25	40
+25	42
+25	43
+25	45
+26	20
+26	23
+26	45
+27	2
+27	13
+27	17
+27	25
+27	40
+27	42
+27	49
+28	2
+28	30
+28	31
+28	41
+29	49
+30	13
+30	28
+30	31
+30	36
+30	39
+30	44
+31	28
+31	30
+31	38
+31	44
+32	31
+32	42
+33	8
+33	40
+34	5
+34	15
+34	42
+34	43
+34	47
+35	3
+36	7
+36	30
+36	39
+37	13
+37	14
+37	24
+37	42
+37	47
+38	14
+38	24
+38	31
+38	32
+38	44
+39	1
+39	5
+39	8
+39	15
+39	30
+39	36
+39	42
+40	15
+40	25
+40	27
+40	33
+40	41
+40	45
+40	47
+41	1
+41	6
+41	27
+41	28
+41	29
+41	33
+41	40
+41	49
+42	5
+42	25
+42	34
+42	43
+42	48
+44	3
+44	28
+44	30
+44	31
+44	38
+44	49
+45	3
+45	4
+45	6
+45	12
+45	15
+45	25
+45	26
+45	27
+45	34
+45	40
+45	49
+46	6
+46	48
+46	49
+47	3
+47	11
+47	21
+47	37
+47	40
+48	6
+48	42
+49	6
+49	19
+49	27
+49	29
+49	36
+49	41
+49	46

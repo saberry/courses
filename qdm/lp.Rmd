@@ -1,0 +1,42 @@
+---
+title: "Linear Programming"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Packages
+
+```{r, eval = FALSE}
+install.packages(c("ROI", "ROI.plugin.glpk", "ompr", "ompr.roi"))
+```
+
+
+```{r}
+library(dplyr)
+library(ROI)
+library(ROI.plugin.glpk)
+library(ompr)
+library(ompr.roi)
+```
+
+## Knapsack (From Examples)
+
+```{r}
+max_capacity = 5
+
+n = 10
+
+weights = runif(n, max = max_capacity)
+
+MIPModel() %>%
+  add_variable(x[i], i = 1:n, type = "binary") %>%
+  set_objective(sum_expr(weights[i] * x[i], i = 1:n), "max") %>%
+  add_constraint(sum_expr(weights[i] * x[i], i = 1:n) <= max_capacity) %>%
+  solve_model(with_ROI(solver = "glpk")) %>% 
+  get_solution(x[i]) %>% 
+  filter(value > 0)
+```
+

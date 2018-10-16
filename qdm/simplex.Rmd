@@ -1,0 +1,181 @@
+---
+title: "Graphical and Simplex Methods"
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Graphical Method
+
+## Maximization
+
+$$
+\begin{align}
+P = 4_{x1} + 5_{x2} \\
+2_{x1} + 3_{x2} \leq 120 \\
+2_{x1} + 1.5_{x2} \leq 80 \\
+x1, x2 \geq 0
+\end{align}
+$$
+The *objective function* is $P = 4_{x1} + 5_{x2}$. Every other equation is a *contraint*. Without constraints, our optimization will do just that -- optimize (much like my younger brother, they tend to be lazy and greedy). 
+
+If we want to put some concrete terms to our equations, we could specify something as follows:
+
+*P* is profit (of course we want to maximize profit). 
+
+For every piece that machine 1 makes, we make \$4. For every piece that machine 2 makes, we make \$5
+
+For every piece made, machine 1 requires 2 pounds of filings and machine 2 requires 3 pounds. We currently have 120 pounds of filings.
+
+For every piece made, machine 1 requires 2 pounds of resin and machine 2 requires 1.5 pounds. We currently have 80 pounds of filings.
+
+$x^1$ is number of pieces for machine 1
+
+$x^2$ is number of pieces for machine 2
+
+
+To begin, we need to express our constraints as inequalities:
+
+$$
+\begin{align}
+2_{x1} + 3_{x2} = 120 \\
+2_{x1} + 1.5_{x2} = 80 \\
+x1 = 0 \\
+x2 = 0
+\end{align}
+$$
+
+This will let us define all ordered pairs that will satisfy the equations. 
+
+Our first equation, $2_{x1} + 3_{x2} = 120$ can be solved as $(2 * 0) +  (3 * 40) = 120$ or as $(2 * 60) +  (3 * 0) = 120$. For that equation, we have both $(x_1 = 0, x_2 = 40)$ and $(x_1 = 60, x_2 = 0)$. 
+
+For our second equation, $2_{x1} + 1.5_{x2} = 80$, we can solve that as $(2 * 0) + (1.5 * 53.33) = 80$ or as $(2 * 40) + (1.5 * 0) = 80$. For that equation, we have both $(x_1 = 0, x_2 = 53.33)$ and $(x_1 = 40, x_2 = 0)$.
+
+We can plot those points:
+
+```{r}
+library(dplyr)
+
+library(ggplot2)
+
+graphPoints = data.frame(x = c(0, 60, 0, 40), 
+    y = c(40, 0, 53.33, 0), 
+    eq = as.factor(c(1, 1, 2, 2)))
+
+ggplot(graphPoints, aes(x, y, group = eq)) +
+  geom_point() +
+  geom_line() +
+  theme_minimal() +
+  annotate("text", x = 15, y = 50, label = "2_x1 + 1.5_x2 =< 80") +
+  annotate("text", x = 50, y = 15, label = "2_x1 + 3_x2 =< 120") +
+  labs(x = "x1", y = "x2")
+```
+
+We can start to define the feasible region for our solution:
+
+```{r}
+ggplot() +
+  geom_point(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_line(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_segment(mapping = aes(x = 9, xend = 7, 
+               y = 34, yend = 30), arrow = arrow()) +
+  geom_segment(mapping = aes(x = 29, xend = 27, 
+               y = 15, yend = 11), arrow = arrow()) +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+
+If we consider our constraints, we would probably be working within this region:
+
+```{r}
+ggplot() +
+  geom_point(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_line(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_polygon(data = data.frame(x = c(0, 40, 20, 0), 
+                               y = c(0, 0, 26.67, 40)), 
+            mapping = aes(x, y), color = "grey", alpha = .1) +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+
+If we want to maximize our function, then we are going to need to look at every ordered pair within the feasible region to get to the optimized solution -- that should not take you too long to do by hand...
+
+Or, if you actually want to move along with your life, we can use the *extreme point theorem*:
+
+<aside>
+The optimal value of the objective function occurs at one of the extreme points of the feasible region.
+</aside>
+
+Where are our extreme values? Right here!
+
+```{r}
+ggplot() +
+  geom_point(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_line(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_point(data = data.frame(x = c(0, 40, 20, 0), 
+                               y = c(0, 0, 26.67, 40)), 
+             mapping = aes(x, y), color = "#ff5500", size = 5) +
+  geom_polygon(data = data.frame(x = c(0, 40, 20, 0), 
+                               y = c(0, 0, 26.67, 40)), 
+            mapping = aes(x, y), color = "grey", alpha = .1) +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+
+Now that we know our extreme values, it is just a matter of finding which will give us the maximum value:
+
+```{r}
+extremePoints = data.frame(x = c(0, 40, 20, 0), 
+                           y = c(0, 0, 26.67, 40))
+
+x1 = 4
+
+x2 = 5
+
+(x1 * extremePoints$x) + (x2 * extremePoints$y)
+```
+
+We can see that a solution with 20 pieces on machine x1 and 26.67 pieces on machine x2 yield the most profit. We know that we probably won't want to make an incomplete piece, so we can see what happens if we round that down:
+
+```{r}
+extremePoints = data.frame(x = c(0, 40, 20, 0), 
+                           y = c(0, 0, 26.67, 40))
+
+x1 = 4
+
+x2 = 5
+
+(x1 * extremePoints$x) + (x2 * extremePoints$y)
+```
+
+
+### Your Turn
+
+Try to find an optimal solution to this problem:
+
+$$
+\begin{align}
+P = 4_{x1} + 3_{x2} \\
+21_{x1} + 16_{x2} \leq 336 \\
+13_{x1} + 25_{x2} \leq 325 \\
+15_{x1} + 18_{x2} \leq 270 \\
+x1, x2 \geq 0
+\end{align}
+$$
+
+## Minimization
+
+
+
+
+# Simplex Method
+
+The Simplex Method is one of those methods that is old, but still still useful. When trying to set an objective function to linear functions, the Simplex Method can be used.

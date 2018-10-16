@@ -1,0 +1,284 @@
+---
+title: "QDM -- R Style"
+output:
+  html_document:
+    theme: cerulean
+    highlight: pygments
+---
+
+```{r setup, include=FALSE, comment="", warning = FALSE, message = FALSE, error = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction {.tabset .tabset-fade .tabset-pills}
+
+The following sections will help orient you to R. If you are already familiar, feel free to ignore me for the next couple of minutes or even the remainder of class (no judgment here).
+
+### Basics
+
+Remember the following points:
+
+1.  R is case sensitive.
+2.  If you want to keep something assign it (e.g., objectName = 1:5).
+3.  Everything (e.g., parentheses, brackets) needs to be closed.
+
+### Package Installation
+
+R is not just one thing, but a collection of packages (kind of how Excel has add-ins, but R is cooler). If we want to add packages to our R installation, we will run the following line of code:
+
+```{r, eval = FALSE}
+install.packages(c("tidyverse", "simmer", "lpSolve", "lpSolveAPI"))
+```
+
+You will only need to run this once, unless you update your R installation.
+
+Once you have installed a package, you will need to load it to be able to use it.
+
+```{r, eval = FALSE}
+library(simmer)
+```
+
+### Objects & Functions
+
+In R, everything is an object. What does that mean? Let's think about a typical table. That table is an object. Not only is that table an object, but every "cell" within that table is also an object. This means that we can do almost anything we want to any object within our environment.
+
+Here is an example:
+
+Let's take this table:
+
+```{r}
+testDF = data.frame(id = 1:5, 
+                    score = sample(1:5, 5, replace = TRUE))
+
+testDF
+```
+
+With our table, we could do many different things to it. Since we are talking about working with objects, let's tweak an individual object.
+
+```{r}
+testDF$score[3] = mean(testDF$score) 
+
+testDF
+```
+
+We found the 3rd row of the score variable within our data and replaced it with the mean of every score.
+
+### Why?
+
+If this is your first foray into R and/or programming, you might be asking yourself why in the name of god would you ever choose to do this to yourself. 
+
+There are many reasons. Perhaps the most important is literacy. Open-source statistical computing is not the future -- it is the now. The traditional packages are neither on the cutting nor the bleeding edge. Being able to communicate with people "out there" about such matters is important (knowing more R than most people landed me my first job). 
+
+Another reason is pure utility. Learning just a little bit of statistical programming can help you do things you never thought possible. Maybe you have a decision to make (e.g., you and your friend/SO/etc. cannot decide on what to eat). You can do something like the following:
+
+```{r}
+decision = sample(c("thai", "pizza"), 100000, replace = TRUE)
+
+c(thai = length(decision[decision == "thai"]), pizza = length(decision[decision == "pizza"]))
+```
+
+This is nearing into Monte Carlo stuff!
+
+The content of this course does not allow us to stray much, but some of these techniques won't solve our problems. Using R (or Python) will let us to create solutions to some really tricky problems. 
+
+## QDM Topics{.tabset .tabset-fade .tabset-pills}
+
+The following tabs will provide details on conducting our models in R. 
+
+### Process Simulation
+
+Process simulation in R is handled with the *simmer* package.
+
+NOTE: We may not be able to install *simmer* on the machines in the classroom because we need Rtools installed. 
+
+```{r}
+library(simmer)
+```
+
+That was the easy part. 
+
+We are going to play around with the bank example. 
+
+```{r, eval = TRUE}
+set.seed(1269)
+
+customer = trajectory("Customer's path") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("counter") %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter")
+
+bank = simmer("bank") %>%
+  add_resource("counter") %>%
+  add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+
+bank %>% run(until = 480)
+
+bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time) %>% 
+  DT::datatable()
+
+bank %>%
+  get_mon_resources %>%
+  DT::datatable()
+```
+
+
+You will notice that we have only been doing one run and we know the dangers that can come along with that.
+
+```{r}
+library(parallel)
+
+customer = trajectory("Customer's path") %>%
+  seize("counter") %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter")
+
+mclapply(c(sample(1:100000000, 20)), function(the_seed) {
+  set.seed(the_seed)
+  
+  bank = simmer("bank") %>%
+    add_resource("counter", 1) %>%
+    add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+  
+  bank %>% run(until = 480)
+  
+  result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+  paste("Average wait for ", sum(result$finished), " completions was ",
+        mean(result$waiting_time), " minutes.", sep = "")
+}) %>% 
+  unlist()
+```
+
+
+We also have branch(), renege(), and several others.
+
+### Linear Programming
+
+In all matters of linear programming, we do have some options in R. For our demonstrations, we will be using *lpSolveAPI*. It and *lpSolve* are likely the most-used packages for linear programming in R.
+
+```{r}
+
+library(lpSolveAPI)
+
+train = data.frame(wagon = c('w1','w2','w3'), 
+                   weightcapacity = c(10, 8, 12), 
+                   spacecapacity = c(5000, 4000, 8000))
+ 
+cargo = data.frame(type = c('c1','c2','c3','c4'), 
+                   available = c(18, 10, 5, 20), 
+                   volume = c(400, 300, 200, 500), 
+                   profit = c(2000, 2500, 5000, 3500))
+
+lpModel = make.lp((2 * NROW(train)) + NROW(cargo), 12)
+ 
+column = 0
+
+row = 0
+ 
+# build the model column per column
+for(wg in train$wagon) {
+  row = row + 1
+  
+  for(type in seq(1, NROW(cargo$type))){
+    
+    column = column + 1
+    
+    set.column(lpModel, column, c(1, cargo[type,'volume'], 1), 
+               indices = c(row, NROW(train) + row, NROW(train) * 2 + type))
+  }}
+ 
+# set rhs weight constraints
+set.constr.value(lpModel, rhs = train$weightcapacity, 
+                 constraints = seq(1, NROW(train)))
+ 
+# set rhs volume constraints
+set.constr.value(lpModel, rhs = train$spacecapacity, 
+                 constraints = seq((NROW(train) + 1), (NROW(train) * 2)))
+ 
+# set rhs volume constraints
+set.constr.value(lpModel, rhs = cargo$available, 
+                 constraints = seq((NROW(train) * 2) + 1, (NROW(train) * 2) + NROW(cargo)))
+ 
+# set objective coefficients
+set.objfn(lpModel, rep(cargo$profit, NROW(train)))
+ 
+# set objective direction
+lp.control(lpModel, sense = 'max')
+ 
+# In order to be able to visually check the model.
+write.lp(lpModel, 'model.lp', type = 'lp')
+
+solve(lpModel)
+ 
+# This will return the proposed solution
+get.objective(lpModel)
+
+# Through magic, this will return our decision variables
+get.constraints(lpModel)
+
+```
+
+We could use the set.type() function to turn this into an integer programming problem if needed.
+
+### Risk Analysis
+
+You might recall in my ramblings about @Risk that risk analyis is nothing more than Monte Carlo simulations. We can tackle this in many different ways.
+
+Let's start with a simple example of Monte Carlo simulation. The folks in UX research always talk about A/B testing. Let's suppose we have two different UIs and we want to test whether one will "cause" an increase in subscriptions. In our bit of testing, we have shown 100 people *A* and 110 people *B* -- 20 people subscribed after viewing *A* and 38 people subscribed after viewing *B*. While some people might be satisfied with a *t*-test, we will do something a bit different (an important aside is that this would not be a standard *t*-test, because of our imbalance -- we would need to use Welsch's test instead).
+
+```{r}
+runs = 100000
+
+aSamples = rbeta(runs, 20, 100)
+
+bSamples = rbeta(runs, 38, 110)
+
+dat = data.frame(type = rep(c("a", "b"), each = runs), 
+                 value = c(aSamples, bSamples))
+
+library(ggplot2)
+
+ggplot(dat, aes(x = value, color = type)) +
+  geom_density() +
+  theme_minimal()
+
+mcPValue = sum(aSamples > bSamples)/runs
+```
+
+Now that we have our bearings about us with regard to Monte Carlo, let's adapt it to risk assessment. 
+
+One popular place use of risk assessment is in stock prices. If we assume that a stock opens at $20, we know how it has been performing in the past, we can project out into the future.
+
+```{r}
+days = 200
+
+changes = rnorm(200, mean = 1.001, sd = 0.005)
+
+plot(cumprod(c(20,changes)), type = 'l', ylab = "Price",
+     xlab = "day", main = "QDM closing price")
+```
+
+```{r}
+runs = 100000
+
+# simulates future movements and returns the closing price on day 200
+
+generatePath = function(){
+  
+  days = 200
+  
+  changes = rnorm(200, mean = 1.001, sd = 0.005)
+  
+  sample.path = cumprod(c(20, changes))
+  
+  closing.price = sample.path[days+1]
+  
+  return(closing.price)
+}
+
+mcClosing = replicate(runs, generatePath())
+```

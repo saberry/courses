@@ -39,7 +39,7 @@ $x^1$ is number of pieces for machine 1
 $x^2$ is number of pieces for machine 2
 
 
-To begin, we need to express our constraints as inequalities:
+To begin, we need to express our inequalities as equations:
 
 $$
 \begin{align}
@@ -167,6 +167,108 @@ b = c(120, 80)
 A = rbind(c(2, 3), c(2, 1.5))
 
 res = solveLP(c, b, A, maximum = TRUE)
+
+res
+```
+
+
+
+
+## Minimization
+
+If our object function is to minimize, we need to tweak things just a bit. Consider the following:
+
+$$
+\begin{align}
+C = 50_{x1} + 20_{x2} \\
+2_{x1} - 1_{x2} \geq 0 \\
+1_{x1} + 4_{x2} \geq 80 \\
+.9_{x1} + .8_{x2} \geq 40 \\
+x1, x2 \geq 0
+\end{align}
+$$
+
+
+This isn't anything we haven't seen, but it has taken a slightly different form. Before our goal was to maximize profit; now, though, our goal is minimize cost.
+
+We can work through our constraints in the same fashion as before.
+
+$2_{x1} - 1_{x2} = 0$ has a set of $(x_1 = 0, x_2 = 0) or (x_1 = 30, x_2 = 60)$, $1_{x1} + 4_{x2} = 80$ has a set of $(x_1 = 0, x_2 = 20) or (x_1 = 80, x_2 = 0)$, and $.9_{x1} + .8_{x2} = 40$ has a set of $(x_1 = 44.44, x_2 = 0) or (x_1 = 0, x_2 = 50)$.
+
+Why, in the name of all that is holy, would that first equation not reduce down further? If we plot things, we will find out pretty quickly:
+
+```{r}
+graphPoints = data.frame(x = c(0, 30, 0, 80, 44.44, 0), 
+    y = c(0, 60, 20, 0, 0, 50), 
+    eq = as.factor(c(1, 1, 2, 2, 3, 3)))
+
+ggplot(graphPoints, aes(x, y, group = eq)) +
+  geom_point() +
+  geom_line() +
+  theme_minimal() +
+  annotate("text", x = 30, y = 50, label = "2_x1 - 1_x2 => 0") +
+  annotate("text", x = 50, y = 12, label = "1_x1 + 4_x2 => 80") +
+  annotate("text", x = 30, y = 25, label = ".9_x1 + .8_x2 => 40") +
+  labs(x = "x1", y = "x2")
+```
+
+We still want to find our extreme points, but remember that we are looking at a minimized objective function. To that end, our feasible region is going to be in a different place
+
+```{r}
+ggplot() +
+  geom_point(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_line(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_polygon(data = data.frame(x = c(16, 34.32, 80, 80, 30), 
+                               y = c(32, 11.42, 0, 60, 60)), 
+            mapping = aes(x, y), color = "grey", alpha = .1) +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+This will help us to find our extreme points for testing:
+
+```{r}
+ggplot() +
+  geom_point(data = graphPoints, mapping = aes(x, y, group = eq)) +
+  geom_line(data = graphPoints, mapping = aes(x, y, group = eq)) +
+    geom_point(data = data.frame(x = c(16, 34.32, 80), 
+                               y = c(32, 11.42, 0)), 
+             mapping = aes(x, y), color = "#ff5500", size = 5) +
+  geom_polygon(data = data.frame(x = c(16, 34.32, 80, 80, 30), 
+                               y = c(32, 11.42, 0, 60, 60)), 
+            mapping = aes(x, y), color = "grey", alpha = .1) +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+
+Excellent. Now we can solve for those extreme values and get our solution:
+
+```{r}
+extremePoints = data.frame(x1 = c(16, 34.32, 80), 
+                               x2 = c(32, 11.42, 0))
+
+x1 = 50
+
+x2 = 20
+
+(x1 * extremePoints$x1) + (x2 * extremePoints$x2)
+```
+
+With our cost minimized to 1440, we should select 16 for x1 and 32 for x2.
+
+Just for giggles, we can through our solution back into our original equations to see what comes up:
+
+```{r}
+solutionX1 = 16
+
+solutionX2 = 32
+
+(2 * solutionX1) - (1 * solutionX2) # Equation 1 => 0
+
+(1 * solutionX1) + (4 * solutionX2) # Equation 2 => 80
+
+(.9 * solutionX1) + (.8 * solutionX2) # Equation 3 => 40
 ```
 
 
@@ -184,11 +286,96 @@ x1, x2 \geq 0
 \end{align}
 $$
 
-## Minimization
-
-
-
-
 # Simplex Method
 
-The Simplex Method is one of those methods that is old, but still still useful. When trying to set an objective function to linear functions, the Simplex Method can be used.
+The graphical method works, but can become unwieldy as we add constraints.
+
+The Simplex Method is one of those methods that is old (1947), but still still useful. When trying to set an objective function to linear functions, the Simplex Method can be used.
+
+There are several steps and rules to solving a problem with the simplex method. The first step is to convert our constraint inequalities to equations for the purpose of finding basic feasible solutions. This conversion will happen with *slack variables* and *surplus variables*. For example, we would take the following inequalities:
+
+$$
+\begin{align}
+P = x1 + x2 \\
+3_{x1} + 2_{x2} \leq 40 \\
+2_{x1} + {x2} \geq 10 \\
+\end{align}
+$$
+
+
+And convert them to equations with slack variable $x3$ and surplus variable $x4$
+
+$$
+\begin{align}
+3_{x1} + 2_{x2} + x3 = 40 \\
+2_{x1} + {x2} - x4 = 10 \\
+\end{align}
+$$
+
+But now we arrive at an interesting issue: we have 2 equations (*m*) and 4 variables (*n*). Whenver $n > m$, we have an infinite number of solutions (sound familiar so far?).
+
+<aside>
+This is what is known as a consistent equation system
+</aside>
+
+With this group of variables and equations, we can apply the *basis theorem*. The basis theorem tell that *for a system of m equations and n variables, where n > m, a solution in which at least n - m of the variables have values of zero at the extreme points*. With 4 variables and 2 equations, we have at least 2 variables that are 0. Substituting 0 in for variables will give us an idea of our *basic solutions*.
+
+If we set *x3* and *x4* to 0, we get the following 2 equations:
+
+$$
+\begin{align}
+3_{x1} + 2_{x2} = 40 \\
+2_{x1} + {x2} = 10 \\
+\end{align}
+$$
+
+In the equations above, we could set $x1 = -20$ and $x2 = 50$ to solve the equations simultaneously. The negative variable does not work for us, so we need to look at other combinations of 0.
+
+We could also set *x1* and *x2* to 0 to get the following:
+
+$$
+\begin{align}
+x3 = 40 \\
+-x4 = 10 \\
+\end{align}
+$$
+
+Also not going to work! What setting *x1* and *x3* to 0:
+
+$$
+\begin{align}
+2_{x2} = 40 \\
+{x2} - x4 = 10 \\
+\end{align}
+$$
+
+What is *x2* and what is *x4*?
+
+Now we can do the same thing with every other combination:
+
+```{r, echo = FALSE}
+data.frame(x1 = c(0, 0, 0, 13.3, 5, -20),
+           x2 = c(0, 20, 10, 0, 0, 50), 
+           x3 = c(40, 0, 20, 0, 25, 0), 
+           x4 = c(-10, 10, 0, 16.6, 0, 0), 
+           objective = c(0, 20, 10, 13.3, 5, 30)) %>% 
+  knitr::kable()
+```
+
+<aside>
+Remember, anything with negative variable values is nonfeasible!
+</aside>
+
+As a proof of concept, let's take those point with feasible values and plot them:
+
+```{r}
+data.frame(x = c(0, 0, 13.3, 5), 
+           y = c(20, 10, 0, 0), 
+           eq = c(2, 3, 4, 5)) %>% 
+  ggplot(., aes(x, y)) + 
+  geom_point() +
+  theme_minimal() +
+  labs(x = "x1", y = "x2")
+```
+
+This is just the set-up to starting with the Simplex Tableau.

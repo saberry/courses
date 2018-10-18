@@ -12,16 +12,137 @@ output: radix::radix_article
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+# Queueing Theory
+
+Exactly what it sounds like: it is mathematical study of lines. On its face, maybe not super exciting; however, we should consider all of the different things that tend to wait in lines.
+
+
+## Notation
+
+Queues have their own notation (Kendall's notation), below are some common ones:
+
+$M/D/k$
+
+$M/M/k$
+
+In all of these, the first two letters refer to the mechanism of action.
+
+The first *M* stands for Markov (or memoryless) and denotes that arrivals occur according to a Poisson.
+
+The second *M* in $M/M/k$ means that the job requirement is exponentially distributed.
+
+*D* is deterministic: all jobs require a fixed amount of time.
+
+*k* is the number of servers/workers/etc.
+
+Both of these are generally assumed to have an infinite buffer.
+
+$M/M/1/K$
+
+Here the *K* is specifying a buffer size.
+
+If a queue is $M/D/k$, we can easily compute some helpful statistics (we don't need any fancy software to help us).
+
+$\lambda$ = arrival rate
+
+$\mu$ = service rate
+
+$\rho = \frac{\lambda}{\mu} $ = utilization
+
+Average number of entities in the system is:
+
+$$ L = \rho + \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average number in queue:
+
+$$ L_Q = \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average system waiting time:
+
+$$ \omega = \frac{1}{\mu}+\frac{\rho}{2\mu(1 - \rho)} $$
+
+Average waiting time in queue:
+
+$$ \omega_Q = \frac{\rho}{2\mu(1 - \rho)} $$
+
+
+### Markov Chains
+
+Much like flipping a log over will yield an assortment of creatures, peeling back the layers of many methods will reveal a Markov Chain. And just like those assorted creates, you don't really know what you are looking at when you see them.
+
+Here is a conceptual example of markov chains! This example is adapted from Richard McElreath's excellent book, *Statistical Rethinking*.
+
+You manage 10 teams, named from 1 to 10. Each team name is proportional to the number of people on the team and each team is on a separate floor in the building.
+
+You need to visit a team everyday, proportional to the number of people on the team (i.e., you would visit team 10 more often than team 1).
+
+At the end of the day, you randomly select whether a proposed move will take you up a floor or down a floor.
+
+After randomly selecting up or down, you grab a number of pens that is equal to the number of the current team (for team 10, you would grab 10 pens).
+
+Next, you would grab a number of pencils corresponding to the proposed move (your randomly selected proposal would take you up a floor, so starting back at the bottom with team 1). So you would have 10 pens and 1 pencil.
+
+If you have more pencils than pens, you will always move to the proposed floor.
+
+If you have more pens than pencils, you set down a number of pens equal to the number of pencils and put them in a drawer.
+
+You reach back into the drawer to randomly select a pen or a pencil.
+
+Your selection decides where you go -- pen is stay and pencil is go!
+
+```{r}
+markovSim = function(daysRun, startDay) {
+  
+  position = rep(0, daysRun)
+  
+  current = startDay
+  
+  for(i in 1:daysRun) {
+    position[i] = current
+    
+    proposal = current + sample(c(-1, 1), size = 1)
+    
+    if(proposal < 1) proposal = 10
+    
+    if(proposal > 10) proposal = 1
+    
+    probabilityMove = proposal / current
+    
+    current = ifelse(runif(1) < probabilityMove, proposal, current)
+    
+    # print(paste(position[i], proposal, probabilityMove, current, sep = " -> "))
+  }
+  
+  return(position)
+}
+
+test1 = markovSim(1000, 5)
+
+test2 = markovSim(1000, 6)
+
+library(ggplot2)
+
+ggplot() + 
+  geom_line(data = as.data.frame(test1), aes(1:length(test1), test1), 
+            color = "#ff5500", size = .75) +
+  theme_minimal()
+```
+
+
+
+
 # Packages 
 
 ```{r, eval = FALSE}
-install.packages(c("tidyverse", "simmer"))
+install.packages(c("tidyverse", "simmer", "simmer.plot"))
 ```
 
 ```{r}
 library(dplyr)
 
 library(simmer)
+
+library(simmer.plot)
 ```
 
 ## The Bank
@@ -117,7 +238,7 @@ customer = trajectory("Customer's path") %>%
   log_("Enter") %>%
   set_attribute("start_time", function() {now(bank)}) %>%
   seize("counter1", continue = FALSE, reject = trajectory("Balked customer") %>%
-  log_("BALKING")) %>% 
+          log_("BALKING")) %>% 
   log_(function() {paste("Waited: ", now(bank) - get_attribute(bank, "start_time"))}) %>%
   timeout(function() {rexp(1, 1/12)}) %>%
   release("counter1") %>% 
@@ -135,3 +256,35 @@ customerInfo2Counters = bank %>%
 
 nBalked = sum(!get_mon_arrivals(bank)$finished)
 ```
+
+### Multiple Runs
+
+```{r}
+library(parallel)
+
+customer = trajectory("Customer's path") %>%
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("counter1", continue = FALSE, reject = trajectory("Balked customer")) %>%
+  timeout(function() {rexp(1, 1/12)}) %>%
+  release("counter1")
+
+mclapply(c(1001, 1002, 1003, 1004), function(the_seed) {
+  set.seed(the_seed)
+
+  bank = simmer("bank") %>%
+    add_resource("counter1", capacity = 1, queue_size = 4) %>%
+    add_generator("Customer", customer, function() {c(0, rexp(49, 1/10), -1)})
+
+  bank %>% run(until = 400)
+  
+result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+  
+paste("Average wait for ", sum(result$finished), " completions was ",
+      mean(result$waiting_time), "minutes.")
+}) %>% 
+  unlist()
+
+```
+

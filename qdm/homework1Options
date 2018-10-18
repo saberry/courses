@@ -1,0 +1,46 @@
+Homework #1 
+
+	Bronze
+
+		Complete questions 1 through 5 in the document. Each question is worth 4 points for a maximum of 20 points
+
+	Silver (up to 6 extra points)
+
+		Implement question 1, part a using the simmer package in R
+
+		Specify the queueing theory for each Bronze problem
+
+	Gold (up to 4 extra points)
+
+		Implement question 1, part b using the simmer package in R
+
+
+Homework #2
+
+Bronze
+
+Silver
+
+Gold
+
+Homework #3
+
+Bronze
+
+Silver
+
+Gold
+
+arrivalRate = 20
+
+serviceRate = 30
+
+p = arrivalRate / serviceRate
+
+l = p + (.5 * ((p^2) / (1 - p)))
+
+lq = .5 * (p^2 / (1 - p))
+
+w = (1 / serviceRate) + (p / ((2 * serviceRate) * (1 - p)))
+
+wq = p / ((2 * serviceRate) * (1 - p))

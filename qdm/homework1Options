@@ -18,6 +18,7 @@ Homework #1
 		
 		After programming example 26 from the SimQuick book, complete the 3 exercise questions
 		
+		Suppose that you have a single queue with a fixed service rate of 30 minutes per piece and a piece arrives every 20 minutes. Find the average number of units in the system, the average number of units in a queue, the average time in the system, and the average time in the queue.
 		
 
 

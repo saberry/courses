@@ -378,4 +378,6 @@ data.frame(x = c(0, 0, 13.3, 5),
   labs(x = "x1", y = "x2")
 ```
 
-This is just the set-up to starting with the Simplex Tableau.
+This is just the set-up to starting with the Simplex Tableau. I hate to disappoint, but we are not going to go any further into it.
+
+Let me assuage your heartbreak -- it is no longer 1950. While some might yearn for the "good-old-days", they probably were not that good and we have computers that can take care of these things for us.

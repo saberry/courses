@@ -1,0 +1,216 @@
+---
+title: |  
+      | Quantitative Decision Modeling
+      | ITAO 40150
+output: pdf_document
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+# Office: 337 Mendoza
+
+# Email: seth.berry@nd.edu
+
+# Office Hours
+
+MWF -- 9:00 to 11:00
+
+These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in to chat with me about anything (class, stats, programming, etc.).
+
+
+# Class Days and Time
+
+Tuesday and Thursday: L068
+
+- **Section 1: 9:30 - 10:45**
+
+- Section 2: 11:00 - 12:15
+
+- Section 3: 2:00 - 3:15
+
+
+
+
+# Course Objectives
+
+By the end of the course, students will be able to:
+
+- Identify business problems that can be solved using advanced quantitative techniques.
+
+  - Our problems come from information systems, operations, accounting, finance, and marketing. Examples include process improvement, portfolio selection, financial planning, logistics systems, revenue management, etc.
+  
+  - The techniques we study are simulation and optimization.
+  
+- Model and solve these problems with a variety of software (Excel, SimQuick, Solver, and R). The more you understand the details of these models, the better you will be able to find applications at your workplace.
+
+- Improve your programming skills. Only a basic familiarity with programming is assumed at the outset.
+
+- Improve your quantitative problem solving skills.
+
+
+# Textbooks
+
+- (Required) SimQuick: Process Simulation with Excel, 3rd edition by Hartvigsen. This textbook can be ordered from Amazon (http://www.amazon.com/SimQuick-Process-Simulation-Excel-3rd/dp/1518857965/). (The SimQuick spreadsheet can be downloaded for free from SimQuick.net.)
+
+- (Optional) Practical Management Science (PMS), 5th edition by Winston and Albright. (There is a cheaper e-book version available at http://www.cengagebrain.com).
+
+# Software
+
+- We will use Microsoft Excel to implement many of the concepts and methods we discuss in class. Access to Microsoft Excel is required.
+- Excel add-ins: Solver and @Risk.
+- Excel spreadsheets: SimQuick and other spreadsheets that are provided in class.
+- R
+
+# Course Activities
+
+## Attendance
+
+Attendance in this course is not required, in that I will not be taking attendance; attendance is certainly recommended (and even encouraged).  While the lecture presentations will be available, they are not verbatim recitations of what was covered and you may not rely on them to make it through everything in the course (especially when we start programming).  Learning takes effort and attending class is but one small part of that effort.  
+
+Although attendance is not required, we will have a weekly short comprehension check question. Each question is worth 5 points and is essentially a participation credit. These are meant to be done in class -- if you are not in class when they are given, you cannot submit them.   
+
+## Readings
+
+There is no *official* textbook for this course, but having a copy of SimQuick will make life pretty easy.  We (read: you) are absolutely not committed to the readings; however, they will give you some very helpful background and I encourage you to read them; in other words, they are suggested readings, not required readings. 
+
+## Class Exercises
+
+After learning a topic, students will work individually in class to solve one or two questions related to the new topic. Although these exercises will not be graded, you will get much more out of them then listening to me talk about how to do these things.
+
+## Homework
+
+There will be three assignments which will be graded. These assignments and suggested due dates will be announced during the class. Each person should turn in their own assignment, but you are absolutely free to collaborate with people in class. Collaboration does not meaning copying -- it means that you have worked together to solve the problem and both people have their own unique answers to the problem. It is advised to start the assignments early and bring questions to the office hours.
+
+A significant portion of your grade will come from the homework skills map. The skills roadmap has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
+
+Please feel free to work together on the bronze level of homework (i.e., not the optional sections), but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's. 
+
+### Skills Map
+
+The skills map is intended to let you get practice in areas that most interest you personally (maybe you want to get a little more work in with R). If you really want to dig into the theoretical aspects of the topic, you can! Maybe you want to get a feel for how this might work with "dirty" data. Think of the added levels of the homework as sidequests.
+
+
+## Exam
+
+There will be a midterm exam and a final exam. The final exam will be cumulative. You **cannot** work together on exams.
+
+
+# Grading
+
+Comprehension Checks -- 30 points (11%)
+
+Homework -- 90 points (31%)
+
+Midterm Exam -- 70 points (17%)
+
+Final Exam -- 100 points (41%)
+
+Total -- 290 points
+
+A = 270+ points
+
+A- = 261-269 points
+
+B+ = 252-260 points
+
+B = 240-251 points
+
+B- = 232-239 points
+
+C+ = 223-238 points
+
+# R
+
+There are many statistical programs available and you have likely had some exposure to many of them.  In this course, we will be using R exclusively.  R is a free and open-source statistical computing language and it is *lingua franca* for modern statistics.  We are going to dedicate some time to learning R and working through examples together; our arrangment will be very similar to the science labs that we all remember from our undergrad days.  If you have never done any object-oriented programming, it will take a little work -- I am only ever an email or visit away.  
+
+
+# Grade Breakdown
+
+Comprehension Checks -- 30 points (11%)
+
+Homework -- 90 points (31%)
+
+Test -- 120 points (41%)
+
+Presentation -- 50 points (17%)
+
+Total -- 290 points
+
+A = 276+ points
+
+A- = 261-275 points
+
+B+ = 252-260 points
+
+B = 244-251 points
+
+B- = 232-250 points
+
+C+ = 223-249 points
+
+\newpage
+
+# Schedule
+
+```{r}
+library(dplyr)
+data.frame(Week = c(1, "", 2, "", 3, "",
+                    4, "", 5, "", 6, "", 
+                    7, "", 8),
+           Date = c("10/23 (T)", 
+                    "10/25 (TR)", 
+                    "10/30 (T)", 
+                    "11/01 (TR)", 
+                    "11/06 (T)", 
+                    "11/08 (TR)", 
+                    "11/13 (T)", 
+                    "11/15 (TR)", 
+                    "11/20 (T)", 
+                    "11/22 (TR)", 
+                    "11/27 (T)",
+                    "11/29 (TR)",
+                    "12/04 (T)",
+                    "12/06 (TR)", 
+                    "12/12-14 (T)"), 
+           Topic = c("Intro and software overview", 
+                     "Process Simulation 1", 
+                     "Process Simulation 2", 
+                     "Process Simulation 3", 
+                     "Process Simulation Review", 
+                     "Linear Programming 1 & 2", 
+                     "Midterm Review", 
+                     "Midterm Exam", 
+                     "Network Models", 
+                     "Thanksgiving", 
+                     "Integer, Nonlinear Programming", 
+                     "Simulation", 
+                     "Wrap-up",
+                     "Final Review", 
+                     "Final*"), 
+
+           Assignments = c("", 
+                        "", 
+                        "HW1 Given", 
+                        "",
+                        "HW1 Due; HW2 Given",
+                        "",
+                        "HW2 Due",
+                        "",
+                        "",
+                        "",
+                        "HW3 Given",
+                        "",
+                        "HW3 Due",
+                        "",
+                        "")) %>% 
+  knitr::kable()
+```
+
+- Section 1: 12/14, 10:30 - 12:30
+
+- Section 2: 12/13, 10:30 - 12:30
+
+- Section 3: 12/12, 10:30 - 12:30

@@ -1,0 +1,390 @@
+---
+title: "Process Simulation"
+description: |
+  Introduction
+output: radix::radix_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Main Idea
+
+Suppose you have a real world process whose efficiency you want to improve.
+
+If there is *uncertainty* in this process (e.g., in the demand for a product, in the supply of some parts, in the time it takes to perform some of the work, in the quality of the work, etc.), then it is often difficult to predict the effects of making various changes to the process.
+
+With process simulation, we create a model and then *test the effects of changes* made to the model. If your model provides an adequate reflection of reality, then our simulation can help to *make decisions about changes to implement*.
+
+Process simulation can be used across many different domains: queueing systems, logistics, call centers, networks, manufacturing, health care, production, and inventory, just to name a few.
+
+# Queueing Theory
+
+Exactly what it sounds like: it is mathematical study of lines. On its face, maybe not super exciting; however, we should consider all of the different things that tend to wait in lines.
+
+
+## Notation
+
+Queues have their own notation (Kendall's notation), below are some common ones:
+
+$M/D/k$
+
+$M/M/k$
+
+In all of these, the first two letters refer to the mechanism of action.
+
+The first *M* stands for Markov (or memoryless) and denotes that arrivals occur according to a Poisson.
+
+The second *M* in $M/M/k$ means that the job requirement is exponentially distributed.
+
+*D* is deterministic: all jobs require a fixed amount of time.
+
+*k* is the number of servers/workers/etc.
+
+Both of these are generally assumed to have an infinite buffer.
+
+<aside>
+
+You might be wondering what a buffer is. Think about it as either a line or a holding tank.
+
+</aside>
+
+$M/M/1/K$
+
+Here the *K* is specifying a buffer size.
+
+If a queue is $M/D/k$, we can easily compute some helpful statistics (we don't need any fancy software to help us).
+
+$\lambda$ = arrival rate
+
+$\mu$ = service rate
+
+$\rho = \frac{\lambda}{\mu} $ = utilization
+
+Average number of entities in the system is:
+
+$$ L = \rho + \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average number in queue:
+
+$$ L_Q = \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average system waiting time:
+
+$$ \omega = \frac{1}{\mu}+\frac{\rho}{2\mu(1 - \rho)} $$
+
+Average waiting time in queue:
+
+$$ \omega_Q = \frac{\rho}{2\mu(1 - \rho)} $$
+
+
+### Markov Chains
+
+Much like flipping a log over will yield an assortment of creatures, peeling back the layers of many methods will reveal a Markov Chain. And just like those assorted critters, you don't really know what you are looking at when you see them.
+
+Here is a conceptual example of markov chains. This example is adapted from Richard McElreath's excellent book, *Statistical Rethinking*.
+
+You manage 10 teams, named from 1 to 10. Each team name is proportional to the number of people on the team and each team is on a separate floor in the building.
+
+You need to visit a team everyday, proportional to the number of people on the team (i.e., you would visit team 10 more often than team 1).
+
+At the end of the day, you randomly select whether a proposed move will take you up a floor or down a floor.
+
+After randomly selecting up or down, you grab a number of pens that is equal to the number of the current team (for team 10, you would grab 10 pens).
+
+Next, you would grab a number of pencils corresponding to the proposed move (your randomly selected proposal would take you up a floor, so starting back at the bottom with team 1). So you would have 10 pens and 1 pencil.
+
+If you have more pencils than pens, you will always move to the proposed floor.
+
+If you have more pens than pencils, you set down a number of pens equal to the number of pencils and put them in a drawer.
+
+You reach back into the drawer to randomly select a pen or a pencil.
+
+Your selection decides where you go -- pen is stay and pencil is go!
+
+```{r}
+markovSim = function(daysRun, startDay) {
+  
+  position = rep(0, daysRun)
+  
+  current = startDay
+  
+  for(i in 1:daysRun) {
+    position[i] = current
+    
+    proposal = current + sample(c(-1, 1), size = 1)
+    
+    if(proposal < 1) proposal = 10
+    
+    if(proposal > 10) proposal = 1
+    
+    probabilityMove = proposal / current
+    
+    current = ifelse(runif(1) < probabilityMove, proposal, current)
+    
+    # print(paste(position[i], proposal, probabilityMove, current, sep = " -> "))
+  }
+  
+  return(position)
+}
+
+test1 = markovSim(1000, 5)
+
+test2 = markovSim(1000, 6)
+
+library(ggplot2)
+
+ggplot() + 
+  geom_line(data = as.data.frame(test1), aes(1:length(test1), test1), 
+            color = "#ff5500", size = .75) +
+  theme_minimal()
+```
+
+Our markov chains work in a similar way, but can also be conceptualized as a *birth-death process*. 
+
+# Basic Steps
+
+1.  Draw a *process flow map*.
+
+2.  Obtain data.
+
+3.  Input the model and the data.
+
+4.  Validate the model.
+
+5.  Experiment with the simulation.
+
+6.  Analyze the results.
+
+7.  Profit!
+
+# Distributions
+
+Our input data generally takes the form of a distribution with some known properties.
+
+## Normal Distribution
+
+For our normal distribution, we know the $\mu$ and $\sigma$.
+
+```{r, echo = FALSE}
+library(dplyr)
+
+library(ggplot2)
+
+data.frame(x = rnorm(10000, mean = 2.5, sd = .5)) %>% 
+  ggplot(., aes(x = x, y = ..density..)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  geom_density(color = "#ff5500", size = 1.25) +
+  theme_minimal() +
+  labs(x = "Call Center Wait Times", y = "Frequency")
+```
+
+
+## Exponential Distribution
+
+We can only know one thing about the exponential distribution: $\mu$
+
+```{r, echo = FALSE}
+data.frame(x = rexp(10000, rate = 2.5)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Call Center Wait Times", y = "Frequency")
+```
+
+## Poisson Distribution
+
+The poisson is an interesting distribution -- it tends to deal with count-related variables. It tells us the probability of a count occuring.  We know its $\lambda$.
+
+<aside>
+
+$\lambda$ is just a fancy way of saying the average number of events, or the incidence rate.
+
+</aside>
+
+```{r, echo = FALSE}
+data.frame(x = rpois(10000, lambda = 4)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Customers In Line", y = "Frequency")
+```
+
+## Uniform Distribution
+
+While people tend to think about the Gaussian distribution as the most vanilla of all distributions, it really is not -- I would say that distinction belongs to the uniform distribution. We don't even get any fancy Greek letters, just a minimum and a maximum. Why
+
+```{r, echo = FALSE}
+data.frame(x = runif(10000, min = 1, max = 10)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Customers In Line", y = "Frequency")
+```
+
+# Using SimQuick
+
+## Process Flow Map
+
+How does the flow for a bank typically look:
+
+1.  A customer enters the bank through the door.
+
+2.  The customer will either go directly to a teller or wait in line for the teller.
+
+3.  Teller will serve the customer.
+
+4.  The customer has been served and will exit the bank.
+
+```{r}
+library(DiagrammeR)
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller']
+  D [label = 'Served Customer']
+
+  A->B B->C C->D
+}
+")
+```
+
+
+SimQuick has five elements to model a process: Entrance, Exit, Work Station, Buffer, Decision Point. We need to map those elements onto our bank example:
+
+```{r}
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Entrance']
+  B [label = 'Buffer']
+  C [label = 'Work Station']
+  D [label = 'Buffer']
+
+  A->B B->C C->D
+}
+")
+
+```
+
+
+<aside>
+Why does this end with a buffer and not an exit?
+</aside>
+## Data
+
+We need to know a few things: how long does it take to serve a customer, how much time between customer arrivals (the interarrival time), and the capacity of the line.
+
+<aside>
+If the line is full, new customers will *balk*. 
+</aside>
+
+## Performance
+
+The *service level* for each simulation is the fraction of the demand that is satisfied.
+
+$$ Entrance  \: Service \: Level = \frac{Objects \: Entering}{Objects \: Entering + Objects \: Unable \: To \: Enter}$$
+
+The *overall mean service level* of the process is the mean of the service levels calculated from each simulation.
+
+The *mean cycle time* at a buffer is the mean amount of time an object takes to move through the buffer during a simulation.
+
+The *overall mean cycle time* at a buffer is the mean of the mean cycle time of the buffer for each simulation.
+
+# An Example For SimQuick
+
+The interarrival times for a customer follows an exponential distribution with $\mu = 2 \, minutes$.
+
+The line in the bank holds 8 people. If a person arrives when the line is full, that person will not get in line.
+
+The teller's service time can be approximated by a normal distribution with $\mu = 2.4 \, minutes$ and $\sigma = .5 \, minutes$.
+
+### System Improvements
+
+#### Automated Teller
+
+If we add an automated teller, there is evidence that *service time per customer* would decrease to $\mu = 2 \, minutes$
+
+#### Additional Teller
+
+Adding the automated teller only slightly changed our system, but adding another teller (i.e., work station) will require us to create a new process flow:
+
+```{r}
+
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller 1']
+  D [label = 'Teller 2']
+  E [label = 'Served']
+  
+  A->B 
+  B->C
+  B->D
+  C->E
+  D->E
+}
+")
+
+```
+
+# Airport Security
+
+- Between 8am and 10am one passenger arrives every half minute on average (exponential) at the security area.
+
+- Arriving passengers enter a large line.
+
+- Passengers go through one of two inspection areas. The inspection area can be approximated by a normal distribution with $\mu = 1 \, minute$ and $\sigma = .1 \, minute$.
+
+- After the initial inspection, 10% of passengers are randomly selected for additional screening. There are two stations, with working times approximated by a normal distribution with $\mu = 5 \, minutes$ and $\sigma = 1 \, minute$.
+
+We need to add a *decision point* to our model.
+
+```{r}
+
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Arrival']
+  B [label = 'Line 1']
+  C [label = 'Insp 1']
+  D [label = 'Insp 2']
+  E [label = 'DP']
+  F [label = 'Line 2']
+  G [label = 'Done']
+  H [label = 'Add Insp 1']
+  I [label = 'Add Insp 1']
+
+  
+  A->B
+  B->C
+  B->D
+  C->E
+  D->E
+  E->F
+  E->G
+  F->H
+  F->I
+  H->G
+  I->G
+}")
+```
+

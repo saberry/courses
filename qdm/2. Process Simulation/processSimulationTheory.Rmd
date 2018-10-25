@@ -388,3 +388,60 @@ digraph boxes_and_circles {
 }")
 ```
 
+# Inventory
+
+We can extend our conceptual notion of a queue to items in storage (think about a product, stored on a shelf, just waiting to be used). Inventory decisions are generally guided by 3 factors:
+
+- Transaction motive: Economies of scale is achieved when the number of set-ups are reduced or the number of transactions are minimized.
+
+- Precautionary motive: hedge against uncertainty, including demand uncertainty, supply uncertainty
+
+- Speculative motive: hedge against price increases in materials orlabor
+
+## Bread Delivery
+
+Let's look at an example of an *order-up-to* policy:
+
+<aside>
+An order-up-to policy is just one of many different inventory management strategies (just-in-time is another common one).
+</aside>
+
+- A delivery truck drops off bread every other day.
+
+- Each type of bread has designated shelf space and space in the "back" (say, 70 loaves).
+
+- The driver leaves enough to completely fill the stock.
+
+- People buy a loaf of our target bread at a rate of every .3 hours on average (according to an exponential distribution).
+
+- This demand should hold for 30 days.
+
+- The store is open 12 hours per day, 7 days per week
+
+We have some considerations to make:
+
+1.  We need to be able to serve the people who want a specific type of bread (our service level). 
+
+2.  We don't want too much space tied up with bread that we don't need.
+
+3.  We want to achieve a 99% service level.
+
+In terms of our process diagram, we have the following:
+
+
+```{r}
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Entrance\\nLoadingDock']
+  B [label = 'Buffer\\nStorage']
+  C [label = 'Exit\\nPurchase Request']
+
+  A->B B->C
+}
+")
+```
+

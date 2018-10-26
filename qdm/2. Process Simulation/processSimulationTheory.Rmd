@@ -60,7 +60,7 @@ $\lambda$ = arrival rate
 
 $\mu$ = service rate
 
-$\rho = \frac{\lambda}{\mu} $ = utilization
+$\rho = \frac{\lambda}{\mu}$ = utilization
 
 Average number of entities in the system is:
 
@@ -443,5 +443,257 @@ digraph {
   A->B B->C
 }
 ")
+```
+
+# Foray Into R
+
+SimQuick has given us an excellent bearing on how to perform a process simulation in R. While the mechanisms change, the concepts still apply.
+
+We can start to replicate the vanilla bank example. The first thing we will do is to create our process flow map with `DiagrammeR`:
+
+```{r, eval = FALSE, echo = TRUE}
+install.packages("DiagrammeR")
+```
+
+It might look weird at first, but it becomes pretty "plug-and-play" once we see what is happening:
+
+```{r, echo = TRUE}
+library(DiagrammeR)
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller']
+  D [label = 'Served Customer']
+
+  A->B B->C C->D
+}
+")
+```
+
+We will need the `simmer` package for our simulation:
+
+```{r, eval = FALSE}
+install.packages("simmer")
+```
+
+Once we have `simmer` installed, we need to load it:
+
+```{r, echo = TRUE}
+library(simmer)
+```
+
+Let's start by defining a customer's trajectory. First, we will provide a name for `trajectory()`. 
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path")
+```
+
+Next, we need to initiate a start time with `set_attribute()` -- we will use `now()` to specify our not-yet-created bank object.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)})
+```
+
+After establishing our time, the next step for a customer is to `seize()` the "teller" (which we will define later).
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller")
+```
+
+Now things start to get tricky. We need to use `timeout()` to specify how long a customer is using the teller -- this is the teller's average working time. 
+
+<aside>
+This represents a marked shift from how SimQuick models are specified!
+</aside>
+
+We can specify how long a teller is seized (i.e., how long the teller is working) in very much the same way we would in SimQuick -- we provide a distribution with the appropriate values.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)})
+```
+
+After a customer spends time with the teller, the customer releases the counter.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+```
+
+This is all we need to do for a customer, so now we can turn our attention to the bank.
+
+Our bank is going to provide the environment that houses our trajectory. So, we can start by creating an environment with `simmer()`:
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank")
+```
+
+Once we have our simulation environment defined, we can add resources to it with the aptly-named `add_resources()` function. This is where we will specify what is being seized by our customer. We need to provide some additional information to our resource: `capacity` and `queue_size`. 
+
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8)
+```
+
+To this point, we have our customer behavior (how they move through our process) and information about our work stations. The last detail is the inter-arrival time, which we can specify with `add_generator()`. It works in very much the same way that `timeout()`, in that we are specifying a distribution. The `rexp` function in R does not take a mean like it does in SimQuick; instead, it takes a rate. If we remember that, on average, one person comes into the bank every two minutes, we can define our rate as $\frac{1}{2}$.
+
+<aside>
+Try this: mean(rexp(n = 10000, rate = 1/2))
+</aside>
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {
+    c(0, rexp(n = 100, rate = 1/2), -1)
+  })
+```
+
+Now we can run our simulation; we just need to provide a time value for the `until` argument.
+
+```{r, echo = TRUE, eval = FALSE}
+run(bank, until = 120)
+```
+
+If we put it together, here is what we have:
+
+```{r, echo = TRUE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+
+run(bank, until = 120)
+```
+
+Finally, we can start to look at our data:
+
+```{r}
+result = get_mon_arrivals(bank, )
+```
+
+
+But...that is just one simulation. SimQuick provides an easy way to increase the run count, but R needs something a little different.
+
+We have a few choices. One choice is that we just replicate our procedure a certain number of times:
+
+```{r, eval = FALSE, echo = TRUE}
+sim50Runs = replicate(50, expr = {
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", capacity = 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  run(bank, until = 120)
+  
+  result = get_mon_arrivals(bank)
+}, simplify = FALSE)
+```
+
+We can also get a bit fancier and really use our machine:
+
+```{r, eval = FALSE, echo = TRUE}
+library(parallel)
+
+cl = makeCluster(detectCores() - 1)
+
+clusterEvalQ(cl, library(simmer))
+
+allResults = parLapply(cl, seq(1:50), function(the_seed) {
+  set.seed(the_seed)
+  
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  bank %>% 
+    run(until = 120)
+  
+  result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+  
+  return(result)
+  
+})
+
+stopCluster(cl)
+
+```
+
+## Adding Teller 2
+
+Adding another teller to our simulation is very difficult:
+
+```{r}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+
+bank = simmer("bank") %>% 
+  add_resource("teller", 2, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+
+bank %>% 
+  run(until = 120)
+
+result = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+```
+
+
+## Other Elements
+
+We won't go over them today, but we can use `branch()` within a trajectory in the same way that we use Decision Points in SimQuick.
+
+### Things You Learn
+
+In your downtime, check this site out: <a href="https://www.bupar.net/index.html">Business Process Analysis in R</a>
+
+```{r}
+library(bupaR)
+
+patients %>%
+    process_map()
+
+patients %>%
+    process_map(type = frequency("relative"))
+
+patients %>%
+    process_map(performance(mean, "hours"))
+  
 ```
 

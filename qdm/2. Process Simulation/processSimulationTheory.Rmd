@@ -679,6 +679,8 @@ result = bank %>%
 
 We won't go over them today, but we can use `branch()` within a trajectory in the same way that we use Decision Points in SimQuick.
 
+Just like we used Scenario Variables in SimQuick, we could create an omnibus function and insert arguments as needed.
+
 ### Things You Learn
 
 In your downtime, check this site out: <a href="https://www.bupar.net/index.html">Business Process Analysis in R</a>

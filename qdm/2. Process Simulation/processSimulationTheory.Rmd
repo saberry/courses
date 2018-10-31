@@ -2,7 +2,10 @@
 title: "Process Simulation"
 description: |
   Introduction
-output: radix::radix_article
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -26,17 +29,31 @@ Exactly what it sounds like: it is mathematical study of lines. On its face, may
 
 ## Notation
 
-Queues have their own notation (Kendall's notation), below are some common ones:
+Queues have their own notation (Kendall's notation). 
+
+$A/B/C/D$
+
+Where:
+
+$A = arrival\, process$
+
+$B = service\, process$
+
+$C = server\, number$
+
+$D = que\, capacity$
+
+Below are some common ones:
 
 $M/D/k$
 
 $M/M/k$
 
-In all of these, the first two letters refer to the mechanism of action.
+*M* generally stands for Markov or Exponential
 
-The first *M* stands for Markov (or memoryless) and denotes that arrivals occur according to a Poisson.
-
-The second *M* in $M/M/k$ means that the job requirement is exponentially distributed.
+<aside>
+You might also see *M* described as being from a Poisson process
+</aside>
 
 *D* is deterministic: all jobs require a fixed amount of time.
 
@@ -53,6 +70,10 @@ You might be wondering what a buffer is. Think about it as either a line or a ho
 $M/M/1/K$
 
 Here the *K* is specifying a buffer size.
+
+<aside>
+There are more letters (e.g., E, G) and spaces in Kendall notation, but we won't worry about them here.
+</aside>
 
 If a queue is $M/D/k$, we can easily compute some helpful statistics (we don't need any fancy software to help us).
 
@@ -79,7 +100,7 @@ Average waiting time in queue:
 $$ \omega_Q = \frac{\rho}{2\mu(1 - \rho)} $$
 
 
-### Markov Chains
+### Markov Chains (an aside)
 
 Much like flipping a log over will yield an assortment of creatures, peeling back the layers of many methods will reveal a Markov Chain. And just like those assorted critters, you don't really know what you are looking at when you see them.
 
@@ -102,6 +123,8 @@ If you have more pens than pencils, you set down a number of pens equal to the n
 You reach back into the drawer to randomly select a pen or a pencil.
 
 Your selection decides where you go -- pen is stay and pencil is go!
+
+Over 1000 moves, here is what our chain would look like:
 
 ```{r}
 markovSim = function(daysRun, startDay) {
@@ -213,7 +236,7 @@ data.frame(x = rpois(10000, lambda = 4)) %>%
 
 ## Uniform Distribution
 
-While people tend to think about the Gaussian distribution as the most vanilla of all distributions, it really is not -- I would say that distinction belongs to the uniform distribution. We don't even get any fancy Greek letters, just a minimum and a maximum. Why
+While people tend to think about the Gaussian distribution as the most vanilla of all distributions, it really is not -- I would say that distinction belongs to the uniform distribution. We don't even get any fancy Greek letters, just a minimum and a maximum. Why? Because knowing the min and max will tell us that there is an equal probability of drawing a value anywhere within that range.
 
 ```{r, echo = FALSE}
 data.frame(x = runif(10000, min = 1, max = 10)) %>% 
@@ -302,6 +325,8 @@ The *overall mean cycle time* at a buffer is the mean of the mean cycle time of 
 
 # An Example For SimQuick
 
+## The Bank
+
 The interarrival times for a customer follows an exponential distribution with $\mu = 2 \, minutes$.
 
 The line in the bank holds 8 people. If a person arrives when the line is full, that person will not get in line.
@@ -343,7 +368,7 @@ digraph {
 
 ```
 
-# Airport Security
+## Airport Security
 
 - Between 8am and 10am one passenger arrives every half minute on average (exponential) at the security area.
 
@@ -371,7 +396,7 @@ digraph boxes_and_circles {
   F [label = 'Line 2']
   G [label = 'Done']
   H [label = 'Add Insp 1']
-  I [label = 'Add Insp 1']
+  I [label = 'Add Insp 2']
 
   
   A->B
@@ -392,11 +417,11 @@ digraph boxes_and_circles {
 
 We can extend our conceptual notion of a queue to items in storage (think about a product, stored on a shelf, just waiting to be used). Inventory decisions are generally guided by 3 factors:
 
-- Transaction motive: Economies of scale is achieved when the number of set-ups are reduced or the number of transactions are minimized.
+- Transaction motive: Economy of scale is achieved when the number of set-ups are reduced or the number of transactions are minimized.
 
 - Precautionary motive: hedge against uncertainty, including demand uncertainty, supply uncertainty
 
-- Speculative motive: hedge against price increases in materials orlabor
+- Speculative motive: hedge against price increases in materials or labor
 
 ## Bread Delivery
 
@@ -474,6 +499,8 @@ digraph {
 }
 ")
 ```
+
+## The Bank
 
 We will need the `simmer` package for our simulation:
 
@@ -587,8 +614,10 @@ run(bank, until = 120)
 
 Finally, we can start to look at our data:
 
-```{r}
-result = get_mon_arrivals(bank, )
+```{r, echo = TRUE}
+result = get_mon_arrivals(bank)
+
+head(result)
 ```
 
 
@@ -655,7 +684,7 @@ stopCluster(cl)
 
 Adding another teller to our simulation is very difficult:
 
-```{r}
+```{r, echo = TRUE, eval = FALSE}
 customer = trajectory("Customer path") %>% 
   set_attribute("start_time", function() {now(bank)}) %>%
   seize("teller") %>% 
@@ -697,5 +726,130 @@ patients %>%
 patients %>%
     process_map(performance(mean, "hours"))
   
+```
+
+
+# Manufacturing
+
+In manufacturing, one of the more important metrics we deal with is *throughput* (the total number of units produced). 
+
+We are also interested in the *work-in-process* (WIP) inventory. 
+
+Variability, while not something we can always measure/predict, can come from a few sources.
+
+- Machine/worker processing times
+
+- Output quality
+
+- Demand
+
+- Supply
+
+Controlling variability can help to increase throughput.
+
+## An Example
+
+- In a factory, we have five work stations arranged in a line (WS1 through WS5).
+
+- Each work station is a machine with one operator.
+
+  - WS1 (bandsaw): $\mu = 10;\sigma = 1$ (normal)
+  
+  - WS2 (contouring): $\mu = 5;\sigma = 2$ (normal)
+  
+  - WS3 (rough sanding): $min = 5;max = 15$ (uniform)
+  
+  - WS4 (finish sanding): $min = 10;max = 15$ (uniform)
+  
+  - WS5 (finish): $\mu = 10;\sigma = 2.5$ (normal)
+
+- The work stations process one product that must move sequentially.
+
+- Each work station has its own processing time.
+
+- Product cannot be *stacked*
+
+  - If WS3 has finished a unit, it cannot be passed onto WS4 if WS4 is still working on a product.
+  
+- We are looking at an 8 hour shift.
+
+### Improvements
+
+What can we do to improve our throughput?
+
+# Working With Simmer Data
+
+
+```{r, eval = TRUE, echo = TRUE, results = "hide"}
+library(parallel)
+
+cl = makeCluster(detectCores() - 1)
+
+clusterEvalQ(cl, library(simmer))
+
+allResults = parLapply(cl, seq(1:50), function(the_seed) {
+  set.seed(the_seed)
+  
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  bank %>% 
+    run(until = 120)
+  
+  result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time, 
+                  runCount = the_seed)
+  
+  return(result)
+  
+})
+
+stopCluster(cl)
+
+```
+
+
+After running 50 simulations, we now have a list of 50 data frames:
+
+```{r, layout="l-body-outset", echo = TRUE}
+rmarkdown::paged_table(allResults[[1]])
+```
+
+We might want to put all 50 of our data frames into one big data frame:
+
+```{r, echo = TRUE}
+# install.packages("data.table")
+
+allResults = data.table::rbindlist(allResults)
+```
+
+With our data in one table, we can compute some basic stats:
+
+```{r, echo = TRUE}
+library(dplyr)
+
+runStats = allResults %>% 
+  group_by(runCount) %>% 
+  mutate(finishNumber = ifelse(finished == TRUE, 1, 0)) %>% 
+  summarize(meanActivity = mean(activity_time), 
+            meanWait = mean(waiting_time), 
+            finishedCount = sum(finishNumber), 
+            totalTried = n(), 
+            serviceRate = finishedCount / totalTried)
+```
+
+
+From there, we can use functions like `mean()` to get the overall means:
+
+```{r, echo = TRUE}
+mean(runStats$meanWait)
 ```
 

@@ -806,7 +806,8 @@ allResults = parLapply(cl, seq(1:50), function(the_seed) {
   result = bank %>%
     get_mon_arrivals %>%
     dplyr::mutate(waiting_time = end_time - start_time - activity_time, 
-                  runCount = the_seed)
+                  runCount = the_seed, 
+                  arrival = 1:nrow(.))
   
   return(result)
   
@@ -839,8 +840,8 @@ library(dplyr)
 runStats = allResults %>% 
   group_by(runCount) %>% 
   mutate(finishNumber = ifelse(finished == TRUE, 1, 0)) %>% 
-  summarize(meanActivity = mean(activity_time), 
-            meanWait = mean(waiting_time), 
+  summarize(meanActivity = mean(activity_time[which(finished == TRUE)]), 
+            meanWait = mean(waiting_time[which(finished == TRUE)]), 
             finishedCount = sum(finishNumber), 
             totalTried = n(), 
             serviceRate = finishedCount / totalTried)
@@ -851,5 +852,29 @@ From there, we can use functions like `mean()` to get the overall means:
 
 ```{r, echo = TRUE}
 mean(runStats$meanWait)
+```
+
+We can also visualize our results:
+
+```{r, echo = TRUE}
+# install.packages("ggplot2")
+
+library(ggplot2)
+
+allResults %>% 
+  filter(runCount < 10) %>% 
+  ggplot(., aes(arrival, start_time)) +
+  geom_point() +
+  facet_wrap( ~ runCount) +
+  theme_minimal()
+```
+
+```{r, echo = TRUE}
+allResults %>% 
+  filter(runCount < 10) %>% 
+  ggplot(., aes(waiting_time)) +
+  geom_histogram(bins = 10) +
+  facet_wrap( ~ runCount) +
+  theme_minimal()
 ```
 

@@ -1,0 +1,570 @@
+---
+title: "Assorted Operations Models"
+description: | 
+  Network Models, Integer Programming & Nonlinear
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Network Models
+
+## Purpose
+
+We have already learned about how linear programming can help us to find our objective function. We also talked a little bit about how broadly useful it is to the sciences. One reason that it is so useful is that it can be extended to so many different domains.
+
+```{r, echo = FALSE}
+examples = data.frame(Vocab = c("Product", "Nodes", "Arcs/Edges"), 
+           Transportation = c("Buses, cars, etc.", "Bus stops, Intersections", "Streets"), 
+           Communication = c("Messages", "Relay stations", "Communication channels"), 
+           Water = c("Water", "Lakes, reservoirs", "pipelines, rivers"))
+
+knitr::kable(examples)
+```
+
+Let's consider the following figure:
+
+```{r, echo = FALSE}
+library(DiagrammeR)
+library(magrittr)
+
+# ndf = create_node_df(n = 6,
+#     shape = c("circle", "circle", "circle", "circle"),
+#     label = c("LA", "Omaha", "Topeka", "Indianapolis", "Chicago", "Boston"))
+# 
+# edf = create_edge_df(from = c(1, 1, 2, 2, 2, 3, 4, 4, 5, 5), 
+#                      to = c(2, 3, 3, 4, 5, 5, 3, 6, 3, 6))
+# 
+# create_graph(nodes_df = ndf, edges_df = edf) %>% 
+#   render_graph()
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = BT]
+  
+  node [shape = circle, style = filled, color = black, fillcolor = aliceblue]
+  LA
+  Omaha
+  Topeka
+  Chicago
+  Indianapolis
+  Boston
+  
+  LA->Omaha LA->Topeka Omaha->Topeka Omaha->Chicago Omaha->Indianapolis;
+  Topeka->Indianapolis Chicago->Topeka Indianapolis->Chicago;
+  Chicago->Boston Indianapolis->Boston;
+}
+")
+```
+
+
+Each path through our network has an associate cost:
+
+```{r, echo = FALSE}
+data.frame(from = c("LA", "LA", "Omaha", "Omaha", "Omaha", 
+                    "Topeka", "Chicago", "Chicago", "Indianapolis", "Indianapolis"), 
+           to = c("Omaha", "Topeka", "Chicago", "Indianapolis", "Topeka", 
+                  "Indianapolis", "Topeka", "Boston", "Chicago", "Boston"), 
+           cost = c(1, 7, 2, 7, 5, 3, 1, 8, 3, 2)) %>% 
+  knitr::kable()
+```
+
+
+Using linear programming to solve such network problems is called *network flow programming* and any such problem can be conveyed as a *minimum-cost flow program*. For the vast majority of our network problems, we are going to be minimizing our objective function. In our network flow, we have two main flows: *inflows* and *outflows*.  These two flows are used to produce a sparse matrix of *node-arc incidences*. In a more straightforward approach, these inflows and outflows are used to satisfy the equation of $\Sigma x_j - \Sigma x_j = 0$: this is called *flow conservation*. We can also define a *source* node by changing that equation to $\Sigma x_j - \Sigma x_j = e$; alternatively, we can define a *sink* node with $\Sigma x_j - \Sigma x_j = -e$
+
+### A Classic Problem
+
+The *transportation problem* is a classic problem for such network flow problems and we can easily see how we can convert it to a linear programming problem:
+
+```{r, echo = FALSE}
+ndf = create_node_df(n = 7,
+    shape = c("circle", "circle", "circle", "circle"),
+    label = c("S1", "S2", "S3", "D1", "D2", "D3", "D4"), 
+    type = c("source", "source", "source", "destination", "destination", 
+             "destination", "destination"))
+
+edf = create_edge_df(from = c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3),
+                     to = c(4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7), 
+                     rel = c("35", "30", "40", "32", "37", "40", 
+                             "42", "25", "40", "15", "20", "28"))
+
+create_graph(nodes_df = ndf, edges_df = edf) %>%
+  visnetwork()
+
+```
+
+
+
+$$
+\begin{align}
+M = 35_{x_{11}} + 30_{x_{12}} + 40_{x_{13}} + 32_{x_{14}} + 37_{x_{21}} + 40_{x_{22}} + \\
+42_{x_{23}} + 25_{x_{24}} + 40_{x_{31}} + 15_{x_{32}} + 20_{x_{33}} + 28_{x_{34}} \\
+subject \, to \\
+X_{11} + X_{12} + X_{13} + X_{14} \leq 1200 \\
+X_{21} + X_{22} + X_{23} + X_{24} \leq 1000 \\
+X_{31} + X_{32} + X_{33} + X_{34} \leq 800 \\
+X_{11} + X_{21} + X_{31} \geq 1100 \\
+X_{12} + X_{22} + X_{23} \geq 400 \\
+X_{13} + X_{23} + X_{33} \geq 750 \\
+X_{14} + X_{24} + X_{34} \geq 750 \\
+X_{ij} \geq 0
+\end{align}
+$$
+
+
+<!-- # ```{r, echo = TRUE} -->
+<!-- # library(linprog) -->
+<!-- #  -->
+<!-- # cMat = c(35, 30, 40, 32, 37, 40,  -->
+<!-- #       42, 25, 40, 15, 20, 28) -->
+<!-- #  -->
+<!-- # b = c(1200, 1000, 800, 1100, 400, 750, 750) -->
+<!-- #  -->
+<!-- # A = rbind(c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),  -->
+<!-- #           c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), -->
+<!-- #           c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1), c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),  -->
+<!-- #           c(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)) -->
+<!-- #  -->
+<!-- # res = solveLP(cMat, b, A, maximum = FALSE,  -->
+<!-- #               const.dir = c("<=", "<=", "<=", ">=", ">=", ">=", ">=")) -->
+<!-- #  -->
+<!-- # res -->
+<!-- # ``` -->
+
+### Our Problem
+
+We could solve the classic problem by hand without too much effort (it would just take a little bit of time). More modern problems, though, would be a bit tougher.
+
+Look at this data:
+
+```{r, echo = FALSE}
+flowDat = read.table(text = 
+             "From	To
+1	36
+1	39
+1	41
+2	13
+2	17
+2	18
+2	27
+2	30
+2	34
+2	36
+4	12
+4	15
+4	25
+4	45
+5	15
+5	17
+5	34
+5	39
+5	42
+6	15
+6	26
+6	27
+6	29
+6	41
+6	45
+6	48
+6	49
+7	14
+7	16
+7	36
+10	3
+11	47
+12	4
+12	15
+12	45
+13	30
+14	7
+14	25
+14	37
+14	38
+15	2
+15	4
+15	5
+15	6
+15	12
+15	18
+15	34
+15	39
+15	40
+16	7
+16	9
+16	19
+17	2
+17	27
+18	2
+18	10
+18	15
+18	47
+19	16
+19	49
+20	23
+20	26
+21	23
+21	40
+21	47
+23	10
+23	20
+23	21
+23	24
+23	26
+23	40
+23	47
+24	23
+24	37
+25	4
+25	14
+25	15
+25	27
+25	40
+25	42
+25	43
+25	45
+26	20
+26	23
+26	45
+27	2
+27	13
+27	17
+27	25
+27	40
+27	42
+27	49
+28	2
+28	30
+28	31
+28	41
+29	49
+30	13
+30	28
+30	31
+30	36
+30	39
+30	44
+31	28
+31	30
+31	38
+31	44
+32	31
+32	42
+33	8
+33	40
+34	5
+34	15
+34	42
+34	43
+34	47
+35	3
+36	7
+36	30
+36	39
+37	13
+37	14
+37	24
+37	42
+37	47
+38	14
+38	24
+38	31
+38	32
+38	44
+39	1
+39	5
+39	8
+39	15
+39	30
+39	36
+39	42
+40	15
+40	25
+40	27
+40	33
+40	41
+40	45
+40	47
+41	1
+41	6
+41	27
+41	28
+41	29
+41	33
+41	40
+41	49
+42	5
+42	25
+42	34
+42	43
+42	48
+44	3
+44	28
+44	30
+44	31
+44	38
+44	49
+45	3
+45	4
+45	6
+45	12
+45	15
+45	25
+45	26
+45	27
+45	34
+45	40
+45	49
+46	6
+46	48
+46	49
+47	3
+47	11
+47	21
+47	37
+47	40
+48	6
+48	42
+49	6
+49	19
+49	27
+49	29
+49	36
+49	41
+49	46
+", header = TRUE)
+
+rmarkdown::paged_table(flowDat)
+```
+
+We would be dealing with a large number of equations and people tend not to do too well with large tables of information.
+
+<aside>
+That is why you should always visual things like correlation matrices.
+</aside>
+
+Maybe we could do better with a visualization?
+
+```{r, echo = FALSE}
+
+
+ndf = create_node_df(n = 49,
+    shape = rep("circle", 49),
+    label = 1:49)
+
+edf = create_edge_df(from = flowDat$From,
+                     to = flowDat$To)
+
+create_graph(nodes_df = ndf, edges_df = edf) %>%
+  visnetwork()
+
+```
+
+# Integer Programming
+
+## Purpose
+We have already seen integer constraints in our linear programming problems, but we really have not given them much thought beyond that we are forcing integers. While integer programs seem simple on their face, they are actually far more complex than our standard linear programming problems. This is further complicated by integer programming being divided into a few different families: namely *mixed integer programming* (MIP) and *zero-one programming*.
+
+MIP problems suggest that some constraints are integer constraints and some are fractional. A zero-one programming problem is the same type of binary constraint that we discussed with our network models.
+
+## An Important Aside
+
+We are now in the space where we need to discuss issues related to *P* versus *NP* problems. If an answer can be obtained in *polynomial time*, then it is a *P* problem. 
+
+<aside>
+Polynomial time just means that the running time of the problem has an upper bound of the polynomial expression in the input size of the algorithm. In practical terms, it just means "fast".
+</aside>
+
+If a problem cannot be solved in polynomial time, but the solution can be verified in polynomial time, the problem is said to be *NP*.
+
+## Classic Examples
+
+### The Knapsack Problem
+
+Let's transport ourselves back to the days of people riding the rails. If you have your trusty knapsack with you, you are faced with decisions about what to bring based upon the weight that you can carry. Let us say, for instance, that you have 10 objects with various weights and that you can carry any combination of objects so long as you do not exceed 20 pounds. Let's also assume that you have a personal weight attached to each item, so that some items are more important to you than others. We have a problem where we are trying to fit the most important things to us into our bag, while being constrained by the weight of our bag. The knapsack problem is said to be *NP-complete* (essentially that no algorithm is both fast and always correct).
+
+```{r, eval = TRUE, echo = FALSE}
+knitr::include_graphics("https://imgs.xkcd.com/comics/np_complete.png")
+```
+
+
+Let's see what it looks like in notation:
+
+
+$$
+\begin{align}
+maximize\,  \sum_{i=1}^nv_ix_i \\
+subject\,to\, \sum_{i=1}^nw_ix_i \leq W, \\
+x_{i} \in \{0,1\}
+\end{align}
+$$
+
+Where *n* means as many items as possible, *v* is your value, *w* is the item weight, and *W* is the weight capacity.
+
+While it looks simple, it is not. Gone are the days when we could fall back on that nice *interior point* graphical method we used for our linear programs (there is a graphical method, but it is far more complicated). We could also just go through all of the possible combinations (*enumeration*), but we are dealing with $2^{10}=1024$ possible combinations of solutions.
+
+<aside>
+Imagine if we had 100 variables!
+</aside>
+
+Instead, many packages utilize *branch and bound* algorithms, where the zero-one constraint is relaxed to two continuous constraints (i.e, $x\leq1$ and $x\geq0$). This then goes through a tree search, but that is beyond the scope of our engagement.
+
+Let's see a few different ways of handling the problem in R.
+
+### ROI
+
+```{r}
+library(ROI)
+
+library(ROI.plugin.glpk)
+
+n = 10 # Setting our number of variables
+
+W = 20 # Our max weight
+
+v = round(runif(n, min = 1, max = 5)) # A random assignment of our values
+
+v
+
+w = runif(n, min = 1, max = 7) # Random weights
+
+w
+
+constraints = L_constraint(w, "<=", W) # Creating the constraints
+
+model = OP(objective = v, 
+            constraints = constraints,
+            bounds = V_bound(li = 1:n, lb = rep.int(0, n), ui = 1:n, ub = rep.int(1, n)), 
+            types = rep.int("B", n), 
+            maximum = TRUE)
+model
+
+```
+
+Before we go on to solving the problem, let's discuss that `bounds` argument for a minute. We put a function into the bounds argument: `V_bound()`. The `V_bound` function takes li and ui, which specify the variables for which we are setting bounds, and lb and ub, which specify the lower and upper bounds of those variables (0, 1).
+
+We can now solve the problem:
+
+```{r}
+res = ROI_solve(model, "glpk", verbose = TRUE)
+
+solution(res)
+```
+
+
+### ompr
+
+In an effort to create a "modern" approach to building things in R, the `ompr` package allows for model building through pipes.
+
+We will need the following packages:
+
+```{r}
+library(dplyr)
+
+library(ompr)
+
+library(ompr.roi)
+```
+
+First, we specify that we are creating a mixed integer model with `MIPModel()`:
+
+```{r, eval = FALSE}
+model = MIPModel()
+```
+
+Next, we add variables to the model. Again, these represent our 10 possible items:
+
+```{r, eval = FALSE}
+model = MIPModel() %>% 
+  add_variable(x[i], i = 1:n, type = "binary") 
+```
+
+Now we need to specify our objective function:
+
+```{r, eval = FALSE}
+model = MIPModel() %>% 
+  add_variable(x[i], i = 1:n, type = "binary") %>% 
+  set_objective(sum_expr(v[i] * x[i], i = 1:n), sense = "max")
+```
+
+That `sum_expr` function is essentially giving us the same thing as sumproduct.
+
+After setting our objective, we can add our constraints:
+
+```{r, eval = FALSE}
+model = MIPModel() %>% 
+  add_variable(x[i], i = 1:n, type = "binary") %>% 
+  set_objective(sum_expr(v[i] * x[i], i = 1:n), sense = "max") %>% 
+  add_constraint(sum_expr(w[i] * x[i], i = 1:n) <= W)
+```
+
+We want the combined weight of our items to be less than or equal to `W` (which is still 20 pounds).
+
+Finally, we can solve the problem with `solve_model` and use `get_solution` to see the results:
+
+```{r}
+model = MIPModel() %>% 
+  add_variable(x[i], i = 1:n, type = "binary") %>% 
+  set_objective(sum_expr(v[i] * x[i], i = 1:n), sense = "max") %>% 
+  add_constraint(sum_expr(w[i] * x[i], i = 1:n) <= W) %>% 
+  solve_model(with_ROI("glpk", verbose = TRUE))
+
+get_solution(model, x[i])
+```
+
+
+### Crew Scheduling
+
+Excel time.
+
+# Nonlinear Programming
+
+What makes a problem nonlinear? Let's start by demonstrating a linear equation. If we have an equation $3+2_{x_1}+7_{x_2}$ and supply numbers for x_1 (1:10) and x_2 (11:20), we would get the following line:
+
+```{r}
+library(ggplot2)
+
+plotdat = data.frame(x1 = 1:10, 
+                     x2 = 11:20)
+
+plotdat$y = (3 + (2 * plotdat$x1) + (7 * plotdat$x2))
+
+ggplot(plotdat, aes(x1, y)) + 
+  geom_point() +
+  theme_minimal()
+```
+
+It is that same song and dance of for every unit increase in x, we have a proportional increase in y.
+
+Nonlinear functions behave differently. If we take our previous equation and tweak it by adding a higher order term ($3+{x_1}^3+7_{x_2}$), we get the following:
+
+```{r}
+plotdat = data.frame(x1 = 1:10, 
+                     x2 = 11:20)
+
+plotdat$y = (3 + (plotdat$x1^3) + (7 * plotdat$x2))
+
+ggplot(plotdat, aes(x1, y)) + 
+  geom_point() +
+  theme_minimal()
+```
+
+We no longer have a proportional increase.
+
+## The Optima Problem
+
+```{r}
+graphDat = data.frame(x = 1:20, 
+                      y = sin(1:20), 
+                      z = (1:20)^4)
+
+ggplot(graphDat, aes(x, z)) + 
+  geom_line() +
+  theme_minimal()
+  
+```
+

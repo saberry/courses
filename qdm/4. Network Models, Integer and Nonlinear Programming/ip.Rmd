@@ -1,0 +1,112 @@
+---
+title: "Linear Programming"
+description: | 
+  Integer Programming
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Purpose
+
+We have already seen integer constraints in our linear programming problems, but we really have not given them much thought beyond that we are forcing integers. While integer programs seem simple on their face, they are actually far more complex than our standard linear programming problems. This is further complicated by integer programming being divided into a few different families: namely *mixed integer programming* (MIP) and *zero-one programming*.
+
+MIP problems suggest that some constraints are integer constraints and some are fractional. A zero-one programming problem is the same type of binary constraint that we discussed with our network models.
+
+## An Important Aside
+
+We are now in the space where we need to discuss issues related to *P* versus *NP* problems. If an answer can be obtained in *polynomial time*, then it is a *P* problem. 
+
+<aside>
+Polynomial time just means that the running time of the problem has an upper bound of the polynomial expression in the input size of the algorithm. In practical terms, it just means "fast".
+</aside>
+
+If a problem cannot be solved in polynomial time, but the solution can be verified in polynomial time, the problem is said to be *NP*.
+
+# Classic Examples
+
+## The Knapsack Problem
+
+Let's transport ourselves back to the days of people riding the rails. If you have your trusty knapsack with you, you are faced with decisions about what to bring based upon the weight that you can carry. Let us say, for instance, that you have 10 objects with various weights and that you can carry any combination of objects so long as you do not exceed 20 pounds. Let's also assume that you have a personal weight attached to each item, so that some items are more important to you than others. We have a problem where we are trying to fit the most important things to us into our bag, while being constrained by the weight of our bag. The knapsack problem is said to be *NP-complete* (essentially that no algorithm is both fast and always correct).
+
+```{r, eval = TRUE}
+knitr::include_graphics("https://imgs.xkcd.com/comics/np_complete.png")
+```
+
+
+Let's see what it looks like in notation:
+
+
+$$
+\begin{align}
+maximize\,  \sum_{i=1}^nv_ix_i \\
+subject\,to\, \sum_{i=1}^nw_ix_i \leq W, \\
+x_{i} \in \{0,1\}
+\end{align}
+$$
+
+Where *n* means as many items as possible, *v* is your value, *w* is the item weight, and *W* is the weight capacity.
+
+While it looks simple, it is not. Gone are the days when we could fall back on that nice *interior point* graphical method we used for our linear programs (there is a graphical method, but it is far more complicated). We could also just go through all of the possible combinations (*enumeration*), but we are dealing with $2^{10}=1024$ possible combinations of solutions.
+
+<aside>
+Imagine if we had 100 variables!
+</aside>
+
+Instead, many packages utilize *branch and bound* algorithms, where the zero-one constraint is relaxed to two continuous constraints (i.e, $x\leq1$ and $x\geq0$). This then goes through a tree search, but that is beyond the scope of our engagement.
+
+Let's see a few different ways of handling the problem in R.
+
+### ROI
+
+```{r}
+library(ROI)
+
+library(ROI.plugin.glpk)
+
+n = 10 # Setting our number of variables
+
+W = 20 # Our max weight
+
+v = runif(n, min = 1, max = 5) # A random assignment of our values
+
+w = runif(n, min = 1, max = 7) # Random weights
+
+constraints = L_constraint(w, "<=", W) # Creating the constraints
+
+model = OP(objective = v, 
+            constraints = constraints,
+            bounds = V_bound(li = 1:n, lb = rep.int(0, n), ui = 1:n, ub = rep.int(1, n)), 
+            types = rep.int("B", n), 
+            maximum = TRUE)
+model
+
+res = ROI_solve(model, "glpk", verbose = TRUE)
+
+solution(res)
+```
+
+
+### ompr
+
+```{r}
+library(dplyr)
+
+library(ompr)
+
+library(ompr.roi)
+
+model = MIPModel() %>% 
+  add_variable(x[i], i = 1:n, type = "binary") %>% 
+  set_objective(sum_expr(v[i] * x[i], i = 1:n)) %>% 
+  add_constraint(sum_expr(w[i] * x[i], i = 1:n) <= W) %>% 
+  solve_model(with_ROI("glpk", verbose = TRUE))
+
+get_solution(model, x[i])
+```
+

@@ -525,7 +525,7 @@ Excel time.
 
 What makes a problem nonlinear? Let's start by demonstrating a linear equation. If we have an equation $3+2_{x_1}+7_{x_2}$ and supply numbers for x_1 (1:10) and x_2 (11:20), we would get the following line:
 
-```{r}
+```{r, echo = FALSE}
 library(ggplot2)
 
 plotdat = data.frame(x1 = 1:10, 
@@ -542,7 +542,7 @@ It is that same song and dance of for every unit increase in x, we have a propor
 
 Nonlinear functions behave differently. If we take our previous equation and tweak it by adding a higher order term ($3+{x_1}^3+7_{x_2}$), we get the following:
 
-```{r}
+```{r, echo = FALSE}
 plotdat = data.frame(x1 = 1:10, 
                      x2 = 11:20)
 
@@ -555,16 +555,39 @@ ggplot(plotdat, aes(x1, y)) +
 
 We no longer have a proportional increase.
 
+NLP comes when any part of the problem, objective function and/or constraints, is nonlinear.
+
 ## The Optima Problem
 
-```{r}
-graphDat = data.frame(x = 1:20, 
-                      y = sin(1:20), 
-                      z = (1:20)^4)
+The previous image shows us a really nice 2d version of a nonlinear trend. For the vast majority of our statistical and mathematical models, we should really be observing them in multidimension space. Figuring out why nonlinear problems are so hard to find optimal solutions for make more sense once we map the models to 3 dimensions. 
 
-ggplot(graphDat, aes(x, z)) + 
-  geom_line() +
-  theme_minimal()
-  
+We can see that any 3d surface has multiple local optima, but there can be only one global optima.
+
+```{r, echo = FALSE}
+library(plotly)
+
+plot_ly(z = ~volcano) %>% add_surface(showscale = FALSE,
+  contours = list(
+    z = list(
+      show=TRUE,
+      usecolormap=TRUE,
+      highlightcolor="#ff0000",
+      project=list(z=TRUE)
+      )
+    )
+  ) %>%
+  layout(
+    scene = list(
+      zaxis = list(title = "z"),
+      camera=list(
+        eye = list(x=1.87, y=0.88, z=-0.64)
+        )
+      )
+  )
 ```
 
+In NLP, we might not actually find the global optima; instead, we may find any number of our local optima. Why can't we find the global optima -- our starting point is one source of blame. When we (or our program) selects a starting point within the surface, the algorithms will 
+
+### Examples
+
+You can breathe a sigh of relief -- we won't be messing around with R for NLP. It is not because R won't do it (it can and does very well), but it is very coding heavy.

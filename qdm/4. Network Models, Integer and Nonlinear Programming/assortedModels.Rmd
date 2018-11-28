@@ -523,7 +523,7 @@ Excel time.
 
 # Nonlinear Programming
 
-What makes a problem nonlinear? Let's start by demonstrating a linear equation. If we have an equation $3+2_{x_1}+7_{x_2}$ and supply numbers for x_1 (1:10) and x_2 (11:20), we would get the following line:
+Despite living in a world that really likes lineararity, we see nonlinear trends/functions everywhere (magnetic field strength, stock portfolio optimization, stress and productivity, etc.). Nonlinear programming (NLP) embraces this nonlinear world and allows for problems to break free from straight lines. But...what makes a problem nonlinear? Let's start by demonstrating a linear equation. If we have an equation $3+2_{x_1}+7_{x_2}$ and supply numbers for x_1 (1:10) and x_2 (11:20), we would get the following line:
 
 ```{r, echo = FALSE}
 library(ggplot2)
@@ -538,7 +538,7 @@ ggplot(plotdat, aes(x1, y)) +
   theme_minimal()
 ```
 
-It is that same song and dance of for every unit increase in x, we have a proportional increase in y.
+It is that same old song and dance that for every unit increase in x, we have a proportional increase in y.
 
 Nonlinear functions behave differently. If we take our previous equation and tweak it by adding a higher order term ($3+{x_1}^3+7_{x_2}$), we get the following:
 
@@ -555,13 +555,17 @@ ggplot(plotdat, aes(x1, y)) +
 
 We no longer have a proportional increase.
 
-NLP comes when any part of the problem, objective function and/or constraints, is nonlinear.
+NLP comes into play when any part of the problem, objective function and/or constraints, is nonlinear.
 
 ## The Optima Problem
 
 The previous image shows us a really nice 2d version of a nonlinear trend. For the vast majority of our statistical and mathematical models, we should really be observing them in multidimension space. Figuring out why nonlinear problems are so hard to find optimal solutions for make more sense once we map the models to 3 dimensions. 
 
 We can see that any 3d surface has multiple local optima, but there can be only one global optima.
+
+<aside>
+The global optima is itself a local optima.
+</aside>
 
 ```{r, echo = FALSE}
 library(plotly)
@@ -586,8 +590,53 @@ plot_ly(z = ~volcano) %>% add_surface(showscale = FALSE,
   )
 ```
 
-In NLP, we might not actually find the global optima; instead, we may find any number of our local optima. Why can't we find the global optima -- our starting point is one source of blame. When we (or our program) selects a starting point within the surface, the algorithms will 
+In NLP, we might not actually find the global optima; instead, we may find any number of our local optima. Why can't we find the global optima -- our starting point is one source of blame. When we (or our program) selects a starting point within the surface, the algorithms will transverse through the steepest line it can find until it stops seeing incremental change. This is further complicated by the fact that the global optima could be anywhere within the feasible region of a nonlinear problem (not just at the extreme edges like our linear programming problem) and even further complicated by the ability to have disjointed feasible regions in our nonlinear problem.
 
 ### Examples
 
 You can breathe a sigh of relief -- we won't be messing around with R for NLP. It is not because R won't do it (it can and does very well), but it is very coding heavy.
+
+Let's use the following equation:
+
+$$y = x^2 -4x + 20 $$
+
+We might want to try 3 different things: minimize y, y = 80, and y is maximized within a lower and upper bound of 0 and 10 for x.
+
+```{r, echo = FALSE}
+plotdat = data.frame(x = -10:20)
+
+plotdat$y = plotdat$x^2 - (4 * plotdat$x) + 20
+
+ggplot(plotdat, aes(x, y)) + 
+  geom_line() +
+  theme_minimal()
+```
+
+We can go to Excel to find the solution to our problem, but we could almost pick out how to best minimize the function just by looking at the graph.
+
+```{r}
+ggplot(plotdat, aes(x, y)) + 
+  geom_line() +
+  geom_point(data = data.frame(x = 2, y = 16), aes(x, y), color = "#ff5500", 
+             size = 4) +
+  theme_minimal()
+```
+
+Either way, we get values of y = 16 and x = 2 when y is minimized.
+
+Let's see what it looks like when we set y = 80.
+
+
+```{r}
+ggplot(plotdat, aes(x, y)) + 
+  geom_line() +
+  geom_point(data = data.frame(x = 2, y = 16), aes(x, y), color = "#ff5500", 
+             size = 4) +
+  geom_point(data = data.frame(x = c(-6, 10), y = c(80, 80)), aes(x, y), color = "blue", 
+             size = 4) +
+  theme_minimal()
+```
+
+You can get two possible answers for that one.
+
+And finally, what happens when we maximize with our constraints.

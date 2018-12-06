@@ -1,0 +1,872 @@
+# Process Simulation
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Main Idea
+
+Suppose you have a real world process whose efficiency you want to improve.
+
+If there is *uncertainty* in this process (e.g., in the demand for a product, in the supply of some parts, in the time it takes to perform some of the work, in the quality of the work, etc.), then it is often difficult to predict the effects of making various changes to the process.
+
+With process simulation, we create a model and then *test the effects of changes* made to the model. If your model provides an adequate reflection of reality, then our simulation can help to *make decisions about changes to implement*.
+
+Process simulation can be used across many different domains: queueing systems, logistics, call centers, networks, manufacturing, health care, production, and inventory, just to name a few.
+
+## Queueing Theory
+
+Exactly what it sounds like: it is mathematical study of lines. On its face, maybe not super exciting; however, we should consider all of the different things that tend to wait in lines.
+
+
+### Notation
+
+Queues have their own notation (Kendall's notation). 
+
+$A/B/C/D$
+
+Where:
+
+$A = arrival\, process$
+
+$B = service\, process$
+
+$C = server\, number$
+
+$D = que\, capacity$
+
+Below are some common ones:
+
+$M/D/k$
+
+$M/M/k$
+
+*M* generally stands for Markov or Exponential
+
+<aside>
+You might also see *M* described as being from a Poisson process
+</aside>
+
+*D* is deterministic: all jobs require a fixed amount of time.
+
+*k* is the number of servers/workers/etc.
+
+Both of these are generally assumed to have an infinite buffer.
+
+<aside>
+
+You might be wondering what a buffer is. Think about it as either a line or a holding tank.
+
+</aside>
+
+$M/M/1/K$
+
+Here the *K* is specifying a buffer size.
+
+<aside>
+There are more letters (e.g., E, G) and spaces in Kendall notation, but we won't worry about them here.
+</aside>
+
+If a queue is $M/D/k$, we can easily compute some helpful statistics (we don't need any fancy software to help us).
+
+$\lambda$ = arrival rate
+
+$\mu$ = service rate
+
+$\rho = \frac{\lambda}{\mu}$ = utilization
+
+Average number of entities in the system is:
+
+$$ L = \rho + \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average number in queue:
+
+$$ L_Q = \frac{1}{2}\Bigg(\frac{\rho^2}{1 - \rho}\Bigg) $$
+
+Average system waiting time:
+
+$$ \omega = \frac{1}{\mu}+\frac{\rho}{2\mu(1 - \rho)} $$
+
+Average waiting time in queue:
+
+$$ \omega_Q = \frac{\rho}{2\mu(1 - \rho)} $$
+
+
+#### Markov Chains (an aside)
+
+Much like flipping a log over will yield an assortment of creatures, peeling back the layers of many methods will reveal a Markov Chain. And just like those assorted critters, you don't really know what you are looking at when you see them.
+
+Here is a conceptual example of markov chains. This example is adapted from Richard McElreath's excellent book, *Statistical Rethinking*.
+
+You manage 10 teams, named from 1 to 10. Each team name is proportional to the number of people on the team and each team is on a separate floor in the building.
+
+You need to visit a team everyday, proportional to the number of people on the team (i.e., you would visit team 10 more often than team 1).
+
+At the end of the day, you randomly select whether a proposed move will take you up a floor or down a floor.
+
+After randomly selecting up or down, you grab a number of pens that is equal to the number of the current team (for team 10, you would grab 10 pens).
+
+Next, you would grab a number of pencils corresponding to the proposed move (your randomly selected proposal would take you up a floor, so starting back at the bottom with team 1). So you would have 10 pens and 1 pencil.
+
+If you have more pencils than pens, you will always move to the proposed floor.
+
+If you have more pens than pencils, you set down a number of pens equal to the number of pencils and put them in a drawer.
+
+You reach back into the drawer to randomly select a pen or a pencil.
+
+Your selection decides where you go -- pen is stay and pencil is go!
+
+Over 1000 moves, here is what our chain would look like:
+
+```{r}
+markovSim = function(daysRun, startDay) {
+  
+  position = rep(0, daysRun)
+  
+  current = startDay
+  
+  for(i in 1:daysRun) {
+    position[i] = current
+    
+    proposal = current + sample(c(-1, 1), size = 1)
+    
+    if(proposal < 1) proposal = 10
+    
+    if(proposal > 10) proposal = 1
+    
+    probabilityMove = proposal / current
+    
+    current = ifelse(runif(1) < probabilityMove, proposal, current)
+    
+    # print(paste(position[i], proposal, probabilityMove, current, sep = " -> "))
+  }
+  
+  return(position)
+}
+
+test1 = markovSim(1000, 5)
+
+test2 = markovSim(1000, 6)
+
+library(ggplot2)
+
+ggplot() + 
+  geom_line(data = as.data.frame(test1), aes(1:length(test1), test1), 
+            color = "#ff5500", size = .75) +
+  theme_minimal()
+```
+
+Our markov chains work in a similar way, but can also be conceptualized as a *birth-death process*. 
+
+## Basic Steps
+
+1.  Draw a *process flow map*.
+
+2.  Obtain data.
+
+3.  Input the model and the data.
+
+4.  Validate the model.
+
+5.  Experiment with the simulation.
+
+6.  Analyze the results.
+
+7.  Profit!
+
+## Distributions
+
+Our input data generally takes the form of a distribution with some known properties.
+
+### Normal Distribution
+
+For our normal distribution, we know the $\mu$ and $\sigma$.
+
+```{r, echo = FALSE}
+library(dplyr)
+
+library(ggplot2)
+
+data.frame(x = rnorm(10000, mean = 2.5, sd = .5)) %>% 
+  ggplot(., aes(x = x, y = ..density..)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  geom_density(color = "#ff5500", size = 1.25) +
+  theme_minimal() +
+  labs(x = "Call Center Wait Times", y = "Frequency")
+```
+
+
+### Exponential Distribution
+
+We can only know one thing about the exponential distribution: $\mu$
+
+```{r, echo = FALSE}
+data.frame(x = rexp(10000, rate = 2.5)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Call Center Wait Times", y = "Frequency")
+```
+
+### Poisson Distribution
+
+The poisson is an interesting distribution -- it tends to deal with count-related variables. It tells us the probability of a count occuring.  We know its $\lambda$.
+
+<aside>
+
+$\lambda$ is just a fancy way of saying the average number of events, or the incidence rate.
+
+</aside>
+
+```{r, echo = FALSE}
+data.frame(x = rpois(10000, lambda = 4)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Customers In Line", y = "Frequency")
+```
+
+### Uniform Distribution
+
+While people tend to think about the Gaussian distribution as the most vanilla of all distributions, it really is not -- I would say that distinction belongs to the uniform distribution. We don't even get any fancy Greek letters, just a minimum and a maximum. Why? Because knowing the min and max will tell us that there is an equal probability of drawing a value anywhere within that range.
+
+```{r, echo = FALSE}
+data.frame(x = runif(10000, min = 1, max = 10)) %>% 
+  ggplot(., aes(x = x)) +
+  geom_histogram(color = "black", fill = "white", bins = 15) +
+  theme_minimal() +
+  labs(x = "Customers In Line", y = "Frequency")
+```
+
+## Using SimQuick
+
+### Process Flow Map
+
+How does the flow for a bank typically look:
+
+1.  A customer enters the bank through the door.
+
+2.  The customer will either go directly to a teller or wait in line for the teller.
+
+3.  Teller will serve the customer.
+
+4.  The customer has been served and will exit the bank.
+
+```{r}
+library(DiagrammeR)
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller']
+  D [label = 'Served Customer']
+
+  A->B B->C C->D
+}
+")
+```
+
+
+SimQuick has five elements to model a process: Entrance, Exit, Work Station, Buffer, Decision Point. We need to map those elements onto our bank example:
+
+```{r}
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Entrance']
+  B [label = 'Buffer']
+  C [label = 'Work Station']
+  D [label = 'Buffer']
+
+  A->B B->C C->D
+}
+")
+
+```
+
+
+<aside>
+Why does this end with a buffer and not an exit?
+</aside>
+### Data
+
+We need to know a few things: how long does it take to serve a customer, how much time between customer arrivals (the interarrival time), and the capacity of the line.
+
+<aside>
+If the line is full, new customers will *balk*. 
+</aside>
+
+### Performance
+
+The *service level* for each simulation is the fraction of the demand that is satisfied.
+
+$$ Entrance  \: Service \: Level = \frac{Objects \: Entering}{Objects \: Entering + Objects \: Unable \: To \: Enter}$$
+
+The *overall mean service level* of the process is the mean of the service levels calculated from each simulation.
+
+The *mean cycle time* at a buffer is the mean amount of time an object takes to move through the buffer during a simulation.
+
+The *overall mean cycle time* at a buffer is the mean of the mean cycle time of the buffer for each simulation.
+
+## An Example For SimQuick
+
+### The Bank
+
+The interarrival times for a customer follows an exponential distribution with $\mu = 2 \, minutes$.
+
+The line in the bank holds 8 people. If a person arrives when the line is full, that person will not get in line.
+
+The teller's service time can be approximated by a normal distribution with $\mu = 2.4 \, minutes$ and $\sigma = .5 \, minutes$.
+
+#### System Improvements
+
+##### Automated Teller
+
+If we add an automated teller, there is evidence that *service time per customer* would decrease to $\mu = 2 \, minutes$
+
+##### Additional Teller
+
+Adding the automated teller only slightly changed our system, but adding another teller (i.e., work station) will require us to create a new process flow:
+
+```{r}
+
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller 1']
+  D [label = 'Teller 2']
+  E [label = 'Served']
+  
+  A->B 
+  B->C
+  B->D
+  C->E
+  D->E
+}
+")
+
+```
+
+### Airport Security
+
+- Between 8am and 10am one passenger arrives every half minute on average (exponential) at the security area.
+
+- Arriving passengers enter a large line.
+
+- Passengers go through one of two inspection areas. The inspection area can be approximated by a normal distribution with $\mu = 1 \, minute$ and $\sigma = .1 \, minute$.
+
+- After the initial inspection, 10% of passengers are randomly selected for additional screening. There are two stations, with working times approximated by a normal distribution with $\mu = 5 \, minutes$ and $\sigma = 1 \, minute$.
+
+We need to add a *decision point* to our model.
+
+```{r}
+
+grViz("
+digraph boxes_and_circles {
+  graph [overlap = true, fontsize = 10]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Arrival']
+  B [label = 'Line 1']
+  C [label = 'Insp 1']
+  D [label = 'Insp 2']
+  E [label = 'DP']
+  F [label = 'Line 2']
+  G [label = 'Done']
+  H [label = 'Add Insp 1']
+  I [label = 'Add Insp 2']
+
+  
+  A->B
+  B->C
+  B->D
+  C->E
+  D->E
+  E->F
+  E->G
+  F->H
+  F->I
+  H->G
+  I->G
+}")
+```
+
+## Inventory
+
+We can extend our conceptual notion of a queue to items in storage (think about a product, stored on a shelf, just waiting to be used). Inventory decisions are generally guided by 3 factors:
+
+- Transaction motive: Economy of scale is achieved when the number of set-ups are reduced or the number of transactions are minimized.
+
+- Precautionary motive: hedge against uncertainty, including demand uncertainty, supply uncertainty
+
+- Speculative motive: hedge against price increases in materials or labor
+
+### Bread Delivery
+
+Let's look at an example of an *order-up-to* policy:
+
+<aside>
+An order-up-to policy is just one of many different inventory management strategies (just-in-time is another common one).
+</aside>
+
+- A delivery truck drops off bread every other day.
+
+- Each type of bread has designated shelf space and space in the "back" (say, 70 loaves).
+
+- The driver leaves enough to completely fill the stock.
+
+- People buy a loaf of our target bread at a rate of every .3 hours on average (according to an exponential distribution).
+
+- This demand should hold for 30 days.
+
+- The store is open 12 hours per day, 7 days per week
+
+We have some considerations to make:
+
+1.  We need to be able to serve the people who want a specific type of bread (our service level). 
+
+2.  We don't want too much space tied up with bread that we don't need.
+
+3.  We want to achieve a 99% service level.
+
+In terms of our process diagram, we have the following:
+
+
+```{r}
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  
+  A [label = 'Entrance\\nLoadingDock']
+  B [label = 'Buffer\\nStorage']
+  C [label = 'Exit\\nPurchase Request']
+
+  A->B B->C
+}
+")
+```
+
+## Foray Into R
+
+SimQuick has given us an excellent bearing on how to perform a process simulation in R. While the mechanisms change, the concepts still apply.
+
+We can start to replicate the vanilla bank example. The first thing we will do is to create our process flow map with `DiagrammeR`:
+
+```{r, eval = FALSE, echo = TRUE}
+install.packages("DiagrammeR")
+```
+
+It might look weird at first, but it becomes pretty "plug-and-play" once we see what is happening:
+
+```{r, echo = TRUE}
+library(DiagrammeR)
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  A [label = 'Door']
+  B [label = 'Line']
+  C [label = 'Teller']
+  D [label = 'Served Customer']
+
+  A->B B->C C->D
+}
+")
+```
+
+### The Bank
+
+We will need the `simmer` package for our simulation:
+
+```{r, eval = FALSE}
+install.packages("simmer")
+```
+
+Once we have `simmer` installed, we need to load it:
+
+```{r, echo = TRUE}
+library(simmer)
+```
+
+Let's start by defining a customer's trajectory. First, we will provide a name for `trajectory()`. 
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path")
+```
+
+Next, we need to initiate a start time with `set_attribute()` -- we will use `now()` to specify our not-yet-created bank object.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)})
+```
+
+After establishing our time, the next step for a customer is to `seize()` the "teller" (which we will define later).
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller")
+```
+
+Now things start to get tricky. We need to use `timeout()` to specify how long a customer is using the teller -- this is the teller's average working time. 
+
+<aside>
+This represents a marked shift from how SimQuick models are specified!
+</aside>
+
+We can specify how long a teller is seized (i.e., how long the teller is working) in very much the same way we would in SimQuick -- we provide a distribution with the appropriate values.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)})
+```
+
+After a customer spends time with the teller, the customer releases the counter.
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+```
+
+This is all we need to do for a customer, so now we can turn our attention to the bank.
+
+Our bank is going to provide the environment that houses our trajectory. So, we can start by creating an environment with `simmer()`:
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank")
+```
+
+Once we have our simulation environment defined, we can add resources to it with the aptly-named `add_resources()` function. This is where we will specify what is being seized by our customer. We need to provide some additional information to our resource: `capacity` and `queue_size`. 
+
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8)
+```
+
+To this point, we have our customer behavior (how they move through our process) and information about our work stations. The last detail is the inter-arrival time, which we can specify with `add_generator()`. It works in very much the same way that `timeout()`, in that we are specifying a distribution. The `rexp` function in R does not take a mean like it does in SimQuick; instead, it takes a rate. If we remember that, on average, one person comes into the bank every two minutes, we can define our rate as $\frac{1}{2}$.
+
+<aside>
+Try this: mean(rexp(n = 10000, rate = 1/2))
+</aside>
+
+```{r, echo = TRUE, eval = FALSE}
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {
+    c(0, rexp(n = 100, rate = 1/2), -1)
+  })
+```
+
+Now we can run our simulation; we just need to provide a time value for the `until` argument.
+
+```{r, echo = TRUE, eval = FALSE}
+run(bank, until = 120)
+```
+
+If we put it together, here is what we have:
+
+```{r, echo = TRUE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+
+bank = simmer("bank") %>% 
+  add_resource("teller", capacity = 1, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+
+run(bank, until = 120)
+```
+
+Finally, we can start to look at our data:
+
+```{r, echo = TRUE}
+result = get_mon_arrivals(bank)
+
+head(result)
+```
+
+
+But...that is just one simulation. SimQuick provides an easy way to increase the run count, but R needs something a little different.
+
+We have a few choices. One choice is that we just replicate our procedure a certain number of times:
+
+```{r, eval = FALSE, echo = TRUE}
+sim50Runs = replicate(50, expr = {
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", capacity = 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  run(bank, until = 120)
+  
+  result = get_mon_arrivals(bank)
+}, simplify = FALSE)
+```
+
+We can also get a bit fancier and really use our machine:
+
+```{r, eval = FALSE, echo = TRUE}
+library(parallel)
+
+cl = makeCluster(detectCores() - 1)
+
+clusterEvalQ(cl, library(simmer))
+
+allResults = parLapply(cl, seq(1:50), function(the_seed) {
+  set.seed(the_seed)
+  
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  bank %>% 
+    run(until = 120)
+  
+  result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+  
+  return(result)
+  
+})
+
+stopCluster(cl)
+
+```
+
+### Adding Teller 2
+
+Adding another teller to our simulation is very difficult:
+
+```{r, echo = TRUE, eval = FALSE}
+customer = trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+  release("teller")
+
+bank = simmer("bank") %>% 
+  add_resource("teller", 2, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+
+bank %>% 
+  run(until = 120)
+
+result = bank %>%
+  get_mon_arrivals %>%
+  dplyr::mutate(waiting_time = end_time - start_time - activity_time)
+```
+
+
+### Other Elements
+
+We won't go over them today, but we can use `branch()` within a trajectory in the same way that we use Decision Points in SimQuick.
+
+Just like we used Scenario Variables in SimQuick, we could create an omnibus function and insert arguments as needed.
+
+#### Things You Learn
+
+In your downtime, check this site out: <a href="https://www.bupar.net/index.html">Business Process Analysis in R</a>
+
+```{r}
+library(bupaR)
+
+patients %>%
+    process_map()
+
+patients %>%
+    process_map(type = frequency("relative"))
+
+patients %>%
+    process_map(performance(mean, "hours"))
+  
+```
+
+
+## Manufacturing
+
+In manufacturing, one of the more important metrics we deal with is *throughput* (the total number of units produced). 
+
+We are also interested in the *work-in-process* (WIP) inventory. 
+
+Variability, while not something we can always measure/predict, can come from a few sources.
+
+- Machine/worker processing times
+
+- Output quality
+
+- Demand
+
+- Supply
+
+Controlling variability can help to increase throughput.
+
+### An Example
+
+- In a factory, we have five work stations arranged in a line (WS1 through WS5).
+
+- Each work station is a machine with one operator.
+
+  - WS1 (bandsaw): $\mu = 10;\sigma = 1$ (normal)
+  
+  - WS2 (contouring): $\mu = 5;\sigma = 2$ (normal)
+  
+  - WS3 (rough sanding): $min = 5;max = 15$ (uniform)
+  
+  - WS4 (finish sanding): $min = 10;max = 15$ (uniform)
+  
+  - WS5 (finish): $\mu = 10;\sigma = 2.5$ (normal)
+
+- The work stations process one product that must move sequentially.
+
+- Each work station has its own processing time.
+
+- Product cannot be *stacked*
+
+  - If WS3 has finished a unit, it cannot be passed onto WS4 if WS4 is still working on a product.
+  
+- We are looking at an 8 hour shift.
+
+#### Improvements
+
+What can we do to improve our throughput?
+
+## Working With Simmer Data
+
+
+```{r, eval = TRUE, echo = TRUE, results = "hide"}
+library(parallel)
+
+cl = makeCluster(detectCores() - 1)
+
+clusterEvalQ(cl, library(simmer))
+
+allResults = parLapply(cl, seq(1:50), function(the_seed) {
+  set.seed(the_seed)
+  
+  customer = trajectory("Customer path") %>% 
+    set_attribute("start_time", function() {now(bank)}) %>%
+    seize("teller") %>% 
+    timeout(function() {rnorm(n = 1, mean = 2.4, sd = .5)}) %>% 
+    release("teller")
+  
+  bank = simmer("bank") %>% 
+    add_resource("teller", 1, queue_size = 8) %>% 
+    add_generator("Customer", customer, function() {c(0, rexp(100, 1/2), -1)})
+  
+  bank %>% 
+    run(until = 120)
+  
+  result = bank %>%
+    get_mon_arrivals %>%
+    dplyr::mutate(waiting_time = end_time - start_time - activity_time, 
+                  runCount = the_seed, 
+                  arrival = 1:nrow(.))
+  
+  return(result)
+  
+})
+
+stopCluster(cl)
+
+```
+
+
+After running 50 simulations, we now have a list of 50 data frames:
+
+```{r, layout="l-body-outset", echo = TRUE}
+rmarkdown::paged_table(allResults[[1]])
+```
+
+We might want to put all 50 of our data frames into one big data frame:
+
+```{r, echo = TRUE}
+# install.packages("data.table")
+
+allResults = data.table::rbindlist(allResults)
+```
+
+With our data in one table, we can compute some basic stats:
+
+```{r, echo = TRUE}
+library(dplyr)
+
+runStats = allResults %>% 
+  group_by(runCount) %>% 
+  mutate(finishNumber = ifelse(finished == TRUE, 1, 0)) %>% 
+  summarize(meanActivity = mean(activity_time[which(finished == TRUE)]), 
+            meanWait = mean(waiting_time[which(finished == TRUE)]), 
+            finishedCount = sum(finishNumber), 
+            totalTried = n(), 
+            serviceRate = finishedCount / totalTried)
+```
+
+
+From there, we can use functions like `mean()` to get the overall means:
+
+```{r, echo = TRUE}
+mean(runStats$meanWait)
+```
+
+We can also visualize our results:
+
+```{r, echo = TRUE}
+# install.packages("ggplot2")
+
+library(ggplot2)
+
+allResults %>% 
+  filter(runCount < 10) %>% 
+  ggplot(., aes(arrival, start_time)) +
+  geom_point() +
+  facet_wrap( ~ runCount) +
+  theme_minimal()
+```
+
+```{r, echo = TRUE}
+allResults %>% 
+  filter(runCount < 10) %>% 
+  ggplot(., aes(waiting_time)) +
+  geom_histogram(bins = 10) +
+  facet_wrap( ~ runCount) +
+  theme_minimal()
+```
+

@@ -1,0 +1,22 @@
+---
+title: "QDM"
+description: | 
+  The Complete Collection
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 1
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE, comment = "")
+```
+
+```{r, child = "processSimulationTheory.Rmd"}
+```
+
+```{r, child = 'simplex2.Rmd'}
+```
+
+```{r, child = 'assortedModels2.Rmd'}
+```

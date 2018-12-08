@@ -21,12 +21,28 @@ scoresGood = scores %>%
 
 scoresGood = scoresGood[1:844, ]
 
-writeClipboard(sort(unique(unlist(c(scoresGood$homeTeam, scoresGood$awayTeam)))))
+cutTeams = c("William & Mary", "Wofford", "Towson", "Mercer", "McNeese State", "Nicholls State", 
+             "Incarnate Word", "Liberty", "Elon", "Gardner-Webb", "Bethune-Cookman", 
+             "Kennesaw State", "Prairie View A&M", "Wagner", "Central Connecticut State", 
+             "Colgate", "Delaware State", "Indiana State", "Grambling State", "Howard", 
+             "Holy Cross")
 
-writeClipboard(scoresGood$homeTeam)
+scoresGood = scoresGood[-c(which(scoresGood$awayTeam %in% cutTeams)), ]
 
-writeClipboard(scoresGood$awayTeam)
+scoresGood = scoresGood[-c(which(scoresGood$homeTeam %in% cutTeams)), ]
 
-writeClipboard(scoresGood$homeScore)
+# writeClipboard(sort(unique(unlist(c(scoresGood$homeTeam, scoresGood$awayTeam)))))
+# 
+# writeClipboard(scoresGood$homeTeam)
+# 
+# writeClipboard(scoresGood$awayTeam)
+# 
+# writeClipboard(scoresGood$homeScore)
+# 
+# writeClipboard(scoresGood$awayScore)
 
-writeClipboard(scoresGood$awayScore)
+teams = c(sort(unique(unlist(c(scoresGood$homeTeam, scoresGood$awayTeam)))), rep("NA", 609))
+
+scoresGood = cbind(teams, scoresGood)
+
+write.csv(scoresGood, "scoresGood.csv", row.names = FALSE, na = "")

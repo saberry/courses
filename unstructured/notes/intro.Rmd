@@ -1,0 +1,88 @@
+---
+title: "Unstructured Data Analytics"
+description: |
+  Introduction and Data
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# What Is Unstructured Data?
+
+The term *unstructured data* is rife with wackiness and will certainly shift with time. We can, however, work from a place where we just consider unstructured data to be data that does not nicely fit into a pre-defined tabular manner. If we take this consideration to a logical end, then we can see that many forms of data might come to us as unstructured. However, we need to impose structure on our data so that we can achieve our goals (whatever they might be).
+
+<aside>
+Once we get rolling, it will become clear that most data is unstructured.
+</aside>
+
+And this is where the challenge of unstructured data rests -- getting that data into a usable form. Some data that we consider to be unstructured is structured, but not in an immediately useful manner. 
+
+# Data Types
+
+## Text
+
+Text is likely to be what you will find the most (and will be our biggest focus). 
+
+## Images
+
+You may not believe this, but we are at the point now where there are tons of images floating around online. Not only do people put an obscene number of pictures of themselves online, but we also have an incredible number of images from computers (drones, etc.).
+
+## Video
+
+## Audio
+
+# Acquisition & Types
+
+Where exactly do we find these data types? All over the place. The location of the data does not pose an issue for us; instead, we primarily need to be concerned about what form the data takes
+
+## Hypertext Markup Language
+
+Where would be without HTML? 
+
+## Cascading Style Sheets
+
+Before CSS, the web was styled purely with HTML -- and what a style it was! While we might not really care about style for our purpose, CSS can help find stuff within a webpage.
+
+## Extensible Markup Language
+
+Extensible markup language (XML) was created with the intention of being both human and machine readable -- and it generally fits that bill. Querying XML, however, tends to require the use of XPaths. XPaths are situated somewhere along the lesser circles of Hell, but can be used to great effectiveness when trying to pull stuff out of XML.
+
+## JavaScript Object Notation
+
+JavaScript Object Notation (JSON) creeps up everywhere on the web, because it is designed to facilitate smooth information transfer between a server and an individual's browser. When nice data gets served up to a fancy table or visualization on the web, it is probably coming through in JSON.
+
+```
+'[
+  "firstName": "Seth",
+  "lastName": "Berry",
+  "isAlive": true,
+  "age": 33,
+  "address": {
+    "streetAddress": "337 Mendoza",
+    "city": "Notre Dame",
+    "state": "IN",
+    "postalCode": "46566"
+  },
+  "phoneNumbers": [
+    {
+      "type": "home",
+      "number": "217 884-2303"
+    },
+    {
+      "type": "office",
+      "number": "574 631-0018"
+    },
+    {
+      "type": "mobile",
+      "number": "217 822-0018"
+    }
+  ],
+  "children": [],
+  "spouse": null
+]'
+```

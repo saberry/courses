@@ -1,0 +1,39 @@
+---
+title: "Text Analysis"
+description: |
+  Introductory Concepts
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Text
+
+The ability to produce written word is one of the major separators between us and the other great apes. And with the ability to produce it, comes the benefit of interpretting it.
+
+
+
+# Initial Analyses
+
+```{r}
+library(rvest)
+
+read_html("https://genius.com/Luke-bryan-huntin-fishin-and-lovin-every-day-lyrics") %>% 
+  html_nodes("p") %>% 
+  html_text() %>% 
+  stringr::str_replace_all(., "\n", " ") %>% 
+  stringr::str_replace_all(., "\\[[A-Za-z]+]", "")
+```
+
+```{r}
+read_html("https://genius.com/Steve-earle-copperhead-road-lyrics") %>% 
+  html_nodes("p") %>% 
+  html_text() %>% 
+  `[[`(1)
+```
+

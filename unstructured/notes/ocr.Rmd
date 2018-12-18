@@ -1,0 +1,88 @@
+---
+title: "Optical Character Recognition"
+description: |
+  Theory and Practice
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Text
+
+So far, we have been in the world of text made with the sole intention of displaying it on a screen. That is, however, just a very small slice of the text that is out in the world. Take a pdf file, for instance. We would imagine that it has been generated for appearing on a screen, but it is a vastly different animal than our traditional web-based print. 
+
+# Support Vector Machines
+
+Just like our old friends decision trees and random forest, SVM is a technique that can prove to be useful for both regression and classification. In the context of text, we will use SVM's classification abiliities.
+
+## Conceptual Background
+
+SVM is popular because it is both powerful and conceptually easy to understand. Since we are dealing with a classifier at heart, all we are doing is defining a hyperplane that will separate data in (hyper)dimensional space. Easy, right?
+
+Let's look at the following plot with 2 classes:
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+set.seed(1002)
+
+plotDat = data.frame(x = c(rnorm(10, mean = 2), rnorm(10, mean = 5)), 
+                     y = c(rnorm(10, mean = 8), rnorm(10, mean = 3)), 
+                     class = as.factor(c(rep(0, 10), rep(1, 10))))
+
+pointPlot = ggplot(plotDat, aes(x, y, color = class)) + 
+  geom_point() +
+  theme_minimal()
+
+pointPlot
+
+```
+
+Now we can get to those hyperplanes. We need to define that margin so that it does a few things:
+
+1.  It needs to separate the points properly based upon the classifications.
+
+2.  It needs to maximize the amount of distance between itself and the groups (this is called the margin).
+
+
+Let's look at some candidate lines:
+
+```{r}
+pointPlot + 
+  geom_abline(intercept = 0, color = "red") +
+  geom_abline(intercept = 1, color = "blue") + 
+  geom_abline(intercept = 2, color = "green") +
+  geom_abline(intercept = 3, color = "black")
+```
+
+So to fulfill our first condition, we can immediately rule out the red line. We now have three lines that might work:
+
+```{r}
+pointPlot + 
+  geom_abline(intercept = 1, color = "blue") + 
+  geom_abline(intercept = 2, color = "green") +
+  geom_abline(intercept = 3, color = "black")
+```
+
+With the remaining lines, which one maximizes the margin between the classes? 
+
+```{r}
+pointPlot + 
+  geom_abline(intercept = 2, color = "green")
+```
+
+
+
+
+## Code
+
+R has many classic packages, with `e1071` being one of them. We will also play with `kerlab`.
+
+# Production OCR
+
+Knowing how one might perform OCR with SVM is important, but you probably won't ever need to go down that road. Why? There are already great tools that will do the work for you. Probably the easiest one to work with is `tesseract`. Tesseract has been supported by Google for several years now and continues to make great leaps.

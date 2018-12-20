@@ -20,20 +20,70 @@ The ability to produce written word is one of the major separators between us an
 
 # Initial Analyses
 
+Like every analysis you will ever do, it is easy to try jumping right into the most complex questions you can answer with text -- and it is never the right thing to do. Text gives us the ability to do a lot of exploratory data analysis, so let's start there.
+
+Let's start by finding a little bit of text. There is a lot out there, but let's grab some "interesting" song lyrics. 
+
 ```{r}
 library(rvest)
 
-read_html("https://genius.com/Luke-bryan-huntin-fishin-and-lovin-every-day-lyrics") %>% 
-  html_nodes("p") %>% 
+library(stringr)
+
+hflLyrics = read_html("https://genius.com/Luke-bryan-huntin-fishin-and-lovin-every-day-lyrics") %>% 
+  html_nodes(".lyrics") %>% 
   html_text() %>% 
-  stringr::str_replace_all(., "\n", " ") %>% 
-  stringr::str_replace_all(., "\\[[A-Za-z]+]", "")
+  str_replace_all(., "\n", " ") %>% 
+  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>% 
+  str_squish(.) %>% 
+  gsub("([a-z])([A-Z])", "\\1 \\2", .)
+
+hflLyrics
 ```
+
+And there you have a #1 Country Song from just a few years ago.
+
+For those that might like a little more grit to their Country, let's look at another song:
 
 ```{r}
-read_html("https://genius.com/Steve-earle-copperhead-road-lyrics") %>% 
-  html_nodes("p") %>% 
+copperheadLyrics = read_html("https://genius.com/Steve-earle-copperhead-road-lyrics") %>% 
+  html_nodes(".lyrics") %>% 
   html_text() %>% 
-  `[[`(1)
+  str_replace_all(., "\n", " ") %>% 
+  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>% 
+  str_squish(.) %>% 
+  gsub("([a-z])([A-Z])", "\\1 \\2", .)
 ```
 
+We have two very different songs.
+
+## Part of Speech
+
+Some very simple descriptives would relate to the parts of speech used within each song:
+
+```{r}
+
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load_gh(c(
+    "trinker/termco", 
+    "trinker/coreNLPsetup",        
+    "trinker/tagger"
+))
+
+library(tagger)
+
+tagger::penn_tags()
+
+copperTags = tag_pos(copperheadLyrics)
+
+plot(copperTags)
+
+hflTags = tag_pos(hflLyrics)
+
+plot(hflTags)
+```
+
+## Correlation
+
+Without looking ahead, what is the likely the most common measure of association for two binary variables...$\phi$. We can calculate phi coefficients for words across documents.
+
+Let's get something a bit more interesting with regard to text. We will keep going with Country music stuff.

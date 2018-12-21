@@ -82,6 +82,18 @@ hflTags = tag_pos(hflLyrics)
 plot(hflTags)
 ```
 
+## Term Frequency
+
+Just like any other data, text has some basic descriptives, with term frequency (tf) being incredibly useful.
+
+## Inverse Document Frequency
+
+We can know how many times any word was used within a text when we look at our term frequencies. Inverse document frequency (IDF) gives us something a little bit different. If a word is incredibly common, it might not be very important to a document; however, rare words might be important within our documents.
+
+## tf-idf
+
+After considering the two in isolation, 
+
 ## Correlation
 
 Without looking ahead, what is the likely the most common measure of association for two binary variables...$\phi$. We can calculate phi coefficients for words across documents.

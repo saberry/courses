@@ -27,40 +27,65 @@ monthlyTop10 = allTop50 %>%
          searchArtist = stringr::str_extract(artist, "(?<=The\\s)\\w+|\\w+"))
 
 lyricGetter = function(artist, song, date) {
-  link = paste("api.genius.com/search?q=", song, sep = "")
   
-  songSearch = GET(link, add_headers(Authorization = paste("Bearer", token, sep = " ")))
+  Sys.sleep(1)
   
-  searchResult = content(songSearch)
+  out = tryCatch({
+    link = paste("api.genius.com/search?q=", song, sep = "")
+    
+    songSearch = GET(link, add_headers(Authorization = paste("Bearer", token, sep = " ")))
+    
+    searchResult = content(songSearch)
+    
+    whichResult = grep(artist, searchResult$response$hits)
+    
+    whichResultValue = if(length(whichResult) > 0) {
+      whichResult[1]
+    } else 1
+    
+    returnedArtist = searchResult$response$hits[[whichResultValue]]$result$primary_artist$name
+    
+    returnedArtistID = searchResult$response$hits[[whichResultValue]]$result$primary_artist$id
+    
+    returnedSong = searchResult$response$hits[[whichResultValue]]$result$title
+    
+    songLink = searchResult$response$hits[[whichResultValue]]$result$url
+    
+    lyrics = read_html(songLink) %>% 
+      html_nodes(".lyrics") %>% 
+      html_text()
+    
+    res = data.frame(returnedArtistName = returnedArtist, 
+                     returnedArtistID = returnedArtistID, 
+                     returnedSong = returnedSong,
+                     artist = artist, 
+                     song = song,
+                     lyrics = lyrics, 
+                     date = date, 
+                     warningIndicator = ifelse(length(whichResult) == 0, 1, 0))
+    
+    return(res)
+  }, error = function(e) {
+    return(song)
+  })
   
-  whichResult = grep(artist, searchResult$response$hits)
+  closeAllConnections()
   
-  whichResult = whichResult[1]
-  
-  returnedArtist = searchResult$response$hits[[whichResult]]$result$primary_artist$name
-  
-  returnedArtistID = searchResult$response$hits[[whichResult]]$result$primary_artist$id
-  
-  returnedSong = searchResult$response$hits[[whichResult]]$result$title
-  
-  songLink = searchResult$response$hits[[whichResult]]$result$url
-  
-  lyrics = read_html(songLink) %>% 
-    html_nodes(".lyrics") %>% 
-    html_text()
-  
-  res = data.frame(artistName = returnedArtist, 
-                   artistID = returnedArtistID, 
-                   song = returnedSong, 
-                   lyrics = lyrics, 
-                   date = date)
-  
-  return(res)
+  return(out)
 }
 
 debugonce(lyricGetter)
 
-lyricGetter(monthlyTop10$searchArtist[1], monthlyTop10$searchSong[1], monthlyTop10$date[1])
+lyricGetter(monthlyTop10$searchArtist[5], monthlyTop10$searchSong[5], monthlyTop10$date[5])
+
+allLyrics = mapply(lyricGetter, monthlyTop10$searchArtist, monthlyTop10$searchSong, monthlyTop10$date, 
+              SIMPLIFY = FALSE)
+
+goodRes = unlist(lapply(1:length(allLyrics), function(x) is.data.frame(allLyrics[[x]])))
+
+goodRes[which(goodRes == TRUE)]
+
+allLyricsDF = data.table::rbindlist(allLyrics[which(goodRes == TRUE)])
 
 lyricGetter("copperhead+road", monthlyTop10$date[1])
 

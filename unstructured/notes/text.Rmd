@@ -17,6 +17,18 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 The ability to produce written word is one of the major separators between us and the other great apes. And with the ability to produce it, comes the benefit of interpretting it.
 
 
+# Working With Text
+
+Text, more than almost any other type of data, is tough to work with. Images can be grayscaled, shrunk, and converted to their respective channels. Audio can be broken down into millisecond chunks of waves. Even video, in its massive entirety, can be broken into frames and then treated like images. Text, on the other hand, is just ugly. The likelihood that you will get clean text is exceedingly slim. Maybe you will find a nice tidy set of documents, but you should be prepared for a considerable amount of cleaning when it comes to processing your text. 
+
+## Regular Expressions
+
+A great deal of your cleaning is going to come from regular expressions (if you have seen me before, you have likely heard me drone on about them at some point). Now, even more so than the other times we have discussed them, is the most critical time to learn them. You don't need to reach mastery at this point, but you should be able to work through a pretty basic pattern. 
+
+
+regexone.com
+
+
 
 # Initial Analyses
 
@@ -33,7 +45,7 @@ hflLyrics = read_html("https://genius.com/Luke-bryan-huntin-fishin-and-lovin-eve
   html_nodes(".lyrics") %>% 
   html_text() %>% 
   str_replace_all(., "\n", " ") %>% 
-  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>% 
+  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>%
   str_squish(.) %>% 
   gsub("([a-z])([A-Z])", "\\1 \\2", .)
 
@@ -49,19 +61,35 @@ copperheadLyrics = read_html("https://genius.com/Steve-earle-copperhead-road-lyr
   html_nodes(".lyrics") %>% 
   html_text() %>% 
   str_replace_all(., "\n", " ") %>% 
-  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>% 
+  str_replace_all(., "\\[\\w+\\s*[0-9]*]", "") %>% 
   str_squish(.) %>% 
   gsub("([a-z])([A-Z])", "\\1 \\2", .)
+
+copperheadLyrics
 ```
 
-We have two very different songs.
+And here is some more underground country:
+
+```{r}
+choctawBingoLyrics = read_html("https://genius.com/James-mcmurtry-choctaw-bingo-lyrics") %>% 
+  html_nodes(".lyrics") %>% 
+  html_text() %>% 
+  str_replace_all(., "\n", " ") %>% 
+  str_replace_all(., "\\[\\w+\\s*\\w*\\]", "") %>% 
+  str_squish(.) %>% 
+  gsub("([a-z])([A-Z])", "\\1 \\2", .)
+
+choctawBingoLyrics
+```
+
+
+We clearly have very different songs: one about living the outlaw life, one about living the "country-boy" life, and one about your typical American family reunion. From here on, it might be worth exploring more about these three types of songs.
 
 ## Part of Speech
 
 Some very simple descriptives would relate to the parts of speech used within each song:
 
 ```{r}
-
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load_gh(c(
     "trinker/termco", 
@@ -80,22 +108,210 @@ plot(copperTags)
 hflTags = tag_pos(hflLyrics)
 
 plot(hflTags)
+
+bingoTags = tag_pos(choctawBingoLyrics)
+
+plot(bingoTags)
 ```
+
+Part of speech tagging is great if you want to know how people are using the language, not necessarily what they are using. 
 
 ## Term Frequency
 
-Just like any other data, text has some basic descriptives, with term frequency (tf) being incredibly useful.
+Just like any other data, text has some basic descriptives, with term frequency (tf) being incredibly useful. When we are looking at term frequency, we are looking for a few different words: high and low frequency. If a word is high frequency (think: "the"), then it might not really be offering us much in the way of anything informative. Likewise, a word that only occurs once or twice might not be terribly important either. 
+
+When looking a corpus, it is important to adjust for the length of the text when calculating term frequency (naturally, longer texts will have words occuring more frequently). 
+
+Let's see what we have in the way of term frequency in our two songs:
+
+```{r}
+library(dplyr)
+
+library(tidytext)
+
+songData = data.frame(song = c("hfl", "copperhead", "bingo"), 
+                      lyrics = c(tolower(hflLyrics), tolower(copperheadLyrics), tolower(choctawBingoLyrics)), 
+                      stringsAsFactors = FALSE)
+
+songTF = songData %>% 
+  split(., .$song) %>%
+  lapply(., function(x) {
+    songTokens = tm::MC_tokenizer(x$lyrics)
+    tokenCount = as.data.frame(summary(as.factor(songTokens), maxsum = 1000))
+    total = length(songTokens)
+    tokenCount = data.frame(count = tokenCount[[1]], 
+                            word = row.names(tokenCount),
+                            total = total,
+                            song = x$song,
+                            row.names = NULL)
+    return(tokenCount)
+    # res = data.frame(song = x)
+    }) 
+
+songTF = do.call("rbind", songTF)  
+
+rmarkdown::paged_table(songTF)
+  
+```
+
+
+We can sort our raw frequencies in many different ways, but we see some very common words across our documents (the, i, a). Those likely are not important for our understanding of the lyrics (maybe "I", but we can get into the story-telling in a bit).
+
+Let's now take our frequencies and divide by the number of terms within the document:
+
+```{r}
+songTF$tf = songTF$count/songTF$total
+
+rmarkdown::paged_table(songTF)
+```
+
+This provides a nice term frequency adjusted for the length of the document. There are others (e.g., log scaling, normalized, and double normalized), but this clearly-adjusted term frequency will more than suit our needs here. If we had documents of wildly-different lengths, we would explore some alternatives. 
+
 
 ## Inverse Document Frequency
 
-We can know how many times any word was used within a text when we look at our term frequencies. Inverse document frequency (IDF) gives us something a little bit different. If a word is incredibly common, it might not be very important to a document; however, rare words might be important within our documents.
+We can know how many times any word was used within a text when we look at our term frequencies. Inverse document frequency (IDF) gives us something a little bit different. If a word is incredibly common, it might not be very important to a document; however, rare words might be important within our documents. To that end, we would assign a higher weight to words that occur less frequently than words that are common.
+
+
+We can calculate idf as the natural log of the number of the number of documents divided by the number of documents containing the term.
+
+```{r}
+idfDF = songTF %>% 
+  group_by(word) %>% 
+  count() %>% 
+  mutate(idf = log((2 / n)))
+
+rmarkdown::paged_table(idfDF)
+```
+
+Our idf is just telling us what we need to know about the corpus-wide term counts. We can see that words that appear in all three of our songs have a very low idf, while words that appear in only song have a much higher idf.
 
 ## tf-idf
 
-After considering the two in isolation, 
+After considering the two in isolation, we can also consider what both of them will get for us together. If we take the term frequency to mean that words are appearing frequently within our text and we take our inverse document frequency to mean that we are only considering important words, we might imagine a set of words appearing commonly within a document, but not appearing within other documents as often. This would suggest a high-weight words for a specific document. 
+
+It can be tempting to just cut stop words out and deal with everything that comes out -- this is not the place for that. Stopword removal, for all practical purposes, is brute force. If we want to have a bit of finese here, we want to leave open the possibility that words, even potentially common words within a document, can have different levels of importance across documents.
+
+To get our tf-idf, let's join our tf data and our idf data together:
+
+```{r}
+tfidfData = merge(songTF, idfDF, by = "word")
+```
+
+
+And from there, it is just simple multiplication between our tf and our idf:
+
+```{r}
+tfidfData$tfIDF = tfidfData$count * tfidfData$idf
+
+rmarkdown::paged_table(tfidfData)
+```
+
+Let's take a look at our top 15 words for each song:
+
+```{r}
+tfidfData %>% 
+  group_by(song) %>% 
+  arrange(song, desc(tfIDF)) %>% 
+  slice(1:15) %>% 
+  rmarkdown::paged_table()
+```
+
+Pretty interesting, right? What is the story here, though? I might be tempted to say that one of these songs is incredibly lazy and appeals to a specific sort of country music fan, while the other two took a little bit of actual word to write.
+
 
 ## Correlation
 
-Without looking ahead, what is the likely the most common measure of association for two binary variables...$\phi$. We can calculate phi coefficients for words across documents.
+Without looking ahead, what is likely the most common measure of association for two binary variables...$\phi$. We can calculate phi coefficients for words across documents.
 
-Let's get something a bit more interesting with regard to text. We will keep going with Country music stuff.
+Since we already know how we can tokenize our documents using non-tidy work, let's make things a little bit easier for ourselves and use the `widyr` and `tidytext` packages. 
+
+
+```{r}
+library(tidytext)
+
+library(widyr)
+
+songDataCor = unnest_tokens(songData, words, lyrics)
+
+songDataCor = songDataCor[!(songDataCor$words %in% stop_words$word), ]
+
+cors = pairwise_cor(songDataCor, words, song, sort = TRUE)
+
+rmarkdown::paged_table(cors)
+```
+
+With relatively few documents, we don't really have too much interesting to explore here. We could, though, try something a little more interesting (and likely predictable). 
+
+Since we already saw some of the best that modern country has to offer, let's look at an entire album worth of country music (Luke Bryan should offer some predictable results). We can scrape the song lyrics from the Genius page.
+
+```{r, echo = FALSE}
+load("D:/projects/courses/unstructured/data/killLightsLyrics.RData")
+```
+
+
+```{r, eval = FALSE}
+killTheLightsLink = read_html("https://genius.com/albums/Luke-bryan/Kill-the-lights")
+
+links = killTheLightsLink %>% 
+  html_nodes('a[href*="lyrics"]') %>% 
+  html_attr("href")
+
+killLightsLyrics = lapply(links, function(x) {
+  songPage = read_html(x, encoding = "UTF-8") 
+  
+  lyrics = songPage %>% 
+    html_nodes(".lyrics") %>% 
+    html_text() %>% 
+    str_replace_all(., "\n", " ") %>% 
+    str_replace_all(., "\\[(.*?)\\]", "") %>% 
+    str_squish(.) %>% 
+    gsub("([a-z])([A-Z])", "\\1 \\2", .)
+  
+  title = songPage %>% 
+    html_nodes("title") %>% 
+    html_text() %>% 
+    stringr::str_extract(., "(?=\\s\\W\\s).*(?<=\\s\\W\\s)")
+  
+  res = data.frame(lyrics = lyrics, 
+                   title = title, 
+                   stringsAsFactors = FALSE)
+  
+  return(res)
+})
+
+killLightsLyrics = do.call("rbind", killLightsLyrics)
+
+```
+
+If you care to, you can look at the lyrics for each song (I don't recommend it).
+
+Now, we can go through our tokenizing, stopword filtering, and correlation generation again:
+
+```{r}
+albumCors = unnest_tokens(killLightsLyrics, words, lyrics) %>% 
+  filter(!(.$words %in% stop_words$word)) %>% 
+  pairwise_cor(., words, title, sort = TRUE)
+
+rmarkdown::paged_table(albumCors)
+```
+
+These correlations are far more interesting! 
+
+
+## N-grams
+
+We have primarily been living in the space of single words (and if those single words appear alongside other single words in a text). We know, however, that words rarely appear in isolation -- this is where n-grams come into play. In this case, the *n* is any number that we want to use. In most text exploration, bigrams and trigrams are going to be the most common n-grams that you will use, but you could use anything.
+
+Poking fun at bad country is a good time, so let's keep exploring our previously gotten album:
+
+```{r}
+bigrams = killLightsLyrics %>% 
+  # mutate(lyrics = stringr::str_squish(tm::removeWords(tolower(lyrics), tm::stopwords("SMART")))) %>% 
+  unnest_tokens(., ngrams, lyrics, token = "ngrams", n = 2) %>% 
+  tidyr::separate(ngrams, c("word1", "word2"), sep = "\\s") %>% 
+  count(word1, word2, sort = TRUE)
+
+rmarkdown::paged_table(bigrams)
+```
+

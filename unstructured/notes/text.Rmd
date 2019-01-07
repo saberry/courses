@@ -315,3 +315,82 @@ bigrams = killLightsLyrics %>%
 rmarkdown::paged_table(bigrams)
 ```
 
+## String Distance And Similarity
+
+Now that we know a little bit about n-grams (and individual words), we can talk about string distances. If you ever need to know how similar (or dissimilar) two words/texts are, then string distances are what you need. But...which one should we use. 
+
+### Levenshtein
+
+This is probably the most common string distance metric you will see (it is pretty common in genetics research, among other areas). Conceptually, it is pretty easy -- we are just finding the number of changes that need to be made to one string to equal another string.
+
+Let's look at two names:
+
+```{r}
+library(stringdist)
+
+stringdist("bono", "gaga", method = "lv")
+```
+
+To transform "bono" into "gaga", we would need to replace the "b" with a "g", the "o" with an "a", the "n" with a "g", and the "o" with an "a" -- all leading to a Levenshtein distance of 4. We can also look at the similarity between the two:
+
+```{r}
+stringsim("bono", "gaga", method = "lv")
+```
+
+As to be expected. We take our string distance score, divide it by the maximum feasible distance, and then subtract from 1. 
+
+Those are clearly different words, but what about something a little closer together?
+
+```{r}
+stringdist("beauty", "beautiful", method = "lv")
+```
+
+Still 4. That is the tricky thing with Levenshtein distance -- string length matters.  
+
+Let's check the similarity now:
+
+```{r}
+stringsim("beauty", "beautiful", method = "lv")
+```
+
+We have our distance (4), divided by the max possible distance (beautiful has 9 letters, so 4 / 9 = .4444444), and subtract that from 1 (1 - .4444444 = .5555556). 
+
+
+The similarity here is a bit more telling than our distance. 
+
+### Jaccard
+
+The Jaccard Index is an extremely flexible metric that goes even beyond strings (it is used in computer vision, pure mathematics, and various other places). It is most useful when comparing sets as opposed to just words. 
+
+```{r}
+stringdist("soup can", "soup tin", method = "jaccard", q = 1)
+```
+
+We can also try it with different values of *q* to really get a feel for what is happening:
+
+```{r}
+stringdist("soup can", "soup tin", method = "jaccard", q = 2)
+```
+
+Why did our distance increase? Let's break our individual strings into bigrams:
+
+```{r}
+can = paste(unlist(NLP::ngrams(unlist(strsplit("soup can", "")), 2)), collapse = "")
+
+tin = paste(unlist(NLP::ngrams(unlist(strsplit("soup tin", "")), 2)), collapse = "")
+
+substring(can, seq(1, nchar(can) - 1, 2), seq(2, nchar(can), 2))
+
+substring(tin, seq(1, nchar(tin) - 1, 2), seq(2, nchar(tin), 2))
+
+
+```
+
+We see that we have 7 bigrams for our vectors. 
+
+```{r}
+stringdist("taco", "tako", method = "qgram", q = 2)
+
+stringsim("taco", "tako", method = "qgram", q = 2)
+```
+

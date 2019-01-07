@@ -34,27 +34,97 @@ You may not believe this, but we are at the point now where there are tons of im
 
 ## Video
 
+Have you pumped gas lately and one of those new-fangled pumps with the ads on the screen? What about self-checkout Target or the tool aisles at Home Depot? If so, we are part of the rapid expansion of video data. 
+
 ## Audio
+
+Alexa, Google, and any other machine that you talk to has recorded that data for analysis.
 
 # Acquisition & Types
 
-Where exactly do we find these data types? All over the place. The location of the data does not pose an issue for us; instead, we primarily need to be concerned about what form the data takes
+Where exactly do we find these data types? All over the place. The location of the data does not (generally) pose an issue for us; instead, we primarily need to be concerned about what form the data takes.
 
 ## Hypertext Markup Language
 
-Where would be without HTML? 
+Where would the web be without HTML? Probably a much different place. For us, though, html is a great place to find data. Life is easy when we are pulling data out of html tables:
 
-## Cascading Style Sheets
+```{r}
+library(rvest)
 
-Before CSS, the web was styled purely with HTML -- and what a style it was! While we might not really care about style for our purpose, CSS can help find stuff within a webpage.
+songs = read_html("https://en.wikipedia.org/wiki/List_of_Hot_Country_Songs_number_ones_of_2005") %>% 
+  html_table() %>% 
+  `[[`(1)
 
-## Extensible Markup Language
+songs
+```
 
-Extensible markup language (XML) was created with the intention of being both human and machine readable -- and it generally fits that bill. Querying XML, however, tends to require the use of XPaths. XPaths are situated somewhere along the lesser circles of Hell, but can be used to great effectiveness when trying to pull stuff out of XML.
+
+What about this <a href="https://www.billboard.com/charts/country-songs">page</a>? How would we go about getting that data?
+
+### Cascading Style Sheets
+
+Before CSS, the web was styled purely with HTML -- and what a style it was! While we might not really care about style for our purpose, CSS can help find stuff within a webpage. CSS has a wide variety of selectors, combinators, pseudo-classes, and pseudo-elements that we can use to pull data off of webpages.
+
+Whenever you are trying to pull data off of a page, it is always a good idea to inspect the source for any hints offered. Let's say that I want to do some headhunting for an analytics department and we want to find some <a href="https://psychology.nd.edu/graduate-programs/areas-of-study/quantitative/area-faculty/">Quant Psych faculty</a> who might be worth a visit. We also want to know where those people went to school. We might also want to grab everyone else, but we don't need to know their educational background.
+
+```{r}
+facultyData = read_html("https://psychology.nd.edu/graduate-programs/areas-of-study/quantitative/area-faculty/") %>% 
+  html_nodes(".columns.medium-9.large-10")
+
+faculty = lapply(1:length(facultyData), function(x) {
+  
+  out = tryCatch({
+    name = facultyData[x] %>% 
+      html_nodes("h3") %>% 
+      html_text()
+    
+    area = facultyData[x] %>% 
+      html_nodes(".faculty-areas ul li") %>% 
+      html_text()
+    
+    email = facultyData[x] %>% 
+      html_nodes(".faculty-email") %>% 
+      html_text()
+    
+    webpage = facultyData[x] %>% 
+      html_nodes("h3 a") %>% 
+      html_attr("href") %>% 
+      paste("https://psychology.nd.edu/", ., sep = "")
+    
+    if(area == "Quantitative") {
+      
+      education = read_html(webpage) %>% 
+        html_nodes(".faculty-education p") %>% 
+        html_text()
+      
+      allFaculty = data.frame(name = name, 
+                              area = area, 
+                              education = education,
+                              email = email,
+                              webpage = webpage,
+                              stringsAsFactors = FALSE)
+    } else {
+      allFaculty = data.frame(name = name, 
+                              area = area, 
+                              education = NA,
+                              email = email,
+                              webpage = webpage,
+                              stringsAsFactors = FALSE)
+    }
+  }, error = function(e) {
+    return(NA)
+  })
+  
+  return(out)
+})
+
+
+```
+
 
 ## JavaScript Object Notation
 
-JavaScript Object Notation (JSON) creeps up everywhere on the web, because it is designed to facilitate smooth information transfer between a server and an individual's browser. When nice data gets served up to a fancy table or visualization on the web, it is probably coming through in JSON.
+More and more, we are seeing JavaScript Object Notation (JSON) creep up everywhere on the web, because it is designed to facilitate smooth information transfer between a server and an individual's browser. When nice data gets served up to a fancy table or visualization on the web, it is probably coming through in JSON. An added benefit (not for us), but this data cannot really be scraped anymore; instead, we often need to look through the network structure find where it is located and then read it in directly (note -- it cannot always be found).
 
 ```
 '[
@@ -86,3 +156,18 @@ JavaScript Object Notation (JSON) creeps up everywhere on the web, because it is
   "spouse": null
 ]'
 ```
+
+Here is how we can read json right into R:
+
+```{r}
+jsonlite::fromJSON("https://api.dibitnow.com/api/v1/eventPerformers/getEventPerformers?eventId=1")
+```
+
+
+Simple json is not really very difficult to parse; however, json can be incredibly nested, so you need to do a lot of flattening and joining.
+
+
+
+## Extensible Markup Language
+
+Extensible markup language (XML) was created with the intention of being both human and machine readable -- and it generally fits that bill. Querying XML, however, tends to require the use of XPaths. XPaths are situated somewhere along the lesser circles of Hell, but can be used to great effectiveness when trying to pull stuff out of XML.

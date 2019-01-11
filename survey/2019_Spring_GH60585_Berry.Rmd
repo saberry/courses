@@ -1,0 +1,129 @@
+---
+title: |  
+      | Global Health Survey Design
+      | GH 60585
+output: pdf_document
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Office: 337 Mendoza
+
+# Email: seth.berry@nd.edu
+
+# Office Hours
+
+Tuesdays, Thursdays, & Fridays -- 12:00 to 2:00
+
+These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in to chat with me about anything (stats, programming, career, etc.).
+
+
+# Class Days and Time
+
+Friday -- 2:00 to 5:00
+
+Location -- Jordan 310
+
+# Course Description
+
+Surveys, like all scientific tools, require great care in their design and implementation -- and just like other scientific tools, research can be ruined if surveys are not properly used. In this course, we will learn how to develop, administer, and analyze surveys. Our areas of focus will be on writing and ordering questions to produce your desired data (in other words, data that you can actually use to test your hypotheses), fielding surveys with a variety of technologies, and how to appropriately analyze survey responses. All coursework will be oriented towards having a well-crafted survey that is ready for use in the field or online. We will utilize Qualtrics and Open Data Kit as our primary survey tools and we will use R to perform our data cleaning and analyses. 
+
+
+# Learning Goals
+
+By successfully completing this course, you will fulfill the following objectives:
+
+- Develop skills in writing survey items and developing the entire survey instrument.
+
+- Create surveys with modern tools, such as QUaltrics and Open Data Kit
+
+- Understand the theoretical concepts behind text summarization, sentiment analysis, topic modeling, naive bayes, neural networks and support vector machines.
+
+- Know which analyses are appropriate for survey responses
+  
+
+# Attendance
+
+While I will not be taking attendance in a strict sense, we will have in-class exercises every week. These will serve two purposes: 1) it will be good practice and 2) it will be a participation grade.
+
+# Readings
+
+There is no official textbook for this course, but here are some good resources:
+
+<a href="http://quaid.cohmetrix.com/">Question Understanding Aid (QUAID)</a>
+
+<a href="https://ojs.ub.uni-konstanz.de/srm/">Survey Research Methods</a>
+
+<a href="https://academic.oup.com/jssam">Journal of Survey Statistics and Methodology</a>
+
+<a href="https://journals.sagepub.com/home/ssc">Social Science Computer Review</a>
+
+<a href="http://lavaan.ugent.be/tutorial/index.html">lavaan</a>
+
+<a href="http://personality-project.org/r/psych/">psych</a>
+
+# Homework
+
+We will have 3 homework assignments. These assignments will largely be based upon your own project work. 
+
+# Presentations
+
+As opposed to a final exam, we will be having presentations on our last day of class. 
+
+# Grade Breakdown
+
+In-class exercises -- 40 points (11%)
+
+Homework -- 90 points (31%)
+
+Presentation -- 50 points (17%)
+
+Participation -- 30 points
+
+Total -- 350 points
+
+A = 333+ points
+
+A- = 315-332 points
+
+B+ = 305-314 points
+
+B = 294-304 points
+
+B- = 280-293 points
+
+C+ = 270-279 points
+
+# Schedule
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+
+data.frame(Week = 1:4,
+           Date = c("01/25 (F)", 
+                    "02/08 (F)", 
+                    "03/15 (F)", 
+                    "04/22 (F)"), 
+           Topic = c("Item and Survey Design (1)", 
+                     "Survey Programming (2)", 
+                     "Analyses (3)", 
+                     "Visualization & Presentations (4)"), 
+           # Description = unlist(topicDesc),
+           Assignments = c("",
+                        "Homework #1",
+                        "Homework #2",
+                        "Homework #3")) %>% 
+  knitr::kable(., format = "latex")
+```
+
+ 
+1.  Web data in JSON, HTML and/or XML formats, API data, text, images
+
+2.  Term frequency, inverse document frequency, part of speech tagging, and relationships
+
+3.  Practicum on text collection, exploration, and preparation
+
+4.  Latent Semantic Analysis, Latent Dirichlet Allocation, and NNMF

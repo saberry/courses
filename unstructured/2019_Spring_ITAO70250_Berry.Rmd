@@ -1,0 +1,164 @@
+---
+title: |  
+      | Unstructured Data Analytics
+      | ITAO70250
+output: pdf_document
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Office: 337 Mendoza
+
+# Email: seth.berry@nd.edu
+
+# Office Hours
+
+Tuesdays, Thursdays, & Fridays -- 12:00 to 2:00
+
+These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in chat with me about anything (stats, programming, career, etc.).
+
+
+# Class Days and Time
+
+Monday and Wednesday -- 1:00 to 2:50
+
+Location -- L068
+
+# Course Description
+
+The vast majority of the world’s data is unstructured. Developing competency in how to harness this type of data in order to develop critical insights has significant value for today’s business. This course introduces the fundamental concepts of unstructured data analytics, from data acquisition and preparation to applying supervised and unsupervised machine learning approaches such as textual analysis and summarization, text recognition and classification, sentiment analysis, topic modeling and image classification. In the context of unstructured data analytics, students will also be introduced to the principles behind such classic machine learning algorithms such as naive bayes, support vector machines and artificial neural networks.
+
+
+# Learning Goals
+
+By successfully completing this course, you will fulfill the following objectives:
+
+- Gain a foundational understanding of both supervised and unsupervised machine learning approaches to unstructured data.
+
+- Develop an applied knowledge of some of the common unstructured data acquisition, exploration and preparation approaches using R.
+
+- Understand the theoretical concepts behind text summarization, sentiment analysis, topic modeling, naive bayes, neural networks and support vector machines.
+
+- Develop an applied knowledge of how to implement the approaches discussed in the course using R.
+  
+
+# Attendance
+
+While I will not be taking attendance in a strict sense, we will have in-class exercises for our 7 main topics (each worth 10 points). This will serve two purposes: 1) it will be good practice and 2) it will be a participation grade.
+
+# Readings
+
+There is no official textbook for this course, but here are some good resources:
+
+<a href="https://www.tidytextmining.com/">Text Mining with R</a>
+
+<a href="https://r4ds.had.co.nz/">R for Data Science</a>
+
+<a href="https://swcarpentry.github.io/r-novice-inflammation/02-func-R/">Creating Functions</a>
+
+<a href="https://www.datacamp.com/community/tutorials/r-tutorial-apply-family">The apply Family</a>
+
+# Homework
+
+During the course of the mod, we will have 4 homework assignments (worth 20, 40, 60, and 80 points). All homework assignments must be submitted in an html file knitted from Rmarkdown. You will have somewhere around a half-month to complete assignments.
+
+# Presentations
+
+As opposed to a final exam, we will be having presentations on our last day of class. These presentations are not to exceed 3 minutes and will be on a course topic of your choosing. Presentation guidelines will follow, but general creativity and appropriate technique use will figure heavily into your grade.
+
+# Grade Breakdown
+
+In-class exercises -- 70 points (11%)
+
+Homework -- 200 points (31%)
+
+Presentation -- 50 points (17%)
+
+Participation -- 30 points
+
+Total -- 350 points
+
+A = 333+ points
+
+A- = 315-332 points
+
+B+ = 305-314 points
+
+B = 294-304 points
+
+B- = 280-293 points
+
+C+ = 270-279 points
+
+# Schedule
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+
+data.frame(Week = c(1, "", 2, "", 3, "",
+                    4, "", 5, "", 6, "", 
+                    7),
+           Date = c("01/14 (M)", 
+                    "01/16 (W)", 
+                    "01/21 (M)", 
+                    "01/23 (W)", 
+                    "01/28 (M)", 
+                    "01/30 (W)", 
+                    "02/04 (M)", 
+                    "02/06 (W)", 
+                    "02/11 (M)", 
+                    "02/13 (W)", 
+                    "02/18 (M)",
+                    "02/20 (W)",
+                    "02/25 (M)"), 
+           Topic = c("Introduction", 
+                     "No class", 
+                     "Data Collection and Preparation (1)", 
+                     "Text Analysis (2)", 
+                     "Lab 1 (3)", 
+                     "Sentiment Analysis", 
+                     "Topic Modeling (4)", 
+                     "Lab 2 (5)", 
+                     "Text Classification (6)", 
+                     "Optical Character Recognition (7)", 
+                     "Lab 3 (8)", 
+                     "Image Classification (9)", 
+                     "Presentations"), 
+           # Description = unlist(topicDesc),
+           Assignments = c("", 
+                        "CSS Diner and Regex Tester", 
+                        "", 
+                        "",
+                        "Homework #1",
+                        "",
+                        "",
+                        "Homework #2",
+                        "",
+                        "",
+                        "Homework #3",
+                        "", 
+                        "")) %>% 
+  knitr::kable(., format = "latex")
+```
+
+ 
+1.  Web data in JSON, HTML and/or XML formats, API data, text, images
+
+2.  Term frequency, inverse document frequency, part of speech tagging, and relationships
+
+3.  Practicum on text collection, exploration, and preparation
+
+4.  Latent Semantic Analysis, Latent Dirichlet Allocation, and NNMF
+
+5.  Practicum on text analysis
+
+6.  Naive Bayes for document classification
+
+7.  Support Vector Machines and their application to identifying text (OCR)
+
+8.  Practicum on supervised text analysis
+
+9.  Artificial Neural Networks and image classification.

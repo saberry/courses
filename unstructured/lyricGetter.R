@@ -86,18 +86,3 @@ goodRes = unlist(lapply(1:length(allLyrics), function(x) is.data.frame(allLyrics
 goodRes[which(goodRes == TRUE)]
 
 allLyricsDF = data.table::rbindlist(allLyrics[which(goodRes == TRUE)])
-
-lyricGetter("copperhead+road", monthlyTop10$date[1])
-
-test = GET("api.genius.com/search?q=copperhead+road", add_headers(Authorization = paste("Bearer", token, sep = " ")))
-
-artist = gsub(",|\\.|&.*|'", "", allTop50$artist)
-
-song
-
-links = paste("https://genius.com/", 
-              gsub("\\s", "-", allTop50$artist), "-",
-              gsub("\\s", "-", allTop50$song), 
-              "-lyrics", sep = "")
-
-links = gsub("'|,", "", links)

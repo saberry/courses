@@ -2,7 +2,16 @@
 title: |  
       | Unstructured Data Analytics
       | ITAO70250
-output: pdf_document
+header-includes:
+   - \usepackage{bbm}
+   -  \hypersetup{
+    colorlinks=true,
+    linkcolor=magenta,
+    filecolor=magenta,      
+    urlcolor=magenta}
+  
+output:
+    pdf_document
 fontsize: 12pt
 ---
 
@@ -53,13 +62,13 @@ While I will not be taking attendance in a strict sense, we will have in-class e
 
 There is no official textbook for this course, but here are some good resources:
 
-<a href="https://www.tidytextmining.com/">Text Mining with R</a>
+\href{https://www.tidytextmining.com/}{Text Mining with R}
 
-<a href="https://r4ds.had.co.nz/">R for Data Science</a>
+\href{https://r4ds.had.co.nz/}{R for Data Science}
 
-<a href="https://swcarpentry.github.io/r-novice-inflammation/02-func-R/">Creating Functions</a>
+\href{https://swcarpentry.github.io/r-novice-inflammation/02-func-R/}{Creating Functions}
 
-<a href="https://www.datacamp.com/community/tutorials/r-tutorial-apply-family">The apply Family</a>
+\href{https://www.datacamp.com/community/tutorials/r-tutorial-apply-family}{The apply Family}
 
 # Homework
 

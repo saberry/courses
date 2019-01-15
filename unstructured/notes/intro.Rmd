@@ -44,7 +44,7 @@ Images, however, will prove to be a little bit more difficult to work on. This d
 
 ## Audio
 
-Alexa, Google, and any other machine that you talk to has recorded that data for analysis.
+Alexa, Google, and any other machine that you talk to has recorded that data for analysis. Can we find the point when a voice changes?
 
 # Acquisition & Types
 
@@ -59,7 +59,8 @@ library(rvest)
 
 songs = read_html("https://en.wikipedia.org/wiki/List_of_Hot_Country_Songs_number_ones_of_2005") %>% 
   html_table() %>% 
-  `[[`(1)
+  `[[`(1) %>% 
+  rmarkdown::paged_table()
 
 songs
 ```
@@ -176,7 +177,7 @@ More and more, we are seeing JavaScript Object Notation (JSON) creep up everywhe
 
 Here is how we can read json right into R:
 
-```{r}
+```{r, eval = FALSE}
 jsonlite::fromJSON("https://api.dibitnow.com/api/v1/eventPerformers/getEventPerformers?eventId=1")
 ```
 
@@ -187,6 +188,42 @@ Simple json is not really very difficult to parse; however, json can be incredib
 ## Extensible Markup Language
 
 Extensible markup language (XML) was created with the intention of being both human and machine readable -- and it generally fits that bill. Querying XML, however, tends to require the use of XPaths. XPaths are situated somewhere along the lesser circles of Hell, but can be used to great effectiveness when trying to pull stuff out of XML.
+
+```
+<nutrition>
+  <daily-values>
+    <total-fat units="g">65</total-fat>
+    <saturated-fat units="g">20</saturated-fat>
+    <cholesterol units="mg">300</cholesterol>
+    <sodium units="mg">2400</sodium>
+    <carb units="g">300</carb>
+    <fiber units="g">25</fiber>
+    <protein units="g">50</protein>
+  </daily-values>
+  <food>
+    <name>Avocado Dip</name>
+    <mfr>Sunnydale</mfr>
+    <serving units="g">29</serving>
+    <calories total="110" fat="100"/>
+    <total-fat>11</total-fat>
+    <saturated-fat>3</saturated-fat>
+    <cholesterol>5</cholesterol>
+    <sodium>210</sodium>
+    <carb>2</carb>
+    <fiber>0</fiber>
+    <protein>1</protein>
+    <vitamins>
+      <a>0</a>
+      <c>0</c>
+    </vitamins>
+    <minerals>
+      <ca>0</ca>
+      <fe>0</fe>
+    </minerals>
+  </food>
+</nutrition>
+```
+
 
 
 ```{r}

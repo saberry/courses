@@ -109,7 +109,7 @@ library(dplyr)
 
 data.frame(Week = c(1, "", 2, "", 3, "",
                     4, "", 5, "", 6, "", 
-                    7),
+                    7, ""),
            Date = c("01/14 (M)", 
                     "01/16 (W)", 
                     "01/21 (M)", 
@@ -122,7 +122,8 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                     "02/13 (W)", 
                     "02/18 (M)",
                     "02/20 (W)",
-                    "02/25 (M)"), 
+                    "02/25 (M)", 
+                    "02/28 (Tr)"), 
            Topic = c("Introduction", 
                      "No class", 
                      "Data Collection and Preparation (1)", 
@@ -135,6 +136,7 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                      "Optical Character Recognition (7)", 
                      "Lab 3 (8)", 
                      "Image Classification (9)", 
+                     "Emerging Issues", 
                      "Presentations"), 
            # Description = unlist(topicDesc),
            Assignments = c("", 
@@ -149,7 +151,7 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                         "",
                         "Homework #3",
                         "", 
-                        "")) %>% 
+                        "", "")) %>% 
   knitr::kable(., format = "latex")
 ```
 

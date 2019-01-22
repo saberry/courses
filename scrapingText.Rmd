@@ -1,0 +1,236 @@
+---
+title: "Scraping Text"
+description: |
+  Marketing Analytics
+author:
+  - name: The Berry Cherian Connection 
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Packages
+
+The following packages will be extremely useful to us:
+
+```{r}
+library(dplyr)
+
+library(ggplot2)
+
+library(magrittr)
+
+library(rvest)
+
+library(stringr)
+
+apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
+
+ctTest = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend", 
+             add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+
+ct = GET("https://api.yelp.com/v3/businesses/bx2rCVErnRJ2SBxe7tKy7w", 
+    add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+
+content(ctTest, as = "text")
+```
+
+
+## Scraping Text
+
+Yelp will be a good place to start scraping some data, and for a few reasons: it is well structured, there is a nice chunk of data to be gotten, and it is rich with text.
+
+### Evil Czech
+
+```{r}
+evilCzech = "https://www.yelp.com/biz/evil-czech-brewery-and-public-house-mishawaka"
+
+evilCzechHTML = read_html(evilCzech)
+
+ecRatings = evilCzechHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ecReviews = evilCzechHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+evilCzechData = data.frame(ratings = ecRatings, 
+                           reviews = ecReviews,
+                           restaurant = "evil czech", 
+                           stringsAsFactors = FALSE)
+```
+
+
+### Fiddler's Hearth
+
+```{r}
+fiddlers = "https://www.yelp.com/biz/fiddlers-hearth-south-bend"
+
+fiddlersHTML = read_html(fiddlers)
+
+fhRatings = fiddlersHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+fhReviews = fiddlersHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+fhData = data.frame(ratings = fhRatings, 
+                    reviews = fhReviews, 
+                    restaurant = "fiddlers hearth", 
+                    stringsAsFactors = FALSE)
+```
+
+
+### Crooked Ewe
+
+```{r}
+crookedEwe = "https://www.yelp.com/biz/crooked-ewe-brewery-and-ale-house-south-bend"
+
+crookedEweHTML = read_html(crookedEwe)
+
+ceRatings = crookedEweHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ceReviews = crookedEweHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+ceData = data.frame(ratings = ceRatings, 
+                    reviews = ceReviews, 
+                    restaurant = "crooked ewe", 
+                    stringsAsFactors = FALSE)
+```
+
+
+### Cambodian Thai
+
+```{r}
+cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
+
+cambodianThaiHTML = read_html(cambodianThai)
+
+ctRatings = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ctReviews = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+ctData = data.frame(ratings = ctRatings, 
+                    reviews = ctReviews, 
+                    restaurant = "cambodian thai", 
+                    stringsAsFactors = FALSE)
+```
+
+### Corndance Tavern
+
+```{r}
+corndance = "https://www.yelp.com/biz/corndance-tavern-mishawaka"
+
+corndanceHTML = read_html(corndance)
+
+cdRatings = corndanceHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+cdReviews = corndanceHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+cdData = data.frame(ratings = cdRatings, 
+                    reviews = cdReviews, 
+                    restaurant = "corndance tavern", 
+                    stringsAsFactors = FALSE)
+```
+
+
+At the end, we did a lot of copy and paste action there. Once you are down the your R path a little bit more, you might find yourself writing functions to handle the heavy lifting and minimize your copy and paste time. 
+
+### Combining Data
+
+After running all of the previous code, we have 5 distinct data frames. We need to combine them into one:
+
+```{r}
+allReviews = dplyr::bind_rows(cdData, ceData, ctData, evilCzechData, fhData)
+```
+
+Let's change our ratings to numbers and try something a little bit different (we will count the number of words in each review):
+
+```{r}
+allReviews = allReviews %>% 
+  dplyr::mutate(ratings = as.numeric(ratings), 
+                wordCount = stringr::str_count(reviews, pattern = "\\S+"))
+```
+
+
+Now, we can check on some visuals from our data:
+
+```{r}
+ggplot(allReviews, aes(ratings, wordCount, group = ratings)) + 
+  geom_boxplot() + 
+  theme_minimal()
+```
+
+This is slightly following an inverted U, which I would expect. Let's not forget that we have a natural grouping variable in restaurant. There are countless ways to look at this in R:
+
+Here are boxplot broken out into small multiples by restaurant:
+
+```{r}
+ggplot(allReviews, aes(ratings, wordCount, group = ratings)) + 
+  geom_boxplot() + 
+  facet_wrap(~ restaurant) + 
+  theme_minimal()
+```
+
+Or we can scrap the boxplot and use scatterplots:
+
+```{r}
+library(gganimate)
+
+ggplot(allReviews, aes(ratings, wordCount, color = restaurant)) + 
+  geom_point(alpha = .5) + 
+  scale_color_brewer(type = "qual", palette = "Dark2") +
+  theme_minimal()
+```
+
+
+And with just a little more effort, we can animate that plot:
+
+```{r}
+library(gganimate)
+
+ggplot(allReviews, aes(ratings, wordCount)) + 
+  geom_point(aes(group = restaurant, color = restaurant), size = 3) + 
+  scale_color_brewer(type = "qual", palette = "Dark2") +
+  transition_states(restaurant, transition_length = 5, state_length = 2) + 
+  enter_fade() + 
+  exit_shrink() +
+  theme_minimal()
+```
+
+Finally, we can turn it into a fully interactive visualization:
+
+```{r}
+library(plotly)
+
+scatterTest = ggplot(allReviews, aes(ratings, wordCount)) + 
+  geom_point(aes(group = restaurant, color = restaurant), size = 3) + 
+  scale_color_brewer(type = "qual", palette = "Dark2") +
+  theme_minimal()
+```
+

@@ -220,7 +220,7 @@ Pretty interesting, right? What is the story here, though? I might be tempted to
 
 Without looking ahead, what is likely the most common measure of association for two binary variables...$\phi$. Conceptually, phi is interpretted just like a Pearson correlation, so we can get a pretty good idea about words co-occuring together. We can calculate phi coefficients for words across documents. Here are all of the elements that we will need:
 
-```{r}
+```{r, echo = FALSE}
 
 library(tibble)
 
@@ -287,7 +287,7 @@ With relatively few documents, we don't really have too much interesting to expl
 Since we already saw some of the best that modern country has to offer, let's look at an entire album worth of country music (Luke Bryan should offer some predictable results). We can scrape the song lyrics from the Genius page.
 
 ```{r, echo = FALSE}
-load("D:/projects/courses/unstructured/data/killLightsLyrics.RData")
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/killLightsLyrics.RData")
 ```
 
 

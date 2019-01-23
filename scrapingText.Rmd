@@ -3,7 +3,7 @@ title: "Scraping Text"
 description: |
   Marketing Analytics
 author:
-  - name: The Berry Cherian Connection 
+  - name: Berry-Cherian Experience 
 output:
   radix::radix_article:
     toc: true
@@ -14,6 +14,33 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+Last time, we played around with scraping tables:
+
+```{r}
+library(rvest)
+
+library(magrittr)
+
+cpiTable = read_html("https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/") %>% 
+  html_table() %>% 
+  magrittr::extract2(1) # or `[[`(1) 
+```
+
+As helpful as getting tables might be, there will be other bits of data that we might want to be able to pull. For example, we might want to keep track of who is sitting on a <a href="https://www.apple.com/leadership/">Board of Directors</a>. That is clearly not a table, so how do we get at it?
+
+```{r}
+appleBoard = data.frame(name = read_html("https://www.apple.com/leadership/") %>% 
+                          html_nodes(".typography-body.block-link.profile-name") %>% 
+                          html_text(), 
+                        role = read_html("https://www.apple.com/leadership/") %>% 
+                          html_nodes(".typography-body.typography-profile-title") %>% 
+                          html_text(), 
+                        stringsAsFactors = FALSE)
+
+knitr::kable(appleBoard)
+```
+
+
 ## Packages
 
 The following packages will be extremely useful to us:
@@ -23,21 +50,18 @@ library(dplyr)
 
 library(ggplot2)
 
-library(magrittr)
+library(magrittr) # maybe
 
 library(rvest)
 
 library(stringr)
 
-apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
-
-ctTest = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend", 
-             add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
-
-ct = GET("https://api.yelp.com/v3/businesses/bx2rCVErnRJ2SBxe7tKy7w", 
-    add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
-
-content(ctTest, as = "text")
+# apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
+# ctTest = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend",
+#              add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+# ct = GET("https://api.yelp.com/v3/businesses/bx2rCVErnRJ2SBxe7tKy7w",
+#     add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+# content(ctTest, as = "text")
 ```
 
 
@@ -159,7 +183,7 @@ cdData = data.frame(ratings = cdRatings,
 ```
 
 
-At the end, we did a lot of copy and paste action there. Once you are down the your R path a little bit more, you might find yourself writing functions to handle the heavy lifting and minimize your copy and paste time. 
+At the end, we did a lot of copy and paste action there. Once you are down your R path a little bit more, you might find yourself writing functions to handle the heavy lifting and minimize your copy and paste time. 
 
 ### Combining Data
 
@@ -177,7 +201,6 @@ allReviews = allReviews %>%
                 wordCount = stringr::str_count(reviews, pattern = "\\S+"))
 ```
 
-
 Now, we can check on some visuals from our data:
 
 ```{r}
@@ -188,7 +211,7 @@ ggplot(allReviews, aes(ratings, wordCount, group = ratings)) +
 
 This is slightly following an inverted U, which I would expect. Let's not forget that we have a natural grouping variable in restaurant. There are countless ways to look at this in R:
 
-Here are boxplot broken out into small multiples by restaurant:
+Here are boxplots broken out into small multiples by restaurant:
 
 ```{r}
 ggplot(allReviews, aes(ratings, wordCount, group = ratings)) + 
@@ -232,5 +255,7 @@ scatterTest = ggplot(allReviews, aes(ratings, wordCount)) +
   geom_point(aes(group = restaurant, color = restaurant), size = 3) + 
   scale_color_brewer(type = "qual", palette = "Dark2") +
   theme_minimal()
+
+ggplotly(scatterTest)
 ```
 

@@ -1,0 +1,158 @@
+---
+title: "Unstructured Data Analytics"
+description: |
+  Lab 1
+output: radix::radix_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## Step 1 -- Messing With APIs
+
+Using APIs is an important part of modern data acquisition tasks. Fortunately, they are pretty easy to put together (so long as you can follow some instructions). We are going to be working with REST APIs, so we can essentially just pass a URL request to a server -- the words make it sound more complicated than it actually is. 
+
+Let's start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a *token* (or *key*, or *secret*) -- mine is given below if you don't want to mess with getting your own. 
+
+When creating these URLs, we are given a base url, usually something like `https://api.yelp.com/v3/` and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the *business* directory, so we can add that to the link -- `https://api.yelp.com/v3/businesses/`. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing -- `https://api.yelp.com/v3/businesses/search`. The API now knows that we will be utilizing the search service. If you have ever included some of the extra information on a Youtube link, the next part will look pretty familiar to you: `https://api.yelp.com/v3/businesses/search?term=cambodian+thai`. Right after our `search` parameter, we pass an argument called `term` and set it equal to our search query. You likely noticed that what should have been a space was replaced by a `+` -- URLs do not do spaces and other special characters. While the `+` works just fine for a space, you might want to familiarize yourself with <a href="https://www.w3schools.com/tags/ref_urlencode.asp">URL encoding</a>. Finally, our search parameter needs another argument, `location`, giving us `https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend`. 
+
+That is the first, and most difficult, step in getting an API call ready. The next part is pretty easy -- we just need to pass our authentication key into the request. Again, this is something that sounds tricky, but really is pretty easy. 
+
+If you have ever explored the network structure of a page, you will see a sections called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. 
+
+
+```{r}
+library(httr)
+
+library(jsonlite)
+
+apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
+
+thaiSearch = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend&limit=2",
+                 add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+```
+
+## Step 2 -- Parsing The Return
+
+There will be times when working with an API is a one-step process, but...this is rarely the case. First, most API requests are going to come through in JSON. We will need to parse the request: 
+
+```{r}
+searchParsed = jsonlite::fromJSON((content(thaiSearch, as = "text")))
+
+searchParsed
+```
+
+There are many different ways of parsing this request (e.g., `content(thaiSearch, as = "parsed")`), but the above will work pretty well for our current case. 
+
+In looking at our `searchParsed` object, we should have a pretty good idea about what we want:
+
+```{r}
+thaiResults = searchParsed$businesses[1, ]
+```
+
+
+## Step 4 -- Passing Information
+
+In many API scenarios, you will be looking at a few steps to get to where you want to be. If we want to have more information about Cambodian Thai, we can get the information directly once we have the ID (which we got from our search). 
+
+```{r}
+
+thaiID = paste("https://api.yelp.com/v3/businesses/", thaiResults$id, sep = "")
+
+cambodianThai = GET(thaiID,
+    add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
+
+thaiParsed = jsonlite::fromJSON(content(cambodianThai, as = "text"))
+```
+
+
+## Step 3 -- Scraping Some Text
+
+Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our rvest code:
+
+```{r}
+library(rvest)
+
+cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
+
+cambodianThaiHTML = read_html(cambodianThai)
+
+cambodianThaiHTML %>% 
+  html_nodes(".arrange_unit.page-option")
+
+ctRatings = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ctReviews = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+ctData = data.frame(ratings = ctRatings, 
+                    reviews = ctReviews, 
+                    restaurant = "cambodian thai", 
+                    stringsAsFactors = FALSE)
+```
+
+
+## Step 3a -- Very Optional
+
+You should notice that we only pulled in 20 reviews, while we know that we have over 280 reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do a little work. Since there are 20 reviews per page, we are looking at 15 pages worth of reviews `(ceiling(thaiParsed$review_count / 20)`. And since we know how the links are constructed, we can just create them:
+
+```{r}
+linkNumbers = seq(from = 0, to = (floor(288 / 20) * 20), by = 20)
+
+links = paste("https://www.yelp.com/biz/cambodian-thai-south-bend?start=", 
+              linkNumbers, sep = "")
+
+allReviews = lapply(links, function(x) {
+  cambodianThai = x
+  
+  cambodianThaiHTML = read_html(cambodianThai)
+  
+  cambodianThaiHTML %>% 
+    html_nodes(".arrange_unit.page-option")
+  
+  ctRatings = cambodianThaiHTML %>% 
+    html_nodes(".review-wrapper .review-content .i-stars") %>% 
+    html_attr("title") %>% 
+    stringr::str_extract("[0-5]")
+  
+  ctReviews = cambodianThaiHTML %>% 
+    html_nodes(".review-wrapper .review-content p") %>% 
+    html_text()
+  
+  ctData = data.frame(ratings = ctRatings, 
+                      reviews = ctReviews, 
+                      restaurant = "cambodian thai", 
+                      stringsAsFactors = FALSE)
+  
+  return(ctData)
+})
+
+allReviews = data.table::rbindlist(allReviews)
+```
+
+
+## Step 4 -- Analyze The Text
+
+Given what we have already seen, try to learn a little bit about what words are being used in the reviews. Can you pick out a dish that people seem to talk about frequently? 
+
+Just as a starting place, this might start to get at the dishes that are discussed:
+
+```{r}
+library(dplyr)
+
+library(tidytext)
+
+bigrams =  ctData %>% 
+  # mutate(lyrics = stringr::str_squish(tm::removeWords(tolower(lyrics), tm::stopwords("SMART")))) %>% 
+  unnest_tokens(., ngrams, reviews, token = "ngrams", n = 2) %>% 
+  tidyr::separate(ngrams, c("word1", "word2"), sep = "\\s") %>% 
+  count(word1, word2, sort = TRUE)
+```
+

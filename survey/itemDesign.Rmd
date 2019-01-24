@@ -222,21 +222,17 @@ Individual items serve as the building block for the entire survey. And just as 
 
 ## Item Ordering and Wording
 
-Question Wording and Ordering
+We have already talked about some issues related to item wording, but here are some additional thoughts:
 
 - Generally, demographic questions should go at the end (there are some exceptions).
 
-- Avoid biased or leading questions.
-
-- Try to avoid negative wording.
-
 - Verbal cues take precedence over visual cues.
 
-- As such, all scale points should be labeled.
+  - As such, all scale points should be labeled.
 
 - Question instructions should come at the beginning of a question, not at the end.
 
-- What do you mean, "some people"?
+- "Some people"...
 
 ## Design Choices
 

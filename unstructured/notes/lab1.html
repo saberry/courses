@@ -890,6 +890,1277 @@
   </script>
   
   <!--/radix_placeholder_distill-->
+  <style type="text/css">.pagedtable {
+overflow: auto;
+padding-left: 8px;
+padding-right: 8px;
+}
+.pagedtable-wrapper {
+border: 1px solid #ccc;
+border-radius: 4px;
+margin-bottom: 10px;
+}
+.pagedtable table {
+width: 100%;
+max-width: 100%;
+margin: 0;
+}
+.pagedtable th {
+padding: 0 5px 0 5px;
+border: none;
+border-bottom: 2px solid #dddddd;
+min-width: 45px;
+}
+.pagedtable-empty th {
+display: none;
+}
+.pagedtable td {
+padding: 0 4px 0 4px;
+}
+.pagedtable .even {
+background-color: #fcfcfc;
+}
+.pagedtable-padding-col {
+display: none;
+}
+.pagedtable a {
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+}
+.pagedtable-index-nav {
+cursor: pointer;
+padding: 0 5px 0 5px;
+float: right;
+border: 0;
+}
+.pagedtable-index-nav-disabled {
+cursor: default;
+text-decoration: none;
+color: #999;
+}
+a.pagedtable-index-nav-disabled:hover {
+text-decoration: none;
+color: #999;
+}
+.pagedtable-indexes {
+cursor: pointer;
+float: right;
+border: 0;
+}
+.pagedtable-index-current {
+cursor: default;
+text-decoration: none;
+font-weight: bold;
+color: #333;
+border: 0;
+}
+a.pagedtable-index-current:hover {
+text-decoration: none;
+font-weight: bold;
+color: #333;
+}
+.pagedtable-index {
+width: 30px;
+display: inline-block;
+text-align: center;
+border: 0;
+}
+.pagedtable-index-separator-left {
+display: inline-block;
+color: #333;
+font-size: 9px;
+padding: 0 0 0 0;
+cursor: default;
+}
+.pagedtable-index-separator-right {
+display: inline-block;
+color: #333;
+font-size: 9px;
+padding: 0 4px 0 0;
+cursor: default;
+}
+.pagedtable-footer {
+padding-top: 4px;
+padding-bottom: 5px;
+}
+.pagedtable-not-empty .pagedtable-footer {
+border-top: 2px solid #dddddd;
+}
+.pagedtable-info {
+overflow: hidden;
+color: #999;
+white-space: nowrap;
+text-overflow: ellipsis;
+}
+.pagedtable-header-name {
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.pagedtable-header-type {
+color: #999;
+font-weight: 400;
+}
+.pagedtable-na-cell {
+font-style: italic;
+opacity: 0.3;
+}
+</style>
+  <script>// Production steps of ECMA-262, Edition 5, 15.4.4.18
+// Reference: http://es5.github.io/#x15.4.4.18
+if (!Array.prototype.forEach) {
+
+  Array.prototype.forEach = function(callback, thisArg) {
+
+    var T, k;
+
+    if (this === null) {
+      throw new TypeError(' this is null or not defined');
+    }
+
+    // 1. Let O be the result of calling toObject() passing the
+    // |this| value as the argument.
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get() internal
+    // method of O with the argument "length".
+    // 3. Let len be toUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If isCallable(callback) is false, throw a TypeError exception.
+    // See: http://es5.github.com/#x9.11
+    if (typeof callback !== "function") {
+      throw new TypeError(callback + ' is not a function');
+    }
+
+    // 5. If thisArg was supplied, let T be thisArg; else let
+    // T be undefined.
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+
+    // 6. Let k be 0
+    k = 0;
+
+    // 7. Repeat, while k < len
+    while (k < len) {
+
+      var kValue;
+
+      // a. Let Pk be ToString(k).
+      //    This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the HasProperty
+      //    internal method of O with argument Pk.
+      //    This step can be combined with c
+      // c. If kPresent is true, then
+      if (k in O) {
+
+        // i. Let kValue be the result of calling the Get internal
+        // method of O with argument Pk.
+        kValue = O[k];
+
+        // ii. Call the Call internal method of callback with T as
+        // the this value and argument list containing kValue, k, and O.
+        callback.call(T, kValue, k, O);
+      }
+      // d. Increase k by 1.
+      k++;
+    }
+    // 8. return undefined
+  };
+}
+
+// Production steps of ECMA-262, Edition 5, 15.4.4.19
+// Reference: http://es5.github.io/#x15.4.4.19
+if (!Array.prototype.map) {
+
+  Array.prototype.map = function(callback, thisArg) {
+
+    var T, A, k;
+
+    if (this == null) {
+      throw new TypeError(' this is null or not defined');
+    }
+
+    // 1. Let O be the result of calling ToObject passing the |this|
+    //    value as the argument.
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get internal
+    //    method of O with the argument "length".
+    // 3. Let len be ToUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If IsCallable(callback) is false, throw a TypeError exception.
+    // See: http://es5.github.com/#x9.11
+    if (typeof callback !== 'function') {
+      throw new TypeError(callback + ' is not a function');
+    }
+
+    // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+
+    // 6. Let A be a new array created as if by the expression new Array(len)
+    //    where Array is the standard built-in constructor with that name and
+    //    len is the value of len.
+    A = new Array(len);
+
+    // 7. Let k be 0
+    k = 0;
+
+    // 8. Repeat, while k < len
+    while (k < len) {
+
+      var kValue, mappedValue;
+
+      // a. Let Pk be ToString(k).
+      //   This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the HasProperty internal
+      //    method of O with argument Pk.
+      //   This step can be combined with c
+      // c. If kPresent is true, then
+      if (k in O) {
+
+        // i. Let kValue be the result of calling the Get internal
+        //    method of O with argument Pk.
+        kValue = O[k];
+
+        // ii. Let mappedValue be the result of calling the Call internal
+        //     method of callback with T as the this value and argument
+        //     list containing kValue, k, and O.
+        mappedValue = callback.call(T, kValue, k, O);
+
+        // iii. Call the DefineOwnProperty internal method of A with arguments
+        // Pk, Property Descriptor
+        // { Value: mappedValue,
+        //   Writable: true,
+        //   Enumerable: true,
+        //   Configurable: true },
+        // and false.
+
+        // In browsers that support Object.defineProperty, use the following:
+        // Object.defineProperty(A, k, {
+        //   value: mappedValue,
+        //   writable: true,
+        //   enumerable: true,
+        //   configurable: true
+        // });
+
+        // For best browser support, use the following:
+        A[k] = mappedValue;
+      }
+      // d. Increase k by 1.
+      k++;
+    }
+
+    // 9. return A
+    return A;
+  };
+}
+
+var PagedTable = function (pagedTable) {
+  var me = this;
+
+  var source = function(pagedTable) {
+    var sourceElems = [].slice.call(pagedTable.children).filter(function(e) {
+      return e.hasAttribute("data-pagedtable-source");
+    });
+
+    if (sourceElems === null || sourceElems.length !== 1) {
+      throw("A single data-pagedtable-source was not found");
+    }
+
+    return JSON.parse(sourceElems[0].innerHTML);
+  }(pagedTable);
+
+  var options = function(source) {
+    var options = typeof(source.options) !== "undefined" &&
+      source.options !== null ? source.options : {};
+
+    var columns = typeof(options.columns) !== "undefined" ? options.columns : {};
+    var rows = typeof(options.rows) !== "undefined" ? options.rows : {};
+
+    var positiveIntOrNull = function(value) {
+      return parseInt(value) >= 0 ? parseInt(value) : null;
+    };
+
+    return {
+      pages: positiveIntOrNull(options.pages),
+      rows: {
+        min: positiveIntOrNull(rows.min),
+        max: positiveIntOrNull(rows.max),
+        total: positiveIntOrNull(rows.total)
+      },
+      columns: {
+        min: positiveIntOrNull(columns.min),
+        max: positiveIntOrNull(columns.max),
+        total: positiveIntOrNull(columns.total)
+      }
+    };
+  }(source);
+
+  var Measurer = function() {
+
+    // set some default initial values that will get adjusted in runtime
+    me.measures = {
+      padding: 12,
+      character: 8,
+      height: 15,
+      defaults: true
+    };
+
+    me.calculate = function(measuresCell) {
+      if (!me.measures.defaults)
+        return;
+
+      var measuresCellStyle = window.getComputedStyle(measuresCell, null);
+
+      var newPadding = parsePadding(measuresCellStyle.paddingLeft) +
+            parsePadding(measuresCellStyle.paddingRight);
+
+      var sampleString = "ABCDEFGHIJ0123456789";
+      var newCharacter = Math.ceil(measuresCell.clientWidth / sampleString.length);
+
+      if (newPadding <= 0 || newCharacter <= 0)
+        return;
+
+      me.measures.padding = newPadding;
+      me.measures.character = newCharacter;
+      me.measures.height = measuresCell.clientHeight;
+      me.measures.defaults = false;
+    };
+
+    return me;
+  };
+
+  var Page = function(data, options) {
+    var me = this;
+
+    var defaults = {
+      max: 7,
+      rows: 10
+    };
+
+    var totalPages = function() {
+      return Math.ceil(data.length / me.rows);
+    };
+
+    me.number = 0;
+    me.max = options.pages !== null ? options.pages : defaults.max;
+    me.visible = me.max;
+    me.rows = options.rows.min !== null ? options.rows.min : defaults.rows;
+    me.total = totalPages();
+
+    me.setRows = function(newRows) {
+      me.rows = newRows;
+      me.total = totalPages();
+    };
+
+    me.setPageNumber = function(newPageNumber) {
+      if (newPageNumber < 0) newPageNumber = 0;
+      if (newPageNumber >= me.total) newPageNumber = me.total - 1;
+
+      me.number = newPageNumber;
+    };
+
+    me.setVisiblePages = function(visiblePages) {
+      me.visible = Math.min(me.max, visiblePages);
+      me.setPageNumber(me.number);
+    };
+
+    me.getVisiblePageRange = function() {
+      var start = me.number - Math.max(Math.floor((me.visible - 1) / 2), 0);
+      var end = me.number + Math.floor(me.visible / 2) + 1;
+      var pageCount = me.total;
+
+      if (start < 0) {
+        var diffToStart = 0 - start;
+        start += diffToStart;
+        end += diffToStart;
+      }
+
+      if (end > pageCount) {
+        var diffToEnd = end - pageCount;
+        start -= diffToEnd;
+        end -= diffToEnd;
+      }
+
+      start = start < 0 ? 0 : start;
+      end = end >= pageCount ? pageCount : end;
+
+      var first = false;
+      var last = false;
+
+      if (start > 0 && me.visible > 1) {
+        start = start + 1;
+        first = true;
+      }
+
+      if (end < pageCount && me.visible > 2) {
+        end = end - 1;
+        last = true;
+      }
+
+      return {
+        first: first,
+        start: start,
+        end: end,
+        last: last
+      };
+    };
+
+    me.getRowStart = function() {
+      var rowStart = page.number * page.rows;
+      if (rowStart < 0)
+        rowStart = 0;
+
+      return rowStart;
+    };
+
+    me.getRowEnd = function() {
+      var rowStart = me.getRowStart();
+      return Math.min(rowStart + me.rows, data.length);
+    };
+
+    me.getPaddingRows = function() {
+      var rowStart = me.getRowStart();
+      var rowEnd = me.getRowEnd();
+      return data.length > me.rows ? me.rows - (rowEnd - rowStart) : 0;
+    };
+  };
+
+  var Columns = function(data, columns, options) {
+    var me = this;
+
+    me.defaults = {
+      min: 5
+    };
+
+    me.number = 0;
+    me.visible = 0;
+    me.total = columns.length;
+    me.subset = [];
+    me.padding = 0;
+    me.min = options.columns.min !== null ? options.columns.min : me.defaults.min;
+    me.max = options.columns.max !== null ? options.columns.max : null;
+    me.widths = {};
+
+    var widthsLookAhead = Math.max(100, options.rows.min);
+    var paddingColChars = 10;
+
+    me.emptyNames = function() {
+      columns.forEach(function(column) {
+        if (columns.label !== null && columns.label !== "")
+          return false;
+      });
+
+      return true;
+    };
+
+    var parsePadding = function(value) {
+      return parseInt(value) >= 0 ? parseInt(value) : 0;
+    };
+
+    me.calculateWidths = function(measures) {
+      columns.forEach(function(column) {
+        var maxChars = Math.max(
+          column.label.toString().length,
+          column.type.toString().length
+        );
+
+        for (var idxRow = 0; idxRow < Math.min(widthsLookAhead, data.length); idxRow++) {
+          maxChars = Math.max(maxChars, data[idxRow][column.name.toString()].length);
+        }
+
+        me.widths[column.name] = {
+          // width in characters
+          chars: maxChars,
+          // width for the inner html columns
+          inner: maxChars * measures.character,
+          // width adding outer styles like padding
+          outer: maxChars * measures.character + measures.padding
+        };
+      });
+    };
+
+    me.getWidth = function() {
+      var widthOuter = 0;
+      for (var idxCol = 0; idxCol < me.subset.length; idxCol++) {
+        var columnName = me.subset[idxCol].name;
+        widthOuter = widthOuter + me.widths[columnName].outer;
+      }
+
+      widthOuter = widthOuter + me.padding * paddingColChars * measurer.measures.character;
+
+      if (me.hasMoreLeftColumns()) {
+        widthOuter = widthOuter + columnNavigationWidthPX + measurer.measures.padding;
+      }
+
+      if (me.hasMoreRightColumns()) {
+        widthOuter = widthOuter + columnNavigationWidthPX + measurer.measures.padding;
+      }
+
+      return widthOuter;
+    };
+
+    me.updateSlice = function() {
+      if (me.number + me.visible >= me.total)
+        me.number = me.total - me.visible;
+
+      if (me.number < 0) me.number = 0;
+
+      me.subset = columns.slice(me.number, Math.min(me.number + me.visible, me.total));
+
+      me.subset = me.subset.map(function(column) {
+        Object.keys(column).forEach(function(colKey) {
+          column[colKey] = column[colKey] === null ? "" : column[colKey].toString();
+        });
+
+        column.width = null;
+        return column;
+      });
+    };
+
+    me.setVisibleColumns = function(columnNumber, newVisibleColumns, paddingCount) {
+      me.number = columnNumber;
+      me.visible = newVisibleColumns;
+      me.padding = paddingCount;
+
+      me.updateSlice();
+    };
+
+    me.incColumnNumber = function(increment) {
+      me.number = me.number + increment;
+    };
+
+    me.setColumnNumber = function(newNumber) {
+      me.number = newNumber;
+    };
+
+    me.setPaddingCount = function(newPadding) {
+      me.padding = newPadding;
+    };
+
+    me.getPaddingCount = function() {
+      return me.padding;
+    };
+
+    me.hasMoreLeftColumns = function() {
+      return me.number > 0;
+    };
+
+    me.hasMoreRightColumns = function() {
+      return me.number + me.visible < me.total;
+    };
+
+    me.updateSlice(0);
+    return me;
+  };
+
+  var data = source.data;
+  var page = new Page(data, options);
+  var measurer = new Measurer(data, options);
+  var columns = new Columns(data, source.columns, options);
+
+  var table = null;
+  var tableDiv = null;
+  var header = null;
+  var footer = null;
+  var tbody = null;
+
+  // Caches pagedTable.clientWidth, specially for webkit
+  var cachedPagedTableClientWidth = null;
+
+  var onChangeCallbacks = [];
+
+  var clearSelection = function() {
+    if(document.selection && document.selection.empty) {
+      document.selection.empty();
+    } else if(window.getSelection) {
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+    }
+  };
+
+  var columnNavigationWidthPX = 5;
+
+  var renderColumnNavigation = function(increment, backwards) {
+    var arrow = document.createElement("div");
+    arrow.setAttribute("style",
+      "border-top: " + columnNavigationWidthPX + "px solid transparent;" +
+      "border-bottom: " + columnNavigationWidthPX + "px solid transparent;" +
+      "border-" + (backwards ? "right" : "left") + ": " + columnNavigationWidthPX + "px solid;");
+
+    var header = document.createElement("th");
+    header.appendChild(arrow);
+    header.setAttribute("style",
+      "cursor: pointer;" +
+      "vertical-align: middle;" +
+      "min-width: " + columnNavigationWidthPX + "px;" +
+      "width: " + columnNavigationWidthPX + "px;");
+
+    header.onclick = function() {
+      columns.incColumnNumber(backwards ? -1 : increment);
+
+      me.animateColumns(backwards);
+      renderFooter();
+
+      clearSelection();
+      triggerOnChange();
+    };
+
+    return header;
+  };
+
+  var maxColumnWidth = function(width) {
+    var padding = 80;
+    var columnMax = Math.max(cachedPagedTableClientWidth - padding, 0);
+
+    return parseInt(width) > 0 ?
+      Math.min(columnMax, parseInt(width)) + "px" :
+      columnMax + "px";
+  };
+
+  var clearHeader = function() {
+    var thead = pagedTable.querySelectorAll("thead")[0];
+    thead.innerHTML = "";
+  };
+
+  var renderHeader = function(clear) {
+    cachedPagedTableClientWidth = pagedTable.clientWidth;
+
+    var fragment = document.createDocumentFragment();
+
+    header = document.createElement("tr");
+    fragment.appendChild(header);
+
+    if (columns.number > 0)
+      header.appendChild(renderColumnNavigation(-columns.visible, true));
+
+    columns.subset = columns.subset.map(function(columnData) {
+      var column = document.createElement("th");
+      column.setAttribute("align", columnData.align);
+      column.style.textAlign = columnData.align;
+
+      column.style.maxWidth = maxColumnWidth(null);
+      if (columnData.width) {
+        column.style.minWidth =
+          column.style.maxWidth = maxColumnWidth(columnData.width);
+      }
+
+      var columnName = document.createElement("div");
+      columnName.setAttribute("class", "pagedtable-header-name");
+      if (columnData.label === "") {
+        columnName.innerHTML = "&nbsp;";
+      }
+      else {
+        columnName.appendChild(document.createTextNode(columnData.label));
+      }
+      column.appendChild(columnName);
+
+      var columnType = document.createElement("div");
+      columnType.setAttribute("class", "pagedtable-header-type");
+      if (columnData.type === "") {
+        columnType.innerHTML = "&nbsp;";
+      }
+      else {
+        columnType.appendChild(document.createTextNode("<" + columnData.type + ">"));
+      }
+      column.appendChild(columnType);
+
+      header.appendChild(column);
+
+      columnData.element = column;
+
+      return columnData;
+    });
+
+    for (var idx = 0; idx < columns.getPaddingCount(); idx++) {
+      var paddingCol = document.createElement("th");
+      paddingCol.setAttribute("class", "pagedtable-padding-col");
+      header.appendChild(paddingCol);
+    }
+
+    if (columns.number + columns.visible < columns.total)
+      header.appendChild(renderColumnNavigation(columns.visible, false));
+
+    if (typeof(clear) == "undefined" || clear) clearHeader();
+    var thead = pagedTable.querySelectorAll("thead")[0];
+    thead.appendChild(fragment);
+  };
+
+  me.animateColumns = function(backwards) {
+    var thead = pagedTable.querySelectorAll("thead")[0];
+
+    var headerOld = thead.querySelectorAll("tr")[0];
+    var tbodyOld = table.querySelectorAll("tbody")[0];
+
+    me.fitColumns(backwards);
+
+    renderHeader(false);
+
+    header.style.opacity = "0";
+    header.style.transform = backwards ? "translateX(-30px)" : "translateX(30px)";
+    header.style.transition = "transform 200ms linear, opacity 200ms";
+    header.style.transitionDelay = "0";
+
+    renderBody(false);
+
+    if (headerOld) {
+      headerOld.style.position = "absolute";
+      headerOld.style.transform = "translateX(0px)";
+      headerOld.style.opacity = "1";
+      headerOld.style.transition = "transform 100ms linear, opacity 100ms";
+      headerOld.setAttribute("class", "pagedtable-remove-head");
+      if (headerOld.style.transitionEnd) {
+        headerOld.addEventListener("transitionend", function() {
+          var headerOldByClass = thead.querySelector(".pagedtable-remove-head");
+          if (headerOldByClass) thead.removeChild(headerOldByClass);
+        });
+      }
+      else {
+        thead.removeChild(headerOld);
+      }
+    }
+
+    if (tbodyOld) table.removeChild(tbodyOld);
+
+    tbody.style.opacity = "0";
+    tbody.style.transition = "transform 200ms linear, opacity 200ms";
+    tbody.style.transitionDelay = "0ms";
+
+    // force relayout
+    window.getComputedStyle(header).opacity;
+    window.getComputedStyle(tbody).opacity;
+
+    if (headerOld) {
+      headerOld.style.transform = backwards ? "translateX(20px)" : "translateX(-30px)";
+      headerOld.style.opacity = "0";
+    }
+
+    header.style.transform = "translateX(0px)";
+    header.style.opacity = "1";
+
+    tbody.style.opacity = "1";
+  }
+
+  me.onChange = function(callback) {
+    onChangeCallbacks.push(callback);
+  };
+
+  var triggerOnChange = function() {
+    onChangeCallbacks.forEach(function(onChange) {
+      onChange();
+    });
+  };
+
+  var clearBody = function() {
+    if (tbody) {
+      table.removeChild(tbody);
+      tbody = null;
+    }
+  };
+
+  var renderBody = function(clear) {
+    cachedPagedTableClientWidth = pagedTable.clientWidth
+
+    var fragment = document.createDocumentFragment();
+
+    var pageData = data.slice(page.getRowStart(), page.getRowEnd());
+
+    pageData.forEach(function(dataRow, idxRow) {
+      var htmlRow = document.createElement("tr");
+      htmlRow.setAttribute("class", (idxRow % 2 !==0) ? "even" : "odd");
+
+      if (columns.hasMoreLeftColumns())
+        htmlRow.appendChild(document.createElement("td"));
+
+      columns.subset.forEach(function(columnData) {
+        var cellName = columnData.name;
+        var dataCell = dataRow[cellName];
+        var htmlCell = document.createElement("td");
+
+        if (dataCell === "NA") htmlCell.setAttribute("class", "pagedtable-na-cell");
+        if (dataCell === "__NA__") dataCell = "NA";
+
+        var cellText = document.createTextNode(dataCell);
+        htmlCell.appendChild(cellText);
+        if (dataCell.length > 50) {
+          htmlCell.setAttribute("title", dataCell);
+        }
+        htmlCell.setAttribute("align", columnData.align);
+        htmlCell.style.textAlign = columnData.align;
+        htmlCell.style.maxWidth = maxColumnWidth(null);
+        if (columnData.width) {
+          htmlCell.style.minWidth = htmlCell.style.maxWidth = maxColumnWidth(columnData.width);
+        }
+        htmlRow.appendChild(htmlCell);
+      });
+
+      for (var idx = 0; idx < columns.getPaddingCount(); idx++) {
+        var paddingCol = document.createElement("td");
+        paddingCol.setAttribute("class", "pagedtable-padding-col");
+        htmlRow.appendChild(paddingCol);
+      }
+
+      if (columns.hasMoreRightColumns())
+        htmlRow.appendChild(document.createElement("td"));
+
+      fragment.appendChild(htmlRow);
+    });
+
+    for (var idxPadding = 0; idxPadding < page.getPaddingRows(); idxPadding++) {
+      var paddingRow = document.createElement("tr");
+
+      var paddingCellRow = document.createElement("td");
+      paddingCellRow.innerHTML = "&nbsp;";
+      paddingCellRow.setAttribute("colspan", "100%");
+      paddingRow.appendChild(paddingCellRow);
+
+      fragment.appendChild(paddingRow);
+    }
+
+    if (typeof(clear) == "undefined" || clear) clearBody();
+    tbody = document.createElement("tbody");
+    tbody.appendChild(fragment);
+
+    table.appendChild(tbody);
+  };
+
+  var getLabelInfo = function() {
+    var pageStart = page.getRowStart();
+    var pageEnd = page.getRowEnd();
+    var totalRows = data.length;
+
+    var totalRowsLabel = options.rows.total ? options.rows.total : totalRows;
+    var totalRowsLabelFormat = totalRowsLabel.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+
+    var infoText = (pageStart + 1) + "-" + pageEnd + " of " + totalRowsLabelFormat + " rows";
+    if (totalRows < page.rows) {
+      infoText = totalRowsLabel + " row" + (totalRows != 1 ? "s" : "");
+    }
+    if (columns.total > columns.visible) {
+      var totalColumnsLabel = options.columns.total ? options.columns.total : columns.total;
+
+      infoText = infoText + " | " + (columns.number + 1) + "-" +
+        (Math.min(columns.number + columns.visible, columns.total)) +
+        " of " + totalColumnsLabel + " columns";
+    }
+
+    return infoText;
+  };
+
+  var clearFooter = function() {
+    footer = pagedTable.querySelectorAll("div.pagedtable-footer")[0];
+    footer.innerHTML = "";
+
+    return footer;
+  };
+
+  var createPageLink = function(idxPage) {
+    var pageLink = document.createElement("a");
+    pageLinkClass = idxPage === page.number ? "pagedtable-index pagedtable-index-current" : "pagedtable-index";
+    pageLink.setAttribute("class", pageLinkClass);
+    pageLink.setAttribute("data-page-index", idxPage);
+    pageLink.onclick = function() {
+      page.setPageNumber(parseInt(this.getAttribute("data-page-index")));
+      renderBody();
+      renderFooter();
+
+      triggerOnChange();
+    };
+
+    pageLink.appendChild(document.createTextNode(idxPage + 1));
+
+    return pageLink;
+  }
+
+  var renderFooter = function() {
+    footer = clearFooter();
+
+    var next = document.createElement("a");
+    next.appendChild(document.createTextNode("Next"));
+    next.onclick = function() {
+      page.setPageNumber(page.number + 1);
+      renderBody();
+      renderFooter();
+
+      triggerOnChange();
+    };
+    if (data.length > page.rows) footer.appendChild(next);
+
+    var pageNumbers = document.createElement("div");
+    pageNumbers.setAttribute("class", "pagedtable-indexes");
+
+    var pageRange = page.getVisiblePageRange();
+
+    if (pageRange.first) {
+      var pageLink = createPageLink(0);
+      pageNumbers.appendChild(pageLink);
+
+      var pageSeparator = document.createElement("div");
+      pageSeparator.setAttribute("class", "pagedtable-index-separator-left");
+      pageSeparator.appendChild(document.createTextNode("..."))
+      pageNumbers.appendChild(pageSeparator);
+    }
+
+    for (var idxPage = pageRange.start; idxPage < pageRange.end; idxPage++) {
+      var pageLink = createPageLink(idxPage);
+
+      pageNumbers.appendChild(pageLink);
+    }
+
+    if (pageRange.last) {
+      var pageSeparator = document.createElement("div");
+      pageSeparator.setAttribute("class", "pagedtable-index-separator-right");
+      pageSeparator.appendChild(document.createTextNode("..."))
+      pageNumbers.appendChild(pageSeparator);
+
+      var pageLink = createPageLink(page.total - 1);
+      pageNumbers.appendChild(pageLink);
+    }
+
+    if (data.length > page.rows) footer.appendChild(pageNumbers);
+
+    var previous = document.createElement("a");
+    previous.appendChild(document.createTextNode("Previous"));
+    previous.onclick = function() {
+      page.setPageNumber(page.number - 1);
+      renderBody();
+      renderFooter();
+
+      triggerOnChange();
+    };
+    if (data.length > page.rows) footer.appendChild(previous);
+
+    var infoLabel = document.createElement("div");
+    infoLabel.setAttribute("class", "pagedtable-info");
+    infoLabel.setAttribute("title", getLabelInfo());
+    infoLabel.appendChild(document.createTextNode(getLabelInfo()));
+    footer.appendChild(infoLabel);
+
+    var enabledClass = "pagedtable-index-nav";
+    var disabledClass = "pagedtable-index-nav pagedtable-index-nav-disabled";
+    previous.setAttribute("class", page.number <= 0 ? disabledClass : enabledClass);
+    next.setAttribute("class", (page.number + 1) * page.rows >= data.length ? disabledClass : enabledClass);
+  };
+
+  var measuresCell = null;
+
+  var renderMeasures = function() {
+    var measuresTable = document.createElement("table");
+    measuresTable.style.visibility = "hidden";
+    measuresTable.style.position = "absolute";
+    measuresTable.style.whiteSpace = "nowrap";
+    measuresTable.style.height = "auto";
+    measuresTable.style.width = "auto";
+
+    var measuresRow = document.createElement("tr");
+    measuresTable.appendChild(measuresRow);
+
+    measuresCell = document.createElement("td");
+    var sampleString = "ABCDEFGHIJ0123456789";
+    measuresCell.appendChild(document.createTextNode(sampleString));
+
+    measuresRow.appendChild(measuresCell);
+
+    tableDiv.appendChild(measuresTable);
+  }
+
+  me.init = function() {
+    tableDiv = document.createElement("div");
+    pagedTable.appendChild(tableDiv);
+    var pagedTableClass = data.length > 0 ?
+      "pagedtable pagedtable-not-empty" :
+      "pagedtable pagedtable-empty";
+
+    if (columns.total == 0 || (columns.emptyNames() && data.length == 0)) {
+      pagedTableClass = pagedTableClass + " pagedtable-empty-columns";
+    }
+
+    tableDiv.setAttribute("class", pagedTableClass);
+
+    renderMeasures();
+    measurer.calculate(measuresCell);
+    columns.calculateWidths(measurer.measures);
+
+    table = document.createElement("table");
+    table.setAttribute("cellspacing", "0");
+    table.setAttribute("class", "table table-condensed");
+    tableDiv.appendChild(table);
+
+    table.appendChild(document.createElement("thead"));
+
+    var footerDiv = document.createElement("div");
+    footerDiv.setAttribute("class", "pagedtable-footer");
+    tableDiv.appendChild(footerDiv);
+
+    // if the host has not yet provided horizontal space, render hidden
+    if (tableDiv.clientWidth <= 0) {
+      tableDiv.style.opacity = "0";
+    }
+
+    me.render();
+
+    // retry seizing columns later if the host has not provided space
+    function retryFit() {
+      if (tableDiv.clientWidth <= 0) {
+        setTimeout(retryFit, 100);
+      } else {
+        me.render();
+        triggerOnChange();
+      }
+    }
+    if (tableDiv.clientWidth <= 0) {
+      retryFit();
+    }
+  };
+
+  var registerWidths = function() {
+    columns.subset = columns.subset.map(function(column) {
+      column.width = columns.widths[column.name].inner;
+      return column;
+    });
+  };
+
+  var parsePadding = function(value) {
+    return parseInt(value) >= 0 ? parseInt(value) : 0;
+  };
+
+  me.fixedHeight = function() {
+    return options.rows.max != null;
+  }
+
+  me.fitRows = function() {
+    if (me.fixedHeight())
+      return;
+
+    measurer.calculate(measuresCell);
+
+    var rows = options.rows.min !== null ? options.rows.min : 0;
+    var headerHeight = header !== null && header.offsetHeight > 0 ? header.offsetHeight : 0;
+    var footerHeight = footer !== null && footer.offsetHeight > 0 ? footer.offsetHeight : 0;
+
+    if (pagedTable.offsetHeight > 0) {
+      var availableHeight = pagedTable.offsetHeight - headerHeight - footerHeight;
+      rows = Math.floor((availableHeight) / measurer.measures.height);
+    }
+
+    rows = options.rows.min !== null ? Math.max(options.rows.min, rows) : rows;
+
+    page.setRows(rows);
+  }
+
+  // The goal of this function is to add as many columns as possible
+  // starting from left-to-right, when the right most limit is reached
+  // it tries to add columns from the left as well.
+  //
+  // When startBackwards is true columns are added from right-to-left
+  me.fitColumns = function(startBackwards) {
+    measurer.calculate(measuresCell);
+    columns.calculateWidths(measurer.measures);
+
+    if (tableDiv.clientWidth > 0) {
+      tableDiv.style.opacity = 1;
+    }
+
+    var visibleColumns = tableDiv.clientWidth <= 0 ? Math.max(columns.min, 1) : 1;
+    var columnNumber = columns.number;
+    var paddingCount = 0;
+
+    // track a list of added columns as we build the visible ones to allow us
+    // to remove columns when they don't fit anymore.
+    var columnHistory = [];
+
+    var lastTableHeight = 0;
+    var backwards = startBackwards;
+
+    var tableDivStyle = window.getComputedStyle(tableDiv, null);
+    var tableDivPadding = parsePadding(tableDivStyle.paddingLeft) +
+      parsePadding(tableDivStyle.paddingRight);
+
+    var addPaddingCol = false;
+    var currentWidth = 0;
+
+    while (true) {
+      columns.setVisibleColumns(columnNumber, visibleColumns, paddingCount);
+      currentWidth = columns.getWidth();
+
+      if (tableDiv.clientWidth - tableDivPadding < currentWidth) {
+        break;
+      }
+
+      columnHistory.push({
+        columnNumber: columnNumber,
+        visibleColumns: visibleColumns,
+        paddingCount: paddingCount
+      });
+
+      if (columnHistory.length > 100) {
+        console.error("More than 100 tries to fit columns, aborting");
+        break;
+      }
+
+      if (columns.max !== null &&
+        columns.visible + columns.getPaddingCount() >= columns.max) {
+        break;
+      }
+
+      // if we run out of right-columns
+      if (!backwards && columnNumber + columns.visible >= columns.total) {
+        // if we started adding right-columns, try adding left-columns
+        if (!startBackwards && columnNumber > 0) {
+          backwards = true;
+        }
+        else if (columns.min === null || visibleColumns + columns.getPaddingCount() >= columns.min) {
+          break;
+        }
+        else {
+          paddingCount = paddingCount + 1;
+        }
+      }
+
+      // if we run out of left-columns
+      if (backwards && columnNumber == 0) {
+        // if we started adding left-columns, try adding right-columns
+        if (startBackwards && columnNumber + columns.visible < columns.total) {
+          backwards = false;
+        }
+        else if (columns.min === null || visibleColumns + columns.getPaddingCount() >= columns.min) {
+          break;
+        }
+        else {
+          paddingCount = paddingCount + 1;
+        }
+      }
+
+      // when moving backwards try fitting left columns first
+      if (backwards && columnNumber > 0) {
+        columnNumber = columnNumber - 1;
+      }
+
+      if (columnNumber + visibleColumns < columns.total) {
+        visibleColumns = visibleColumns + 1;
+      }
+    }
+
+    var lastRenderableColumn = {
+        columnNumber: columnNumber,
+        visibleColumns: visibleColumns,
+        paddingCount: paddingCount
+    };
+
+    if (columnHistory.length > 0) {
+      lastRenderableColumn = columnHistory[columnHistory.length - 1];
+    }
+
+    columns.setVisibleColumns(
+      lastRenderableColumn.columnNumber,
+      lastRenderableColumn.visibleColumns,
+      lastRenderableColumn.paddingCount);
+
+    if (pagedTable.offsetWidth > 0) {
+      page.setVisiblePages(Math.max(Math.ceil(1.0 * (pagedTable.offsetWidth - 250) / 40), 2));
+    }
+
+    registerWidths();
+  };
+
+  me.fit = function(startBackwards) {
+    me.fitRows();
+    me.fitColumns(startBackwards);
+  }
+
+  me.render = function() {
+    me.fitColumns(false);
+
+    // render header/footer to measure height accurately
+    renderHeader();
+    renderFooter();
+
+    me.fitRows();
+    renderBody();
+
+    // re-render footer to match new rows
+    renderFooter();
+  }
+
+  var resizeLastWidth = -1;
+  var resizeLastHeight = -1;
+  var resizeNewWidth = -1;
+  var resizeNewHeight = -1;
+  var resizePending = false;
+
+  me.resize = function(newWidth, newHeight) {
+
+    function resizeDelayed() {
+      resizePending = false;
+
+      if (
+        (resizeNewWidth !== resizeLastWidth) ||
+        (!me.fixedHeight() && resizeNewHeight !== resizeLastHeight)
+      ) {
+        resizeLastWidth = resizeNewWidth;
+        resizeLastHeight = resizeNewHeight;
+
+        setTimeout(resizeDelayed, 200);
+        resizePending = true;
+      } else {
+        me.render();
+        triggerOnChange();
+
+        resizeLastWidth = -1;
+        resizeLastHeight = -1;
+      }
+    }
+
+    resizeNewWidth = newWidth;
+    resizeNewHeight = newHeight;
+
+    if (!resizePending) resizeDelayed();
+  };
+};
+
+var PagedTableDoc;
+(function (PagedTableDoc) {
+  var allPagedTables = [];
+
+  PagedTableDoc.initAll = function() {
+    allPagedTables = [];
+
+    var pagedTables = [].slice.call(document.querySelectorAll('[data-pagedtable="false"],[data-pagedtable=""]'));
+    pagedTables.forEach(function(pagedTable, idx) {
+      pagedTable.setAttribute("data-pagedtable", "true");
+      pagedTable.setAttribute("pagedtable-page", 0);
+      pagedTable.setAttribute("class", "pagedtable-wrapper");
+
+      var pagedTableInstance = new PagedTable(pagedTable);
+      pagedTableInstance.init();
+
+      allPagedTables.push(pagedTableInstance);
+    });
+  };
+
+  PagedTableDoc.resizeAll = function() {
+    allPagedTables.forEach(function(pagedTable) {
+      pagedTable.render();
+    });
+  };
+
+  window.addEventListener("resize", PagedTableDoc.resizeAll);
+
+  return PagedTableDoc;
+})(PagedTableDoc || (PagedTableDoc = {}));
+
+window.onload = function() {
+  PagedTableDoc.initAll();
+};
+</script>
   <script>/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
 !function(a,b){"object"==typeof module&&"object"==typeof module.exports?module.exports=a.document?b(a,!0):function(a){if(!a.document)throw new Error("jQuery requires a window with a document");return b(a)}:b(a)}("undefined"!=typeof window?window:this,function(a,b){var c=[],d=c.slice,e=c.concat,f=c.push,g=c.indexOf,h={},i=h.toString,j=h.hasOwnProperty,k={},l="1.11.3",m=function(a,b){return new m.fn.init(a,b)},n=/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,o=/^-ms-/,p=/-([\da-z])/gi,q=function(a,b){return b.toUpperCase()};m.fn=m.prototype={jquery:l,constructor:m,selector:"",length:0,toArray:function(){return d.call(this)},get:function(a){return null!=a?0>a?this[a+this.length]:this[a]:d.call(this)},pushStack:function(a){var b=m.merge(this.constructor(),a);return b.prevObject=this,b.context=this.context,b},each:function(a,b){return m.each(this,a,b)},map:function(a){return this.pushStack(m.map(this,function(b,c){return a.call(b,c,b)}))},slice:function(){return this.pushStack(d.apply(this,arguments))},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},eq:function(a){var b=this.length,c=+a+(0>a?b:0);return this.pushStack(c>=0&&b>c?[this[c]]:[])},end:function(){return this.prevObject||this.constructor(null)},push:f,sort:c.sort,splice:c.splice},m.extend=m.fn.extend=function(){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g},m.extend({expando:"jQuery"+(l+Math.random()).replace(/\D/g,""),isReady:!0,error:function(a){throw new Error(a)},noop:function(){},isFunction:function(a){return"function"===m.type(a)},isArray:Array.isArray||function(a){return"array"===m.type(a)},isWindow:function(a){return null!=a&&a==a.window},isNumeric:function(a){return!m.isArray(a)&&a-parseFloat(a)+1>=0},isEmptyObject:function(a){var b;for(b in a)return!1;return!0},isPlainObject:function(a){var b;if(!a||"object"!==m.type(a)||a.nodeType||m.isWindow(a))return!1;try{if(a.constructor&&!j.call(a,"constructor")&&!j.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(c){return!1}if(k.ownLast)for(b in a)return j.call(a,b);for(b in a);return void 0===b||j.call(a,b)},type:function(a){return null==a?a+"":"object"==typeof a||"function"==typeof a?h[i.call(a)]||"object":typeof a},globalEval:function(b){b&&m.trim(b)&&(a.execScript||function(b){a.eval.call(a,b)})(b)},camelCase:function(a){return a.replace(o,"ms-").replace(p,q)},nodeName:function(a,b){return a.nodeName&&a.nodeName.toLowerCase()===b.toLowerCase()},each:function(a,b,c){var d,e=0,f=a.length,g=r(a);if(c){if(g){for(;f>e;e++)if(d=b.apply(a[e],c),d===!1)break}else for(e in a)if(d=b.apply(a[e],c),d===!1)break}else if(g){for(;f>e;e++)if(d=b.call(a[e],e,a[e]),d===!1)break}else for(e in a)if(d=b.call(a[e],e,a[e]),d===!1)break;return a},trim:function(a){return null==a?"":(a+"").replace(n,"")},makeArray:function(a,b){var c=b||[];return null!=a&&(r(Object(a))?m.merge(c,"string"==typeof a?[a]:a):f.call(c,a)),c},inArray:function(a,b,c){var d;if(b){if(g)return g.call(b,a,c);for(d=b.length,c=c?0>c?Math.max(0,d+c):c:0;d>c;c++)if(c in b&&b[c]===a)return c}return-1},merge:function(a,b){var c=+b.length,d=0,e=a.length;while(c>d)a[e++]=b[d++];if(c!==c)while(void 0!==b[d])a[e++]=b[d++];return a.length=e,a},grep:function(a,b,c){for(var d,e=[],f=0,g=a.length,h=!c;g>f;f++)d=!b(a[f],f),d!==h&&e.push(a[f]);return e},map:function(a,b,c){var d,f=0,g=a.length,h=r(a),i=[];if(h)for(;g>f;f++)d=b(a[f],f,c),null!=d&&i.push(d);else for(f in a)d=b(a[f],f,c),null!=d&&i.push(d);return e.apply([],i)},guid:1,proxy:function(a,b){var c,e,f;return"string"==typeof b&&(f=a[b],b=a,a=f),m.isFunction(a)?(c=d.call(arguments,2),e=function(){return a.apply(b||this,c.concat(d.call(arguments)))},e.guid=a.guid=a.guid||m.guid++,e):void 0},now:function(){return+new Date},support:k}),m.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),function(a,b){h["[object "+b+"]"]=b.toLowerCase()});function r(a){var b="length"in a&&a.length,c=m.type(a);return"function"===c||m.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===c||0===b||"number"==typeof b&&b>0&&b-1 in a}var s=function(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u="sizzle"+1*new Date,v=a.document,w=0,x=0,y=ha(),z=ha(),A=ha(),B=function(a,b){return a===b&&(l=!0),0},C=1<<31,D={}.hasOwnProperty,E=[],F=E.pop,G=E.push,H=E.push,I=E.slice,J=function(a,b){for(var c=0,d=a.length;d>c;c++)if(a[c]===b)return c;return-1},K="checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",L="[\\x20\\t\\r\\n\\f]",M="(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",N=M.replace("w","w#"),O="\\["+L+"*("+M+")(?:"+L+"*([*^$|!~]?=)"+L+"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|("+N+"))|)"+L+"*\\]",P=":("+M+")(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|"+O+")*)|.*)\\)|)",Q=new RegExp(L+"+","g"),R=new RegExp("^"+L+"+|((?:^|[^\\\\])(?:\\\\.)*)"+L+"+$","g"),S=new RegExp("^"+L+"*,"+L+"*"),T=new RegExp("^"+L+"*([>+~]|"+L+")"+L+"*"),U=new RegExp("="+L+"*([^\\]'\"]*?)"+L+"*\\]","g"),V=new RegExp(P),W=new RegExp("^"+N+"$"),X={ID:new RegExp("^#("+M+")"),CLASS:new RegExp("^\\.("+M+")"),TAG:new RegExp("^("+M.replace("w","w*")+")"),ATTR:new RegExp("^"+O),PSEUDO:new RegExp("^"+P),CHILD:new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\("+L+"*(even|odd|(([+-]|)(\\d*)n|)"+L+"*(?:([+-]|)"+L+"*(\\d+)|))"+L+"*\\)|)","i"),bool:new RegExp("^(?:"+K+")$","i"),needsContext:new RegExp("^"+L+"*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\("+L+"*((?:-\\d)?\\d*)"+L+"*\\)|)(?=[^-]|$)","i")},Y=/^(?:input|select|textarea|button)$/i,Z=/^h\d$/i,$=/^[^{]+\{\s*\[native \w/,_=/^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,aa=/[+~]/,ba=/'|\\/g,ca=new RegExp("\\\\([\\da-f]{1,6}"+L+"?|("+L+")|.)","ig"),da=function(a,b,c){var d="0x"+b-65536;return d!==d||c?b:0>d?String.fromCharCode(d+65536):String.fromCharCode(d>>10|55296,1023&d|56320)},ea=function(){m()};try{H.apply(E=I.call(v.childNodes),v.childNodes),E[v.childNodes.length].nodeType}catch(fa){H={apply:E.length?function(a,b){G.apply(a,I.call(b))}:function(a,b){var c=a.length,d=0;while(a[c++]=b[d++]);a.length=c-1}}}function ga(a,b,d,e){var f,h,j,k,l,o,r,s,w,x;if((b?b.ownerDocument||b:v)!==n&&m(b),b=b||n,d=d||[],k=b.nodeType,"string"!=typeof a||!a||1!==k&&9!==k&&11!==k)return d;if(!e&&p){if(11!==k&&(f=_.exec(a)))if(j=f[1]){if(9===k){if(h=b.getElementById(j),!h||!h.parentNode)return d;if(h.id===j)return d.push(h),d}else if(b.ownerDocument&&(h=b.ownerDocument.getElementById(j))&&t(b,h)&&h.id===j)return d.push(h),d}else{if(f[2])return H.apply(d,b.getElementsByTagName(a)),d;if((j=f[3])&&c.getElementsByClassName)return H.apply(d,b.getElementsByClassName(j)),d}if(c.qsa&&(!q||!q.test(a))){if(s=r=u,w=b,x=1!==k&&a,1===k&&"object"!==b.nodeName.toLowerCase()){o=g(a),(r=b.getAttribute("id"))?s=r.replace(ba,"\\$&"):b.setAttribute("id",s),s="[id='"+s+"'] ",l=o.length;while(l--)o[l]=s+ra(o[l]);w=aa.test(a)&&pa(b.parentNode)||b,x=o.join(",")}if(x)try{return H.apply(d,w.querySelectorAll(x)),d}catch(y){}finally{r||b.removeAttribute("id")}}}return i(a.replace(R,"$1"),b,d,e)}function ha(){var a=[];function b(c,e){return a.push(c+" ")>d.cacheLength&&delete b[a.shift()],b[c+" "]=e}return b}function ia(a){return a[u]=!0,a}function ja(a){var b=n.createElement("div");try{return!!a(b)}catch(c){return!1}finally{b.parentNode&&b.parentNode.removeChild(b),b=null}}function ka(a,b){var c=a.split("|"),e=a.length;while(e--)d.attrHandle[c[e]]=b}function la(a,b){var c=b&&a,d=c&&1===a.nodeType&&1===b.nodeType&&(~b.sourceIndex||C)-(~a.sourceIndex||C);if(d)return d;if(c)while(c=c.nextSibling)if(c===b)return-1;return a?1:-1}function ma(a){return function(b){var c=b.nodeName.toLowerCase();return"input"===c&&b.type===a}}function na(a){return function(b){var c=b.nodeName.toLowerCase();return("input"===c||"button"===c)&&b.type===a}}function oa(a){return ia(function(b){return b=+b,ia(function(c,d){var e,f=a([],c.length,b),g=f.length;while(g--)c[e=f[g]]&&(c[e]=!(d[e]=c[e]))})})}function pa(a){return a&&"undefined"!=typeof a.getElementsByTagName&&a}c=ga.support={},f=ga.isXML=function(a){var b=a&&(a.ownerDocument||a).documentElement;return b?"HTML"!==b.nodeName:!1},m=ga.setDocument=function(a){var b,e,g=a?a.ownerDocument||a:v;return g!==n&&9===g.nodeType&&g.documentElement?(n=g,o=g.documentElement,e=g.defaultView,e&&e!==e.top&&(e.addEventListener?e.addEventListener("unload",ea,!1):e.attachEvent&&e.attachEvent("onunload",ea)),p=!f(g),c.attributes=ja(function(a){return a.className="i",!a.getAttribute("className")}),c.getElementsByTagName=ja(function(a){return a.appendChild(g.createComment("")),!a.getElementsByTagName("*").length}),c.getElementsByClassName=$.test(g.getElementsByClassName),c.getById=ja(function(a){return o.appendChild(a).id=u,!g.getElementsByName||!g.getElementsByName(u).length}),c.getById?(d.find.ID=function(a,b){if("undefined"!=typeof b.getElementById&&p){var c=b.getElementById(a);return c&&c.parentNode?[c]:[]}},d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){return a.getAttribute("id")===b}}):(delete d.find.ID,d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){var c="undefined"!=typeof a.getAttributeNode&&a.getAttributeNode("id");return c&&c.value===b}}),d.find.TAG=c.getElementsByTagName?function(a,b){return"undefined"!=typeof b.getElementsByTagName?b.getElementsByTagName(a):c.qsa?b.querySelectorAll(a):void 0}:function(a,b){var c,d=[],e=0,f=b.getElementsByTagName(a);if("*"===a){while(c=f[e++])1===c.nodeType&&d.push(c);return d}return f},d.find.CLASS=c.getElementsByClassName&&function(a,b){return p?b.getElementsByClassName(a):void 0},r=[],q=[],(c.qsa=$.test(g.querySelectorAll))&&(ja(function(a){o.appendChild(a).innerHTML="<a id='"+u+"'></a><select id='"+u+"-\f]' msallowcapture=''><option selected=''></option></select>",a.querySelectorAll("[msallowcapture^='']").length&&q.push("[*^$]="+L+"*(?:''|\"\")"),a.querySelectorAll("[selected]").length||q.push("\\["+L+"*(?:value|"+K+")"),a.querySelectorAll("[id~="+u+"-]").length||q.push("~="),a.querySelectorAll(":checked").length||q.push(":checked"),a.querySelectorAll("a#"+u+"+*").length||q.push(".#.+[+~]")}),ja(function(a){var b=g.createElement("input");b.setAttribute("type","hidden"),a.appendChild(b).setAttribute("name","D"),a.querySelectorAll("[name=d]").length&&q.push("name"+L+"*[*^$|!~]?="),a.querySelectorAll(":enabled").length||q.push(":enabled",":disabled"),a.querySelectorAll("*,:x"),q.push(",.*:")})),(c.matchesSelector=$.test(s=o.matches||o.webkitMatchesSelector||o.mozMatchesSelector||o.oMatchesSelector||o.msMatchesSelector))&&ja(function(a){c.disconnectedMatch=s.call(a,"div"),s.call(a,"[s!='']:x"),r.push("!=",P)}),q=q.length&&new RegExp(q.join("|")),r=r.length&&new RegExp(r.join("|")),b=$.test(o.compareDocumentPosition),t=b||$.test(o.contains)?function(a,b){var c=9===a.nodeType?a.documentElement:a,d=b&&b.parentNode;return a===d||!(!d||1!==d.nodeType||!(c.contains?c.contains(d):a.compareDocumentPosition&&16&a.compareDocumentPosition(d)))}:function(a,b){if(b)while(b=b.parentNode)if(b===a)return!0;return!1},B=b?function(a,b){if(a===b)return l=!0,0;var d=!a.compareDocumentPosition-!b.compareDocumentPosition;return d?d:(d=(a.ownerDocument||a)===(b.ownerDocument||b)?a.compareDocumentPosition(b):1,1&d||!c.sortDetached&&b.compareDocumentPosition(a)===d?a===g||a.ownerDocument===v&&t(v,a)?-1:b===g||b.ownerDocument===v&&t(v,b)?1:k?J(k,a)-J(k,b):0:4&d?-1:1)}:function(a,b){if(a===b)return l=!0,0;var c,d=0,e=a.parentNode,f=b.parentNode,h=[a],i=[b];if(!e||!f)return a===g?-1:b===g?1:e?-1:f?1:k?J(k,a)-J(k,b):0;if(e===f)return la(a,b);c=a;while(c=c.parentNode)h.unshift(c);c=b;while(c=c.parentNode)i.unshift(c);while(h[d]===i[d])d++;return d?la(h[d],i[d]):h[d]===v?-1:i[d]===v?1:0},g):n},ga.matches=function(a,b){return ga(a,null,null,b)},ga.matchesSelector=function(a,b){if((a.ownerDocument||a)!==n&&m(a),b=b.replace(U,"='$1']"),!(!c.matchesSelector||!p||r&&r.test(b)||q&&q.test(b)))try{var d=s.call(a,b);if(d||c.disconnectedMatch||a.document&&11!==a.document.nodeType)return d}catch(e){}return ga(b,n,null,[a]).length>0},ga.contains=function(a,b){return(a.ownerDocument||a)!==n&&m(a),t(a,b)},ga.attr=function(a,b){(a.ownerDocument||a)!==n&&m(a);var e=d.attrHandle[b.toLowerCase()],f=e&&D.call(d.attrHandle,b.toLowerCase())?e(a,b,!p):void 0;return void 0!==f?f:c.attributes||!p?a.getAttribute(b):(f=a.getAttributeNode(b))&&f.specified?f.value:null},ga.error=function(a){throw new Error("Syntax error, unrecognized expression: "+a)},ga.uniqueSort=function(a){var b,d=[],e=0,f=0;if(l=!c.detectDuplicates,k=!c.sortStable&&a.slice(0),a.sort(B),l){while(b=a[f++])b===a[f]&&(e=d.push(f));while(e--)a.splice(d[e],1)}return k=null,a},e=ga.getText=function(a){var b,c="",d=0,f=a.nodeType;if(f){if(1===f||9===f||11===f){if("string"==typeof a.textContent)return a.textContent;for(a=a.firstChild;a;a=a.nextSibling)c+=e(a)}else if(3===f||4===f)return a.nodeValue}else while(b=a[d++])c+=e(b);return c},d=ga.selectors={cacheLength:50,createPseudo:ia,match:X,attrHandle:{},find:{},relative:{">":{dir:"parentNode",first:!0}," ":{dir:"parentNode"},"+":{dir:"previousSibling",first:!0},"~":{dir:"previousSibling"}},preFilter:{ATTR:function(a){return a[1]=a[1].replace(ca,da),a[3]=(a[3]||a[4]||a[5]||"").replace(ca,da),"~="===a[2]&&(a[3]=" "+a[3]+" "),a.slice(0,4)},CHILD:function(a){return a[1]=a[1].toLowerCase(),"nth"===a[1].slice(0,3)?(a[3]||ga.error(a[0]),a[4]=+(a[4]?a[5]+(a[6]||1):2*("even"===a[3]||"odd"===a[3])),a[5]=+(a[7]+a[8]||"odd"===a[3])):a[3]&&ga.error(a[0]),a},PSEUDO:function(a){var b,c=!a[6]&&a[2];return X.CHILD.test(a[0])?null:(a[3]?a[2]=a[4]||a[5]||"":c&&V.test(c)&&(b=g(c,!0))&&(b=c.indexOf(")",c.length-b)-c.length)&&(a[0]=a[0].slice(0,b),a[2]=c.slice(0,b)),a.slice(0,3))}},filter:{TAG:function(a){var b=a.replace(ca,da).toLowerCase();return"*"===a?function(){return!0}:function(a){return a.nodeName&&a.nodeName.toLowerCase()===b}},CLASS:function(a){var b=y[a+" "];return b||(b=new RegExp("(^|"+L+")"+a+"("+L+"|$)"))&&y(a,function(a){return b.test("string"==typeof a.className&&a.className||"undefined"!=typeof a.getAttribute&&a.getAttribute("class")||"")})},ATTR:function(a,b,c){return function(d){var e=ga.attr(d,a);return null==e?"!="===b:b?(e+="","="===b?e===c:"!="===b?e!==c:"^="===b?c&&0===e.indexOf(c):"*="===b?c&&e.indexOf(c)>-1:"$="===b?c&&e.slice(-c.length)===c:"~="===b?(" "+e.replace(Q," ")+" ").indexOf(c)>-1:"|="===b?e===c||e.slice(0,c.length+1)===c+"-":!1):!0}},CHILD:function(a,b,c,d,e){var f="nth"!==a.slice(0,3),g="last"!==a.slice(-4),h="of-type"===b;return 1===d&&0===e?function(a){return!!a.parentNode}:function(b,c,i){var j,k,l,m,n,o,p=f!==g?"nextSibling":"previousSibling",q=b.parentNode,r=h&&b.nodeName.toLowerCase(),s=!i&&!h;if(q){if(f){while(p){l=b;while(l=l[p])if(h?l.nodeName.toLowerCase()===r:1===l.nodeType)return!1;o=p="only"===a&&!o&&"nextSibling"}return!0}if(o=[g?q.firstChild:q.lastChild],g&&s){k=q[u]||(q[u]={}),j=k[a]||[],n=j[0]===w&&j[1],m=j[0]===w&&j[2],l=n&&q.childNodes[n];while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if(1===l.nodeType&&++m&&l===b){k[a]=[w,n,m];break}}else if(s&&(j=(b[u]||(b[u]={}))[a])&&j[0]===w)m=j[1];else while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if((h?l.nodeName.toLowerCase()===r:1===l.nodeType)&&++m&&(s&&((l[u]||(l[u]={}))[a]=[w,m]),l===b))break;return m-=e,m===d||m%d===0&&m/d>=0}}},PSEUDO:function(a,b){var c,e=d.pseudos[a]||d.setFilters[a.toLowerCase()]||ga.error("unsupported pseudo: "+a);return e[u]?e(b):e.length>1?(c=[a,a,"",b],d.setFilters.hasOwnProperty(a.toLowerCase())?ia(function(a,c){var d,f=e(a,b),g=f.length;while(g--)d=J(a,f[g]),a[d]=!(c[d]=f[g])}):function(a){return e(a,0,c)}):e}},pseudos:{not:ia(function(a){var b=[],c=[],d=h(a.replace(R,"$1"));return d[u]?ia(function(a,b,c,e){var f,g=d(a,null,e,[]),h=a.length;while(h--)(f=g[h])&&(a[h]=!(b[h]=f))}):function(a,e,f){return b[0]=a,d(b,null,f,c),b[0]=null,!c.pop()}}),has:ia(function(a){return function(b){return ga(a,b).length>0}}),contains:ia(function(a){return a=a.replace(ca,da),function(b){return(b.textContent||b.innerText||e(b)).indexOf(a)>-1}}),lang:ia(function(a){return W.test(a||"")||ga.error("unsupported lang: "+a),a=a.replace(ca,da).toLowerCase(),function(b){var c;do if(c=p?b.lang:b.getAttribute("xml:lang")||b.getAttribute("lang"))return c=c.toLowerCase(),c===a||0===c.indexOf(a+"-");while((b=b.parentNode)&&1===b.nodeType);return!1}}),target:function(b){var c=a.location&&a.location.hash;return c&&c.slice(1)===b.id},root:function(a){return a===o},focus:function(a){return a===n.activeElement&&(!n.hasFocus||n.hasFocus())&&!!(a.type||a.href||~a.tabIndex)},enabled:function(a){return a.disabled===!1},disabled:function(a){return a.disabled===!0},checked:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&!!a.checked||"option"===b&&!!a.selected},selected:function(a){return a.parentNode&&a.parentNode.selectedIndex,a.selected===!0},empty:function(a){for(a=a.firstChild;a;a=a.nextSibling)if(a.nodeType<6)return!1;return!0},parent:function(a){return!d.pseudos.empty(a)},header:function(a){return Z.test(a.nodeName)},input:function(a){return Y.test(a.nodeName)},button:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&"button"===a.type||"button"===b},text:function(a){var b;return"input"===a.nodeName.toLowerCase()&&"text"===a.type&&(null==(b=a.getAttribute("type"))||"text"===b.toLowerCase())},first:oa(function(){return[0]}),last:oa(function(a,b){return[b-1]}),eq:oa(function(a,b,c){return[0>c?c+b:c]}),even:oa(function(a,b){for(var c=0;b>c;c+=2)a.push(c);return a}),odd:oa(function(a,b){for(var c=1;b>c;c+=2)a.push(c);return a}),lt:oa(function(a,b,c){for(var d=0>c?c+b:c;--d>=0;)a.push(d);return a}),gt:oa(function(a,b,c){for(var d=0>c?c+b:c;++d<b;)a.push(d);return a})}},d.pseudos.nth=d.pseudos.eq;for(b in{radio:!0,checkbox:!0,file:!0,password:!0,image:!0})d.pseudos[b]=ma(b);for(b in{submit:!0,reset:!0})d.pseudos[b]=na(b);function qa(){}qa.prototype=d.filters=d.pseudos,d.setFilters=new qa,g=ga.tokenize=function(a,b){var c,e,f,g,h,i,j,k=z[a+" "];if(k)return b?0:k.slice(0);h=a,i=[],j=d.preFilter;while(h){(!c||(e=S.exec(h)))&&(e&&(h=h.slice(e[0].length)||h),i.push(f=[])),c=!1,(e=T.exec(h))&&(c=e.shift(),f.push({value:c,type:e[0].replace(R," ")}),h=h.slice(c.length));for(g in d.filter)!(e=X[g].exec(h))||j[g]&&!(e=j[g](e))||(c=e.shift(),f.push({value:c,type:g,matches:e}),h=h.slice(c.length));if(!c)break}return b?h.length:h?ga.error(a):z(a,i).slice(0)};function ra(a){for(var b=0,c=a.length,d="";c>b;b++)d+=a[b].value;return d}function sa(a,b,c){var d=b.dir,e=c&&"parentNode"===d,f=x++;return b.first?function(b,c,f){while(b=b[d])if(1===b.nodeType||e)return a(b,c,f)}:function(b,c,g){var h,i,j=[w,f];if(g){while(b=b[d])if((1===b.nodeType||e)&&a(b,c,g))return!0}else while(b=b[d])if(1===b.nodeType||e){if(i=b[u]||(b[u]={}),(h=i[d])&&h[0]===w&&h[1]===f)return j[2]=h[2];if(i[d]=j,j[2]=a(b,c,g))return!0}}}function ta(a){return a.length>1?function(b,c,d){var e=a.length;while(e--)if(!a[e](b,c,d))return!1;return!0}:a[0]}function ua(a,b,c){for(var d=0,e=b.length;e>d;d++)ga(a,b[d],c);return c}function va(a,b,c,d,e){for(var f,g=[],h=0,i=a.length,j=null!=b;i>h;h++)(f=a[h])&&(!c||c(f,d,e))&&(g.push(f),j&&b.push(h));return g}function wa(a,b,c,d,e,f){return d&&!d[u]&&(d=wa(d)),e&&!e[u]&&(e=wa(e,f)),ia(function(f,g,h,i){var j,k,l,m=[],n=[],o=g.length,p=f||ua(b||"*",h.nodeType?[h]:h,[]),q=!a||!f&&b?p:va(p,m,a,h,i),r=c?e||(f?a:o||d)?[]:g:q;if(c&&c(q,r,h,i),d){j=va(r,n),d(j,[],h,i),k=j.length;while(k--)(l=j[k])&&(r[n[k]]=!(q[n[k]]=l))}if(f){if(e||a){if(e){j=[],k=r.length;while(k--)(l=r[k])&&j.push(q[k]=l);e(null,r=[],j,i)}k=r.length;while(k--)(l=r[k])&&(j=e?J(f,l):m[k])>-1&&(f[j]=!(g[j]=l))}}else r=va(r===g?r.splice(o,r.length):r),e?e(null,g,r,i):H.apply(g,r)})}function xa(a){for(var b,c,e,f=a.length,g=d.relative[a[0].type],h=g||d.relative[" "],i=g?1:0,k=sa(function(a){return a===b},h,!0),l=sa(function(a){return J(b,a)>-1},h,!0),m=[function(a,c,d){var e=!g&&(d||c!==j)||((b=c).nodeType?k(a,c,d):l(a,c,d));return b=null,e}];f>i;i++)if(c=d.relative[a[i].type])m=[sa(ta(m),c)];else{if(c=d.filter[a[i].type].apply(null,a[i].matches),c[u]){for(e=++i;f>e;e++)if(d.relative[a[e].type])break;return wa(i>1&&ta(m),i>1&&ra(a.slice(0,i-1).concat({value:" "===a[i-2].type?"*":""})).replace(R,"$1"),c,e>i&&xa(a.slice(i,e)),f>e&&xa(a=a.slice(e)),f>e&&ra(a))}m.push(c)}return ta(m)}function ya(a,b){var c=b.length>0,e=a.length>0,f=function(f,g,h,i,k){var l,m,o,p=0,q="0",r=f&&[],s=[],t=j,u=f||e&&d.find.TAG("*",k),v=w+=null==t?1:Math.random()||.1,x=u.length;for(k&&(j=g!==n&&g);q!==x&&null!=(l=u[q]);q++){if(e&&l){m=0;while(o=a[m++])if(o(l,g,h)){i.push(l);break}k&&(w=v)}c&&((l=!o&&l)&&p--,f&&r.push(l))}if(p+=q,c&&q!==p){m=0;while(o=b[m++])o(r,s,g,h);if(f){if(p>0)while(q--)r[q]||s[q]||(s[q]=F.call(i));s=va(s)}H.apply(i,s),k&&!f&&s.length>0&&p+b.length>1&&ga.uniqueSort(i)}return k&&(w=v,j=t),r};return c?ia(f):f}return h=ga.compile=function(a,b){var c,d=[],e=[],f=A[a+" "];if(!f){b||(b=g(a)),c=b.length;while(c--)f=xa(b[c]),f[u]?d.push(f):e.push(f);f=A(a,ya(e,d)),f.selector=a}return f},i=ga.select=function(a,b,e,f){var i,j,k,l,m,n="function"==typeof a&&a,o=!f&&g(a=n.selector||a);if(e=e||[],1===o.length){if(j=o[0]=o[0].slice(0),j.length>2&&"ID"===(k=j[0]).type&&c.getById&&9===b.nodeType&&p&&d.relative[j[1].type]){if(b=(d.find.ID(k.matches[0].replace(ca,da),b)||[])[0],!b)return e;n&&(b=b.parentNode),a=a.slice(j.shift().value.length)}i=X.needsContext.test(a)?0:j.length;while(i--){if(k=j[i],d.relative[l=k.type])break;if((m=d.find[l])&&(f=m(k.matches[0].replace(ca,da),aa.test(j[0].type)&&pa(b.parentNode)||b))){if(j.splice(i,1),a=f.length&&ra(j),!a)return H.apply(e,f),e;break}}}return(n||h(a,o))(f,b,!p,e,aa.test(a)&&pa(b.parentNode)||b),e},c.sortStable=u.split("").sort(B).join("")===u,c.detectDuplicates=!!l,m(),c.sortDetached=ja(function(a){return 1&a.compareDocumentPosition(n.createElement("div"))}),ja(function(a){return a.innerHTML="<a href='#'></a>","#"===a.firstChild.getAttribute("href")})||ka("type|href|height|width",function(a,b,c){return c?void 0:a.getAttribute(b,"type"===b.toLowerCase()?1:2)}),c.attributes&&ja(function(a){return a.innerHTML="<input/>",a.firstChild.setAttribute("value",""),""===a.firstChild.getAttribute("value")})||ka("value",function(a,b,c){return c||"input"!==a.nodeName.toLowerCase()?void 0:a.defaultValue}),ja(function(a){return null==a.getAttribute("disabled")})||ka(K,function(a,b,c){var d;return c?void 0:a[b]===!0?b.toLowerCase():(d=a.getAttributeNode(b))&&d.specified?d.value:null}),ga}(a);m.find=s,m.expr=s.selectors,m.expr[":"]=m.expr.pseudos,m.unique=s.uniqueSort,m.text=s.getText,m.isXMLDoc=s.isXML,m.contains=s.contains;var t=m.expr.match.needsContext,u=/^<(\w+)\s*\/?>(?:<\/\1>|)$/,v=/^.[^:#\[\.,]*$/;function w(a,b,c){if(m.isFunction(b))return m.grep(a,function(a,d){return!!b.call(a,d,a)!==c});if(b.nodeType)return m.grep(a,function(a){return a===b!==c});if("string"==typeof b){if(v.test(b))return m.filter(b,a,c);b=m.filter(b,a)}return m.grep(a,function(a){return m.inArray(a,b)>=0!==c})}m.filter=function(a,b,c){var d=b[0];return c&&(a=":not("+a+")"),1===b.length&&1===d.nodeType?m.find.matchesSelector(d,a)?[d]:[]:m.find.matches(a,m.grep(b,function(a){return 1===a.nodeType}))},m.fn.extend({find:function(a){var b,c=[],d=this,e=d.length;if("string"!=typeof a)return this.pushStack(m(a).filter(function(){for(b=0;e>b;b++)if(m.contains(d[b],this))return!0}));for(b=0;e>b;b++)m.find(a,d[b],c);return c=this.pushStack(e>1?m.unique(c):c),c.selector=this.selector?this.selector+" "+a:a,c},filter:function(a){return this.pushStack(w(this,a||[],!1))},not:function(a){return this.pushStack(w(this,a||[],!0))},is:function(a){return!!w(this,"string"==typeof a&&t.test(a)?m(a):a||[],!1).length}});var x,y=a.document,z=/^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,A=m.fn.init=function(a,b){var c,d;if(!a)return this;if("string"==typeof a){if(c="<"===a.charAt(0)&&">"===a.charAt(a.length-1)&&a.length>=3?[null,a,null]:z.exec(a),!c||!c[1]&&b)return!b||b.jquery?(b||x).find(a):this.constructor(b).find(a);if(c[1]){if(b=b instanceof m?b[0]:b,m.merge(this,m.parseHTML(c[1],b&&b.nodeType?b.ownerDocument||b:y,!0)),u.test(c[1])&&m.isPlainObject(b))for(c in b)m.isFunction(this[c])?this[c](b[c]):this.attr(c,b[c]);return this}if(d=y.getElementById(c[2]),d&&d.parentNode){if(d.id!==c[2])return x.find(a);this.length=1,this[0]=d}return this.context=y,this.selector=a,this}return a.nodeType?(this.context=this[0]=a,this.length=1,this):m.isFunction(a)?"undefined"!=typeof x.ready?x.ready(a):a(m):(void 0!==a.selector&&(this.selector=a.selector,this.context=a.context),m.makeArray(a,this))};A.prototype=m.fn,x=m(y);var B=/^(?:parents|prev(?:Until|All))/,C={children:!0,contents:!0,next:!0,prev:!0};m.extend({dir:function(a,b,c){var d=[],e=a[b];while(e&&9!==e.nodeType&&(void 0===c||1!==e.nodeType||!m(e).is(c)))1===e.nodeType&&d.push(e),e=e[b];return d},sibling:function(a,b){for(var c=[];a;a=a.nextSibling)1===a.nodeType&&a!==b&&c.push(a);return c}}),m.fn.extend({has:function(a){var b,c=m(a,this),d=c.length;return this.filter(function(){for(b=0;d>b;b++)if(m.contains(this,c[b]))return!0})},closest:function(a,b){for(var c,d=0,e=this.length,f=[],g=t.test(a)||"string"!=typeof a?m(a,b||this.context):0;e>d;d++)for(c=this[d];c&&c!==b;c=c.parentNode)if(c.nodeType<11&&(g?g.index(c)>-1:1===c.nodeType&&m.find.matchesSelector(c,a))){f.push(c);break}return this.pushStack(f.length>1?m.unique(f):f)},index:function(a){return a?"string"==typeof a?m.inArray(this[0],m(a)):m.inArray(a.jquery?a[0]:a,this):this[0]&&this[0].parentNode?this.first().prevAll().length:-1},add:function(a,b){return this.pushStack(m.unique(m.merge(this.get(),m(a,b))))},addBack:function(a){return this.add(null==a?this.prevObject:this.prevObject.filter(a))}});function D(a,b){do a=a[b];while(a&&1!==a.nodeType);return a}m.each({parent:function(a){var b=a.parentNode;return b&&11!==b.nodeType?b:null},parents:function(a){return m.dir(a,"parentNode")},parentsUntil:function(a,b,c){return m.dir(a,"parentNode",c)},next:function(a){return D(a,"nextSibling")},prev:function(a){return D(a,"previousSibling")},nextAll:function(a){return m.dir(a,"nextSibling")},prevAll:function(a){return m.dir(a,"previousSibling")},nextUntil:function(a,b,c){return m.dir(a,"nextSibling",c)},prevUntil:function(a,b,c){return m.dir(a,"previousSibling",c)},siblings:function(a){return m.sibling((a.parentNode||{}).firstChild,a)},children:function(a){return m.sibling(a.firstChild)},contents:function(a){return m.nodeName(a,"iframe")?a.contentDocument||a.contentWindow.document:m.merge([],a.childNodes)}},function(a,b){m.fn[a]=function(c,d){var e=m.map(this,b,c);return"Until"!==a.slice(-5)&&(d=c),d&&"string"==typeof d&&(e=m.filter(d,e)),this.length>1&&(C[a]||(e=m.unique(e)),B.test(a)&&(e=e.reverse())),this.pushStack(e)}});var E=/\S+/g,F={};function G(a){var b=F[a]={};return m.each(a.match(E)||[],function(a,c){b[c]=!0}),b}m.Callbacks=function(a){a="string"==typeof a?F[a]||G(a):m.extend({},a);var b,c,d,e,f,g,h=[],i=!a.once&&[],j=function(l){for(c=a.memory&&l,d=!0,f=g||0,g=0,e=h.length,b=!0;h&&e>f;f++)if(h[f].apply(l[0],l[1])===!1&&a.stopOnFalse){c=!1;break}b=!1,h&&(i?i.length&&j(i.shift()):c?h=[]:k.disable())},k={add:function(){if(h){var d=h.length;!function f(b){m.each(b,function(b,c){var d=m.type(c);"function"===d?a.unique&&k.has(c)||h.push(c):c&&c.length&&"string"!==d&&f(c)})}(arguments),b?e=h.length:c&&(g=d,j(c))}return this},remove:function(){return h&&m.each(arguments,function(a,c){var d;while((d=m.inArray(c,h,d))>-1)h.splice(d,1),b&&(e>=d&&e--,f>=d&&f--)}),this},has:function(a){return a?m.inArray(a,h)>-1:!(!h||!h.length)},empty:function(){return h=[],e=0,this},disable:function(){return h=i=c=void 0,this},disabled:function(){return!h},lock:function(){return i=void 0,c||k.disable(),this},locked:function(){return!i},fireWith:function(a,c){return!h||d&&!i||(c=c||[],c=[a,c.slice?c.slice():c],b?i.push(c):j(c)),this},fire:function(){return k.fireWith(this,arguments),this},fired:function(){return!!d}};return k},m.extend({Deferred:function(a){var b=[["resolve","done",m.Callbacks("once memory"),"resolved"],["reject","fail",m.Callbacks("once memory"),"rejected"],["notify","progress",m.Callbacks("memory")]],c="pending",d={state:function(){return c},always:function(){return e.done(arguments).fail(arguments),this},then:function(){var a=arguments;return m.Deferred(function(c){m.each(b,function(b,f){var g=m.isFunction(a[b])&&a[b];e[f[1]](function(){var a=g&&g.apply(this,arguments);a&&m.isFunction(a.promise)?a.promise().done(c.resolve).fail(c.reject).progress(c.notify):c[f[0]+"With"](this===d?c.promise():this,g?[a]:arguments)})}),a=null}).promise()},promise:function(a){return null!=a?m.extend(a,d):d}},e={};return d.pipe=d.then,m.each(b,function(a,f){var g=f[2],h=f[3];d[f[1]]=g.add,h&&g.add(function(){c=h},b[1^a][2].disable,b[2][2].lock),e[f[0]]=function(){return e[f[0]+"With"](this===e?d:this,arguments),this},e[f[0]+"With"]=g.fireWith}),d.promise(e),a&&a.call(e,e),e},when:function(a){var b=0,c=d.call(arguments),e=c.length,f=1!==e||a&&m.isFunction(a.promise)?e:0,g=1===f?a:m.Deferred(),h=function(a,b,c){return function(e){b[a]=this,c[a]=arguments.length>1?d.call(arguments):e,c===i?g.notifyWith(b,c):--f||g.resolveWith(b,c)}},i,j,k;if(e>1)for(i=new Array(e),j=new Array(e),k=new Array(e);e>b;b++)c[b]&&m.isFunction(c[b].promise)?c[b].promise().done(h(b,k,c)).fail(g.reject).progress(h(b,j,i)):--f;return f||g.resolveWith(k,c),g.promise()}});var H;m.fn.ready=function(a){return m.ready.promise().done(a),this},m.extend({isReady:!1,readyWait:1,holdReady:function(a){a?m.readyWait++:m.ready(!0)},ready:function(a){if(a===!0?!--m.readyWait:!m.isReady){if(!y.body)return setTimeout(m.ready);m.isReady=!0,a!==!0&&--m.readyWait>0||(H.resolveWith(y,[m]),m.fn.triggerHandler&&(m(y).triggerHandler("ready"),m(y).off("ready")))}}});function I(){y.addEventListener?(y.removeEventListener("DOMContentLoaded",J,!1),a.removeEventListener("load",J,!1)):(y.detachEvent("onreadystatechange",J),a.detachEvent("onload",J))}function J(){(y.addEventListener||"load"===event.type||"complete"===y.readyState)&&(I(),m.ready())}m.ready.promise=function(b){if(!H)if(H=m.Deferred(),"complete"===y.readyState)setTimeout(m.ready);else if(y.addEventListener)y.addEventListener("DOMContentLoaded",J,!1),a.addEventListener("load",J,!1);else{y.attachEvent("onreadystatechange",J),a.attachEvent("onload",J);var c=!1;try{c=null==a.frameElement&&y.documentElement}catch(d){}c&&c.doScroll&&!function e(){if(!m.isReady){try{c.doScroll("left")}catch(a){return setTimeout(e,50)}I(),m.ready()}}()}return H.promise(b)};var K="undefined",L;for(L in m(k))break;k.ownLast="0"!==L,k.inlineBlockNeedsLayout=!1,m(function(){var a,b,c,d;c=y.getElementsByTagName("body")[0],c&&c.style&&(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),typeof b.style.zoom!==K&&(b.style.cssText="display:inline;margin:0;border:0;padding:1px;width:1px;zoom:1",k.inlineBlockNeedsLayout=a=3===b.offsetWidth,a&&(c.style.zoom=1)),c.removeChild(d))}),function(){var a=y.createElement("div");if(null==k.deleteExpando){k.deleteExpando=!0;try{delete a.test}catch(b){k.deleteExpando=!1}}a=null}(),m.acceptData=function(a){var b=m.noData[(a.nodeName+" ").toLowerCase()],c=+a.nodeType||1;return 1!==c&&9!==c?!1:!b||b!==!0&&a.getAttribute("classid")===b};var M=/^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,N=/([A-Z])/g;function O(a,b,c){if(void 0===c&&1===a.nodeType){var d="data-"+b.replace(N,"-$1").toLowerCase();if(c=a.getAttribute(d),"string"==typeof c){try{c="true"===c?!0:"false"===c?!1:"null"===c?null:+c+""===c?+c:M.test(c)?m.parseJSON(c):c}catch(e){}m.data(a,b,c)}else c=void 0}return c}function P(a){var b;for(b in a)if(("data"!==b||!m.isEmptyObject(a[b]))&&"toJSON"!==b)return!1;
 
@@ -1920,9 +3191,9 @@ distill-header .nav a {
 <h2 id="step-1-messing-with-apis">Step 1 – Messing With APIs</h2>
 <p>Using APIs is an important part of modern data acquisition tasks. Fortunately, they are pretty easy to put together (so long as you can follow some instructions). We are going to be working with REST APIs, so we can essentially just pass a URL request to a server – the words make it sound more complicated than it actually is.</p>
 <p>Let’s start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a <em>token</em> (or <em>key</em>, or <em>secret</em>) – mine is given below if you don’t want to mess with getting your own.</p>
-<p>When creating these URLs, we are given a base url, usually something like <code>https://api.yelp.com/v3/</code> and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the <em>business</em> directory, so we can add that to the link – <code>https://api.yelp.com/v3/businesses/</code>. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing – <code>https://api.yelp.com/v3/businesses/search</code>. The API now knows that we will be utilizing the search service. If you have ever included some of the extra information on a Youtube link, the next part will look pretty familiar to you: <code>https://api.yelp.com/v3/businesses/search?term=cambodian+thai</code>. Right after our <code>search</code> parameter, we pass an argument called <code>term</code> and set it equal to our search query. You likely noticed that what should have been a space was replaced by a <code>+</code> – URLs do not do spaces and other special characters. While the <code>+</code> works just fine for a space, you might want to familiarize yourself with &lt;a href=&quot;<a href="https://www.w3schools.com/tags/ref_urlencode.asp" class="uri">https://www.w3schools.com/tags/ref_urlencode.asp</a>&gt;URL encoding</a>. Finally, our search parameter needs another argument, <code>location</code>, giving us <code>https://api.yelp.com/v3/businesses/search?term=cambodian+thai&amp;location=south+bend</code>.</p>
+<p>When creating these URLs, we are given a base url, usually something like <code>https://api.yelp.com/v3/</code> and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the <em>business</em> directory, so we can add that to the link – <code>https://api.yelp.com/v3/businesses/</code>. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing – <code>https://api.yelp.com/v3/businesses/search</code>. The API now knows that we will be utilizing the search service. If you have ever included some of the extra information on a Youtube link, the next part will look pretty familiar to you: <code>https://api.yelp.com/v3/businesses/search?term=cambodian+thai</code>. Right after our <code>search</code> parameter, we pass an argument called <code>term</code> and set it equal to our search query. You likely noticed that what should have been a space was replaced by a <code>+</code> – URLs do not do spaces and other special characters. While the <code>+</code> works just fine for a space, you might want to familiarize yourself with <a href="https://www.w3schools.com/tags/ref_urlencode.asp">URL encoding</a>. Finally, our search parameter needs another argument, <code>location</code>, giving us <code>https://api.yelp.com/v3/businesses/search?term=cambodian+thai&amp;location=south+bend</code>.</p>
 <p>That is the first, and most difficult, step in getting an API call ready. The next part is pretty easy – we just need to pass our authentication key into the request. Again, this is something that sounds tricky, but really is pretty easy.</p>
-<p>If you have ever explored the network structure of a page, you will see a sections called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header.</p>
+<p>If you have ever explored the network structure of a page, you will see a section called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. This information takes the form of the authentication aspect of the request.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
 library(httr)
@@ -1934,21 +3205,191 @@ apiKey = &quot;8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxd
 thaiSearch = GET(&quot;https://api.yelp.com/v3/businesses/search?term=cambodian+thai&amp;location=south+bend&amp;limit=2&quot;,
                  add_headers(Authorization = paste(&quot;Bearer&quot;, apiKey, sep = &quot; &quot;)))</code></pre>
 </div>
+<h2 id="step-2-parsing-the-return">Step 2 – Parsing The Return</h2>
 <p>There will be times when working with an API is a one-step process, but…this is rarely the case. First, most API requests are going to come through in JSON. We will need to parse the request:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-searchParsed = jsonlite::fromJSON((content(thaiSearch, as = &quot;text&quot;)))</code></pre>
+searchParsed = jsonlite::fromJSON((content(thaiSearch, as = &quot;text&quot;)))
+
+searchParsed</code></pre>
+<pre><code>
+$businesses
+                      id                     alias           name
+1 bx2rCVErnRJ2SBxe7tKy7w cambodian-thai-south-bend Cambodian Thai
+2 y7cfW9joFCSwJnr9GQqpdg    nom-nom-pho-south-bend    Nom Nom Pho
+                                                             image_url
+1 https://s3-media3.fl.yelpcdn.com/bphoto/y7_hfdvtUwGCCgwmEzS0gg/o.jpg
+2 https://s3-media3.fl.yelpcdn.com/bphoto/1RLF3KitcYcbuhKaHkw3jA/o.jpg
+  is_closed
+1     FALSE
+2     FALSE
+                                                                                                                                                                                     url
+1 https://www.yelp.com/biz/cambodian-thai-south-bend?adjust_creative=PzWF7Y9nlCzNa8EEVVDf_g&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=PzWF7Y9nlCzNa8EEVVDf_g
+2    https://www.yelp.com/biz/nom-nom-pho-south-bend?adjust_creative=PzWF7Y9nlCzNa8EEVVDf_g&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=PzWF7Y9nlCzNa8EEVVDf_g
+  review_count
+1          288
+2           93
+                                                   categories rating
+1 thai, cambodian, asianfusion, Thai, Cambodian, Asian Fusion      4
+2                          vietnamese, thai, Vietnamese, Thai      4
+  coordinates.latitude coordinates.longitude transactions price
+1             41.67384             -86.25078         NULL     $
+2             41.67820             -86.25222         NULL    $$
+  location.address1 location.address2 location.address3 location.city
+1 235 S Michigan St                                        South Bend
+2     213 N Main St                                &lt;NA&gt;    South Bend
+  location.zip_code location.country location.state
+1             46601               US             IN
+2             46601               US             IN
+                 location.display_address        phone  display_phone
+1 235 S Michigan St, South Bend, IN 46601 +15742892877 (574) 289-2877
+2     213 N Main St, South Bend, IN 46601 +15744046480 (574) 404-6480
+  distance
+1 1530.126
+2 1382.546
+
+$total
+[1] 11
+
+$region
+$region$center
+$region$center$longitude
+[1] -86.26877
+
+$region$center$latitude
+[1] 41.67683</code></pre>
 </div>
 <p>There are many different ways of parsing this request (e.g., <code>content(thaiSearch, as = &quot;parsed&quot;)</code>), but the above will work pretty well for our current case.</p>
+<p>In looking at our <code>searchParsed</code> object, we should have a pretty good idea about what we want:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-cambodianThai = GET(&quot;https://api.yelp.com/v3/businesses/bx2rCVErnRJ2SBxe7tKy7w&quot;,
+thaiResults = searchParsed$businesses[1, ]</code></pre>
+</div>
+<h2 id="step-3-passing-information">Step 3 – Passing Information</h2>
+<p>In many API scenarios, you will be looking at a few steps to get to where you want to be. If we want to have more information about Cambodian Thai, we can get the information directly once we have the ID (which we got from our search).</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+thaiID = paste(&quot;https://api.yelp.com/v3/businesses/&quot;, thaiResults$id, sep = &quot;&quot;)
+
+cambodianThai = GET(thaiID,
     add_headers(Authorization = paste(&quot;Bearer&quot;, apiKey, sep = &quot; &quot;)))
 
 thaiParsed = jsonlite::fromJSON(content(cambodianThai, as = &quot;text&quot;))</code></pre>
 </div>
-<h2 id="step-2-parsing-the-return">Step 2 – Parsing The Return</h2>
-<h2 id="step-3-scraping-some-text">Step 3 – Scraping Some Text</h2>
+<h2 id="step-4-scraping-some-text">Step 4 – Scraping Some Text</h2>
+<p>Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our <code>rvest</code> code:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+library(rvest)
+
+cambodianThai = &quot;https://www.yelp.com/biz/cambodian-thai-south-bend&quot;
+
+cambodianThaiHTML = read_html(cambodianThai)
+
+cambodianThaiHTML %&gt;% 
+  html_nodes(&quot;.arrange_unit.page-option&quot;)</code></pre>
+<pre><code>
+{xml_nodeset (9)}
+[1] &lt;div class=&quot;arrange_unit page-option current&quot;&gt;\n                ...
+[2] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[3] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[4] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[5] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[6] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[7] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[8] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...
+[9] &lt;div class=&quot;arrange_unit page-option&quot;&gt;\n                        ...</code></pre>
+<pre class="r"><code>
+ctRatings = cambodianThaiHTML %&gt;% 
+  html_nodes(&quot;.review-wrapper .review-content .i-stars&quot;) %&gt;% 
+  html_attr(&quot;title&quot;) %&gt;% 
+  stringr::str_extract(&quot;[0-5]&quot;)
+
+ctReviews = cambodianThaiHTML %&gt;% 
+  html_nodes(&quot;.review-wrapper .review-content p&quot;) %&gt;% 
+  html_text()
+
+ctData = data.frame(ratings = ctRatings, 
+                    reviews = ctReviews, 
+                    restaurant = &quot;cambodian thai&quot;, 
+                    stringsAsFactors = FALSE)</code></pre>
+</div>
+<h2 id="step-4a-very-optional">Step 4a – Very Optional</h2>
+<p>You should notice that we only pulled in 20 reviews, while we know that we have over 280 reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at 15 pages worth of reviews <code>(ceiling(thaiParsed$review_count / 20)</code>. And since we know how the links are constructed, we can just create them:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+linkNumbers = seq(from = 0, to = (floor(288 / 20) * 20), by = 20)
+
+links = paste(&quot;https://www.yelp.com/biz/cambodian-thai-south-bend?start=&quot;, 
+              linkNumbers, sep = &quot;&quot;)
+
+allReviews = lapply(links, function(x) {
+  cambodianThai = x
+  
+  cambodianThaiHTML = read_html(cambodianThai)
+  
+  cambodianThaiHTML %&gt;% 
+    html_nodes(&quot;.arrange_unit.page-option&quot;)
+  
+  ctRatings = cambodianThaiHTML %&gt;% 
+    html_nodes(&quot;.review-wrapper .review-content .i-stars&quot;) %&gt;% 
+    html_attr(&quot;title&quot;) %&gt;% 
+    stringr::str_extract(&quot;[0-5]&quot;)
+  
+  ctReviews = cambodianThaiHTML %&gt;% 
+    html_nodes(&quot;.review-wrapper .review-content p&quot;) %&gt;% 
+    html_text()
+  
+  ctData = data.frame(ratings = ctRatings, 
+                      reviews = ctReviews, 
+                      restaurant = &quot;cambodian thai&quot;, 
+                      stringsAsFactors = FALSE)
+  
+  return(ctData)
+})
+
+allReviews = data.table::rbindlist(allReviews)</code></pre>
+</div>
+<h2 id="step-5-analyze-the-text">Step 5 – Analyze The Text</h2>
+<p>Given what we have already seen, try to learn a little bit about what words are being used in the reviews. Can you pick out a dish that people seem to talk about frequently?</p>
+<p>Just as a starting place, this might start to get at the dishes that are discussed:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+library(dplyr)
+
+library(tidytext)
+
+bigrams =  ctData %&gt;% 
+  # mutate(lyrics = stringr::str_squish(tm::removeWords(tolower(lyrics), tm::stopwords(&quot;SMART&quot;)))) %&gt;% 
+  unnest_tokens(., ngrams, reviews, token = &quot;ngrams&quot;, n = 2) %&gt;% 
+  tidyr::separate(ngrams, c(&quot;word1&quot;, &quot;word2&quot;), sep = &quot;\\s&quot;) %&gt;% 
+  count(word1, word2, sort = TRUE)
+
+rmarkdown::paged_table(bigrams)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["word1"],"name":[1],"type":["chr"],"align":["left"]},{"label":["word2"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"the","2":"food","3":"15"},{"1":"in","2":"the","3":"11"},{"1":"it","2":"was","3":"11"},{"1":"pad","2":"thai","3":"11"},{"1":"and","2":"the","3":"9"},{"1":"is","2":"the","3":"8"},{"1":"thai","2":"food","3":"8"},{"1":"this","2":"is","3":"8"},{"1":"this","2":"place","3":"7"},{"1":"cambodian","2":"thai","3":"6"},{"1":"for","2":"the","3":"6"},{"1":"i","2":"had","3":"6"},{"1":"if","2":"you","3":"6"},{"1":"on","2":"the","3":"6"},{"1":"one","2":"of","3":"6"},{"1":"a","2":"very","3":"5"},{"1":"and","2":"i","3":"5"},{"1":"and","2":"it","3":"5"},{"1":"enough","2":"to","3":"5"},{"1":"i","2":"will","3":"5"},{"1":"of","2":"my","3":"5"},{"1":"of","2":"the","3":"5"},{"1":"the","2":"pad","3":"5"},{"1":"the","2":"same","3":"5"},{"1":"time","2":"i","3":"5"},{"1":"with","2":"a","3":"5"},{"1":"a","2":"little","3":"4"},{"1":"at","2":"the","3":"4"},{"1":"but","2":"the","3":"4"},{"1":"food","2":"was","3":"4"},{"1":"i","2":"am","3":"4"},{"1":"i","2":"have","3":"4"},{"1":"is","2":"a","3":"4"},{"1":"pad","2":"see","3":"4"},{"1":"so","2":"good","3":"4"},{"1":"south","2":"bend","3":"4"},{"1":"the","2":"best","3":"4"},{"1":"the","2":"chicken","3":"4"},{"1":"the","2":"service","3":"4"},{"1":"to","2":"eat","3":"4"},{"1":"to","2":"go","3":"4"},{"1":"to","2":"the","3":"4"},{"1":"was","2":"a","3":"4"},{"1":"was","2":"so","3":"4"},{"1":"1","2":"10","3":"3"},{"1":"a","2":"full","3":"3"},{"1":"a","2":"good","3":"3"},{"1":"around","2":"the","3":"3"},{"1":"but","2":"not","3":"3"},{"1":"by","2":"the","3":"3"},{"1":"chicken","2":"satay","3":"3"},{"1":"chicken","2":"was","3":"3"},{"1":"chive","2":"dumplings","3":"3"},{"1":"curry","2":"rice","3":"3"},{"1":"did","2":"not","3":"3"},{"1":"drunken","2":"noodles","3":"3"},{"1":"food","2":"is","3":"3"},{"1":"from","2":"the","3":"3"},{"1":"get","2":"a","3":"3"},{"1":"go","2":"to","3":"3"},{"1":"good","2":"and","3":"3"},{"1":"had","2":"in","3":"3"},{"1":"had","2":"the","3":"3"},{"1":"i","2":"could","3":"3"},{"1":"i","2":"love","3":"3"},{"1":"i","2":"was","3":"3"},{"1":"i'd","2":"be","3":"3"},{"1":"i've","2":"always","3":"3"},{"1":"in","2":"my","3":"3"},{"1":"it","2":"is","3":"3"},{"1":"love","2":"the","3":"3"},{"1":"more","2":"of","3":"3"},{"1":"my","2":"favorite","3":"3"},{"1":"my","2":"fish","3":"3"},{"1":"next","2":"time","3":"3"},{"1":"of","2":"a","3":"3"},{"1":"of","2":"our","3":"3"},{"1":"of","2":"thai","3":"3"},{"1":"panang","2":"curry","3":"3"},{"1":"place","2":"is","3":"3"},{"1":"see","2":"ew","3":"3"},{"1":"service","2":"was","3":"3"},{"1":"she","2":"was","3":"3"},{"1":"so","2":"i","3":"3"},{"1":"thai","2":"dish","3":"3"},{"1":"thai","2":"restaurant","3":"3"},{"1":"that","2":"i","3":"3"},{"1":"the","2":"flavor","3":"3"},{"1":"there","2":"was","3":"3"},{"1":"they","2":"are","3":"3"},{"1":"to","2":"be","3":"3"},{"1":"to","2":"try","3":"3"},{"1":"tried","2":"the","3":"3"},{"1":"was","2":"good","3":"3"},{"1":"when","2":"i","3":"3"},{"1":"with","2":"chicken","3":"3"},{"1":"with","2":"the","3":"3"},{"1":"you","2":"are","3":"3"},{"1":"10","2":"instead","3":"2"},{"1":"a","2":"block","3":"2"},{"1":"a","2":"changing","3":"2"},{"1":"a","2":"couple","3":"2"},{"1":"a","2":"curry","3":"2"},{"1":"a","2":"five","3":"2"},{"1":"a","2":"lot","3":"2"},{"1":"a","2":"nice","3":"2"},{"1":"a","2":"place","3":"2"},{"1":"a","2":"real","3":"2"},{"1":"a","2":"waitress","3":"2"},{"1":"all","2":"the","3":"2"},{"1":"alot","2":"of","3":"2"},{"1":"and","2":"a","3":"2"},{"1":"and","2":"cheap","3":"2"},{"1":"and","2":"chicken","3":"2"},{"1":"and","2":"not","3":"2"},{"1":"and","2":"slow","3":"2"},{"1":"and","2":"we","3":"2"},{"1":"appetizers","2":"and","3":"2"},{"1":"are","2":"super","3":"2"},{"1":"art","2":"show","3":"2"},{"1":"as","2":"a","3":"2"},{"1":"as","2":"good","3":"2"},{"1":"as","2":"the","3":"2"},{"1":"asian","2":"restaurant","3":"2"},{"1":"back","2":"and","3":"2"},{"1":"back","2":"to","3":"2"},{"1":"beef","2":"pad","3":"2"},{"1":"been","2":"coming","3":"2"},{"1":"bend","2":"in","3":"2"},{"1":"best","2":"pad","3":"2"},{"1":"broccoli","2":"and","3":"2"},{"1":"but","2":"it's","3":"2"},{"1":"but","2":"still","3":"2"},{"1":"but","2":"who","3":"2"},{"1":"but","2":"would","3":"2"},{"1":"cambodia","2":"thai","3":"2"},{"1":"can","2":"get","3":"2"},{"1":"carbs","2":"on","3":"2"},{"1":"changing","2":"station","3":"2"},{"1":"children","2":"to","3":"2"},{"1":"come","2":"back","3":"2"},{"1":"couple","2":"of","3":"2"},{"1":"curry","2":"and","3":"2"},{"1":"curry","2":"with","3":"2"},{"1":"dining","2":"experience","3":"2"},{"1":"dish","2":"was","3":"2"},{"1":"dry","2":"that","3":"2"},{"1":"dumplings","2":"and","3":"2"},{"1":"egg","2":"rolls","3":"2"},{"1":"ever","2":"had","3":"2"},{"1":"expected","2":"that","3":"2"},{"1":"favorite","2":"thai","3":"2"},{"1":"first","2":"time","3":"2"},{"1":"fish","2":"and","3":"2"},{"1":"fish","2":"the","3":"2"},{"1":"food","2":"here","3":"2"},{"1":"food","2":"since","3":"2"},{"1":"food","2":"the","3":"2"},{"1":"for","2":"a","3":"2"},{"1":"get","2":"it","3":"2"},{"1":"go","2":"around","3":"2"},{"1":"go","2":"for","3":"2"},{"1":"good","2":"as","3":"2"},{"1":"good","2":"but","3":"2"},{"1":"had","2":"a","3":"2"},{"1":"hole","2":"in","3":"2"},{"1":"hot","2":"it","3":"2"},{"1":"i","2":"can","3":"2"},{"1":"i","2":"can't","3":"2"},{"1":"i","2":"just","3":"2"},{"1":"i","2":"looked","3":"2"},{"1":"i","2":"mean","3":"2"},{"1":"i","2":"won't","3":"2"},{"1":"i'm","2":"not","3":"2"},{"1":"i've","2":"been","3":"2"},{"1":"if","2":"you're","3":"2"},{"1":"impressed","2":"with","3":"2"},{"1":"in","2":"a","3":"2"},{"1":"in","2":"downtown","3":"2"},{"1":"in","2":"south","3":"2"},{"1":"in","2":"their","3":"2"},{"1":"in","2":"town","3":"2"},{"1":"instead","2":"of","3":"2"},{"1":"is","2":"best","3":"2"},{"1":"is","2":"good","3":"2"},{"1":"is","2":"my","3":"2"},{"1":"it","2":"i'd","3":"2"},{"1":"it","2":"to","3":"2"},{"1":"it","2":"with","3":"2"},{"1":"just","2":"don't","3":"2"},{"1":"level","2":"of","3":"2"},{"1":"like","2":"it","3":"2"},{"1":"love","2":"of","3":"2"},{"1":"meat","2":"i","3":"2"},{"1":"more","2":"than","3":"2"},{"1":"mostly","2":"thai","3":"2"},{"1":"my","2":"entree","3":"2"},{"1":"my","2":"go","3":"2"},{"1":"my","2":"last","3":"2"},{"1":"need","2":"to","3":"2"},{"1":"never","2":"tried","3":"2"},{"1":"noodle","2":"dish","3":"2"},{"1":"noodles","2":"with","3":"2"},{"1":"not","2":"that","3":"2"},{"1":"not","2":"the","3":"2"},{"1":"of","2":"art","3":"2"},{"1":"of","2":"it","3":"2"},{"1":"of","2":"their","3":"2"},{"1":"of","2":"town","3":"2"},{"1":"on","2":"any","3":"2"},{"1":"on","2":"carbs","3":"2"},{"1":"other","2":"asian","3":"2"},{"1":"our","2":"two","3":"2"},{"1":"our","2":"waitress","3":"2"},{"1":"out","2":"of","3":"2"},{"1":"pad","2":"se","3":"2"},{"1":"papaya","2":"salad","3":"2"},{"1":"part","2":"of","3":"2"},{"1":"place","2":"to","3":"2"},{"1":"place","2":"with","3":"2"},{"1":"pot","2":"stickers","3":"2"},{"1":"quite","2":"a","3":"2"},{"1":"red","2":"snapper","3":"2"},{"1":"rice","2":"i","3":"2"},{"1":"rice","2":"noodles","3":"2"},{"1":"sauce","2":"had","3":"2"},{"1":"se","2":"ew","3":"2"},{"1":"shrimp","2":"pad","3":"2"},{"1":"small","2":"children","3":"2"},{"1":"so","2":"dry","3":"2"},{"1":"stickers","2":"chive","3":"2"},{"1":"tables","2":"and","3":"2"},{"1":"taste","2":"buds","3":"2"},{"1":"thai","2":"is","3":"2"},{"1":"thai","2":"restaurants","3":"2"},{"1":"thai","2":"very","3":"2"},{"1":"that","2":"good","3":"2"},{"1":"that","2":"it","3":"2"},{"1":"that","2":"make","3":"2"},{"1":"that","2":"the","3":"2"},{"1":"that","2":"was","3":"2"},{"1":"the","2":"appetizers","3":"2"},{"1":"the","2":"beef","3":"2"},{"1":"the","2":"curry","3":"2"},{"1":"the","2":"dining","3":"2"},{"1":"the","2":"drunken","3":"2"},{"1":"the","2":"first","3":"2"},{"1":"the","2":"fish","3":"2"},{"1":"the","2":"flavors","3":"2"},{"1":"the","2":"heat","3":"2"},{"1":"the","2":"love","3":"2"},{"1":"the","2":"menu","3":"2"},{"1":"the","2":"noodles","3":"2"},{"1":"the","2":"other","3":"2"},{"1":"the","2":"wall","3":"2"},{"1":"their","2":"food","3":"2"},{"1":"there","2":"are","3":"2"},{"1":"there","2":"were","3":"2"},{"1":"to","2":"a","3":"2"},{"1":"to","2":"cam","3":"2"},{"1":"to","2":"come","3":"2"},{"1":"to","2":"do","3":"2"},{"1":"to","2":"get","3":"2"},{"1":"to","2":"it","3":"2"},{"1":"to","2":"say","3":"2"},{"1":"to","2":"that","3":"2"},{"1":"too","2":"i","3":"2"},{"1":"try","2":"it","3":"2"},{"1":"up","2":"to","3":"2"},{"1":"visit","2":"here","3":"2"},{"1":"want","2":"to","3":"2"},{"1":"was","2":"dry","3":"2"},{"1":"was","2":"great","3":"2"},{"1":"was","2":"pretty","3":"2"},{"1":"we","2":"came","3":"2"},{"1":"we","2":"were","3":"2"},{"1":"were","2":"the","3":"2"},{"1":"what","2":"i","3":"2"},{"1":"what","2":"you","3":"2"},{"1":"when","2":"we","3":"2"},{"1":"when","2":"you","3":"2"},{"1":"with","2":"rice","3":"2"},{"1":"with","2":"small","3":"2"},{"1":"would","2":"not","3":"2"},{"1":"you","2":"don't","3":"2"},{"1":"0","2":"heat","3":"1"},{"1":"1","2":"chicken","3":"1"},{"1":"1","2":"this","3":"1"},{"1":"10","2":"11","3":"1"},{"1":"10","2":"14","3":"1"},{"1":"10","2":"is","3":"1"},{"1":"10","2":"or","3":"1"},{"1":"10","2":"shrimp","3":"1"},{"1":"11","2":"and","3":"1"},{"1":"12","2":"15","3":"1"},{"1":"14","2":"people","3":"1"},{"1":"15","2":"min","3":"1"},{"1":"15","2":"minutes","3":"1"},{"1":"15","2":"on","3":"1"},{"1":"2","2":"4","3":"1"},{"1":"2","2":"beef","3":"1"},{"1":"2","2":"fresh","3":"1"},{"1":"2","2":"waitresses","3":"1"},{"1":"2.5","2":"5.0","3":"1"},{"1":"25","2":"gift","3":"1"},{"1":"3","2":"4","3":"1"},{"1":"3","2":"choose","3":"1"},{"1":"31","2":"so","3":"1"},{"1":"4","2":"during","3":"1"},{"1":"4","2":"parties","3":"1"},{"1":"4","2":"tables","3":"1"},{"1":"4","2":"this","3":"1"},{"1":"5","2":"heat","3":"1"},{"1":"5","2":"portions","3":"1"},{"1":"5","2":"star","3":"1"},{"1":"5","2":"tables","3":"1"},{"1":"5.0","2":"overall","3":"1"},{"1":"7","2":"in","3":"1"},{"1":"75","2":"of","3":"1"},{"1":"8","2":"heat","3":"1"},{"1":"a","2":"2.5","3":"1"},{"1":"a","2":"25","3":"1"},{"1":"a","2":"c","3":"1"},{"1":"a","2":"cambodian","3":"1"},{"1":"a","2":"chewy","3":"1"},{"1":"a","2":"crisp","3":"1"},{"1":"a","2":"delightful","3":"1"},{"1":"a","2":"developed","3":"1"},{"1":"a","2":"dining","3":"1"},{"1":"a","2":"dish","3":"1"},{"1":"a","2":"dump","3":"1"},{"1":"a","2":"few","3":"1"},{"1":"a","2":"friday","3":"1"},{"1":"a","2":"great","3":"1"},{"1":"a","2":"heat","3":"1"},{"1":"a","2":"hole","3":"1"},{"1":"a","2":"hostess","3":"1"},{"1":"a","2":"hurry","3":"1"},{"1":"a","2":"hybrid","3":"1"},{"1":"a","2":"large","3":"1"},{"1":"a","2":"late","3":"1"},{"1":"a","2":"noodle","3":"1"},{"1":"a","2":"notch","3":"1"},{"1":"a","2":"one","3":"1"},{"1":"a","2":"panang","3":"1"},{"1":"a","2":"person","3":"1"},{"1":"a","2":"personal","3":"1"},{"1":"a","2":"placemat","3":"1"},{"1":"a","2":"poop","3":"1"},{"1":"a","2":"reduction","3":"1"},{"1":"a","2":"second","3":"1"},{"1":"a","2":"sewage","3":"1"},{"1":"a","2":"tea","3":"1"},{"1":"a","2":"thai","3":"1"},{"1":"a","2":"touch","3":"1"},{"1":"a","2":"week","3":"1"},{"1":"a","2":"while","3":"1"},{"1":"a","2":"whole","3":"1"},{"1":"a","2":"work","3":"1"},{"1":"able","2":"to","3":"1"},{"1":"about","2":"15","3":"1"},{"1":"about","2":"college","3":"1"},{"1":"about","2":"how","3":"1"},{"1":"about","2":"it","3":"1"},{"1":"about","2":"thai","3":"1"},{"1":"about","2":"them","3":"1"},{"1":"about","2":"this","3":"1"},{"1":"absolute","2":"favorite","3":"1"},{"1":"absolutely","2":"delicious","3":"1"},{"1":"accented","2":"the","3":"1"},{"1":"accompanied","2":"with","3":"1"},{"1":"acquaintances","2":"is","3":"1"},{"1":"action","2":"it","3":"1"},{"1":"actual","2":"asian","3":"1"},{"1":"actually","2":"dine","3":"1"},{"1":"actually","2":"rank","3":"1"},{"1":"add","2":"moisture","3":"1"},{"1":"added","2":"a","3":"1"},{"1":"additional","2":"condiments.i","3":"1"},{"1":"adds","2":"this","3":"1"},{"1":"after","2":"all","3":"1"},{"1":"after","2":"eating","3":"1"},{"1":"after","2":"walking","3":"1"},{"1":"afternoon","2":"lunch","3":"1"},{"1":"again","2":"but","3":"1"},{"1":"again","2":"you","3":"1"},{"1":"again.neutral","2":"i","3":"1"},{"1":"air","2":"conditioner","3":"1"},{"1":"all","2":"a","3":"1"},{"1":"all","2":"and","3":"1"},{"1":"all","2":"of","3":"1"},{"1":"all","2":"served","3":"1"},{"1":"all","2":"we","3":"1"},{"1":"allow","2":"people","3":"1"},{"1":"alone","2":"excellent","3":"1"},{"1":"also","2":"love","3":"1"},{"1":"always","2":"crunchy","3":"1"},{"1":"always","2":"eat","3":"1"},{"1":"always","2":"gets","3":"1"},{"1":"always","2":"gotten","3":"1"},{"1":"always","2":"had","3":"1"},{"1":"always","2":"love","3":"1"},{"1":"always","2":"loved","3":"1"},{"1":"always","2":"spectacular","3":"1"},{"1":"am","2":"quite","3":"1"},{"1":"am","2":"still","3":"1"},{"1":"am","2":"which","3":"1"},{"1":"am","2":"writing","3":"1"},{"1":"amateur","2":"food","3":"1"},{"1":"amazing","2":"5","3":"1"},{"1":"amazing","2":"flavor","3":"1"},{"1":"amazing","2":"the","3":"1"},{"1":"amazing.panang","2":"curry","3":"1"},{"1":"ambiance","2":"or","3":"1"},{"1":"americanized","2":"to","3":"1"},{"1":"an","2":"asian","3":"1"},{"1":"an","2":"old","3":"1"},{"1":"an","2":"ounce","3":"1"},{"1":"and","2":"all","3":"1"},{"1":"and","2":"alot","3":"1"},{"1":"and","2":"beef","3":"1"},{"1":"and","2":"cambodian","3":"1"},{"1":"and","2":"chairs","3":"1"},{"1":"and","2":"chooses","3":"1"},{"1":"and","2":"cook","3":"1"},{"1":"and","2":"curry","3":"1"},{"1":"and","2":"decent","3":"1"},{"1":"and","2":"didn't","3":"1"},{"1":"and","2":"exceeded","3":"1"},{"1":"and","2":"faded","3":"1"},{"1":"and","2":"flavorful","3":"1"},{"1":"and","2":"fresh","3":"1"},{"1":"and","2":"fullfill","3":"1"},{"1":"and","2":"get","3":"1"},{"1":"and","2":"green","3":"1"},{"1":"and","2":"had","3":"1"},{"1":"and","2":"have","3":"1"},{"1":"and","2":"hearty","3":"1"},{"1":"and","2":"item","3":"1"},{"1":"and","2":"its","3":"1"},{"1":"and","2":"kind","3":"1"},{"1":"and","2":"kitchen","3":"1"},{"1":"and","2":"large","3":"1"},{"1":"and","2":"laughed","3":"1"},{"1":"and","2":"leaving","3":"1"},{"1":"and","2":"nice","3":"1"},{"1":"and","2":"operated","3":"1"},{"1":"and","2":"or","3":"1"},{"1":"and","2":"over","3":"1"},{"1":"and","2":"peanut","3":"1"},{"1":"and","2":"possibly","3":"1"},{"1":"and","2":"really","3":"1"},{"1":"and","2":"ruins","3":"1"},{"1":"and","2":"sauces","3":"1"},{"1":"and","2":"servers","3":"1"},{"1":"and","2":"she","3":"1"},{"1":"and","2":"shrimp","3":"1"},{"1":"and","2":"somewhat","3":"1"},{"1":"and","2":"sticky","3":"1"},{"1":"and","2":"tables","3":"1"},{"1":"and","2":"tasted","3":"1"},{"1":"and","2":"they","3":"1"},{"1":"and","2":"things","3":"1"},{"1":"and","2":"veggies","3":"1"},{"1":"and","2":"while","3":"1"},{"1":"and","2":"with","3":"1"},{"1":"and","2":"you","3":"1"},{"1":"another","2":"time","3":"1"},{"1":"another","2":"try","3":"1"},{"1":"any","2":"asian","3":"1"},{"1":"any","2":"given","3":"1"},{"1":"any","2":"other","3":"1"},{"1":"anything","2":"wrong","3":"1"},{"1":"anywhere","2":"else","3":"1"},{"1":"appearance","2":"and","3":"1"},{"1":"appearance","2":"too","3":"1"},{"1":"appetizer","2":"and","3":"1"},{"1":"appetizers","2":"to","3":"1"},{"1":"appetizers","2":"when","3":"1"},{"1":"are","2":"always","3":"1"},{"1":"are","2":"bothered","3":"1"},{"1":"are","2":"crispy","3":"1"},{"1":"are","2":"dirty","3":"1"},{"1":"are","2":"doing","3":"1"},{"1":"are","2":"fried","3":"1"},{"1":"are","2":"if","3":"1"},{"1":"are","2":"little","3":"1"},{"1":"are","2":"not","3":"1"},{"1":"are","2":"pretty","3":"1"},{"1":"are","2":"so","3":"1"},{"1":"are","2":"still","3":"1"},{"1":"are","2":"strong","3":"1"},{"1":"are","2":"the","3":"1"},{"1":"are","2":"tremendous","3":"1"},{"1":"are","2":"two","3":"1"},{"1":"area","2":"alone","3":"1"},{"1":"area","2":"i've","3":"1"},{"1":"aren't","2":"good","3":"1"},{"1":"around","2":"12","3":"1"},{"1":"around","2":"graduation","3":"1"},{"1":"around","2":"it","3":"1"},{"1":"arrived","2":"around","3":"1"},{"1":"arrived","2":"i","3":"1"},{"1":"arrived","2":"what","3":"1"},{"1":"art","2":"for","3":"1"},{"1":"as","2":"authentic","3":"1"},{"1":"as","2":"before","3":"1"},{"1":"as","2":"far","3":"1"},{"1":"as","2":"i","3":"1"},{"1":"as","2":"long","3":"1"},{"1":"as","2":"moist","3":"1"},{"1":"as","2":"other","3":"1"},{"1":"as","2":"this","3":"1"},{"1":"as","2":"well","3":"1"},{"1":"as","2":"you","3":"1"},{"1":"asian","2":"cuisine","3":"1"},{"1":"asian","2":"food","3":"1"},{"1":"asian","2":"foods","3":"1"},{"1":"asian","2":"fusion","3":"1"},{"1":"asian","2":"i","3":"1"},{"1":"asian","2":"restaurants","3":"1"},{"1":"asian","2":"theme","3":"1"},{"1":"ask","2":"for","3":"1"},{"1":"ask","2":"me","3":"1"},{"1":"at","2":"a","3":"1"},{"1":"at","2":"all","3":"1"},{"1":"at","2":"different","3":"1"},{"1":"at","2":"my","3":"1"},{"1":"atmosphere","2":"i'd","3":"1"},{"1":"atmosphere","2":"until","3":"1"},{"1":"atop","2":"of","3":"1"},{"1":"attempting","2":"to","3":"1"},{"1":"authentic","2":"food","3":"1"},{"1":"authentic","2":"panang","3":"1"},{"1":"authentic","2":"they","3":"1"},{"1":"away","2":"from","3":"1"},{"1":"awesome","2":"food","3":"1"},{"1":"awesome","2":"texture","3":"1"},{"1":"awhile","2":"the","3":"1"},{"1":"awkward","2":"and","3":"1"},{"1":"babies","2":"they","3":"1"},{"1":"back","2":"but","3":"1"},{"1":"back","2":"down","3":"1"},{"1":"back","2":"often","3":"1"},{"1":"back","2":"settling","3":"1"},{"1":"bad","2":"enough","3":"1"},{"1":"bang","2":"for","3":"1"},{"1":"bare","2":"not","3":"1"},{"1":"basic","2":"and","3":"1"},{"1":"basically","2":"every","3":"1"},{"1":"be","2":"a","3":"1"},{"1":"be","2":"cambodia","3":"1"},{"1":"be","2":"dinning","3":"1"},{"1":"be","2":"eating","3":"1"},{"1":"be","2":"good","3":"1"},{"1":"be","2":"jilted","3":"1"},{"1":"be","2":"slow","3":"1"},{"1":"be","2":"trusted","3":"1"},{"1":"be","2":"very","3":"1"},{"1":"be","2":"warned","3":"1"},{"1":"be","2":"willing","3":"1"},{"1":"bean","2":"sprouts","3":"1"},{"1":"because","2":"i'm","3":"1"},{"1":"because","2":"i've","3":"1"},{"1":"because","2":"it","3":"1"},{"1":"because","2":"it's","3":"1"},{"1":"because","2":"nothing","3":"1"},{"1":"because","2":"once","3":"1"},{"1":"because","2":"the","3":"1"},{"1":"beef","2":"all","3":"1"},{"1":"beef","2":"curry","3":"1"},{"1":"beef","2":"on","3":"1"},{"1":"beef","2":"panang","3":"1"},{"1":"been","2":"americanized","3":"1"},{"1":"been","2":"close","3":"1"},{"1":"been","2":"here","3":"1"},{"1":"been","2":"less","3":"1"},{"1":"been","2":"mildly","3":"1"},{"1":"been","2":"quite","3":"1"},{"1":"before","2":"and","3":"1"},{"1":"before","2":"i","3":"1"},{"1":"before","2":"just","3":"1"},{"1":"before","2":"the","3":"1"},{"1":"begin","2":"this","3":"1"},{"1":"being","2":"able","3":"1"},{"1":"being","2":"extremely","3":"1"},{"1":"bell","2":"peppers","3":"1"},{"1":"bend","2":"days","3":"1"},{"1":"bend","2":"if","3":"1"},{"1":"besides","2":"some","3":"1"},{"1":"best","2":"i","3":"1"},{"1":"best","2":"out","3":"1"},{"1":"best","2":"quality","3":"1"},{"1":"best","2":"thai","3":"1"},{"1":"better","2":"than","3":"1"},{"1":"between","2":"tables","3":"1"},{"1":"bigger","2":"some","3":"1"},{"1":"biggest","2":"regret","3":"1"},{"1":"bingo","2":"hall","3":"1"},{"1":"bites","2":"i","3":"1"},{"1":"bits","2":"of","3":"1"},{"1":"block","2":"away","3":"1"},{"1":"block","2":"back","3":"1"},{"1":"block","2":"the","3":"1"},{"1":"booths","2":"so","3":"1"},{"1":"both","2":"got","3":"1"},{"1":"both","2":"times","3":"1"},{"1":"bother","2":"trying","3":"1"},{"1":"bothered","2":"by","3":"1"},{"1":"bothered","2":"then","3":"1"},{"1":"boyfriend","2":"got","3":"1"},{"1":"broccoli","2":"the","3":"1"},{"1":"brought","2":"a","3":"1"},{"1":"buck","2":"good","3":"1"},{"1":"buds","2":"on","3":"1"},{"1":"buds","2":"orgasm","3":"1"},{"1":"building","2":"its","3":"1"},{"1":"burnt","2":"to","3":"1"},{"1":"but","2":"as","3":"1"},{"1":"but","2":"be","3":"1"},{"1":"but","2":"certainly","3":"1"},{"1":"but","2":"everything","3":"1"},{"1":"but","2":"had","3":"1"},{"1":"but","2":"i","3":"1"},{"1":"but","2":"i'm","3":"1"},{"1":"but","2":"if","3":"1"},{"1":"but","2":"my","3":"1"},{"1":"but","2":"never","3":"1"},{"1":"but","2":"next","3":"1"},{"1":"but","2":"one","3":"1"},{"1":"but","2":"others","3":"1"},{"1":"but","2":"rather","3":"1"},{"1":"but","2":"soy","3":"1"},{"1":"but","2":"suffice","3":"1"},{"1":"but","2":"that","3":"1"},{"1":"but","2":"their","3":"1"},{"1":"but","2":"we","3":"1"},{"1":"but","2":"well","3":"1"},{"1":"but","2":"when","3":"1"},{"1":"but","2":"without","3":"1"},{"1":"but","2":"you","3":"1"},{"1":"by","2":"some","3":"1"},{"1":"by","2":"surprise","3":"1"},{"1":"c","2":"wasn't","3":"1"},{"1":"cam","2":"thai","3":"1"},{"1":"cam","2":"thai's","3":"1"},{"1":"cambodian","2":"thai's","3":"1"},{"1":"cambodian","2":"twist","3":"1"},{"1":"came","2":"and","3":"1"},{"1":"came","2":"in","3":"1"},{"1":"came","2":"out","3":"1"},{"1":"came","2":"that","3":"1"},{"1":"can","2":"actually","3":"1"},{"1":"can","2":"i","3":"1"},{"1":"can","2":"not","3":"1"},{"1":"can't","2":"find","3":"1"},{"1":"can't","2":"get","3":"1"},{"1":"can't","2":"speak","3":"1"},{"1":"can't","2":"wait","3":"1"},{"1":"car","2":"in","3":"1"},{"1":"carbs","2":"but","3":"1"},{"1":"card","2":"to","3":"1"},{"1":"cared","2":"who","3":"1"},{"1":"cares","2":"the","3":"1"},{"1":"carmelized","2":"hardened","3":"1"},{"1":"carpet","2":"is","3":"1"},{"1":"case","2":"please","3":"1"},{"1":"cater","2":"to","3":"1"},{"1":"certainly","2":"not","3":"1"},{"1":"chairs","2":"and","3":"1"},{"1":"chairs","2":"more","3":"1"},{"1":"change","2":"a","3":"1"},{"1":"change","2":"but","3":"1"},{"1":"change","2":"my","3":"1"},{"1":"changes","2":"the","3":"1"},{"1":"cheap","2":"for","3":"1"},{"1":"cheap","2":"their","3":"1"},{"1":"cheap","2":"too","3":"1"},{"1":"chewy","2":"egg","3":"1"},{"1":"chicago","2":"in","3":"1"},{"1":"chicken","2":"0","3":"1"},{"1":"chicken","2":"can't","3":"1"},{"1":"chicken","2":"in","3":"1"},{"1":"chicken","2":"it","3":"1"},{"1":"chicken","2":"pad","3":"1"},{"1":"chicken","2":"pros","3":"1"},{"1":"chicken","2":"that","3":"1"},{"1":"chicken","2":"very","3":"1"},{"1":"child","2":"scream","3":"1"},{"1":"chinese","2":"food","3":"1"},{"1":"chinese","2":"restaurants","3":"1"},{"1":"choose","2":"your","3":"1"},{"1":"chooses","2":"to","3":"1"},{"1":"clean","2":"restroom","3":"1"},{"1":"cleanliness","2":"and","3":"1"},{"1":"clearly","2":"primarily","3":"1"},{"1":"close","2":"to","3":"1"},{"1":"cold","2":"broccoli","3":"1"},{"1":"cold","2":"by","3":"1"},{"1":"cold","2":"south","3":"1"},{"1":"college","2":"is","3":"1"},{"1":"come","2":"in","3":"1"},{"1":"come","2":"through","3":"1"},{"1":"come","2":"to","3":"1"},{"1":"come","2":"visit","3":"1"},{"1":"comes","2":"in","3":"1"},{"1":"comfort","2":"i","3":"1"},{"1":"coming","2":"here","3":"1"},{"1":"coming","2":"since","3":"1"},{"1":"comments","2":"about","3":"1"},{"1":"compared","2":"to","3":"1"},{"1":"compared","2":"with","3":"1"},{"1":"complaints","2":"that","3":"1"},{"1":"completely","2":"bare","3":"1"},{"1":"complex","2":"as","3":"1"},{"1":"complimented","2":"the","3":"1"},{"1":"condiments.i","2":"would","3":"1"},{"1":"conditioner","2":"sitting","3":"1"},{"1":"consistent","2":"sweet","3":"1"},{"1":"constriction","2":"neither","3":"1"},{"1":"cook","2":"it","3":"1"},{"1":"cooking","2":"method","3":"1"},{"1":"cooling","2":"then","3":"1"},{"1":"corner","2":"she","3":"1"},{"1":"cost","2":"effective","3":"1"},{"1":"could","2":"go","3":"1"},{"1":"could","2":"not","3":"1"},{"1":"could","2":"understand","3":"1"},{"1":"country","2":"washington","3":"1"},{"1":"couple","2":"paintings","3":"1"},{"1":"cozy","2":"and","3":"1"},{"1":"creamy","2":"and","3":"1"},{"1":"crisp","2":"noodles","3":"1"},{"1":"crisps","2":"with","3":"1"},{"1":"crispy","2":"and","3":"1"},{"1":"crunchy","2":"bits","3":"1"},{"1":"crushed","2":"peanuts","3":"1"},{"1":"cuisine","2":"has","3":"1"},{"1":"cuisine","2":"not","3":"1"},{"1":"cuisine","2":"sometimes","3":"1"},{"1":"cuisine","2":"there","3":"1"},{"1":"cup","2":"of","3":"1"},{"1":"curry","2":"8","3":"1"},{"1":"curry","2":"but","3":"1"},{"1":"curry","2":"dishes","3":"1"},{"1":"curry","2":"guy","3":"1"},{"1":"curry","2":"had","3":"1"},{"1":"curry","2":"having","3":"1"},{"1":"curry","2":"i","3":"1"},{"1":"curry","2":"pad","3":"1"},{"1":"curry","2":"that's","3":"1"},{"1":"curry","2":"tofu","3":"1"},{"1":"d.c","2":"to","3":"1"},{"1":"dare","2":"the","3":"1"},{"1":"daughter","2":"used","3":"1"},{"1":"day","2":"for","3":"1"},{"1":"day","2":"i","3":"1"},{"1":"days","2":"of","3":"1"},{"1":"days","2":"when","3":"1"},{"1":"dead","2":"when","3":"1"},{"1":"decent","2":"but","3":"1"},{"1":"decided","2":"to","3":"1"},{"1":"decor","2":"of","3":"1"},{"1":"decor","2":"to","3":"1"},{"1":"decor","2":"would","3":"1"},{"1":"delicious","2":"great","3":"1"},{"1":"delicious","2":"i","3":"1"},{"1":"delicious","2":"impeccable","3":"1"},{"1":"delicious","2":"the","3":"1"},{"1":"delightful","2":"experience","3":"1"},{"1":"depth","2":"the","3":"1"},{"1":"designated","2":"cuisine","3":"1"},{"1":"desire","2":"their","3":"1"},{"1":"developed","2":"semi","3":"1"},{"1":"diaper","2":"on","3":"1"},{"1":"didn't","2":"posses","3":"1"},{"1":"didn't","2":"taste","3":"1"},{"1":"diego","2":"would","3":"1"},{"1":"different","2":"flavorfully","3":"1"},{"1":"different","2":"times","3":"1"},{"1":"dine","2":"in","3":"1"},{"1":"dining","2":"in","3":"1"},{"1":"dinning","2":"in","3":"1"},{"1":"dirty","2":"the","3":"1"},{"1":"disappointed","2":"by","3":"1"},{"1":"disappointed","2":"everytime","3":"1"},{"1":"dish","2":"5","3":"1"},{"1":"dish","2":"again.neutral","3":"1"},{"1":"dish","2":"cambodian","3":"1"},{"1":"dish","2":"ever","3":"1"},{"1":"dish","2":"had","3":"1"},{"1":"dish","2":"item","3":"1"},{"1":"dish","2":"itself","3":"1"},{"1":"dish","2":"ive","3":"1"},{"1":"dish","2":"there","3":"1"},{"1":"dish","2":"which","3":"1"},{"1":"dishes","2":"they're","3":"1"},{"1":"disregarding","2":"the","3":"1"},{"1":"do","2":"change","3":"1"},{"1":"do","2":"something","3":"1"},{"1":"do","2":"you","3":"1"},{"1":"doesn't","2":"block","3":"1"},{"1":"doesn't","2":"it","3":"1"},{"1":"doesn't","2":"like","3":"1"},{"1":"doesn't","2":"visit","3":"1"},{"1":"dog","2":"days","3":"1"},{"1":"doing","2":"the","3":"1"},{"1":"doing","2":"what","3":"1"},{"1":"don't","2":"get","3":"1"},{"1":"don't","2":"have","3":"1"},{"1":"don't","2":"know","3":"1"},{"1":"don't","2":"like","3":"1"},{"1":"don't","2":"mind","3":"1"},{"1":"don't","2":"recommend","3":"1"},{"1":"don't","2":"serve","3":"1"},{"1":"don't","2":"want","3":"1"},{"1":"door","2":"that","3":"1"},{"1":"dope","2":"asian","3":"1"},{"1":"double","2":"ten","3":"1"},{"1":"doubt","2":"it","3":"1"},{"1":"doused","2":"my","3":"1"},{"1":"down","2":"the","3":"1"},{"1":"down","2":"to","3":"1"},{"1":"downtown","2":"it","3":"1"},{"1":"downtown","2":"south","3":"1"},{"1":"draw","2":"from","3":"1"},{"1":"drink","2":"refills","3":"1"},{"1":"drunken","2":"noodle","3":"1"},{"1":"dry","2":"but","3":"1"},{"1":"dry","2":"sauce","3":"1"},{"1":"dry","2":"with","3":"1"},{"1":"due","2":"to","3":"1"},{"1":"dump","2":"there's","3":"1"},{"1":"dumplings","2":"they","3":"1"},{"1":"during","2":"our","3":"1"},{"1":"each","2":"dish","3":"1"},{"1":"each","2":"time","3":"1"},{"1":"easy","2":"fixes","3":"1"},{"1":"eat","2":"a","3":"1"},{"1":"eat","2":"in","3":"1"},{"1":"eat","2":"it","3":"1"},{"1":"eat","2":"on","3":"1"},{"1":"eat","2":"strictly","3":"1"},{"1":"eaten","2":"at","3":"1"},{"1":"eating","2":"and","3":"1"},{"1":"eating","2":"food","3":"1"},{"1":"eating","2":"here","3":"1"},{"1":"eating","2":"mostly","3":"1"},{"1":"effective","2":"dope","3":"1"},{"1":"egg","2":"noodle","3":"1"},{"1":"either","2":"thai","3":"1"},{"1":"else","2":"besides","3":"1"},{"1":"else","2":"in","3":"1"},{"1":"emphasis","2":"on","3":"1"},{"1":"enhanced","2":"the","3":"1"},{"1":"enough","2":"of","3":"1"},{"1":"entire","2":"pad","3":"1"},{"1":"entirely","2":"thai","3":"1"},{"1":"entrance","2":"that","3":"1"},{"1":"entree","2":"i","3":"1"},{"1":"entree","2":"is","3":"1"},{"1":"entree","2":"of","3":"1"},{"1":"entree","2":"the","3":"1"},{"1":"especially","2":"for","3":"1"},{"1":"especially","2":"my","3":"1"},{"1":"especially","2":"since","3":"1"},{"1":"especially","2":"the","3":"1"},{"1":"establishment","2":"then","3":"1"},{"1":"establishments","2":"so","3":"1"},{"1":"etc","2":"i","3":"1"},{"1":"etc","2":"the","3":"1"},{"1":"even","2":"a","3":"1"},{"1":"even","2":"bother","3":"1"},{"1":"even","2":"comfort","3":"1"},{"1":"even","2":"compared","3":"1"},{"1":"even","2":"working","3":"1"},{"1":"eventually","2":"i","3":"1"},{"1":"ever","2":"pretty","3":"1"},{"1":"ever","2":"so","3":"1"},{"1":"every","2":"entree","3":"1"},{"1":"every","2":"time","3":"1"},{"1":"everyone","2":"has","3":"1"},{"1":"everything","2":"there","3":"1"},{"1":"everytime","2":"we","3":"1"},{"1":"ew","2":"dish","3":"1"},{"1":"ew","2":"i","3":"1"},{"1":"ew","2":"or","3":"1"},{"1":"ew","2":"until","3":"1"},{"1":"ew","2":"without","3":"1"},{"1":"ewe","2":"will","3":"1"},{"1":"exceeded","2":"my","3":"1"},{"1":"excellent","2":"flavors","3":"1"},{"1":"excellent","2":"food","3":"1"},{"1":"excuse","2":"doesn't","3":"1"},{"1":"excuse","2":"so","3":"1"},{"1":"expect","2":"in","3":"1"},{"1":"expect","2":"to","3":"1"},{"1":"expectations","2":"in","3":"1"},{"1":"expectations","2":"of","3":"1"},{"1":"expecting","2":"it","3":"1"},{"1":"experience","2":"attempting","3":"1"},{"1":"experience","2":"because","3":"1"},{"1":"experience","2":"before","3":"1"},{"1":"experience","2":"due","3":"1"},{"1":"experience","2":"over","3":"1"},{"1":"experience","2":"so","3":"1"},{"1":"experience","2":"this","3":"1"},{"1":"experience","2":"was","3":"1"},{"1":"experience","2":"we","3":"1"},{"1":"experience","2":"while","3":"1"},{"1":"experimenting","2":"with","3":"1"},{"1":"extraordinarily","2":"fast","3":"1"},{"1":"extremely","2":"friendly","3":"1"},{"1":"extremely","2":"simple","3":"1"},{"1":"eyes","2":"of","3":"1"},{"1":"faded","2":"wall","3":"1"},{"1":"fair","2":"for","3":"1"},{"1":"family","2":"owned","3":"1"},{"1":"fantastic","2":"but","3":"1"},{"1":"far","2":"as","3":"1"},{"1":"far","2":"from","3":"1"},{"1":"fast","2":"but","3":"1"},{"1":"faves","2":"no","3":"1"},{"1":"favorite","2":"but","3":"1"},{"1":"favorite","2":"place","3":"1"},{"1":"feel","2":"uncomfortable","3":"1"},{"1":"feel","2":"welcome","3":"1"},{"1":"few","2":"bites","3":"1"},{"1":"few","2":"thai","3":"1"},{"1":"fi","2":"quickly","3":"1"},{"1":"filled","2":"diaper","3":"1"},{"1":"filled","2":"there","3":"1"},{"1":"filthy","2":"i","3":"1"},{"1":"finally","2":"got","3":"1"},{"1":"find","2":"a","3":"1"},{"1":"finished","2":"her","3":"1"},{"1":"finished","2":"when","3":"1"},{"1":"first","2":"go","3":"1"},{"1":"first","2":"is","3":"1"},{"1":"first","2":"noticed","3":"1"},{"1":"first","2":"stops","3":"1"},{"1":"first","2":"things","3":"1"},{"1":"first","2":"this","3":"1"},{"1":"fish","2":"as","3":"1"},{"1":"fish","2":"fried","3":"1"},{"1":"fish","2":"i've","3":"1"},{"1":"fish","2":"unless","3":"1"},{"1":"fish","2":"was","3":"1"},{"1":"fish","2":"wasn't","3":"1"},{"1":"fish","2":"with","3":"1"},{"1":"five","2":"star","3":"1"},{"1":"five","2":"star.on","3":"1"},{"1":"five","2":"stars","3":"1"},{"1":"fix","2":"i","3":"1"},{"1":"fix","2":"it.lastly","3":"1"},{"1":"fixes","2":"hopefully","3":"1"},{"1":"flakey","2":"and","3":"1"},{"1":"flavor","2":"and","3":"1"},{"1":"flavor","2":"of","3":"1"},{"1":"flavor","2":"profile","3":"1"},{"1":"flavor","2":"that","3":"1"},{"1":"flavor","2":"was","3":"1"},{"1":"flavor","2":"with","3":"1"},{"1":"flavorful","2":"with","3":"1"},{"1":"flavorfully","2":"potent","3":"1"},{"1":"flavors","2":"nice","3":"1"},{"1":"flavors","2":"of","3":"1"},{"1":"flavors","2":"omg","3":"1"},{"1":"flavors","2":"the","3":"1"},{"1":"floor","2":"near","3":"1"},{"1":"food","2":"2","3":"1"},{"1":"food","2":"another","3":"1"},{"1":"food","2":"arrived","3":"1"},{"1":"food","2":"cambodian","3":"1"},{"1":"food","2":"came","3":"1"},{"1":"food","2":"come","3":"1"},{"1":"food","2":"compared","3":"1"},{"1":"food","2":"drunken","3":"1"},{"1":"food","2":"for","3":"1"},{"1":"food","2":"friendly","3":"1"},{"1":"food","2":"had","3":"1"},{"1":"food","2":"has","3":"1"},{"1":"food","2":"however","3":"1"},{"1":"food","2":"makes","3":"1"},{"1":"food","2":"must","3":"1"},{"1":"food","2":"pad","3":"1"},{"1":"food","2":"selection","3":"1"},{"1":"food","2":"verses","3":"1"},{"1":"food","2":"warrants","3":"1"},{"1":"food","2":"we","3":"1"},{"1":"food","2":"when","3":"1"},{"1":"food","2":"whether","3":"1"},{"1":"food","2":"without","3":"1"},{"1":"food","2":"wonderfully","3":"1"},{"1":"foodie","2":"friends","3":"1"},{"1":"foods","2":"i","3":"1"},{"1":"foods","2":"our","3":"1"},{"1":"foods","2":"that","3":"1"},{"1":"foods","2":"too","3":"1"},{"1":"fool","2":"if","3":"1"},{"1":"for","2":"all","3":"1"},{"1":"for","2":"ambiance","3":"1"},{"1":"for","2":"appetizers","3":"1"},{"1":"for","2":"babies","3":"1"},{"1":"for","2":"cost","3":"1"},{"1":"for","2":"curry","3":"1"},{"1":"for","2":"drink","3":"1"},{"1":"for","2":"his","3":"1"},{"1":"for","2":"introducing","3":"1"},{"1":"for","2":"my","3":"1"},{"1":"for","2":"previous","3":"1"},{"1":"for","2":"those","3":"1"},{"1":"for","2":"us","3":"1"},{"1":"for","2":"what","3":"1"},{"1":"for","2":"your","3":"1"},{"1":"forgiving","2":"when","3":"1"},{"1":"form","2":"of","3":"1"},{"1":"found","2":"my","3":"1"},{"1":"free","2":"public","3":"1"},{"1":"fresh","2":"3","3":"1"},{"1":"fresh","2":"food","3":"1"},{"1":"fresh","2":"herbs","3":"1"},{"1":"friday","2":"there","3":"1"},{"1":"fried","2":"but","3":"1"},{"1":"fried","2":"fish","3":"1"},{"1":"fried","2":"my","3":"1"},{"1":"fried","2":"red","3":"1"},{"1":"fried","2":"the","3":"1"},{"1":"fried","2":"whoever","3":"1"},{"1":"friendly","2":"and","3":"1"},{"1":"friendly","2":"as","3":"1"},{"1":"friendly","2":"i","3":"1"},{"1":"friendly","2":"service","3":"1"},{"1":"friendly","2":"workers","3":"1"},{"1":"friends","2":"i","3":"1"},{"1":"friends","2":"to","3":"1"},{"1":"from","2":"a","3":"1"},{"1":"from","2":"here","3":"1"},{"1":"from","2":"my","3":"1"},{"1":"from","2":"one","3":"1"},{"1":"from","2":"personal","3":"1"},{"1":"from","2":"thai","3":"1"},{"1":"from","2":"that","3":"1"},{"1":"from","2":"their","3":"1"},{"1":"front","2":"around","3":"1"},{"1":"full","2":"area","3":"1"},{"1":"full","2":"portion","3":"1"},{"1":"full","2":"restaurant","3":"1"},{"1":"fullfill","2":"papaya","3":"1"},{"1":"fusion","2":"establishments","3":"1"},{"1":"fusion","2":"restaurants","3":"1"},{"1":"garlic","2":"pepper","3":"1"},{"1":"general","2":"that","3":"1"},{"1":"get","2":"enough","3":"1"},{"1":"get","2":"hung","3":"1"},{"1":"get","2":"in","3":"1"},{"1":"get","2":"silverware","3":"1"},{"1":"get","2":"to","3":"1"},{"1":"gets","2":"medium","3":"1"},{"1":"gets","2":"the","3":"1"},{"1":"getting","2":"around","3":"1"},{"1":"getting","2":"cold","3":"1"},{"1":"gift","2":"card","3":"1"},{"1":"give","2":"a","3":"1"},{"1":"give","2":"thai","3":"1"},{"1":"give","2":"them","3":"1"},{"1":"given","2":"day","3":"1"},{"1":"gives","2":"you","3":"1"},{"1":"go","2":"1","3":"1"},{"1":"go","2":"back","3":"1"},{"1":"go","2":"here","3":"1"},{"1":"go","2":"into","3":"1"},{"1":"god","2":"amazing","3":"1"},{"1":"going","2":"expect","3":"1"},{"1":"good","2":"egg","3":"1"},{"1":"good","2":"especially","3":"1"},{"1":"good","2":"excuse","3":"1"},{"1":"good","2":"food","3":"1"},{"1":"good","2":"i","3":"1"},{"1":"good","2":"i'm","3":"1"},{"1":"good","2":"it","3":"1"},{"1":"good","2":"like","3":"1"},{"1":"good","2":"not","3":"1"},{"1":"good","2":"on","3":"1"},{"1":"good","2":"place","3":"1"},{"1":"good","2":"prices","3":"1"},{"1":"good","2":"sample","3":"1"},{"1":"good","2":"stuff:the","3":"1"},{"1":"good","2":"thai","3":"1"},{"1":"good","2":"the","3":"1"},{"1":"good","2":"they","3":"1"},{"1":"good","2":"to","3":"1"},{"1":"good","2":"too","3":"1"},{"1":"got","2":"beef","3":"1"},{"1":"got","2":"it","3":"1"},{"1":"got","2":"served","3":"1"},{"1":"got","2":"silverware","3":"1"},{"1":"gotten","2":"the","3":"1"},{"1":"graduation","2":"time","3":"1"},{"1":"greasy","2":"at","3":"1"},{"1":"great","2":"atmosphere","3":"1"},{"1":"great","2":"but","3":"1"},{"1":"great","2":"flavors","3":"1"},{"1":"great","2":"help","3":"1"},{"1":"great","2":"i","3":"1"},{"1":"great","2":"service","3":"1"},{"1":"great","2":"she","3":"1"},{"1":"great","2":"this","3":"1"},{"1":"great","2":"variety","3":"1"},{"1":"green","2":"curry","3":"1"},{"1":"green","2":"onion","3":"1"},{"1":"green","2":"peppers","3":"1"},{"1":"greens","2":"and","3":"1"},{"1":"greeting","2":"treat","3":"1"},{"1":"group","2":"had","3":"1"},{"1":"groups","2":"of","3":"1"},{"1":"guess","2":"thai","3":"1"},{"1":"guy","2":"so","3":"1"},{"1":"had","2":"burnt","3":"1"},{"1":"had","2":"carmelized","3":"1"},{"1":"had","2":"depth","3":"1"},{"1":"had","2":"even","3":"1"},{"1":"had","2":"excellent","3":"1"},{"1":"had","2":"great","3":"1"},{"1":"had","2":"he","3":"1"},{"1":"had","2":"high","3":"1"},{"1":"had","2":"i'm","3":"1"},{"1":"had","2":"it","3":"1"},{"1":"had","2":"like","3":"1"},{"1":"had","2":"little","3":"1"},{"1":"had","2":"panang","3":"1"},{"1":"had","2":"silverware","3":"1"},{"1":"had","2":"so","3":"1"},{"1":"had","2":"such","3":"1"},{"1":"had","2":"this","3":"1"},{"1":"had","2":"to","3":"1"},{"1":"half","2":"a","3":"1"},{"1":"hall","2":"but","3":"1"},{"1":"handle","2":"a","3":"1"},{"1":"happy","2":"i","3":"1"},{"1":"hard","2":"working","3":"1"},{"1":"hardened","2":"on","3":"1"},{"1":"has","2":"a","3":"1"},{"1":"has","2":"been","3":"1"},{"1":"has","2":"more","3":"1"},{"1":"has","2":"this","3":"1"},{"1":"have","2":"a","3":"1"},{"1":"have","2":"been","3":"1"},{"1":"have","2":"booths","3":"1"},{"1":"have","2":"ever","3":"1"},{"1":"have","2":"had","3":"1"},{"1":"have","2":"more","3":"1"},{"1":"have","2":"not","3":"1"},{"1":"have","2":"that","3":"1"},{"1":"have","2":"to","3":"1"},{"1":"have","2":"two","3":"1"},{"1":"have","2":"visited","3":"1"},{"1":"haven't","2":"tried","3":"1"},{"1":"having","2":"had","3":"1"},{"1":"having","2":"the","3":"1"},{"1":"he","2":"gets","3":"1"},{"1":"he","2":"got","3":"1"},{"1":"he","2":"had","3":"1"},{"1":"he","2":"would've","3":"1"},{"1":"he's","2":"been","3":"1"},{"1":"head","2":"from","3":"1"},{"1":"heard","2":"about","3":"1"},{"1":"hearty","2":"flavor","3":"1"},{"1":"heat","2":"comes","3":"1"},{"1":"heat","2":"i","3":"1"},{"1":"heat","2":"is","3":"1"},{"1":"heat","2":"my","3":"1"},{"1":"heat","2":"scale","3":"1"},{"1":"heat","2":"this","3":"1"},{"1":"heating","2":"and","3":"1"},{"1":"heck","2":"out","3":"1"},{"1":"help","2":"all","3":"1"},{"1":"help","2":"with","3":"1"},{"1":"hence","2":"there","3":"1"},{"1":"her","2":"scraps","3":"1"},{"1":"herbs","2":"which","3":"1"},{"1":"here","2":"are","3":"1"},{"1":"here","2":"fool","3":"1"},{"1":"here","2":"i've","3":"1"},{"1":"here","2":"in","3":"1"},{"1":"here","2":"is","3":"1"},{"1":"here","2":"often","3":"1"},{"1":"here","2":"omg","3":"1"},{"1":"here","2":"one","3":"1"},{"1":"here","2":"reads","3":"1"},{"1":"here","2":"since","3":"1"},{"1":"here","2":"that","3":"1"},{"1":"here","2":"we","3":"1"},{"1":"hesitant","2":"to","3":"1"},{"1":"hesitantly","2":"return","3":"1"},{"1":"high","2":"hopes","3":"1"},{"1":"his","2":"entree","3":"1"},{"1":"home","2":"made","3":"1"},{"1":"hopefully","2":"someone","3":"1"},{"1":"hopes","2":"for","3":"1"},{"1":"horribly","2":"parched","3":"1"},{"1":"hostess","2":"we","3":"1"},{"1":"hot","2":"4","3":"1"},{"1":"hot","2":"etc","3":"1"},{"1":"hot","2":"thai","3":"1"},{"1":"hour","2":"in","3":"1"},{"1":"how","2":"can","3":"1"},{"1":"how","2":"good","3":"1"},{"1":"how","2":"they","3":"1"},{"1":"how","2":"wrong","3":"1"},{"1":"however","2":"not","3":"1"},{"1":"however","2":"the","3":"1"},{"1":"however","2":"when","3":"1"},{"1":"hubby","2":"always","3":"1"},{"1":"hubby","2":"and","3":"1"},{"1":"hung","2":"up","3":"1"},{"1":"hungry","2":"enough","3":"1"},{"1":"hurry","2":"but","3":"1"},{"1":"husband","2":"had","3":"1"},{"1":"husband's","2":"meal","3":"1"},{"1":"hv","2":"all","3":"1"},{"1":"hybrid","2":"of","3":"1"},{"1":"i","2":"also","3":"1"},{"1":"i","2":"always","3":"1"},{"1":"i","2":"come","3":"1"},{"1":"i","2":"decided","3":"1"},{"1":"i","2":"don't","3":"1"},{"1":"i","2":"doubt","3":"1"},{"1":"i","2":"doused","3":"1"},{"1":"i","2":"ever","3":"1"},{"1":"i","2":"expected","3":"1"},{"1":"i","2":"feel","3":"1"},{"1":"i","2":"finally","3":"1"},{"1":"i","2":"finished","3":"1"},{"1":"i","2":"first","3":"1"},{"1":"i","2":"found","3":"1"},{"1":"i","2":"go","3":"1"},{"1":"i","2":"guess","3":"1"},{"1":"i","2":"haven't","3":"1"},{"1":"i","2":"heard","3":"1"},{"1":"i","2":"knew","3":"1"},{"1":"i","2":"know","3":"1"},{"1":"i","2":"left","3":"1"},{"1":"i","2":"like","3":"1"},{"1":"i","2":"live","3":"1"},{"1":"i","2":"miss","3":"1"},{"1":"i","2":"missed","3":"1"},{"1":"i","2":"need","3":"1"},{"1":"i","2":"never","3":"1"},{"1":"i","2":"noticed","3":"1"},{"1":"i","2":"ordered","3":"1"},{"1":"i","2":"personally","3":"1"},{"1":"i","2":"rated","3":"1"},{"1":"i","2":"recommend","3":"1"},{"1":"i","2":"spent","3":"1"},{"1":"i","2":"still","3":"1"},{"1":"i","2":"think","3":"1"},{"1":"i","2":"though","3":"1"},{"1":"i","2":"thought","3":"1"},{"1":"i","2":"took","3":"1"},{"1":"i","2":"tracked","3":"1"},{"1":"i","2":"tried","3":"1"},{"1":"i","2":"want","3":"1"},{"1":"i","2":"wanted","3":"1"},{"1":"i","2":"we","3":"1"},{"1":"i","2":"would","3":"1"},{"1":"i'd","2":"actually","3":"1"},{"1":"i'd","2":"been","3":"1"},{"1":"i'd","2":"give","3":"1"},{"1":"i'd","2":"love","3":"1"},{"1":"i'm","2":"a","3":"1"},{"1":"i'm","2":"asian","3":"1"},{"1":"i'm","2":"hungry","3":"1"},{"1":"i'm","2":"just","3":"1"},{"1":"i'm","2":"reminded","3":"1"},{"1":"i'm","2":"sure","3":"1"},{"1":"i'm","2":"worried","3":"1"},{"1":"i've","2":"eaten","3":"1"},{"1":"i've","2":"had","3":"1"},{"1":"i've","2":"tried","3":"1"},{"1":"ice","2":"cold","3":"1"},{"1":"if","2":"that","3":"1"},{"1":"if","2":"the","3":"1"},{"1":"if","2":"they","3":"1"},{"1":"if","2":"with","3":"1"},{"1":"if","2":"your","3":"1"},{"1":"impeccable","2":"and","3":"1"},{"1":"impressed","2":"me","3":"1"},{"1":"in","2":"after","3":"1"},{"1":"in","2":"an","3":"1"},{"1":"in","2":"awhile","3":"1"},{"1":"in","2":"chicago","3":"1"},{"1":"in","2":"general","3":"1"},{"1":"in","2":"i","3":"1"},{"1":"in","2":"it","3":"1"},{"1":"in","2":"it's","3":"1"},{"1":"in","2":"la","3":"1"},{"1":"in","2":"levels","3":"1"},{"1":"in","2":"now","3":"1"},{"1":"in","2":"our","3":"1"},{"1":"in","2":"standpoint.i","3":"1"},{"1":"in","2":"there","3":"1"},{"1":"in","2":"this","3":"1"},{"1":"in","2":"u.s","3":"1"},{"1":"in","2":"we","3":"1"},{"1":"in","2":"what","3":"1"},{"1":"in","2":"your","3":"1"},{"1":"inadequate","2":"heating","3":"1"},{"1":"including","2":"curry","3":"1"},{"1":"inside","2":"wasn't","3":"1"},{"1":"interest","2":"is","3":"1"},{"1":"interior","2":"being","3":"1"},{"1":"interior","2":"more","3":"1"},{"1":"into","2":"minutia","3":"1"},{"1":"into","2":"the","3":"1"},{"1":"introducing","2":"us","3":"1"},{"1":"introduction","2":"to","3":"1"},{"1":"is","2":"1","3":"1"},{"1":"is","2":"10","3":"1"},{"1":"is","2":"always","3":"1"},{"1":"is","2":"as","3":"1"},{"1":"is","2":"being","3":"1"},{"1":"is","2":"cambodian","3":"1"},{"1":"is","2":"clearly","3":"1"},{"1":"is","2":"cozy","3":"1"},{"1":"is","2":"extremely","3":"1"},{"1":"is","2":"fair","3":"1"},{"1":"is","2":"family","3":"1"},{"1":"is","2":"great","3":"1"},{"1":"is","2":"hot","3":"1"},{"1":"is","2":"in","3":"1"},{"1":"is","2":"more","3":"1"},{"1":"is","2":"not","3":"1"},{"1":"is","2":"ok","3":"1"},{"1":"is","2":"one","3":"1"},{"1":"is","2":"sanitary","3":"1"},{"1":"is","2":"similar","3":"1"},{"1":"is","2":"stained","3":"1"},{"1":"is","2":"stretched","3":"1"},{"1":"is","2":"that","3":"1"},{"1":"is","2":"their","3":"1"},{"1":"is","2":"to","3":"1"},{"1":"is","2":"watering","3":"1"},{"1":"is.overall","2":"the","3":"1"},{"1":"isela","2":"was","3":"1"},{"1":"isn't","2":"to","3":"1"},{"1":"it","2":"adds","3":"1"},{"1":"it","2":"after","3":"1"},{"1":"it","2":"and","3":"1"},{"1":"it","2":"because","3":"1"},{"1":"it","2":"but","3":"1"},{"1":"it","2":"disregarding","3":"1"},{"1":"it","2":"from","3":"1"},{"1":"it","2":"gives","3":"1"},{"1":"it","2":"had","3":"1"},{"1":"it","2":"has","3":"1"},{"1":"it","2":"i","3":"1"},{"1":"it","2":"if","3":"1"},{"1":"it","2":"in","3":"1"},{"1":"it","2":"is.overall","3":"1"},{"1":"it","2":"made","3":"1"},{"1":"it","2":"my","3":"1"},{"1":"it","2":"one","3":"1"},{"1":"it","2":"only","3":"1"},{"1":"it","2":"onward","3":"1"},{"1":"it","2":"out","3":"1"},{"1":"it","2":"pad","3":"1"},{"1":"it","2":"quite","3":"1"},{"1":"it","2":"set","3":"1"},{"1":"it","2":"sounds","3":"1"},{"1":"it","2":"the","3":"1"},{"1":"it","2":"there's","3":"1"},{"1":"it","2":"up","3":"1"},{"1":"it","2":"we","3":"1"},{"1":"it","2":"when","3":"1"},{"1":"it","2":"won't","3":"1"},{"1":"it","2":"worth","3":"1"},{"1":"it","2":"would","3":"1"},{"1":"it","2":"you'll","3":"1"},{"1":"it","2":"yourself","3":"1"},{"1":"it's","2":"appearance","3":"1"},{"1":"it's","2":"awkward","3":"1"},{"1":"it's","2":"been","3":"1"},{"1":"it's","2":"good","3":"1"},{"1":"it's","2":"just","3":"1"},{"1":"it's","2":"located","3":"1"},{"1":"it's","2":"my","3":"1"},{"1":"it's","2":"still","3":"1"},{"1":"it's","2":"the","3":"1"},{"1":"it.lastly","2":"it","3":"1"},{"1":"item","2":"in","3":"1"},{"1":"item","2":"is","3":"1"},{"1":"its","2":"inadequate","3":"1"},{"1":"its","2":"questionable","3":"1"},{"1":"itself","2":"was","3":"1"},{"1":"ive","2":"never","3":"1"},{"1":"jerky","2":"like","3":"1"},{"1":"jilted","2":"by","3":"1"},{"1":"joint","2":"that","3":"1"},{"1":"just","2":"a","3":"1"},{"1":"just","2":"bigger","3":"1"},{"1":"just","2":"didn't","3":"1"},{"1":"just","2":"go","3":"1"},{"1":"just","2":"how","3":"1"},{"1":"just","2":"impressed","3":"1"},{"1":"just","2":"nice","3":"1"},{"1":"just","2":"no","3":"1"},{"1":"keep","2":"doing","3":"1"},{"1":"keep","2":"wanting","3":"1"},{"1":"kind","2":"and","3":"1"},{"1":"kind","2":"of","3":"1"},{"1":"kitchen","2":"need","3":"1"},{"1":"knew","2":"that","3":"1"},{"1":"know","2":"carbs","3":"1"},{"1":"know","2":"from","3":"1"},{"1":"knowing","2":"the","3":"1"},{"1":"knowledgeable","2":"on","3":"1"},{"1":"la","2":"because","3":"1"},{"1":"lack","2":"of","3":"1"},{"1":"laid","2":"back","3":"1"},{"1":"large","2":"serving","3":"1"},{"1":"large","2":"windows","3":"1"},{"1":"last","2":"couple","3":"1"},{"1":"last","2":"experience","3":"1"},{"1":"late","2":"saturday","3":"1"},{"1":"later","2":"we","3":"1"},{"1":"laughed","2":"but","3":"1"},{"1":"leaving","2":"i","3":"1"},{"1":"left","2":"my","3":"1"},{"1":"leftovers","2":"where","3":"1"},{"1":"less","2":"than","3":"1"},{"1":"let","2":"my","3":"1"},{"1":"level","2":"six","3":"1"},{"1":"levels","2":"1","3":"1"},{"1":"levels","2":"but","3":"1"},{"1":"light","2":"at","3":"1"},{"1":"like","2":"4","3":"1"},{"1":"like","2":"a","3":"1"},{"1":"like","2":"and","3":"1"},{"1":"like","2":"authentic","3":"1"},{"1":"like","2":"i","3":"1"},{"1":"like","2":"leftovers","3":"1"},{"1":"like","2":"level","3":"1"},{"1":"like","2":"my","3":"1"},{"1":"like","2":"nothing","3":"1"},{"1":"likely","2":"i","3":"1"},{"1":"little","2":"hesitant","3":"1"},{"1":"little","2":"hole","3":"1"},{"1":"little","2":"more","3":"1"},{"1":"little","2":"sauce.given","3":"1"},{"1":"little","2":"taste","3":"1"},{"1":"little","2":"touches","3":"1"},{"1":"little","2":"wiggle","3":"1"},{"1":"live","2":"about","3":"1"},{"1":"live","2":"up","3":"1"},{"1":"lo","2":"mein","3":"1"},{"1":"local","2":"taste","3":"1"},{"1":"located","2":"in","3":"1"},{"1":"location","2":"is","3":"1"},{"1":"long","2":"as","3":"1"},{"1":"longer","2":"have","3":"1"},{"1":"look","2":"outside","3":"1"},{"1":"looked","2":"at","3":"1"},{"1":"looked","2":"into","3":"1"},{"1":"looking","2":"for","3":"1"},{"1":"lot","2":"i","3":"1"},{"1":"lot","2":"of","3":"1"},{"1":"love","2":"their","3":"1"},{"1":"love","2":"this","3":"1"},{"1":"love","2":"to","3":"1"},{"1":"loved","2":"asian","3":"1"},{"1":"lunch","2":"we","3":"1"},{"1":"made","2":"and","3":"1"},{"1":"made","2":"me","3":"1"},{"1":"mahi","2":"mahi","3":"1"},{"1":"mahi","2":"steamed","3":"1"},{"1":"main","2":"dish","3":"1"},{"1":"majority","2":"of","3":"1"},{"1":"make","2":"it","3":"1"},{"1":"make","2":"you","3":"1"},{"1":"makes","2":"it","3":"1"},{"1":"matter","2":"where","3":"1"},{"1":"maybe","2":"takeout","3":"1"},{"1":"me","2":"and","3":"1"},{"1":"me","2":"every","3":"1"},{"1":"me","2":"i'd","3":"1"},{"1":"me","2":"sick","3":"1"},{"1":"me","2":"what","3":"1"},{"1":"meal","2":"if","3":"1"},{"1":"meal","2":"seriously","3":"1"},{"1":"meal","2":"was","3":"1"},{"1":"meals","2":"15","3":"1"},{"1":"mean","2":"they've","3":"1"},{"1":"mean","2":"who","3":"1"},{"1":"meant","2":"my","3":"1"},{"1":"meat","2":"and","3":"1"},{"1":"medium","2":"hot","3":"1"},{"1":"medium","2":"spice","3":"1"},{"1":"medium","2":"spicy","3":"1"},{"1":"mein","2":"and","3":"1"},{"1":"memorable","2":"what","3":"1"},{"1":"menu","2":"aren't","3":"1"},{"1":"menu","2":"i","3":"1"},{"1":"menu","2":"my","3":"1"},{"1":"method","2":"used","3":"1"},{"1":"michiana","2":"area","3":"1"},{"1":"middle","2":"of","3":"1"},{"1":"might","2":"expect","3":"1"},{"1":"mild","2":"medium","3":"1"},{"1":"mild","2":"sweetness","3":"1"},{"1":"mildly","2":"disappointed","3":"1"},{"1":"mimicked","2":"what","3":"1"},{"1":"min","2":"from","3":"1"},{"1":"mind","2":"the","3":"1"},{"1":"mine","2":"came","3":"1"},{"1":"minutes","2":"before","3":"1"},{"1":"minutia","2":"but","3":"1"},{"1":"miss","2":"about","3":"1"},{"1":"missed","2":"it","3":"1"},{"1":"moist","2":"as","3":"1"},{"1":"moisture","2":"to","3":"1"},{"1":"more","2":"back","3":"1"},{"1":"more","2":"decor","3":"1"},{"1":"more","2":"emphasis","3":"1"},{"1":"more","2":"people","3":"1"},{"1":"more","2":"room","3":"1"},{"1":"more","2":"scrupulousness","3":"1"},{"1":"most","2":"amazing","3":"1"},{"1":"mouth","2":"is","3":"1"},{"1":"move","2":"basically","3":"1"},{"1":"moved","2":"half","3":"1"},{"1":"much","2":"else","3":"1"},{"1":"much","2":"of","3":"1"},{"1":"much","2":"the","3":"1"},{"1":"much","2":"when","3":"1"},{"1":"must","2":"be","3":"1"},{"1":"my","2":"absolute","3":"1"},{"1":"my","2":"appetizers","3":"1"},{"1":"my","2":"biggest","3":"1"},{"1":"my","2":"boyfriend","3":"1"},{"1":"my","2":"car","3":"1"},{"1":"my","2":"child","3":"1"},{"1":"my","2":"expectations","3":"1"},{"1":"my","2":"experience","3":"1"},{"1":"my","2":"faves","3":"1"},{"1":"my","2":"god","3":"1"},{"1":"my","2":"group","3":"1"},{"1":"my","2":"head","3":"1"},{"1":"my","2":"husband","3":"1"},{"1":"my","2":"husband's","3":"1"},{"1":"my","2":"interest","3":"1"},{"1":"my","2":"introduction","3":"1"},{"1":"my","2":"meal","3":"1"},{"1":"my","2":"mouth","3":"1"},{"1":"my","2":"new","3":"1"},{"1":"my","2":"overly","3":"1"},{"1":"my","2":"own","3":"1"},{"1":"my","2":"pad","3":"1"},{"1":"my","2":"parents","3":"1"},{"1":"my","2":"peanut","3":"1"},{"1":"my","2":"phone","3":"1"},{"1":"my","2":"pocket","3":"1"},{"1":"my","2":"rating","3":"1"},{"1":"my","2":"reviews","3":"1"},{"1":"my","2":"taste","3":"1"},{"1":"my","2":"thai","3":"1"},{"1":"my","2":"wives","3":"1"},{"1":"natural","2":"taste","3":"1"},{"1":"near","2":"the","3":"1"},{"1":"need","2":"my","3":"1"},{"1":"needed","2":"meat","3":"1"},{"1":"neither","2":"dish","3":"1"},{"1":"never","2":"try","3":"1"},{"1":"new","2":"i've","3":"1"},{"1":"new","2":"place","3":"1"},{"1":"new","2":"thai","3":"1"},{"1":"next","2":"door","3":"1"},{"1":"nice","2":"meal","3":"1"},{"1":"nice","2":"people","3":"1"},{"1":"nice","2":"place","3":"1"},{"1":"nice","2":"sauces","3":"1"},{"1":"nice","2":"to","3":"1"},{"1":"nice","2":"touch","3":"1"},{"1":"no","2":"getting","3":"1"},{"1":"no","2":"longer","3":"1"},{"1":"no","2":"matter","3":"1"},{"1":"no","2":"pictures","3":"1"},{"1":"noodle","2":"and","3":"1"},{"1":"noodle","2":"it","3":"1"},{"1":"noodles","2":"and","3":"1"},{"1":"noodles","2":"chicken","3":"1"},{"1":"noodles","2":"ice","3":"1"},{"1":"noodles","2":"is","3":"1"},{"1":"noodles","2":"were","3":"1"},{"1":"noodles","2":"whole","3":"1"},{"1":"noodles","2":"wow","3":"1"},{"1":"not","2":"a","3":"1"},{"1":"not","2":"an","3":"1"},{"1":"not","2":"as","3":"1"},{"1":"not","2":"bothered","3":"1"},{"1":"not","2":"entirely","3":"1"},{"1":"not","2":"even","3":"1"},{"1":"not","2":"extraordinarily","3":"1"},{"1":"not","2":"filthy","3":"1"},{"1":"not","2":"get","3":"1"},{"1":"not","2":"give","3":"1"},{"1":"not","2":"greasy","3":"1"},{"1":"not","2":"great","3":"1"},{"1":"not","2":"much","3":"1"},{"1":"not","2":"offer","3":"1"},{"1":"not","2":"order","3":"1"},{"1":"not","2":"return","3":"1"},{"1":"not","2":"seen","3":"1"},{"1":"not","2":"slow","3":"1"},{"1":"not","2":"taste","3":"1"},{"1":"not","2":"tell","3":"1"},{"1":"not","2":"up","3":"1"},{"1":"not","2":"walk","3":"1"},{"1":"not","2":"with","3":"1"},{"1":"notch","2":"but","3":"1"},{"1":"notes","2":"i","3":"1"},{"1":"nothing","2":"but","3":"1"},{"1":"nothing","2":"is","3":"1"},{"1":"notice","2":"really","3":"1"},{"1":"noticed","2":"that","3":"1"},{"1":"noticed","2":"were","3":"1"},{"1":"now","2":"and","3":"1"},{"1":"now","2":"i","3":"1"},{"1":"obsession","2":"okay","3":"1"},{"1":"of","2":"1","3":"1"},{"1":"of","2":"2","3":"1"},{"1":"of","2":"acquaintances","3":"1"},{"1":"of","2":"actual","3":"1"},{"1":"of","2":"additional","3":"1"},{"1":"of","2":"an","3":"1"},{"1":"of","2":"any","3":"1"},{"1":"of","2":"asian","3":"1"},{"1":"of","2":"beef","3":"1"},{"1":"of","2":"cambodia","3":"1"},{"1":"of","2":"chicken","3":"1"},{"1":"of","2":"each","3":"1"},{"1":"of","2":"fish","3":"1"},{"1":"of","2":"food","3":"1"},{"1":"of","2":"greens","3":"1"},{"1":"of","2":"greeting","3":"1"},{"1":"of","2":"hot","3":"1"},{"1":"of","2":"mild","3":"1"},{"1":"of","2":"noodle","3":"1"},{"1":"of","2":"red","3":"1"},{"1":"of","2":"service","3":"1"},{"1":"of","2":"shrimp","3":"1"},{"1":"of","2":"soup","3":"1"},{"1":"of","2":"spice","3":"1"},{"1":"of","2":"summer","3":"1"},{"1":"of","2":"that","3":"1"},{"1":"of","2":"thing","3":"1"},{"1":"of","2":"visits","3":"1"},{"1":"offer","2":"some","3":"1"},{"1":"often","2":"enough","3":"1"},{"1":"often","2":"now","3":"1"},{"1":"oh","2":"my","3":"1"},{"1":"ok","2":"not","3":"1"},{"1":"okay","2":"first","3":"1"},{"1":"old","2":"rundown","3":"1"},{"1":"omg","2":"the","3":"1"},{"1":"omg","2":"they","3":"1"},{"1":"omg","2":"this","3":"1"},{"1":"on","2":"a","3":"1"},{"1":"on","2":"action","3":"1"},{"1":"on","2":"curry","3":"1"},{"1":"on","2":"it","3":"1"},{"1":"on","2":"my","3":"1"},{"1":"on","2":"our","3":"1"},{"1":"on","2":"some","3":"1"},{"1":"on","2":"thai","3":"1"},{"1":"on","2":"their","3":"1"},{"1":"once","2":"one","3":"1"},{"1":"once","2":"your","3":"1"},{"1":"one","2":"doesn't","3":"1"},{"1":"one","2":"first","3":"1"},{"1":"one","2":"i","3":"1"},{"1":"one","2":"other","3":"1"},{"1":"one","2":"specific","3":"1"},{"1":"onion","2":"and","3":"1"},{"1":"onions","2":"with","3":"1"},{"1":"only","2":"10","3":"1"},{"1":"only","2":"3","3":"1"},{"1":"only","2":"31","3":"1"},{"1":"only","2":"if","3":"1"},{"1":"only","2":"meant","3":"1"},{"1":"only","2":"one","3":"1"},{"1":"only","2":"reason","3":"1"},{"1":"onward","2":"he's","3":"1"},{"1":"opened","2":"in","3":"1"},{"1":"operated","2":"their","3":"1"},{"1":"option","2":"but","3":"1"},{"1":"options","2":"mimicked","3":"1"},{"1":"or","2":"7","3":"1"},{"1":"or","2":"cooling","3":"1"},{"1":"or","2":"double","3":"1"},{"1":"or","2":"even","3":"1"},{"1":"or","2":"notes","3":"1"},{"1":"or","2":"rack","3":"1"},{"1":"or","2":"rice","3":"1"},{"1":"or","2":"the","3":"1"},{"1":"order","2":"a","3":"1"},{"1":"order","2":"either","3":"1"},{"1":"order","2":"pot","3":"1"},{"1":"ordered","2":"1","3":"1"},{"1":"ordered","2":"fried","3":"1"},{"1":"ordered","2":"pork","3":"1"},{"1":"ordering","2":"the","3":"1"},{"1":"orgasm","2":"you","3":"1"},{"1":"original","2":"place","3":"1"},{"1":"other","2":"but","3":"1"},{"1":"other","2":"dish","3":"1"},{"1":"other","2":"fish","3":"1"},{"1":"other","2":"foods","3":"1"},{"1":"other","2":"table","3":"1"},{"1":"other","2":"thai","3":"1"},{"1":"other","2":"things","3":"1"},{"1":"others","2":"in","3":"1"},{"1":"ounce","2":"of","3":"1"},{"1":"our","2":"first","3":"1"},{"1":"our","2":"foodie","3":"1"},{"1":"our","2":"hour","3":"1"},{"1":"our","2":"new","3":"1"},{"1":"our","2":"second","3":"1"},{"1":"our","2":"time","3":"1"},{"1":"out","2":"another","3":"1"},{"1":"out","2":"hot","3":"1"},{"1":"out","2":"vents","3":"1"},{"1":"outside","2":"i","3":"1"},{"1":"outside","2":"was","3":"1"},{"1":"over","2":"again","3":"1"},{"1":"over","2":"and","3":"1"},{"1":"overdone","2":"sauce","3":"1"},{"1":"overly","2":"fried","3":"1"},{"1":"overtaxed","2":"portable","3":"1"},{"1":"own","2":"volition.look","3":"1"},{"1":"owned","2":"and","3":"1"},{"1":"packed","2":"the","3":"1"},{"1":"paid","2":"only","3":"1"},{"1":"paintings","2":"but","3":"1"},{"1":"pallet","2":"and","3":"1"},{"1":"panang","2":"but","3":"1"},{"1":"panang","2":"from","3":"1"},{"1":"panang","2":"the","3":"1"},{"1":"paper","2":"but","3":"1"},{"1":"par","2":"the","3":"1"},{"1":"parched","2":"chicken","3":"1"},{"1":"parents","2":"and","3":"1"},{"1":"part","2":"so","3":"1"},{"1":"parties","2":"groups","3":"1"},{"1":"party","2":"but","3":"1"},{"1":"party","2":"ordered","3":"1"},{"1":"patrons","2":"at","3":"1"},{"1":"patrons","2":"with","3":"1"},{"1":"pay","2":"this","3":"1"},{"1":"peanut","2":"and","3":"1"},{"1":"peanut","2":"broccoli","3":"1"},{"1":"peanut","2":"sauce","3":"1"},{"1":"peanuts","2":"on","3":"1"},{"1":"peculiar","2":"flavor","3":"1"},{"1":"people","2":"and","3":"1"},{"1":"people","2":"can","3":"1"},{"1":"people","2":"that","3":"1"},{"1":"people","2":"who","3":"1"},{"1":"people","2":"with","3":"1"},{"1":"pepper","2":"chicken","3":"1"},{"1":"peppers","2":"and","3":"1"},{"1":"peppers","2":"sadly","3":"1"},{"1":"perfect","2":"for","3":"1"},{"1":"perfect","2":"texture","3":"1"},{"1":"perhaps","2":"we","3":"1"},{"1":"person","2":"specifies","3":"1"},{"1":"personal","2":"experience","3":"1"},{"1":"personal","2":"preference","3":"1"},{"1":"personally","2":"like","3":"1"},{"1":"phone","2":"in","3":"1"},{"1":"pick","2":"it","3":"1"},{"1":"pictures","2":"or","3":"1"},{"1":"place","2":"as","3":"1"},{"1":"place","2":"especially","3":"1"},{"1":"place","2":"for","3":"1"},{"1":"place","2":"i","3":"1"},{"1":"place","2":"if","3":"1"},{"1":"place","2":"in","3":"1"},{"1":"place","2":"perhaps","3":"1"},{"1":"place","2":"was","3":"1"},{"1":"place","2":"which","3":"1"},{"1":"placemat","2":"or","3":"1"},{"1":"plant","2":"if","3":"1"},{"1":"please","2":"don't","3":"1"},{"1":"pleasing","2":"from","3":"1"},{"1":"pocket","2":"so","3":"1"},{"1":"poop","2":"filled","3":"1"},{"1":"pork","2":"egg","3":"1"},{"1":"pork","2":"potstickers","3":"1"},{"1":"portable","2":"air","3":"1"},{"1":"portion","2":"i'm","3":"1"},{"1":"portion","2":"sizes","3":"1"},{"1":"portions","2":"are","3":"1"},{"1":"portions","2":"each","3":"1"},{"1":"posses","2":"the","3":"1"},{"1":"possibly","2":"have","3":"1"},{"1":"potatoes","2":"onions","3":"1"},{"1":"potent","2":"sauces","3":"1"},{"1":"potstickers","2":"are","3":"1"},{"1":"prefer","2":"the","3":"1"},{"1":"preference","2":"but","3":"1"},{"1":"pretty","2":"consistent","3":"1"},{"1":"pretty","2":"dead","3":"1"},{"1":"pretty","2":"good","3":"1"},{"1":"pretty","2":"much","3":"1"},{"1":"pretty","2":"sizable","3":"1"},{"1":"previous","2":"comments","3":"1"},{"1":"price","2":"is","3":"1"},{"1":"prices","2":"free","3":"1"},{"1":"pride","2":"shows","3":"1"},{"1":"primarily","2":"home","3":"1"},{"1":"probably","2":"say","3":"1"},{"1":"probably","2":"visit","3":"1"},{"1":"processing","2":"plant","3":"1"},{"1":"profile","2":"was","3":"1"},{"1":"profiles","2":"are","3":"1"},{"1":"pros","2":"friendly","3":"1"},{"1":"provide","2":"a","3":"1"},{"1":"public","2":"wi","3":"1"},{"1":"put","2":"alot","3":"1"},{"1":"quaint","2":"place","3":"1"},{"1":"quality","2":"of","3":"1"},{"1":"quality","2":"slow","3":"1"},{"1":"questionable","2":"cleanliness","3":"1"},{"1":"quickly","2":"served.cons","3":"1"},{"1":"quite","2":"forgiving","3":"1"},{"1":"rack","2":"of","3":"1"},{"1":"range","2":"is","3":"1"},{"1":"rank","2":"this","3":"1"},{"1":"rated","2":"it","3":"1"},{"1":"rather","2":"a","3":"1"},{"1":"rating","2":"the","3":"1"},{"1":"rating","2":"to","3":"1"},{"1":"reads","2":"these","3":"1"},{"1":"real","2":"experience","3":"1"},{"1":"real","2":"treat","3":"1"},{"1":"really","2":"accented","3":"1"},{"1":"really","2":"did","3":"1"},{"1":"really","2":"enhanced","3":"1"},{"1":"really","2":"i'm","3":"1"},{"1":"really","2":"notice","3":"1"},{"1":"really","2":"that","3":"1"},{"1":"reason","2":"i","3":"1"},{"1":"received","2":"the","3":"1"},{"1":"recommend","2":"a","3":"1"},{"1":"recommend","2":"ordering","3":"1"},{"1":"reduction","2":"in","3":"1"},{"1":"refills","2":"and","3":"1"},{"1":"reflex","2":"more","3":"1"},{"1":"register","2":"when","3":"1"},{"1":"regret","2":"is","3":"1"},{"1":"remembers","2":"me","3":"1"},{"1":"reminded","2":"just","3":"1"},{"1":"require","2":"a","3":"1"},{"1":"restaurant","2":"and","3":"1"},{"1":"restaurant","2":"but","3":"1"},{"1":"restaurant","2":"ever","3":"1"},{"1":"restaurant","2":"in","3":"1"},{"1":"restaurant","2":"next","3":"1"},{"1":"restaurant","2":"obsession","3":"1"},{"1":"restaurant","2":"to","3":"1"},{"1":"restaurant","2":"with","3":"1"},{"1":"restaurant's","2":"interior","3":"1"},{"1":"restaurant.also","2":"one","3":"1"},{"1":"restaurants","2":"around","3":"1"},{"1":"restaurants","2":"but","3":"1"},{"1":"restaurants","2":"i","3":"1"},{"1":"restaurants","2":"serve","3":"1"},{"1":"restaurants","2":"serves","3":"1"},{"1":"restroom","2":"good","3":"1"},{"1":"return","2":"on","3":"1"},{"1":"return","2":"only","3":"1"},{"1":"return","2":"to","3":"1"},{"1":"review","2":"my","3":"1"},{"1":"reviews","2":"and","3":"1"},{"1":"reviews","2":"for","3":"1"},{"1":"rice","2":"for","3":"1"},{"1":"rice","2":"i've","3":"1"},{"1":"rice","2":"keep","3":"1"},{"1":"rice","2":"my","3":"1"},{"1":"rice","2":"perfect","3":"1"},{"1":"right","2":"it","3":"1"},{"1":"rolls","2":"are","3":"1"},{"1":"rolls","2":"because","3":"1"},{"1":"rolls","2":"papaya","3":"1"},{"1":"room","2":"and","3":"1"},{"1":"room","2":"but","3":"1"},{"1":"rude","2":"and","3":"1"},{"1":"ruins","2":"the","3":"1"},{"1":"rundown","2":"bingo","3":"1"},{"1":"rush","2":"from","3":"1"},{"1":"s","2":"s","3":"1"},{"1":"s","2":"sauce","3":"1"},{"1":"sad","2":"overtaxed","3":"1"},{"1":"sadly","2":"it","3":"1"},{"1":"said","2":"i","3":"1"},{"1":"salad","2":"is","3":"1"},{"1":"salad","2":"panang","3":"1"},{"1":"salty","2":"and","3":"1"},{"1":"same","2":"day","3":"1"},{"1":"same","2":"level","3":"1"},{"1":"same","2":"table","3":"1"},{"1":"same","2":"thing","3":"1"},{"1":"same","2":"time","3":"1"},{"1":"same","2":"vibe","3":"1"},{"1":"sample","2":"of","3":"1"},{"1":"san","2":"diego","3":"1"},{"1":"sanitary","2":"i","3":"1"},{"1":"satay","2":"for","3":"1"},{"1":"satay","2":"was","3":"1"},{"1":"satay","2":"which","3":"1"},{"1":"satisfying","2":"the","3":"1"},{"1":"saturday","2":"afternoon","3":"1"},{"1":"sauce","2":"and","3":"1"},{"1":"sauce","2":"etc","3":"1"},{"1":"sauce","2":"for","3":"1"},{"1":"sauce","2":"just","3":"1"},{"1":"sauce","2":"on","3":"1"},{"1":"sauce","2":"to","3":"1"},{"1":"sauce","2":"was","3":"1"},{"1":"sauce.given","2":"our","3":"1"},{"1":"sauces","2":"and","3":"1"},{"1":"sauces","2":"are","3":"1"},{"1":"sauces","2":"that","3":"1"},{"1":"sauces","2":"though","3":"1"},{"1":"say","2":"rude","3":"1"},{"1":"say","2":"thai","3":"1"},{"1":"say","2":"the","3":"1"},{"1":"scale","2":"of","3":"1"},{"1":"scraps","2":"it","3":"1"},{"1":"scream","2":"until","3":"1"},{"1":"scrupulousness","2":"in","3":"1"},{"1":"seats","2":"only","3":"1"},{"1":"second","2":"experience","3":"1"},{"1":"second","2":"trip","3":"1"},{"1":"see","2":"ewe","3":"1"},{"1":"seemed","2":"to","3":"1"},{"1":"seen","2":"on","3":"1"},{"1":"selection","2":"including","3":"1"},{"1":"semi","2":"sophisticated","3":"1"},{"1":"send","2":"back","3":"1"},{"1":"seriously","2":"hubby","3":"1"},{"1":"seriously","2":"let","3":"1"},{"1":"serve","2":"however","3":"1"},{"1":"serve","2":"patrons","3":"1"},{"1":"served","2":"cambodian","3":"1"},{"1":"served","2":"one","3":"1"},{"1":"served","2":"these","3":"1"},{"1":"served","2":"with","3":"1"},{"1":"served.cons","2":"party","3":"1"},{"1":"servers","2":"great","3":"1"},{"1":"serves","2":"mostly","3":"1"},{"1":"service","2":"amateur","3":"1"},{"1":"service","2":"and","3":"1"},{"1":"service","2":"clean","3":"1"},{"1":"service","2":"is","3":"1"},{"1":"service","2":"laid","3":"1"},{"1":"serving","2":"especially","3":"1"},{"1":"serving","2":"if","3":"1"},{"1":"set","2":"my","3":"1"},{"1":"settling","2":"that","3":"1"},{"1":"sewage","2":"processing","3":"1"},{"1":"she","2":"had","3":"1"},{"1":"she","2":"remembers","3":"1"},{"1":"should","2":"be","3":"1"},{"1":"show","2":"a","3":"1"},{"1":"show","2":"in","3":"1"},{"1":"shows","2":"in","3":"1"},{"1":"shrimp","2":"after","3":"1"},{"1":"shrimp","2":"still","3":"1"},{"1":"sick","2":"trying","3":"1"},{"1":"side","2":"to","3":"1"},{"1":"silverware","2":"but","3":"1"},{"1":"silverware","2":"eventually","3":"1"},{"1":"silverware","2":"he","3":"1"},{"1":"silverware","2":"i","3":"1"},{"1":"similar","2":"enough","3":"1"},{"1":"similar","2":"to","3":"1"},{"1":"simple","2":"basic","3":"1"},{"1":"simple","2":"decor","3":"1"},{"1":"simple","2":"yet","3":"1"},{"1":"since","2":"a","3":"1"},{"1":"since","2":"i'm","3":"1"},{"1":"since","2":"i've","3":"1"},{"1":"since","2":"it","3":"1"},{"1":"since","2":"it's","3":"1"},{"1":"since","2":"my","3":"1"},{"1":"since","2":"they","3":"1"},{"1":"sitting","2":"on","3":"1"},{"1":"six","2":"or","3":"1"},{"1":"sizable","2":"i'm","3":"1"},{"1":"sizes","2":"and","3":"1"},{"1":"slow","2":"back","3":"1"},{"1":"slow","2":"but","3":"1"},{"1":"slow","2":"enough","3":"1"},{"1":"slow","2":"from","3":"1"},{"1":"slow","2":"service","3":"1"},{"1":"smart","2":"on","3":"1"},{"1":"snapper","2":"arrived","3":"1"},{"1":"snapper","2":"with","3":"1"},{"1":"so","2":"cheap","3":"1"},{"1":"so","2":"fix","3":"1"},{"1":"so","2":"happy","3":"1"},{"1":"so","2":"i'd","3":"1"},{"1":"so","2":"more","3":"1"},{"1":"so","2":"no","3":"1"},{"1":"so","2":"so","3":"1"},{"1":"so","2":"this","3":"1"},{"1":"so","2":"what","3":"1"},{"1":"so","2":"yummy","3":"1"},{"1":"some","2":"form","3":"1"},{"1":"some","2":"other","3":"1"},{"1":"some","2":"rice","3":"1"},{"1":"some","2":"spring","3":"1"},{"1":"some","2":"tables","3":"1"},{"1":"someone","2":"who","3":"1"},{"1":"something","2":"about","3":"1"},{"1":"something","2":"new","3":"1"},{"1":"sometimes","2":"visiting","3":"1"},{"1":"somewhat","2":"disappointed","3":"1"},{"1":"somewhat","2":"unkept","3":"1"},{"1":"sophisticated","2":"part","3":"1"},{"1":"sounds","2":"like","3":"1"},{"1":"soup","2":"crisps","3":"1"},{"1":"soy","2":"sauce","3":"1"},{"1":"sparked","2":"my","3":"1"},{"1":"speak","2":"to","3":"1"},{"1":"specific","2":"experience","3":"1"},{"1":"specifies","2":"how","3":"1"},{"1":"spectacular","2":"and","3":"1"},{"1":"spent","2":"the","3":"1"},{"1":"spice","2":"and","3":"1"},{"1":"spice","2":"sure","3":"1"},{"1":"spices","2":"and","3":"1"},{"1":"spices","2":"used","3":"1"},{"1":"spicy","2":"so","3":"1"},{"1":"spread","2":"yourself.drunken","3":"1"},{"1":"spring","2":"rolls","3":"1"},{"1":"sprouts","2":"peanut","3":"1"},{"1":"staff","2":"is","3":"1"},{"1":"staff","2":"super","3":"1"},{"1":"stained","2":"the","3":"1"},{"1":"standpoint.i","2":"have","3":"1"},{"1":"staple","2":"dish","3":"1"},{"1":"star","2":"but","3":"1"},{"1":"star","2":"rating","3":"1"},{"1":"star.on","2":"to","3":"1"},{"1":"stars","2":"because","3":"1"},{"1":"station","2":"for","3":"1"},{"1":"station","2":"i","3":"1"},{"1":"steamed","2":"fish","3":"1"},{"1":"step","2":"it","3":"1"},{"1":"sticky","2":"sauce","3":"1"},{"1":"still","2":"amazing.panang","3":"1"},{"1":"still","2":"can't","3":"1"},{"1":"still","2":"expecting","3":"1"},{"1":"still","2":"experimenting","3":"1"},{"1":"still","2":"in","3":"1"},{"1":"still","2":"light","3":"1"},{"1":"still","2":"prefer","3":"1"},{"1":"still","2":"pretty","3":"1"},{"1":"still","2":"probably","3":"1"},{"1":"stops","2":"will","3":"1"},{"1":"store","2":"front","3":"1"},{"1":"stretched","2":"thin","3":"1"},{"1":"strictly","2":"designated","3":"1"},{"1":"strong","2":"especially","3":"1"},{"1":"strong","2":"were","3":"1"},{"1":"stuff:the","2":"food","3":"1"},{"1":"such","2":"awesome","3":"1"},{"1":"suffice","2":"it","3":"1"},{"1":"summer","2":"and","3":"1"},{"1":"super","2":"fresh","3":"1"},{"1":"super","2":"friendly","3":"1"},{"1":"super","2":"impressed","3":"1"},{"1":"super","2":"satisfying","3":"1"},{"1":"super","2":"tiny","3":"1"},{"1":"sure","2":"everyone","3":"1"},{"1":"sure","2":"they","3":"1"},{"1":"surely","2":"not","3":"1"},{"1":"surprise","2":"i","3":"1"},{"1":"swallow","2":"it","3":"1"},{"1":"sweet","2":"and","3":"1"},{"1":"sweet","2":"potatoes","3":"1"},{"1":"sweetness","2":"to","3":"1"},{"1":"table","2":"at","3":"1"},{"1":"table","2":"filled","3":"1"},{"1":"table","2":"surely","3":"1"},{"1":"tables","2":"are","3":"1"},{"1":"tables","2":"but","3":"1"},{"1":"tables","2":"they","3":"1"},{"1":"tables","2":"were","3":"1"},{"1":"taken","2":"by","3":"1"},{"1":"takeout","2":"trying","3":"1"},{"1":"talk","2":"about","3":"1"},{"1":"tamarind","2":"sauce","3":"1"},{"1":"taste","2":"2","3":"1"},{"1":"taste","2":"good","3":"1"},{"1":"taste","2":"of","3":"1"},{"1":"taste","2":"right","3":"1"},{"1":"taste","2":"tomyam","3":"1"},{"1":"tasted","2":"like","3":"1"},{"1":"tasty","2":"it","3":"1"},{"1":"tate","2":"profiles","3":"1"},{"1":"tea","2":"a","3":"1"},{"1":"tea","2":"cup","3":"1"},{"1":"tell","2":"you","3":"1"},{"1":"ten","2":"if","3":"1"},{"1":"tender","2":"flakey","3":"1"},{"1":"texture","2":"and","3":"1"},{"1":"texture","2":"of","3":"1"},{"1":"texture","2":"to","3":"1"},{"1":"thai","2":"5","3":"1"},{"1":"thai","2":"75","3":"1"},{"1":"thai","2":"again","3":"1"},{"1":"thai","2":"and","3":"1"},{"1":"thai","2":"authentic","3":"1"},{"1":"thai","2":"because","3":"1"},{"1":"thai","2":"cuisine","3":"1"},{"1":"thai","2":"fix","3":"1"},{"1":"thai","2":"foods","3":"1"},{"1":"thai","2":"for","3":"1"},{"1":"thai","2":"good","3":"1"},{"1":"thai","2":"hard","3":"1"},{"1":"thai","2":"hot","3":"1"},{"1":"thai","2":"i","3":"1"},{"1":"thai","2":"menu","3":"1"},{"1":"thai","2":"my","3":"1"},{"1":"thai","2":"omg","3":"1"},{"1":"thai","2":"sauces","3":"1"},{"1":"thai","2":"seriously","3":"1"},{"1":"thai","2":"spices","3":"1"},{"1":"thai","2":"staple","3":"1"},{"1":"thai","2":"town","3":"1"},{"1":"thai","2":"unlike","3":"1"},{"1":"thai","2":"was","3":"1"},{"1":"thai","2":"with","3":"1"},{"1":"thai's","2":"curry","3":"1"},{"1":"thai's","2":"he","3":"1"},{"1":"than","2":"great","3":"1"},{"1":"than","2":"likely","3":"1"},{"1":"than","2":"once","3":"1"},{"1":"than","2":"pleasing","3":"1"},{"1":"thank","2":"you","3":"1"},{"1":"that","2":"but","3":"1"},{"1":"that","2":"changes","3":"1"},{"1":"that","2":"did","3":"1"},{"1":"that","2":"doesn't","3":"1"},{"1":"that","2":"excuse","3":"1"},{"1":"that","2":"experience","3":"1"},{"1":"that","2":"food","3":"1"},{"1":"that","2":"i'd","3":"1"},{"1":"that","2":"impressed","3":"1"},{"1":"that","2":"knowledgeable","3":"1"},{"1":"that","2":"require","3":"1"},{"1":"that","2":"said","3":"1"},{"1":"that","2":"same","3":"1"},{"1":"that","2":"seats","3":"1"},{"1":"that","2":"she","3":"1"},{"1":"that","2":"there's","3":"1"},{"1":"that","2":"time","3":"1"},{"1":"that","2":"won't","3":"1"},{"1":"that's","2":"as","3":"1"},{"1":"the","2":"10","3":"1"},{"1":"the","2":"a","3":"1"},{"1":"the","2":"appearance","3":"1"},{"1":"the","2":"art","3":"1"},{"1":"the","2":"atmosphere","3":"1"},{"1":"the","2":"bang","3":"1"},{"1":"the","2":"building","3":"1"},{"1":"the","2":"carpet","3":"1"},{"1":"the","2":"case","3":"1"},{"1":"the","2":"chairs","3":"1"},{"1":"the","2":"chive","3":"1"},{"1":"the","2":"cooking","3":"1"},{"1":"the","2":"corner","3":"1"},{"1":"the","2":"country","3":"1"},{"1":"the","2":"crushed","3":"1"},{"1":"the","2":"cuisine","3":"1"},{"1":"the","2":"decor","3":"1"},{"1":"the","2":"dog","3":"1"},{"1":"the","2":"entire","3":"1"},{"1":"the","2":"entrance","3":"1"},{"1":"the","2":"expectations","3":"1"},{"1":"the","2":"eyes","3":"1"},{"1":"the","2":"few","3":"1"},{"1":"the","2":"floor","3":"1"},{"1":"the","2":"foods","3":"1"},{"1":"the","2":"for","3":"1"},{"1":"the","2":"garlic","3":"1"},{"1":"the","2":"good","3":"1"},{"1":"the","2":"heck","3":"1"},{"1":"the","2":"horribly","3":"1"},{"1":"the","2":"inside","3":"1"},{"1":"the","2":"interior","3":"1"},{"1":"the","2":"kind","3":"1"},{"1":"the","2":"lack","3":"1"},{"1":"the","2":"levels","3":"1"},{"1":"the","2":"lo","3":"1"},{"1":"the","2":"majority","3":"1"},{"1":"the","2":"meat","3":"1"},{"1":"the","2":"michiana","3":"1"},{"1":"the","2":"middle","3":"1"},{"1":"the","2":"most","3":"1"},{"1":"the","2":"move","3":"1"},{"1":"the","2":"natural","3":"1"},{"1":"the","2":"next","3":"1"},{"1":"the","2":"one","3":"1"},{"1":"the","2":"only","3":"1"},{"1":"the","2":"outside","3":"1"},{"1":"the","2":"pallet","3":"1"},{"1":"the","2":"panang","3":"1"},{"1":"the","2":"people","3":"1"},{"1":"the","2":"perfect","3":"1"},{"1":"the","2":"place","3":"1"},{"1":"the","2":"pork","3":"1"},{"1":"the","2":"portion","3":"1"},{"1":"the","2":"portions","3":"1"},{"1":"the","2":"pot","3":"1"},{"1":"the","2":"price","3":"1"},{"1":"the","2":"quality","3":"1"},{"1":"the","2":"register","3":"1"},{"1":"the","2":"restaurant's","3":"1"},{"1":"the","2":"restaurant.also","3":"1"},{"1":"the","2":"rice","3":"1"},{"1":"the","2":"sauce","3":"1"},{"1":"the","2":"side","3":"1"},{"1":"the","2":"simple","3":"1"},{"1":"the","2":"spices","3":"1"},{"1":"the","2":"staff","3":"1"},{"1":"the","2":"super","3":"1"},{"1":"the","2":"sweet","3":"1"},{"1":"the","2":"table","3":"1"},{"1":"the","2":"tables","3":"1"},{"1":"the","2":"tamarind","3":"1"},{"1":"the","2":"tate","3":"1"},{"1":"the","2":"thai","3":"1"},{"1":"the","2":"thing","3":"1"},{"1":"the","2":"things","3":"1"},{"1":"the","2":"time","3":"1"},{"1":"the","2":"times","3":"1"},{"1":"the","2":"timing","3":"1"},{"1":"the","2":"tiny","3":"1"},{"1":"the","2":"unprepared","3":"1"},{"1":"the","2":"usual","3":"1"},{"1":"the","2":"wait","3":"1"},{"1":"the","2":"whole","3":"1"},{"1":"the","2":"windows","3":"1"},{"1":"the","2":"word","3":"1"},{"1":"the","2":"yellow","3":"1"},{"1":"their","2":"daughter","3":"1"},{"1":"their","2":"drunken","3":"1"},{"1":"their","2":"fish","3":"1"},{"1":"their","2":"green","3":"1"},{"1":"their","2":"location","3":"1"},{"1":"their","2":"options","3":"1"},{"1":"their","2":"original","3":"1"},{"1":"their","2":"part","3":"1"},{"1":"their","2":"pride","3":"1"},{"1":"their","2":"range","3":"1"},{"1":"them","2":"a","3":"1"},{"1":"them","2":"but","3":"1"},{"1":"theme","2":"hence","3":"1"},{"1":"then","2":"go","3":"1"},{"1":"then","2":"maybe","3":"1"},{"1":"then","2":"you","3":"1"},{"1":"there","2":"in","3":"1"},{"1":"there","2":"is","3":"1"},{"1":"there's","2":"anything","3":"1"},{"1":"there's","2":"green","3":"1"},{"1":"there's","2":"just","3":"1"},{"1":"these","2":"are","3":"1"},{"1":"these","2":"reviews","3":"1"},{"1":"they","2":"desire","3":"1"},{"1":"they","2":"don't","3":"1"},{"1":"they","2":"have","3":"1"},{"1":"they","2":"moved","3":"1"},{"1":"they","2":"opened","3":"1"},{"1":"they","2":"put","3":"1"},{"1":"they","2":"seemed","3":"1"},{"1":"they","2":"served","3":"1"},{"1":"they","2":"were","3":"1"},{"1":"they're","2":"that","3":"1"},{"1":"they've","2":"added","3":"1"},{"1":"thin","2":"between","3":"1"},{"1":"thing","2":"if","3":"1"},{"1":"thing","2":"with","3":"1"},{"1":"thing","2":"you","3":"1"},{"1":"things","2":"first","3":"1"},{"1":"things","2":"i","3":"1"},{"1":"things","2":"more","3":"1"},{"1":"things","2":"on","3":"1"},{"1":"think","2":"i'm","3":"1"},{"1":"thinking","2":"about","3":"1"},{"1":"this","2":"as","3":"1"},{"1":"this","2":"awesome","3":"1"},{"1":"this","2":"option","3":"1"},{"1":"this","2":"part","3":"1"},{"1":"this","2":"review","3":"1"},{"1":"this","2":"was","3":"1"},{"1":"this","2":"with","3":"1"},{"1":"those","2":"cold","3":"1"},{"1":"though","2":"i'd","3":"1"},{"1":"though","2":"not","3":"1"},{"1":"though","2":"strong","3":"1"},{"1":"though","2":"the","3":"1"},{"1":"thought","2":"thai","3":"1"},{"1":"through","2":"i","3":"1"},{"1":"time","2":"and","3":"1"},{"1":"time","2":"constriction","3":"1"},{"1":"time","2":"eating","3":"1"},{"1":"time","2":"first","3":"1"},{"1":"time","2":"he","3":"1"},{"1":"time","2":"hubby","3":"1"},{"1":"time","2":"mine","3":"1"},{"1":"time","2":"with","3":"1"},{"1":"times","2":"cambodian","3":"1"},{"1":"times","2":"it's","3":"1"},{"1":"times","2":"the","3":"1"},{"1":"timing","2":"for","3":"1"},{"1":"tiny","2":"restaurant","3":"1"},{"1":"tiny","2":"store","3":"1"},{"1":"to","2":"add","3":"1"},{"1":"to","2":"ask","3":"1"},{"1":"to","2":"begin","3":"1"},{"1":"to","2":"cater","3":"1"},{"1":"to","2":"change","3":"1"},{"1":"to","2":"chinese","3":"1"},{"1":"to","2":"finished","3":"1"},{"1":"to","2":"five","3":"1"},{"1":"to","2":"handle","3":"1"},{"1":"to","2":"help","3":"1"},{"1":"to","2":"if","3":"1"},{"1":"to","2":"is","3":"1"},{"1":"to","2":"like","3":"1"},{"1":"to","2":"local","3":"1"},{"1":"to","2":"look","3":"1"},{"1":"to","2":"main","3":"1"},{"1":"to","2":"me","3":"1"},{"1":"to","2":"my","3":"1"},{"1":"to","2":"order","3":"1"},{"1":"to","2":"other","3":"1"},{"1":"to","2":"our","3":"1"},{"1":"to","2":"par","3":"1"},{"1":"to","2":"pick","3":"1"},{"1":"to","2":"provide","3":"1"},{"1":"to","2":"really","3":"1"},{"1":"to","2":"return","3":"1"},{"1":"to","2":"san","3":"1"},{"1":"to","2":"send","3":"1"},{"1":"to","2":"spread","3":"1"},{"1":"to","2":"step","3":"1"},{"1":"to","2":"swallow","3":"1"},{"1":"to","2":"talk","3":"1"},{"1":"to","2":"this","3":"1"},{"1":"to","2":"visit","3":"1"},{"1":"to","2":"wait","3":"1"},{"1":"to","2":"work","3":"1"},{"1":"tofu","2":"it","3":"1"},{"1":"tomyam","2":"is","3":"1"},{"1":"tons","2":"of","3":"1"},{"1":"too","2":"delicious","3":"1"},{"1":"too","2":"much","3":"1"},{"1":"took","2":"a","3":"1"},{"1":"touch","2":"having","3":"1"},{"1":"touch","2":"or","3":"1"},{"1":"touches","2":"here","3":"1"},{"1":"town","2":"and","3":"1"},{"1":"town","2":"i","3":"1"},{"1":"town","2":"thank","3":"1"},{"1":"town","2":"try","3":"1"},{"1":"town","2":"unless","3":"1"},{"1":"tracked","2":"a","3":"1"},{"1":"treat","2":"tea","3":"1"},{"1":"treat","2":"the","3":"1"},{"1":"tremendous","2":"however","3":"1"},{"1":"tried","2":"before","3":"1"},{"1":"tried","2":"much","3":"1"},{"1":"tried","2":"twice","3":"1"},{"1":"trip","2":"she","3":"1"},{"1":"trusted","2":"i","3":"1"},{"1":"try","2":"how","3":"1"},{"1":"try","2":"more","3":"1"},{"1":"try","2":"other","3":"1"},{"1":"try","2":"since","3":"1"},{"1":"try","2":"the","3":"1"},{"1":"trying","2":"anywhere","3":"1"},{"1":"trying","2":"something","3":"1"},{"1":"trying","2":"to","3":"1"},{"1":"twice","2":"yet","3":"1"},{"1":"twist","2":"so","3":"1"},{"1":"two","2":"complaints","3":"1"},{"1":"two","2":"easy","3":"1"},{"1":"two","2":"meals","3":"1"},{"1":"two","2":"visits","3":"1"},{"1":"u.s","2":"my","3":"1"},{"1":"uncomfortable","2":"eating","3":"1"},{"1":"understand","2":"it","3":"1"},{"1":"unique","2":"appetizer","3":"1"},{"1":"unkept","2":"though","3":"1"},{"1":"unless","2":"a","3":"1"},{"1":"unless","2":"you","3":"1"},{"1":"unlike","2":"other","3":"1"},{"1":"unprepared","2":"rush","3":"1"},{"1":"until","2":"around","3":"1"},{"1":"until","2":"i","3":"1"},{"1":"until","2":"next","3":"1"},{"1":"up","2":"a","3":"1"},{"1":"up","2":"on","3":"1"},{"1":"us","2":"because","3":"1"},{"1":"us","2":"it","3":"1"},{"1":"us","2":"to","3":"1"},{"1":"used","2":"complimented","3":"1"},{"1":"used","2":"though","3":"1"},{"1":"used","2":"to","3":"1"},{"1":"usual","2":"texture","3":"1"},{"1":"variety","2":"of","3":"1"},{"1":"veggies","2":"are","3":"1"},{"1":"vents","2":"and","3":"1"},{"1":"venture","2":"back","3":"1"},{"1":"verses","2":"more","3":"1"},{"1":"very","2":"creamy","3":"1"},{"1":"very","2":"dry","3":"1"},{"1":"very","2":"friendly","3":"1"},{"1":"very","2":"little","3":"1"},{"1":"very","2":"mild","3":"1"},{"1":"very","2":"peculiar","3":"1"},{"1":"very","2":"quaint","3":"1"},{"1":"very","2":"sad","3":"1"},{"1":"very","2":"similar","3":"1"},{"1":"very","2":"unique","3":"1"},{"1":"very","2":"well","3":"1"},{"1":"vibe","2":"as","3":"1"},{"1":"visit","2":"a","3":"1"},{"1":"visit","2":"cambodian","3":"1"},{"1":"visited","2":"which","3":"1"},{"1":"visiting","2":"this","3":"1"},{"1":"visits","2":"have","3":"1"},{"1":"visits","2":"we","3":"1"},{"1":"volition.look","2":"at","3":"1"},{"1":"wait","2":"and","3":"1"},{"1":"wait","2":"this","3":"1"},{"1":"wait","2":"to","3":"1"},{"1":"waitress","2":"down","3":"1"},{"1":"waitress","2":"is","3":"1"},{"1":"waitress","2":"isela","3":"1"},{"1":"waitress","2":"who","3":"1"},{"1":"waitresses","2":"and","3":"1"},{"1":"walk","2":"a","3":"1"},{"1":"walking","2":"in","3":"1"},{"1":"wall","2":"joint","3":"1"},{"1":"wall","2":"paper","3":"1"},{"1":"wall","2":"restaurant","3":"1"},{"1":"want","2":"patrons","3":"1"},{"1":"wanted","2":"a","3":"1"},{"1":"wanting","2":"to","3":"1"},{"1":"warned","2":"10","3":"1"},{"1":"warrants","2":"it","3":"1"},{"1":"was","2":"absolutely","3":"1"},{"1":"was","2":"accompanied","3":"1"},{"1":"was","2":"amazing","3":"1"},{"1":"was","2":"atop","3":"1"},{"1":"was","2":"bad","3":"1"},{"1":"was","2":"better","3":"1"},{"1":"was","2":"delicious","3":"1"},{"1":"was","2":"fantastic","3":"1"},{"1":"was","2":"far","3":"1"},{"1":"was","2":"fried","3":"1"},{"1":"was","2":"getting","3":"1"},{"1":"was","2":"jerky","3":"1"},{"1":"was","2":"just","3":"1"},{"1":"was","2":"memorable","3":"1"},{"1":"was","2":"my","3":"1"},{"1":"was","2":"not","3":"1"},{"1":"was","2":"only","3":"1"},{"1":"was","2":"overdone","3":"1"},{"1":"was","2":"packed","3":"1"},{"1":"was","2":"really","3":"1"},{"1":"was","2":"salty","3":"1"},{"1":"was","2":"serving","3":"1"},{"1":"was","2":"simple","3":"1"},{"1":"was","2":"smart","3":"1"},{"1":"was","2":"somewhat","3":"1"},{"1":"was","2":"super","3":"1"},{"1":"was","2":"taken","3":"1"},{"1":"was","2":"tasty","3":"1"},{"1":"was","2":"there","3":"1"},{"1":"was","2":"very","3":"1"},{"1":"was","2":"worn","3":"1"},{"1":"washington","2":"d.c","3":"1"},{"1":"wasn't","2":"as","3":"1"},{"1":"wasn't","2":"even","3":"1"},{"1":"wasn't","2":"tender","3":"1"},{"1":"watering","2":"thinking","3":"1"},{"1":"we","2":"arrived","3":"1"},{"1":"we","2":"both","3":"1"},{"1":"we","2":"brought","3":"1"},{"1":"we","2":"come","3":"1"},{"1":"we","2":"don't","3":"1"},{"1":"we","2":"expected","3":"1"},{"1":"we","2":"get","3":"1"},{"1":"we","2":"had","3":"1"},{"1":"we","2":"ordered","3":"1"},{"1":"we","2":"paid","3":"1"},{"1":"we","2":"really","3":"1"},{"1":"we","2":"received","3":"1"},{"1":"we","2":"still","3":"1"},{"1":"we","2":"won","3":"1"},{"1":"week","2":"later","3":"1"},{"1":"welcome","2":"the","3":"1"},{"1":"well","2":"my","3":"1"},{"1":"well","2":"the","3":"1"},{"1":"well","2":"worth","3":"1"},{"1":"were","2":"2","3":"1"},{"1":"were","2":"a","3":"1"},{"1":"were","2":"completely","3":"1"},{"1":"were","2":"delicious","3":"1"},{"1":"were","2":"in","3":"1"},{"1":"were","2":"only","3":"1"},{"1":"were","2":"served","3":"1"},{"1":"were","2":"so","3":"1"},{"1":"what","2":"chinese","3":"1"},{"1":"what","2":"do","3":"1"},{"1":"what","2":"meat","3":"1"},{"1":"what","2":"should","3":"1"},{"1":"what","2":"sparked","3":"1"},{"1":"when","2":"a","3":"1"},{"1":"when","2":"my","3":"1"},{"1":"when","2":"the","3":"1"},{"1":"when","2":"they","3":"1"},{"1":"where","2":"i","3":"1"},{"1":"where","2":"to","3":"1"},{"1":"whether","2":"it's","3":"1"},{"1":"which","2":"did","3":"1"},{"1":"which","2":"i","3":"1"},{"1":"which","2":"is","3":"1"},{"1":"which","2":"isn't","3":"1"},{"1":"which","2":"really","3":"1"},{"1":"which","2":"was","3":"1"},{"1":"while","2":"at","3":"1"},{"1":"while","2":"it's","3":"1"},{"1":"while","2":"since","3":"1"},{"1":"who","2":"cared","3":"1"},{"1":"who","2":"cares","3":"1"},{"1":"who","2":"doesn't","3":"1"},{"1":"who","2":"had","3":"1"},{"1":"who","2":"needed","3":"1"},{"1":"who","2":"work","3":"1"},{"1":"who","2":"works","3":"1"},{"1":"whoever","2":"fried","3":"1"},{"1":"whole","2":"fish","3":"1"},{"1":"whole","2":"i've","3":"1"},{"1":"whole","2":"mahi","3":"1"},{"1":"wi","2":"fi","3":"1"},{"1":"wiggle","2":"room","3":"1"},{"1":"will","2":"always","3":"1"},{"1":"will","2":"be","3":"1"},{"1":"will","2":"come","3":"1"},{"1":"will","2":"just","3":"1"},{"1":"will","2":"probably","3":"1"},{"1":"will","2":"try","3":"1"},{"1":"will","2":"venture","3":"1"},{"1":"willing","2":"to","3":"1"},{"1":"windows","2":"are","3":"1"},{"1":"windows","2":"to","3":"1"},{"1":"with","2":"5","3":"1"},{"1":"with","2":"bean","3":"1"},{"1":"with","2":"bell","3":"1"},{"1":"with","2":"curry","3":"1"},{"1":"with","2":"different","3":"1"},{"1":"with","2":"friends","3":"1"},{"1":"with","2":"fusion","3":"1"},{"1":"with","2":"knowing","3":"1"},{"1":"with","2":"medium","3":"1"},{"1":"with","2":"my","3":"1"},{"1":"with","2":"nice","3":"1"},{"1":"with","2":"our","3":"1"},{"1":"with","2":"s","3":"1"},{"1":"with","2":"sauce","3":"1"},{"1":"with","2":"shrimp","3":"1"},{"1":"with","2":"tons","3":"1"},{"1":"with","2":"us","3":"1"},{"1":"with","2":"very","3":"1"},{"1":"without","2":"broccoli","3":"1"},{"1":"without","2":"rice","3":"1"},{"1":"without","2":"silverware","3":"1"},{"1":"wives","2":"oh","3":"1"},{"1":"won","2":"a","3":"1"},{"1":"won't","2":"change","3":"1"},{"1":"won't","2":"draw","3":"1"},{"1":"won't","2":"even","3":"1"},{"1":"won't","2":"live","3":"1"},{"1":"wonderfully","2":"i","3":"1"},{"1":"word","2":"of","3":"1"},{"1":"work","2":"here","3":"1"},{"1":"work","2":"party","3":"1"},{"1":"work","2":"the","3":"1"},{"1":"workers","2":"and","3":"1"},{"1":"working","2":"staff","3":"1"},{"1":"working","2":"there","3":"1"},{"1":"works","2":"here","3":"1"},{"1":"worn","2":"out","3":"1"},{"1":"worried","2":"it","3":"1"},{"1":"worth","2":"going","3":"1"},{"1":"worth","2":"the","3":"1"},{"1":"would","2":"be","3":"1"},{"1":"would","2":"give","3":"1"},{"1":"would","2":"hesitantly","3":"1"},{"1":"would","2":"reflex","3":"1"},{"1":"would","2":"still","3":"1"},{"1":"would've","2":"been","3":"1"},{"1":"wow","2":"the","3":"1"},{"1":"writing","2":"this","3":"1"},{"1":"wrong","2":"i","3":"1"},{"1":"wrong","2":"with","3":"1"},{"1":"yellow","2":"curry","3":"1"},{"1":"yet","2":"both","3":"1"},{"1":"yet","2":"complex","3":"1"},{"1":"you","2":"a","3":"1"},{"1":"you","2":"allow","3":"1"},{"1":"you","2":"ask","3":"1"},{"1":"you","2":"can","3":"1"},{"1":"you","2":"dare","3":"1"},{"1":"you","2":"feel","3":"1"},{"1":"you","2":"for","3":"1"},{"1":"you","2":"get","3":"1"},{"1":"you","2":"hv","3":"1"},{"1":"you","2":"keep","3":"1"},{"1":"you","2":"might","3":"1"},{"1":"you","2":"need","3":"1"},{"1":"you","2":"no","3":"1"},{"1":"you","2":"order","3":"1"},{"1":"you","2":"pay","3":"1"},{"1":"you","2":"want","3":"1"},{"1":"you","2":"were","3":"1"},{"1":"you","2":"what","3":"1"},{"1":"you'll","2":"like","3":"1"},{"1":"you're","2":"in","3":"1"},{"1":"you're","2":"looking","3":"1"},{"1":"your","2":"buck","3":"1"},{"1":"your","2":"establishment","3":"1"},{"1":"your","2":"in","3":"1"},{"1":"your","2":"level","3":"1"},{"1":"your","2":"taste","3":"1"},{"1":"yourself.drunken","2":"noodles","3":"1"},{"1":"yummy","2":"and","3":"1"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+<p>You might also want to find and grab the date for each review. This might make for some interesting plotting.</p>
+<p>You can also produce some handy visualizations for your text:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+library(ggplot2)
+
+ctData %&gt;% 
+  unnest_tokens(., word, reviews) %&gt;% 
+  count(word, sort = TRUE) %&gt;% 
+  slice(1:30) %&gt;% 
+  mutate(word = factor(word, levels = unique(word))) %&gt;% 
+  ggplot(., aes(word, n)) +  
+  geom_col() + 
+  coord_flip() +
+  theme_minimal()</code></pre>
+<p><img src="data:image/png;base64,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" width="576" /></p>
+</div>
+<p>Can you remove the stopwords? If you create a data frame with multiple restaurants, reproduce that plot with</p>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

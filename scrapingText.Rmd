@@ -28,6 +28,8 @@ cpiTable = read_html("https://www.usinflationcalculator.com/inflation/consumer-p
 
 As helpful as getting tables might be, there will be other bits of data that we might want to be able to pull. For example, we might want to keep track of who is sitting on a <a href="https://www.apple.com/leadership/">Board of Directors</a>. That is clearly not a table, so how do we get at it?
 
+After inspecting the elements of the names and roles, we should have a pretty good idea about the *nodes* that we are trying to pull.
+
 ```{r}
 appleBoard = data.frame(name = read_html("https://www.apple.com/leadership/") %>% 
                           html_nodes(".typography-body.block-link.profile-name") %>% 
@@ -40,6 +42,7 @@ appleBoard = data.frame(name = read_html("https://www.apple.com/leadership/") %>
 knitr::kable(appleBoard)
 ```
 
+That is a pretty simple example of finding some text and pulling it in as data.
 
 ## Packages
 
@@ -55,31 +58,24 @@ library(magrittr) # maybe
 library(rvest)
 
 library(stringr)
-
-# apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
-# ctTest = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend",
-#              add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
-# ct = GET("https://api.yelp.com/v3/businesses/bx2rCVErnRJ2SBxe7tKy7w",
-#     add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
-# content(ctTest, as = "text")
 ```
 
 
 ## Scraping Text
 
-Yelp will be a good place to start scraping some data, and for a few reasons: it is well structured, there is a nice chunk of data to be gotten, and it is rich with text.
+Yelp will be a good place to start scraping some data, and for a few reasons: it is well structured, there is a nice chunk of data to be gotten, and it is rich with text. Furthermore, it will be a good starting point for our sentiment analysis next time.
 
 ### Evil Czech
 
 ```{r}
 evilCzech = "https://www.yelp.com/biz/evil-czech-brewery-and-public-house-mishawaka"
 
-evilCzechHTML = read_html(evilCzech)
+evilCzechHTML = read_html(evilCzech) # This pulls the entire html tree
 
 ecRatings = evilCzechHTML %>% 
-  html_nodes(".review-wrapper .review-content .i-stars") %>% 
-  html_attr("title") %>% 
-  stringr::str_extract("[0-5]")
+  html_nodes(".review-wrapper .review-content .i-stars") %>% # Grabbing specific nodes
+  html_attr("title") %>% # Getting the title attribute from the nodes
+  stringr::str_extract("[0-5]") # Just keeping the number within the rating
 
 ecReviews = evilCzechHTML %>% 
   html_nodes(".review-wrapper .review-content p") %>% 
@@ -183,7 +179,7 @@ cdData = data.frame(ratings = cdRatings,
 ```
 
 
-At the end, we did a lot of copy and paste action there. Once you are down your R path a little bit more, you might find yourself writing functions to handle the heavy lifting and minimize your copy and paste time. 
+At the end, we did a lot of copy and paste action there. Once you are down your R path a little bit more, you might find yourself writing functions to handle the heavy lifting and minimizing your copy and paste time. 
 
 ### Combining Data
 
@@ -193,7 +189,23 @@ After running all of the previous code, we have 5 distinct data frames. We need 
 allReviews = dplyr::bind_rows(cdData, ceData, ctData, evilCzechData, fhData)
 ```
 
-Let's change our ratings to numbers and try something a little bit different (we will count the number of words in each review):
+Now would be a really good place to make note about the different variable types that you might encounter when scraping data (and data types in R generally). 
+
+If we try to do something reasonable like taking the mean rating, we might see some issue:
+
+```{r, eval = FALSE}
+mean(allReviews$ratings)
+```
+
+Why did this happen? Looking at the data structure will help us:
+
+```{r}
+str(allReviews)
+```
+
+Our rating variable really is not a number -- it is a character.
+
+Let's change our ratings to numbers and try something a little bit different (we will count the number of words in each review). We will use the `mutate` function to add new variables to our data:
 
 ```{r}
 allReviews = allReviews %>% 
@@ -201,15 +213,40 @@ allReviews = allReviews %>%
                 wordCount = stringr::str_count(reviews, pattern = "\\S+"))
 ```
 
+Let's try to get our mean again:
+
+```{r}
+mean(allReviews$ratings)
+```
+
+You should try to get the mean for number of words!
+
+When scraping data, you always need to consider what the data looks like when you get it in. For the sake of demonstration, let's go back to an individual restaurant:
+
+```{r}
+ecStars = evilCzechHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title")
+
+ecStars
+```
+
+We see that we would likely need to do a little cleaning on these values. We already saw one way to do it with `str_extract()`, but here is a slightly different way:
+
+```{r}
+stringr::str_replace_all(ecStars, pattern = " star rating", replacement = "")
+```
+This is particularly useful when a table (or text) has dollar signs!
+
 Now, we can check on some visuals from our data:
 
 ```{r}
-ggplot(allReviews, aes(ratings, wordCount, group = ratings)) + 
+ggplot(allReviews, aes(x = ratings, y = wordCount, group = ratings)) + 
   geom_boxplot() + 
   theme_minimal()
 ```
 
-This is slightly following an inverted U, which I would expect. Let's not forget that we have a natural grouping variable in restaurant. There are countless ways to look at this in R:
+This is slightly following an inverted U (tenuously, at best), which I would expect. Let's not forget that we have a natural grouping variable in restaurant. There are countless ways to look at this in R:
 
 Here are boxplots broken out into small multiples by restaurant:
 
@@ -231,7 +268,6 @@ ggplot(allReviews, aes(ratings, wordCount, color = restaurant)) +
   theme_minimal()
 ```
 
-
 And with just a little more effort, we can animate that plot:
 
 ```{r}
@@ -246,7 +282,7 @@ ggplot(allReviews, aes(ratings, wordCount)) +
   theme_minimal()
 ```
 
-Finally, we can turn it into a fully interactive visualization:
+We could also turn it into a fully interactive visualization:
 
 ```{r}
 library(plotly)
@@ -259,3 +295,14 @@ scatterTest = ggplot(allReviews, aes(ratings, wordCount)) +
 ggplotly(scatterTest)
 ```
 
+Finally, we might want to play with a model:
+
+```{r}
+ratingsMod = lm(ratings ~ wordCount, data = allReviews)
+
+summary(ratingsMod)
+```
+
+Remember when we counted the words within a review? You should try to do that with exclamation marks and see what that looks like in a model!
+
+This is just a brief dip into scraping text from the web. It is something that takes a fair amount of practice for doing it in a "production" manner, but you can quickly grab some interesting stuff without too much hassle.

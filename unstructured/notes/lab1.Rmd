@@ -9,8 +9,6 @@ output: radix::radix_article
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
-
 ## Step 1 -- Messing With APIs
 
 Using APIs is an important part of modern data acquisition tasks. Fortunately, they are pretty easy to put together (so long as you can follow some instructions). We are going to be working with REST APIs, so we can essentially just pass a URL request to a server -- the words make it sound more complicated than it actually is. 
@@ -21,7 +19,7 @@ When creating these URLs, we are given a base url, usually something like `https
 
 That is the first, and most difficult, step in getting an API call ready. The next part is pretty easy -- we just need to pass our authentication key into the request. Again, this is something that sounds tricky, but really is pretty easy. 
 
-If you have ever explored the network structure of a page, you will see a sections called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. 
+If you have ever explored the network structure of a page, you will see a section called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. This information takes the form of the authentication aspect of the request.
 
 
 ```{r}
@@ -54,12 +52,11 @@ thaiResults = searchParsed$businesses[1, ]
 ```
 
 
-## Step 4 -- Passing Information
+## Step 3 -- Passing Information
 
 In many API scenarios, you will be looking at a few steps to get to where you want to be. If we want to have more information about Cambodian Thai, we can get the information directly once we have the ID (which we got from our search). 
 
 ```{r}
-
 thaiID = paste("https://api.yelp.com/v3/businesses/", thaiResults$id, sep = "")
 
 cambodianThai = GET(thaiID,
@@ -69,9 +66,9 @@ thaiParsed = jsonlite::fromJSON(content(cambodianThai, as = "text"))
 ```
 
 
-## Step 3 -- Scraping Some Text
+## Step 4 -- Scraping Some Text
 
-Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our rvest code:
+Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our `rvest` code:
 
 ```{r}
 library(rvest)
@@ -99,11 +96,11 @@ ctData = data.frame(ratings = ctRatings,
 ```
 
 
-## Step 3a -- Very Optional
+## Step 4a -- Very Optional
 
-You should notice that we only pulled in 20 reviews, while we know that we have over 280 reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do a little work. Since there are 20 reviews per page, we are looking at 15 pages worth of reviews `(ceiling(thaiParsed$review_count / 20)`. And since we know how the links are constructed, we can just create them:
+You should notice that we only pulled in 20 reviews, while we know that we have over 280 reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at 15 pages worth of reviews `(ceiling(thaiParsed$review_count / 20)`. And since we know how the links are constructed, we can just create them:
 
-```{r}
+```{r, eval = FALSE}
 linkNumbers = seq(from = 0, to = (floor(288 / 20) * 20), by = 20)
 
 links = paste("https://www.yelp.com/biz/cambodian-thai-south-bend?start=", 
@@ -138,7 +135,7 @@ allReviews = data.table::rbindlist(allReviews)
 ```
 
 
-## Step 4 -- Analyze The Text
+## Step 5 -- Analyze The Text
 
 Given what we have already seen, try to learn a little bit about what words are being used in the reviews. Can you pick out a dish that people seem to talk about frequently? 
 
@@ -154,5 +151,26 @@ bigrams =  ctData %>%
   unnest_tokens(., ngrams, reviews, token = "ngrams", n = 2) %>% 
   tidyr::separate(ngrams, c("word1", "word2"), sep = "\\s") %>% 
   count(word1, word2, sort = TRUE)
+
+rmarkdown::paged_table(bigrams)
 ```
 
+You might also want to find and grab the date for each review. This might make for some interesting plotting. 
+
+You can also produce some handy visualizations for your text:
+
+```{r}
+library(ggplot2)
+
+ctData %>% 
+  unnest_tokens(., word, reviews) %>% 
+  count(word, sort = TRUE) %>% 
+  slice(1:30) %>% 
+  mutate(word = factor(word, levels = unique(word))) %>% 
+  ggplot(., aes(word, n)) +  
+  geom_col() + 
+  coord_flip() +
+  theme_minimal()
+```
+
+Can you remove the stopwords? If you create a data frame with multiple restaurants, reproduce that plot with 

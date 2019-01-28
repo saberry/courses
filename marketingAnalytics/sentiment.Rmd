@@ -1,7 +1,5 @@
 ---
-title: "Text Analysis"
-description: |
-  Sentiment Analysis
+title: "Sentiment Analysis"
 output:
   radix::radix_article:
     toc: true
@@ -22,7 +20,7 @@ Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we c
 
 What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "jump"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
 
-Let's take a look to see how this works (you will need to install tm and SnowballC first):
+Let's take a look to see how this works (you will need to install `tm` and `SnowballC` first):
 
 ```{r}
 jumpingStrings = c("jump", "jumping", "jumped", "jumper")
@@ -61,6 +59,7 @@ documentsStemmed
 ```
 
 And now the document-term matrix:
+
 ```{r}
 stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
 
@@ -70,93 +69,6 @@ inspect(stemmedDocDTM)
 ```
 
 If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.
-
-### Lemmatization
-
-Stemming is often enough (and most modern stemmers work pretty well on their own). Still, stemming is slightly more akin to amputating an arm with a battle ax -- it works, but it is brute force. Lemmatization is a more sophisticated approach. You might have already guessed that lemmatization will find the *lemma* of a word and since you likely know about morphology, you already know that the lemma of a word is its canonical form. A group of words that form the same idea are called a lexeme (am, be, are are all within the same lexeme). Generally, the smallest form of the word is chosen as the lemma. This is a really interesting area of linguistics, but we don't need to dive fully in.  
-
-Instead, let's see it in action.
-
-If we compare our "jumping" stuff on stemming and lemmatization, we can see what we get:
-
-```{r}
-library(textstem)
-
-jumpingStrings = c("jump", "jumping", "jumped", "jumper")
-
-stem_words(jumpingStrings)
-
-lemmatize_words(jumpingStrings)
-```
-
-Absolutely nothing different. Both stemming and lemmatizing will perform the same task. The act of jumping is comprised of a past, present, and future tense, and jump is the lemma; jumper is still seen as something else entirely.
-
-But let's take a look at something different. If we have a string of the most lovely words, what might happen?
-
-```{r}
-lovelyString = c("lovely", "lovelier", "loveliest")
-
-stem_words(lovelyString)
-```
-
-That is about as close to nonsense as we could possibly get without going into Dr. Suess mode. 
-
-But if we try lemmatization:
-
-```{r}
-lemmatize_words(lovelyString)
-```
-
-We get something that starts to make sense. Now, let's try these on some actual chunks of text and see what happens.
-
-```{r}
-load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
-
-sampleLyrics = allLyricsDF[40, ]
-
-sampleLyrics
-```
-
-Of course, we will need to do some cleaning on our text first:
-
-<aside>
-As we work with this lyric stuff, you will need to make sure that you clean it before playing with it. The code that we saw last week should take care of it...maybe!
-</aside>
-
-```{r}
-library(dplyr)
-
-library(stringr)
-
-cleanLyrics = sampleLyrics$lyrics %>% 
-  str_replace_all(., "\n", " ") %>% 
-  str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>%
-  str_squish(.) %>% 
-  gsub("([a-z])([A-Z])", "\\1 \\2", .)
-```
-
-We have to try the obligatory stemming:
-
-```{r}
-stem_strings(cleanLyrics)
-```
-
-And now the lemmatized version:
-
-```{r}
-lemmatize_strings(cleanLyrics)
-```
-
-Here is something very interesting:
-
-```{r}
-microbenchmark::microbenchmark(stem_strings(cleanLyrics), 
-                               lemmatize_strings(cleanLyrics))
-```
-
-What is the point here? This song has a little over 400 words in it. Stemming, over 100 runs, took on average 1.3 milliseconds, while lemmatizing took 3.6. We are just talking milliseconds, so this is almost to the point where we would not notice; but, if we did this over an entire corpus, we would definitely notice the time.
-
-The question, then, is what do you decide to do. For my money, lemmatization does a better job and getting words down to their actual meaning.
 
 ### Stop Words
 
@@ -270,6 +182,16 @@ tokens = data_frame(text = statement) %>%
 tokens
 ```
 
+From there, we get every individual *token*. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, *n*-grams). While we won't dive into them too deeply, *n*-grams are also interesting. Just like our typical notion of *n*, an *n*-gram is an *n* length group of words. We can set *n* to be anything, but we would typically look at 2-gram and 3-grams chunks.
+
+```{r}
+tokenizers::tokenize_ngrams(statement, n = 2)
+```
+
+These are helpful for looking at frequently occurring combinations of words.
+
+Now back to the matter at hand.
+
 Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.
 
 ```{r}
@@ -322,7 +244,7 @@ Here is the dictionary that *jockers* will use.
 lexicon::hash_sentiment_jockers
 ```
 
-You might want to use View() to get a complete look at what is happening in there.
+You might want to use `View()` to get a complete look at what is happening in there.
 
 We should also take a peak at our valence shifters:
 
@@ -344,127 +266,169 @@ We can see that we get a much stronger sentiment score when we include more info
 
 With all of this together, we get a much better idea about the sentiment of our text.
 
-### Back To The Music
+### Revisiting Reviews
 
-While the text that we have used so far serves its purpose as an example quite well, we can always take a look at other written words.
+While the text that we have used so far serves its purpose as an example quite well, we can always take a look at other written words (maybe those reviews that we pulled last time will be interesting here).
+
+```{r}
+evilCzech = "https://www.yelp.com/biz/evil-czech-brewery-and-public-house-mishawaka"
+
+evilCzechHTML = read_html(evilCzech)
+
+ecRatings = evilCzechHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ecReviews = evilCzechHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+evilCzechData = data.frame(ratings = ecRatings, 
+                           reviews = ecReviews,
+                           restaurant = "evil czech", 
+                           stringsAsFactors = FALSE)
+
+fiddlers = "https://www.yelp.com/biz/fiddlers-hearth-south-bend"
+
+fiddlersHTML = read_html(fiddlers)
+
+fhRatings = fiddlersHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+fhReviews = fiddlersHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+fhData = data.frame(ratings = fhRatings, 
+                    reviews = fhReviews, 
+                    restaurant = "fiddlers hearth", 
+                    stringsAsFactors = FALSE)
+
+crookedEwe = "https://www.yelp.com/biz/crooked-ewe-brewery-and-ale-house-south-bend"
+
+crookedEweHTML = read_html(crookedEwe)
+
+ceRatings = crookedEweHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ceReviews = crookedEweHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+ceData = data.frame(ratings = ceRatings, 
+                    reviews = ceReviews, 
+                    restaurant = "crooked ewe", 
+                    stringsAsFactors = FALSE)
+
+cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
+
+cambodianThaiHTML = read_html(cambodianThai)
+
+ctRatings = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+ctReviews = cambodianThaiHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+ctData = data.frame(ratings = ctRatings, 
+                    reviews = ctReviews, 
+                    restaurant = "cambodian thai", 
+                    stringsAsFactors = FALSE)
+
+corndance = "https://www.yelp.com/biz/corndance-tavern-mishawaka"
+
+corndanceHTML = read_html(corndance)
+
+cdRatings = corndanceHTML %>% 
+  html_nodes(".review-wrapper .review-content .i-stars") %>% 
+  html_attr("title") %>% 
+  stringr::str_extract("[0-5]")
+
+cdReviews = corndanceHTML %>% 
+  html_nodes(".review-wrapper .review-content p") %>% 
+  html_text()
+
+cdData = data.frame(ratings = cdRatings, 
+                    reviews = cdReviews, 
+                    restaurant = "corndance tavern", 
+                    stringsAsFactors = FALSE)
+
+allReviews = dplyr::bind_rows(cdData, ceData, ctData, evilCzechData, fhData) %>% 
+  dplyr::mutate(ratings = as.numeric(ratings), 
+                wordCount = stringr::str_count(reviews, pattern = "\\S+"))
+```
+
+From there, we can do just a little bit of data prep and then get our sentiment values:
 
 ```{r}
 load("D:/projects/courses/hash_sentiment_vadar.RData")
 
-cleanLyrics = allLyricsDF %>%
-  filter(warningIndicator == 0) %>% 
-  dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
-  mutate(lyrics = as.character(lyrics), 
-         lyrics = str_replace_all(lyrics, "\n", " "),   
-         lyrics = str_replace_all(lyrics, "(\\[.*?\\])", ""), 
-         lyrics = str_squish(lyrics), 
-         lyrics = gsub("([a-z])([A-Z])", "\\1 \\2", lyrics))
+allReviews = allReviews %>% 
+  mutate(reviewID = 1:nrow(.))
 
-songSentiment = sentiment(get_sentences(cleanLyrics), 
-          polarity_dt = hash_sentiment_vadar) %>% 
-  group_by(returnedSong) %>% 
-  summarize(meanSentiment = mean(sentiment))
+reviewSentiment = sentiment(get_sentences(allReviews$reviews), 
+          polarity_dt = hash_sentiment_vadar)
 ```
 
-Naturally, we would want to join those sentiment values up with our original data:
+The reviewSentiment object sentiment values for every sentence within every review. While useful on their own, it is helpful to join summarize them by review and put them back into the original data.
 
 ```{r}
-cleanLyrics = left_join(cleanLyrics, songSentiment, by = "returnedSong")
+reviewSentiment = reviewSentiment %>% 
+  group_by(element_id) %>% 
+  summarize(meanSentiment = mean(sentiment))
+
+allReviews = left_join(allReviews, reviewSentiment, by = c("reviewID" = "element_id"))
 ```
 
+Now, we can engage in some exploration. Personally, I would love to see the review for that high word count:
 
-From here, we have several choices in front of us. One, we could use those sentiment values within a model (e.g., we might want to predict charting position). Or, we could use them for some further exploration:
+```{r}
+allReviews[which.max(allReviews$wordCount), ]
+```
+
+It would also be worth checking out the ratings by restaurant:
+
+```{r}
+allReviews %>% 
+  group_by(restaurant) %>% 
+  summarize(meanRating = mean(ratings), 
+            meanSentiment = mean(meanSentiment))
+```
+
+And let's do some interactive work:
 
 ```{r}
 library(DT)
 
-sentimentBreaks = c(-1.7, -.5, 0, .5, 1.7)
+sentimentBreaks = c(-.5, 0, .5)
 
-breakColors = c('rgb(178,24,43)','rgb(239,138,98)','rgb(253,219,199)','rgb(209,229,240)','rgb(103,169,207)','rgb(33,102,172)')
+breakColors = c('rgb(178,24,43)', 'rgb(239,138,98)', 'rgb(103,169,207)', 'rgb(33,102,172)')
 
-datatable(cleanLyrics, rownames = FALSE, 
-              options = list(pageLength = 15, escape = FALSE, 
-                             columnDefs = list(list(targets = 1, visible = FALSE)))) %>% 
-  formatStyle("lyrics", "meanSentiment", backgroundColor = styleInterval(sentimentBreaks, breakColors))
+datatable(allReviews, rownames = FALSE, 
+              options = list(pageLength = 15, escape = FALSE)) %>% 
+  formatStyle("reviews", "meanSentiment", backgroundColor = styleInterval(sentimentBreaks, breakColors))
 ```
 
 
-We can also do some checking over time:
+And some visual checks:
 
 ```{r}
 library(ggplot2)
 
-load("D:/projects/courses/unstructured/data/countryTop50.RData")
-
-allTop50 = allTop50 %>% 
-  group_by(song) %>% 
-  slice(1)
-
-cleanLyrics = left_join(cleanLyrics, allTop50, by = c("returnedSong" = "song"))
-
-cleanLyrics %>% 
-  group_by(date) %>% 
-  na.omit() %>% 
-  summarize(meanSentiment = mean(meanSentiment)) %>% 
-  ggplot(., aes(date, meanSentiment)) + 
+ggplot(allReviews, aes(ratings, meanSentiment, color = restaurant)) +
   geom_point() +
   theme_minimal()
-```
 
-
-That is pretty messy (but I am curious about that really happy month), so let's try something else:
-
-```{r}
-library(gganimate)
-
-cleanLyrics %>% 
-  mutate(year = lubridate::year(date), 
-         month = lubridate::month(date)) %>% 
-  group_by(year, month, date) %>% 
-  na.omit() %>% 
-  summarize(meanSentiment = mean(meanSentiment)) %>% 
-  ggplot(., aes(as.factor(month), meanSentiment, color = meanSentiment)) + 
+ggplot(allReviews, aes(wordCount, meanSentiment, color = restaurant)) +
   geom_point() +
-  scale_color_distiller(type = "div") +
-  theme_minimal() +
-  transition_states(year,
-                    transition_length = length(1975:2018),
-                    state_length = 3) +
-  ggtitle('Year: {closest_state}')
-```
-
-
-
-```{r}
-cleanLyrics %>% 
-  mutate(year = lubridate::year(date)) %>% 
-  group_by(year) %>% 
-  na.omit() %>% 
-  summarize(meanSentiment = mean(meanSentiment)) %>% 
-  ggplot(., aes(year, meanSentiment, color = meanSentiment)) + 
-  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
   theme_minimal()
-```
-
-
-## Other Text Fun
-
-Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.
-
-The koRpus package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
-
-We need to tokenize our text in a manner that will please koRpus.
-
-```{r}
-library(koRpus)
-
-statementTokens = lapply(txExecutionsShort$correctedStatements, function(x) tokenize(x, 
-                           format = "obj", lang = "en"))
-
-statementTokens
-```
-
-
-```{r}
-lapply(statementTokens, function(x) readability(x, index = "Flesch.Kincaid", quiet = TRUE))
 ```

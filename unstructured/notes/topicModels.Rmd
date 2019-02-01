@@ -31,7 +31,20 @@ library(textstem)
 
 load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
 
-cleanLyrics = allLyricsDF %>%
+hardRemove = c(78, 91, 136, 213, 222, 232, 239, 245, 248, 268, 277, 285, 291, 
+               309, 419, 424, 425, 460, 467, 482, 490, 519, 532, 545, 555, 654, 
+               658, 682, 705, 719, 722, 780, 794, 795, 802, 836, 851, 878, 891, 
+               921, 924, 972, 985, 995, 1026, 1041, 1101, 1102, 1111, 1144, 1145, 
+               1158, 1166, 1172, 1186, 1202, 1204, 1209, 1215, 1257, 1287, 1311, 
+               1316, 1326, 1342, 1361, 1493, 1534, 1584, 1609, 1629, 1649, 1667, 
+               1676, 1679, 1707, 1710, 1720, 1755, 1760, 1798, 1805, 1855, 1861, 
+               1918, 1929, 1994, 2000, 2011, 2017, 2018, 2027, 2039, 2055, 2164, 
+               2200, 2254, 2285, 2303, 2334, 2373, 2397, 2401, 2406, 2434, 2469, 
+               2475, 2499, 2507, 2527, 2534, 2540, 2566, 2570, 2655, 2724, 2729, 
+               2736, 2764, 2767, 2771, 2803, 2843, 2877, 2905, 2913, 2944, 2951, 
+               2972, 2995, 3043, 3092)
+
+cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
   filter(warningIndicator == 0) %>% 
   dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
   mutate(text = as.character(lyrics), 
@@ -74,11 +87,126 @@ The `lyricsTDM` object that we created can be easily explored like we would any 
 
 If we just look at the information, though, we can see that we are dealing in very sparse space (99% sparse). This means that most words are not in most documents. To solve the problem of sparsity, we need to perform some dimension reduction on our matrix. Our dimension reduction, in this case, can work well because we are really trying to find words that belong to the same topic; for example, "car" and "truck" would reduce down to the same topic space.
 
-How does this dimension reduction happen? It happens with singular value decomposition (SVD). SVD will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M*. 
+How does this dimension reduction happen? It happens with singular value decomposition (SVD). SVD is but one of many forms of matrix factorization (we will see another soon)  that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
+
+
+<aside>
+Diving into SVD isn't beyond us, we just need to keep moving along. It is definitely worth looking at a little more.
+</aside>
+
+Any package that will do LSA will perform the SVD step for you, so you won't need to do it manually -- just know that it is being done!
+
+Knowing the appropriate number of topics is impossible *a priori*, so we need to use various function to do that work for us. The lsa package has `dimcalc_share` (among others) that will work for finding the number of dimensions from our SVD.
+
+**Warning!** This will take some time to run! Matrix multipliation on large matrices is always going to be computationally intensive!
+
+```{r}
+lyricsRawMatrix = as.matrix(lyricsTDM)
+
+s = svd(lyricsRawMatrix)$d # D is the diagonal matrix for our weights.
+
+topicCount = dimcalc_share()(s)
+```
+
+
+That feels like a lot of topics, but let's go with it. Again, this will take some time to run!
+
+```{r}
+library(lsa)
+
+lyricsLSA = lsa(lyricsTDM, topicCount)
+
+lyricsSpace = as.textmatrix(lyricsLSA)
+
+lyricDistance = dist(t(lyricsSpace))
+```
+
+Now we can do some exploration, like which words are associated with they word "baby"?
+
+```{r}
+associate(lyricsSpace, "baby")
+```
+
+
+## Non-negative Matrix Factorization
+
+Latent semantic analysis works and it is a great first step towards topic models; however, it is not really anything approaching state of the art. At this point there are other techniques that are far superior and one of those techniques is non-negative matrix factorization (NNMF or NMF). Some of the basic set-up remains the same: we have a sparse matrix and we need to reduce the dimensionality of our matrix by somehow breaking the original matrix down into different components. 
+
+NNMF works as follows:
+
+- We propose that we can multiple two component matrices to reproduce our original matrix. All of these matrices contain only 0 or positive values.
+
+- We will start with our original term-document matrix (*O*). We know that is 9118 rows (words) by 2402 columns (songs). 
+
+- We can then choose a number of topics (*k* = 15). This will give us a features matrix (*F* -- typically denoted as *W*) that is 9118 rows by 15 columns. It will also give us a coefficient matrix (*C* -- typically denoted as *H*) that is 15 rows by 2402 columns.
+
+- Before splitting *O* into component parts, each column is clustered so that *C* represents cluster membership and *F* represents the centroids.
+
+- When taking $FC$, we get a matrix that is 9118 by 2402 (our original dimensions). 
+
+Since our data is already prepped, we can just pass our TDM right into the `nmf` function...in theory.
+
+In reality, though, we need to add a small constant to our matrix. Why? The *k*-means that is being implemented on the backend of `nmf` will have some issues with all of those 0's; in other words, it will handle a smaller sparse matrix, not a bigger sparse matrix. It is not big deal
+
+```{r}
+library(tibble)
+
+lyricConvert = as.data.frame(as.matrix(lyricsTDM))
+
+lyricsTibble = as_tibble(lyricConvert, .name_repair = "universal")
+
+lyricsTibble = lyricsTibble %>% 
+  mutate_all(., funs(. + .1))
+
+rownames(lyricsTibble) = rownames(lyricConvert)
+```
+
+**Warning!** This takes a really long time to run! The clustering that is happening within the matrices is a pain -- if you have ever messed around with cluster selection, this will be familiar. Run it with smaller numbers of *k* to have it finish in decent time; the saved model object is in the data folder. 
+
+```{r, eval = FALSE}
+library(NMF)
+
+lyricsNNMF = nmf(lyricsTibble, 5, seed = 1001)
+
+save(lyricsNNMF, file = "D:/projects/courses/unstructured/data/nnmfOut.RData")
+```
+
+After waiting, we can finally start to see what words belong to what topics.
+
+```{r}
+load("D:/projects/courses/unstructured/data/nnmfOut.RData")
+
+library(NMF)
+
+wMatrix = as.data.frame(basis(lyricsNNMF))
+
+wMatrix
+
+head(wMatrix[order(-wMatrix$V1), ], 25)
+
+head(wMatrix[order(-wMatrix$V2), ], 25)
+
+head(wMatrix[order(-wMatrix$V3), ], 25)
+
+head(wMatrix[order(-wMatrix$V4), ], 25)
+
+head(wMatrix[order(-wMatrix$V5), ], 25)
+
+```
+
+We can find all of the words that fit within a topic (the *features*) based upon a threshold.
+
+```{r}
+lyricFeatures = extractFeatures(lyricsNNMF)
+
+rownames(wMatrix[lyricFeatures[[1]], ])
+```
 
 ## Latent Dirichlet Allocation
 
-We will start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling. The basic idea is to first generate some documents based on the underlying model, and then we’ll use the topicmodels package to recover the topics via LDA.
+Non-negative matrix factorization is a useful tool that we will see again (it is great for working with images). For topic models, though, it has been surplanted by latent dirichlet allocation (LDA)
+
+Let's start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling. ics via LDA.
 
 Suffice it to say, one can approach this in (at least) one of two ways. In one sense, LDA is a dimension reduction technique, much like the family of techniques that includes PCA, factor analysis, non-negative matrix factorization, etc. We will take a whole lot of terms, loosely defined, and boil them down to a few topics. In this sense, LDA is akin to discrete PCA. Another way to think about this is more from the perspective of factor analysis, where we are keenly interested in interpretation of the result, and want to know both what terms are associated with which topics, and what documents are more likely to present which topics. The following is the plate diagram and description for standard LDA from Blei, Jordan, and Ng (2003).
 
@@ -86,20 +214,16 @@ Suffice it to say, one can approach this in (at least) one of two ways. In one s
 
 - $\alpha$ is the parameter of the Dirichlet prior on the per-document topic distributions
 - $\eta$ is the parameter of the Dirichlet prior on the per-topic word distribution
-- $\theta_m$θm is the topic distribution for document m
-- $\beta_k$ is the word distribution for topic k
-- $z_{mn}$ is the topic for the n-th word in document m
+- $\theta_m$ is the topic distribution for document *m*
+- $\beta_k$ is the word distribution for topic *k*
+- $z_{mn}$ is the topic for the n-th word in document *m*
 - $w_{mn}$ is the specific word
 
-Both *z* and *w* are from a multinomial draw based on the θ and β distributions respectively. The key idea is that, to produce a given document, one draws a topic, and given the topic, words are drawn from it.
-
-## Generating Documents
-
-In the standard setting, to be able to conduct such an analysis from text, one needs a document-term matrix, where rows represent documents, and columns terms. Terms are typically words but could be any n-gram of interest. In practice, this is where you’ll spend most of your time, as text is never ready for analysis, and must be scraped, converted, stemmed, cleaned etc. We will initially create θ and β noted above, then given those, draw topics and words given topics based on the multinomial distribution.
+Both *z* and *w* are from a multinomial draw based on the $\theta$ and $\beta$ distributions respectively. The key idea is that, to produce a given document, one draws a topic, and given the topic, words are drawn from it.
 
 ## Topic Probabilities
 
-We begin the simulation by creating topic probabilities. There will be *k* = 3 topics. Half of our documents will have probabilities of topics for them ($\theta1$) which will be notably different from the other half ($\theta2$). Specifically, the first half will show higher probability of topic "A" and "B", while the second half of documents show higher probability of topic "C". What we’ll end up with here is an m X k matrix of probabilities θ where each m document has a non-zero probability for each k topic. Note that in the plate diagram, these would come from a Dirichlet(α) draw rather than be fixed like this, but hopefully this will make things clear starting out.
+We will start by creating topic probabilities. There will be *k* = 3 topics. Half of our documents will have probabilities of topics for them ($\theta_1$) which will be notably different from the other half ($\theta_2$). Specifically, the first half will show higher probability of topic "A" and "B", while the second half of documents show higher probability of topic "C". What we’ll end up with here is an $m X k$ matrix of probabilities $\theta$ where each *m* document has a non-zero probability for each *k* topic. Note that in the plate diagram, these would come from a Dirichlet($\alpha$) draw rather than be fixed like we are doing, but hopefully this will make things clear starting out.
 
 
 ```{r}
@@ -206,33 +330,27 @@ If you print out the wordlist_1 object, you will see the words asssociated with 
 
 ## Topic Models
 
-Now with some theory under our belt, we can take a look at analyzing some data. Just to keep everything light, we will be looking at the Last Statement of inmates executed in Texas.
+Now with some theory under our belt, we can take a look at analyzing real data.
 
 Just like our sentiment analysis, there is a fair chunk of cleaning to do:
 
 ```{r}
 library(stm)
 
-library(dplyr)
+lyricText = textProcessor(documents = cleanLyrics$text, 
+                          metadata = cleanLyrics, 
+                          stem = FALSE)
 
-executions = read.csv("https://www.nd.edu/~sberry5/data/txEx.csv", stringsAsFactors = FALSE)
-
-executions = executions %>% 
-  select(correctedStatements, totalVictims, codefsYes) %>% 
-  na.omit()
-
-executionsText = textProcessor(documents = executions$correctedStatements, 
-                           metadata = executions)
-
-executionsPrep = prepDocuments(documents = executionsText$documents, 
-                               vocab = executionsText$vocab,
-                               meta = executionsText$meta)
+lyricPrep = prepDocuments(documents = lyricText$documents, 
+                               vocab = lyricText$vocab,
+                               meta = lyricText$meta)
 ```
+
 The stm package has some pretty nice facilities for determining a number of topics:
 
 ```{r}
-kTest = searchK(documents = executionsPrep$documents, 
-             vocab = executionsPrep$vocab, 
+kTest = searchK(documents = lyricPrep$documents, 
+             vocab = lyricPrep$vocab, 
              K = c(3, 4, 5, 10, 20), verbose = FALSE)
 
 plot(kTest)
@@ -246,8 +364,8 @@ With our 5 topics, we can start our actual model:
 ```{r}
 set.seed(1001)
 
-topics5 = stm(documents = executionsPrep$documents, 
-             vocab = executionsPrep$vocab, 
+topics5 = stm(documents = lyricPrep$documents, 
+             vocab = lyricPrep$vocab, 
              K = 5, verbose = FALSE)
 ```
 
@@ -265,12 +383,12 @@ This is great, but it is really fun to see what emerges from the topics.
 labelTopics(topics5)
 ```
 
-Let's focus on the frex words (they occur *fr*equently within the topic and are *ex*clusive to that topic) and the highest probability words (i.e., the words that have the highest probability of occuring within that topic). The Lift and Score words (just a few different ways of weighting occurance) can be useful, but are a bit less intuitive than the other two. Let's put some names to the topics. Topic 1 is religious in nature, topic 2 is something along the lines of "everything is going to be alright and take care", topic 3 is "you are murdering an innocent man", topic 4 is probably "I hope your family finds peace", and topic 5 is "I hope everyone forgives me".
+Let's focus on the frex words (they occur *fr*equently within the topic and are *ex*clusive to that topic) and the highest probability words (i.e., the words that have the highest probability of occuring within that topic). The Lift and Score words (just a few different ways of weighting occurance) can be useful, but are a bit less intuitive than the other two. Let's put some names to the topics. 
 
-We can look at statements that have a high probability of being associated with each topic:
+We can look at lyrics that have a high probability of being associated with each topic:
 
 ```{r}
-findThoughts(topics5, texts = executionsPrep$meta$correctedStatements, n = 1)
+findThoughts(topics5, texts = lyricPrep$meta$text, n = 1)
 ```
 
 We can see that the story we put to our topics makes sense, given what we see in the actual texts.
@@ -281,33 +399,33 @@ One of the great things about topic models is that they are probablistic, meanin
 head(topics5$theta, 15)
 ```
 
-Document 1, for example has a probability of ~.91 for belonging to topic 1. Document 9 has a probability of .30 of being related to topic 2 and .38 for topic 5.
+Document 1, for example has a probability of ~.19 for belonging to topic 1 and .78 for belonging to topic 2. Document 3 has a bit of a range, with probabilities of .31, .20, and .42 for belonging to topics 1, 2, and 3.
 
 ```{r}
-executionsPrep$meta$correctedStatements[1]
+lyricPrep$meta[1, ]
 
-executionsPrep$meta$correctedStatements[9]
+lyricPrep$meta[3, ]
 ```
 
 We can also see what terms are in documents 1:
 
 ```{r}
-executionsPrep$documents[[1]]
-```
-
-```{r}
-executionsPrep$vocab[executionsPrep$documents[[1]][1, ]]
+lyricPrep$documents[[1]]
 ```
 
 
-And 9:
+```{r}
+lyricPrep$vocab[lyricPrep$documents[[1]][1, ]]
+```
+
+And 3:
 
 ```{r}
-executionsPrep$documents[[9]]
+lyricPrep$documents[[3]]
 ```
 
 ```{r}
-executionsPrep$vocab[executionsPrep$documents[[9]][1, ]]
+lyricPrep$vocab[lyricPrep$documents[[3]][1, ]]
 ```
 
 

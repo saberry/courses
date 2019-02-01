@@ -6,271 +6,23 @@ output:
     toc_depth: 2
 ---
 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
 ## Words As Data
 
 Words are everywhere. Believe it or not, you are reading words right now! Given our penchant for taking things and making numbers out of them, you are probably already guessing that we can somehow make words tell a story with numbers. If that is what you are guessing, then you are absolutely correct.
 
-## Processing Text
-
-Before we can even begin to dive into analyzing text, we must first process the text. Processing text involves several steps that will be combined in various ways, depending on what we are trying to accomplish.
-
-### Stemming
-
-Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. We have a string with 6, 4, and 7 characters, respectively.
-
-What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "jump"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
-
-Let's take a look to see how this works (you will need to install `tm` and `SnowballC` first):
+We will start by pulling in our reviews again:
 
 ```{r}
-jumpingStrings = c("jump", "jumping", "jumped", "jumper")
+library(dplyr)
 
-tm::stemDocument(jumpingStrings)
-```
+library(rvest)
 
-
-We got exactly what we expected, right? You might have noticed that "jumper" did not get stemmed. Do you have any idea why? Let's think through it together. "Jump", "jumping", and "jumped" are all verbs related to the act of jumping. "Jumper", on the other hand, is a person who jumps -- it is a noun. Martin Porter's stemming algorithm works incredibly well!
-
-Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document -- this is know as a document-term matrix. If we know that "jump", "jumping", and "jumped" all refer to the same thing, we want it just represented once within our document-term matrix.
-
-Shall we take a look?
-
-```{r}
-library(tm)
-
-documents = c("I like to jump.", 
-              "I have jumped my whole life.", 
-              "Jumping is in my blood.", 
-              "I am a jumper.")
-
-documentsCorp = tm::SimpleCorpus(VectorSource(documents))
-
-documentsDTM = DocumentTermMatrix(documentsCorp)
-
-inspect(documentsDTM)
-```
-
-We can see that without stemming, we have 9 terms (things like "I", "a", and "to" get removed automatically). Let's do some stemming now:
-
-```{r}
-documentsStemmed = stemDocument(documents)
-
-documentsStemmed
-```
-
-And now the document-term matrix:
-
-```{r}
-stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
-
-stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
-
-inspect(stemmedDocDTM)
-```
-
-If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.
-
-### Stop Words
-
-Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own -- a great many dictionaries exist that contain words ready for removal.
-
-```{r}
-tm::stopwords("en")
-```
-
-
-Removing stopwords takes little effort!
-
-```{r}
-documents = c("I like to jump.", 
-              "I have jumped my whole life.", 
-              "Jumping is in my blood.", 
-              "I am a jumper.")
-
-tm::removeWords(documents, words = stopwords("en"))
-
-```
-
-We can even include custom stopwords:
-
-```{r}
-tm::removeWords(documents, words = c("blood", stopwords("en")))
-```
-
-There are many different stopword lists out there, so you might want to poke around just a little bit to find something that will suit the needs of a particular project. 
-
-```{r}
-library(stopwords)
-```
-
-
-## Text Processing Tools
-
-There are several R packages that will help us process text. The tm package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
-
-```{r, eval = FALSE}
-
-documents = c("I like to jump.", 
-              "I have jumped my whole life.", 
-              "Jumping is in my blood.", 
-              "I am a jumper.")
-
-documentCorp = SimpleCorpus(VectorSource(documents))
-
-stopWordRemoval = function(x) {
-  removeWords(x, stopwords("en"))
-}
-
-textPrepFunctions = list(tolower,
-                         removePunctuation,
-                         lemmatize_strings,
-                         stopWordRemoval,
-                         removeNumbers,
-                         stripWhitespace)
-
-documentCorp = tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
-
-documentCorp[1][[1]]$content
-```
-
-
-Once you get your text tidied up (or even before), you can produce some visualizations!
-
-```{r}
-library(tidytext)
-
-library(wordcloud2)
-
-allLyricsDF %>%
-  filter(warningIndicator == 0) %>% 
-  dplyr::select(lyrics, returnedArtistName) %>%
-  mutate(lyrics = as.character(lyrics), 
-         lyrics = str_replace_all(lyrics, "\n", " "),   
-         lyrics = str_replace_all(lyrics, "\\[[A-Za-z]+\\s*[0-9]*]", ""), 
-         lyrics = str_squish(lyrics), 
-         lyrics = gsub("([a-z])([A-Z])", "\\1 \\2", lyrics)) %>%
-  unnest_tokens(word, lyrics) %>% 
-  anti_join(stop_words) %>% 
-  count(word, sort = TRUE) %>% 
-  filter(n > 25) %>% 
-  na.omit() %>% 
-  wordcloud2(shape = "cardioid")
-```
-
-
-## Sentiment Analysis
-
-Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written or said. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written/said something (product reviews, song lyrics, final statements).
-
-Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
-
-Let's take a peak at some simple sentiment analysis.
-
-### Simple Sentiment
-
-Let's consider the following statements:
-
-
-```{r}
-library(tidytext)
-
-statement = "I dislike programming, but I really love R."
-
-tokens = data_frame(text = statement) %>% 
-  unnest_tokens(tbl = ., output = word, input = text)
-
-tokens
-```
-
-From there, we get every individual *token*. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, *n*-grams). While we won't dive into them too deeply, *n*-grams are also interesting. Just like our typical notion of *n*, an *n*-gram is an *n* length group of words. We can set *n* to be anything, but we would typically look at 2-gram and 3-grams chunks.
-
-```{r}
-tokenizers::tokenize_ngrams(statement, n = 2)
-```
-
-These are helpful for looking at frequently occurring combinations of words.
-
-Now back to the matter at hand.
-
-Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.
-
-```{r}
-library(tidyr)
-
-tokens %>%
-  inner_join(get_sentiments("bing")) %>% 
-  count(sentiment) %>% 
-  spread(sentiment, n, fill = 0) %>% 
-  mutate(sentiment = positive - negative)
-```
-
-When we use Bing's dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment (a sentiment of 0 would indicate neutrality, while anything above 0 has an increasing amount of positivity and anything below 0 has an increasing amount of negativity).
-
-Do you think that disklike and love are of the same magnitude? If I had to make a wild guess, I might say that love is stronger than dislike. Let's switch out our sentiment library to get something with a little better notion of polarity magnitute.
-
-```{r}
-tokens %>%
-  inner_join(get_sentiments("afinn"))
-```
-
-Now this looks a bit more interesting! "Love" has a stronger positive polarity than "dislike" has negative polarity. So, we could guess that we would have some positive sentiment.
-
-If we divide the sum of our word sentiments by the number of words within the dictionary, we should get an idea of our sentences overall sentiment.
-
-```{r}
-tokens %>%
-  inner_join(get_sentiments("afinn")) %>% 
-  summarize(n = nrow(.), sentSum = sum(score)) %>% 
-  mutate(sentiment = sentSum / n)
-```
-
-Our sentiment of .5 tells us that our sentence is positive, even if only slightly so.
-
-While these simple sentiment analyses provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.
-
-For example, it is probably fair to say that "really love" is stronger than just "love". We might want to switch over to some techniques that consider *n*-grams and other text features to calculate sentiment.
-
-### Smarter Sentiment Analysis
-
-When we use sentiment analysis that is aware of context, valence ("love" is stronger than "like"), modifiers (e.g., "really love"), and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
-
-We will use the *jockers* sentiment library, but many more available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.
-
-Before we engage in our whole sentiment analysis, let's take a look at a few things.
-
-Here is the dictionary that *jockers* will use.
-
-```{r}
-lexicon::hash_sentiment_jockers
-```
-
-You might want to use `View()` to get a complete look at what is happening in there.
-
-We should also take a peak at our valence shifters:
-
-```{r}
-lexicon::hash_valence_shifters
-```
-
-With all of that out of the way, let's get down to the matter at hand:
-
-```{r}
-library(sentimentr); library(lexicon); library(magrittr)
-
-statement = "I dislike programming, but I really love R."
-
-sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)
-```
-
-We can see that we get a much stronger sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1.6), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really") sentiment of "love" (with a weight of 3.2 in our dictionary).
-
-With all of this together, we get a much better idea about the sentiment of our text.
-
-### Revisiting Reviews
-
-While the text that we have used so far serves its purpose as an example quite well, we can always take a look at other written words (maybe those reviews that we pulled last time will be interesting here).
-
-```{r}
 evilCzech = "https://www.yelp.com/biz/evil-czech-brewery-and-public-house-mishawaka"
 
 evilCzechHTML = read_html(evilCzech)
@@ -366,19 +118,284 @@ allReviews = dplyr::bind_rows(cdData, ceData, ctData, evilCzechData, fhData) %>%
                 wordCount = stringr::str_count(reviews, pattern = "\\S+"))
 ```
 
+We will also be needing more than a few packages, so you can install them with the following:
+
+```{r, eval = FALSE}
+install.packages(c("SnowballC", "tm", "tidytext", "wordcloud2", "tokenizers", "DT"))
+```
+
+
+## Processing Text
+
+Before we can even begin to dive into analyzing text, we must first process the text. Processing text involves several steps that will be combined in various ways, depending on what we are trying to accomplish.
+
+### Stemming
+
+Tense aside, are jumped, jump, and jumping the same thing? Yes, but what if we compare the actual strings? On a string comparison side, are they the same? No. We have a string with 6, 4, and 7 characters, respectively.
+
+What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "jump"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
+
+Let's take a look to see how this works (you will need to install `tm` and `SnowballC` first):
+
+```{r}
+library(tm)
+
+library(SnowballC)
+
+jumpingStrings = c("jump", "jumping", "jumped", "jumper")
+
+tm::stemDocument(jumpingStrings)
+```
+
+
+We got exactly what we expected, right? You might have noticed that "jumper" did not get stemmed. Do you have any idea why? Let's think through it together. "Jump", "jumping", and "jumped" are all verbs related to the act of jumping. "Jumper", on the other hand, is a person who jumps -- it is a noun. Martin Porter's stemming algorithm works incredibly well!
+
+Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document -- this is know as a document-term matrix. If we know that "jump", "jumping", and "jumped" all refer to the same thing, we want it just represented once within our document-term matrix.
+
+Shall we take a look?
+
+```{r}
+library(tm)
+
+documents = c("I like to jump", 
+              "I have jumped my whole life", 
+              "Jumping is in my blood", 
+              "I am a jumper")
+
+documentsCorp = tm::SimpleCorpus(VectorSource(documents))
+
+documentsDTM = DocumentTermMatrix(documentsCorp)
+
+inspect(documentsDTM)
+```
+
+We can see that without stemming, we have 9 terms (things like "I", "a", and "to" get removed automatically). Let's do some stemming now:
+
+```{r}
+documentsStemmed = stemDocument(documents)
+
+documentsStemmed
+```
+
+And now the document-term matrix:
+
+```{r}
+stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
+
+stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
+
+inspect(stemmedDocDTM)
+```
+
+If we are trying to find documents that are covering similar content or talking about similar things, this document-term matrix will help to draw better conclusions, because it is clear that the first three documents are talking about the act of jumping and this document-term matrix reflects that.
+
+### Stop Words
+
+Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own -- a great many dictionaries exist that contain words ready for removal.
+
+```{r}
+tm::stopwords("en")
+```
+
+
+Removing stopwords takes little effort!
+
+```{r}
+documents = c("I like to jump", 
+              "I have jumped my whole life", 
+              "Jumping is in my blood", 
+              "I am a jumper")
+
+tm::removeWords(documents, words = stopwords("en"))
+
+```
+
+We can even include custom stopwords:
+
+```{r}
+tm::removeWords(documents, words = c("blood", stopwords("en")))
+```
+
+There are many different stopword lists out there, so you might want to poke around just a little bit to find something that will suit the needs of a particular project. 
+
+```{r, eval = FALSE}
+library(stopwords)
+```
+
+
+## Text Processing Tools
+
+There are several R packages that will help us process text. The tm package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
+
+```{r, eval = TRUE}
+documents = c("I like to jump", 
+              "I have jumped my whole life", 
+              "Jumping is in my blood", 
+              "I am a jumper")
+
+documentCorp = SimpleCorpus(VectorSource(documents))
+
+stopWordRemoval = function(x) {
+  removeWords(x, stopwords("en"))
+}
+
+textPrepFunctions = list(tolower,
+                         removePunctuation,
+                         stemDocument,
+                         stopWordRemoval,
+                         removeNumbers,
+                         stripWhitespace)
+
+documentCorp = tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
+
+documentCorp[1][[1]]$content
+```
+
+
+Once you get your text tidied up (or even before), you can produce some visualizations!
+
+```{r}
+library(tidytext)
+
+library(wordcloud2)
+
+allReviews %>%
+  unnest_tokens(output = word, input = reviews) %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(n > 10) %>% 
+  na.omit() %>% 
+  wordcloud2(shape = "cardioid")
+```
+
+
+## Sentiment Analysis
+
+Sentiment analysis is commonly used when we want to know the general *feelings* of what someone has written or said. Sentiment analysis is commonly seen applied to Twitter and other social media posts, but we can use it anywhere where people have written/said something (product reviews, song lyrics, final statements).
+
+Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
+
+Let's take a peak at some simple sentiment analysis.
+
+### Simple Sentiment
+
+Let's consider the following statements:
+
+
+```{r}
+library(tidytext)
+
+statement = "I dislike programming, but I really love R."
+
+tokens = tibble(text = statement) %>% 
+  unnest_tokens(tbl = ., output = word, input = text)
+
+tokens
+```
+
+From there, we get every individual *token*. This brings us to a quick, but necessary, detour. When we are talking about text, tokens are simply elements that have some general meaning. We typically associate tokens with individual words, but we could go deeper than that (spaces, punctuation, *n*-grams). While we won't dive into them too deeply, *n*-grams are also interesting. Just like our typical notion of *n*, an *n*-gram is an *n* length group of words. We can set *n* to be anything, but we would typically look at 2-gram and 3-grams chunks.
+
+```{r}
+tokenizers::tokenize_ngrams(statement, n = 2)
+```
+
+These are helpful for looking at frequently occurring combinations of words.
+
+Now back to the matter at hand.
+
+Now, we can compare the tokens within our statement to some pre-defined dictionary of positive and negative words.
+
+```{r}
+library(tidyr)
+
+tokens %>%
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+```
+
+When we use Bing's dictionary, we see that we get one positive word (love) and negative word (dislike) with a neutral overall sentiment (a sentiment of 0 would indicate neutrality, while anything above 0 has an increasing amount of positivity and anything below 0 has an increasing amount of negativity).
+
+Do you think that disklike and love are of the same magnitude (or *valence* in the parlance of our topic)? If I had to make a wild guess, I might say that love is stronger than dislike. Let's switch out our sentiment library to get something with a little better notion of valence.
+
+```{r}
+tokens %>%
+  inner_join(get_sentiments("afinn"))
+```
+
+Now this looks a bit more interesting! "Love" has a stronger positive polarity than "dislike" has negative polarity. So, we could guess that we would have some positive sentiment.
+
+If we divide the sum of our word sentiments by the number of words within the dictionary, we should get an idea of our sentences overall sentiment.
+
+```{r}
+tokens %>%
+  inner_join(get_sentiments("afinn")) %>% 
+  summarize(n = nrow(.), sentSum = sum(score)) %>% 
+  mutate(sentiment = sentSum / n)
+```
+
+Our sentiment of .5 tells us that our sentence is positive!
+
+While these simple sentiment analyses provide some decent measures to the sentiment of our text, we are ignoring big chunks of our text by just counting keywords.
+
+For example, it is probably fair to say that "really love" is stronger than just "love". We might want to switch over to some techniques that consider *n*-grams and other text features to calculate sentiment.
+
+### Smarter Sentiment Analysis
+
+When we use sentiment analysis that is aware of context, valence ("love" is stronger than "like"), modifiers (e.g., "really love"), and adversative statements ("but,...", "however,..."), we get a better idea about the real sentiment of the text.
+
+We will use the *jockers* sentiment library, but many more are available. Depending on your exact needs, there are some dictionaries designed for different applications. A prime example, and one that should be near to our hearts, is the Loughran and McDonald dictionary for financial documents (e.g., SEC 10K filings). Tim Loughran and Bill McDonald are superstars in the Finance Department at Notre Dame! There are dictionaries designed to measure certain attitudes and opinions (e.g., disgust, excitedness, sadness) and even dictionaries to measure emoji sentiment.
+
+Before we engage in our whole sentiment analysis, let's take a look at a few things.
+
+Here is the dictionary that *jockers* will use.
+
+```{r}
+lexicon::hash_sentiment_jockers
+```
+
+You might want to use `View()` to get a complete look at what is happening in there.
+
+We should also take a peak at our valence shifters:
+
+```{r}
+lexicon::hash_valence_shifters
+```
+
+With all of that out of the way, let's get down to the matter at hand:
+
+```{r}
+library(sentimentr)
+
+library(lexicon)
+
+library(magrittr)
+
+statement = "I dislike programming, but I really love R."
+
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)
+```
+
+We can see that we get a stronger sentiment score (even if only slightly) when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really" with a weight of 2) sentiment of "love" (with a weight of .75 in our dictionary).
+
+With all of this together, we get a better idea about the sentiment of our text.
+
+### Revisiting Reviews
+
+While the text that we have used so far serves its purpose as an example quite well, we can always take a look at other written words (maybe those reviews that we pulled last time will be interesting here).
+
 From there, we can do just a little bit of data prep and then get our sentiment values:
 
 ```{r}
-load("D:/projects/courses/hash_sentiment_vadar.RData")
-
 allReviews = allReviews %>% 
-  mutate(reviewID = 1:nrow(.))
+  mutate(reviewID = 1:nrow(.)) # Just adding a reviewer id to the data.
 
 reviewSentiment = sentiment(get_sentences(allReviews$reviews), 
-          polarity_dt = hash_sentiment_vadar)
+          polarity_dt = hash_sentiment_jockers)
 ```
 
-The reviewSentiment object sentiment values for every sentence within every review. While useful on their own, it is helpful to join summarize them by review and put them back into the original data.
+The reviewSentiment object contains sentiment values for every sentence within every review. While useful on their own, it is helpful to group by the reviewer, summarize them by review and put them back into the original data.
 
 ```{r}
 reviewSentiment = reviewSentiment %>% 
@@ -412,13 +429,14 @@ sentimentBreaks = c(-.5, 0, .5)
 
 breakColors = c('rgb(178,24,43)', 'rgb(239,138,98)', 'rgb(103,169,207)', 'rgb(33,102,172)')
 
-datatable(allReviews, rownames = FALSE, 
-              options = list(pageLength = 15, escape = FALSE)) %>% 
+datatable(allReviews, rownames = FALSE) %>% 
   formatStyle("reviews", "meanSentiment", backgroundColor = styleInterval(sentimentBreaks, breakColors))
 ```
 
 
-And some visual checks:
+And some visual checks.
+
+First for ratings:
 
 ```{r}
 library(ggplot2)
@@ -426,7 +444,11 @@ library(ggplot2)
 ggplot(allReviews, aes(ratings, meanSentiment, color = restaurant)) +
   geom_point() +
   theme_minimal()
+```
 
+And for word count:
+
+```{r}
 ggplot(allReviews, aes(wordCount, meanSentiment, color = restaurant)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE) +

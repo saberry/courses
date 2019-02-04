@@ -1,0 +1,32 @@
+---
+title: "Text Analysis"
+description: |
+  Text Classification
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Artificial Neural Networks
+
+Artificial Neural Networks (ANN) are a major part of the artificial intelligence toolkit and for many good reasons.
+
+The set-up is the same as our typically classification problem: we have predictors (inputs) and an outcome (output). The difference, though, is in what happens between the input and the output. In an ANN, there are any number of hidden layers that help to transform the input to the output. 
+
+![](nnImage.png)
+
+For instance, an input vector will travel to the first hidden layer, in which some calculation will be performed on that input. As this transformed vector moves to the next layer, it will be weighted and then transformed at the next layer. This will continue until the completely transformed vector reaches the output layer. These ANNs have another interesting feature in that they learn from their mistakes (and they indeed know that they have made mistakes). Just like every classification task, we need to use a training set and this is where our ANN learns what is correct. When we reach the output, the model will examine the errors -- our ANN does not want errors, so it will take those errors and run them back through the layers to try to re-tune then; this is a process called backpropagation (the backward propagation of errors). 
+
+There are several different types of neural networks.
+
+## Feed-forward Neural Networks
+
+## Recurrent Neural Networks
+
+## Convulutional Neural Networks

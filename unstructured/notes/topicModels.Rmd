@@ -3,16 +3,28 @@ title: "Topic Models"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Package Install
+
 ```{r, eval = FALSE}
-install.packages(c("stm"))
+install.packages(c("lsa", "NMF", "stm"))
 ```
 
 
-We already know that text is everywhere and our sentiment analysis was a reasonable crack at extracting some meaning from text. A common line of inquiry relates to what is expressed within the text. In traditionally social sciences, this was done through some form of content analysis -- a coding scheme was developed by researchers, people read each comment and assigned it a code, some agreement statistics were computed, and any discrepencies were hashed out by the researchers. When this was the only option, it was servicable. Could you do this for thousands of tweets? With time, maybe. Could you do this with a few million articles? No. This is where topic models come to save the day. Our topic models are going to give us a pretty good idea about what texts are similar to other texts.
+# Topic Models
+
+We already know that text is everywhere and our sentiment analysis was a reasonable crack at extracting some meaning from text. A common line of inquiry relates to what is expressed within the text. In traditionally social sciences, this was done through some form of content analysis -- a coding scheme was developed by researchers, people read each comment and assigned it a code, some agreement statistics were computed, and any discrepencies were hashed out by the researchers. When this was the only option, it was servicable. 
+
+The amount information available to us now does not work for those traditional methods. Could you do this for thousands of tweets? With time, maybe. Could you do this with a few million articles? No. This is where topic models come to save the day. Our topic models are going to give us a pretty good idea about what texts are similar to other texts.
+
+For the sake of exploration, it is great to know what topics are *latent* within a body of texts. It also has broader uses. When you search for something, topic models will return a set of documents that are likely to be related to that search. 
 
 ## Latent Semantic Analysis
 
-LSA is a building-block technique in the topic modeling field. It starts by building a term-document matrix (TDM). LSA, though, takes this TDM and replaces the raw counts with the tf-idf score. To this point, we are not doing anything that we already have not seen. 
+LSA is a building-block technique in the topic modeling field. It starts by building a *term-document matrix* (TDM). LSA, though, takes this TDM and replaces the raw counts with the tf-idf score. To this point, we are not doing anything that we already have not seen. 
 
 For our dive into LSA, we are going to rely on the `tm` package for our data prep. We will use it for its flexibility in data types -- it can handle a corpus of .txt files in a directory, a single vector, or a data frame. 
 
@@ -29,7 +41,9 @@ library(tm)
 
 library(textstem)
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+# load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+
+load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
 
 hardRemove = c(78, 91, 136, 213, 222, 232, 239, 245, 248, 268, 277, 285, 291, 
                309, 419, 424, 425, 460, 467, 482, 490, 519, 532, 545, 555, 654, 
@@ -49,7 +63,7 @@ cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
   dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
   mutate(text = as.character(lyrics), 
          text = str_replace_all(text, "\n", " "),   
-         text = str_replace_all(text, "(\\[.*?\\])", ""), # look different?
+         text = str_replace_all(text, "(\\[.*?\\])", ""),
          text = str_squish(text), 
          text = gsub("([a-z])([A-Z])", "\\1 \\2", text), 
          text = tolower(text), 
@@ -85,13 +99,13 @@ To illustrate tm's flexibility, we could have done all of our cleaning in the co
 
 The `lyricsTDM` object that we created can be easily explored like we would any other R object, so feel free to poke around in there.
 
-If we just look at the information, though, we can see that we are dealing in very sparse space (99% sparse). This means that most words are not in most documents. To solve the problem of sparsity, we need to perform some dimension reduction on our matrix. Our dimension reduction, in this case, can work well because we are really trying to find words that belong to the same topic; for example, "car" and "truck" would reduce down to the same topic space.
+If we just look at the information, though, we can see that we are dealing in very sparse space (99% sparse). This means that most words are not in most documents -- sparsity is incredibly common in data. To solve the problem of sparsity, we need to perform some dimension reduction on our matrix (you will often here this referred to as *rank reduction*). Our dimension reduction, in this case, can work well because we are really trying to find words that belong to the same topic; for example, "car" and "truck" would reduce down to the same topic space.
 
-How does this dimension reduction happen? It happens with singular value decomposition (SVD). SVD is but one of many forms of matrix factorization (we will see another soon)  that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
+How does this dimension reduction happen in LSA? It happens with singular value decomposition (SVD). SVD is but one of many forms of matrix factorization (we will see another soon) that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
 
 
 <aside>
-Diving into SVD isn't beyond us, we just need to keep moving along. It is definitely worth looking at a little more.
+Diving into SVD isn't beyond us, we just need to keep moving along. It is definitely worth looking at a little more if you ever need to perform rank reduction on a matrix.
 </aside>
 
 Any package that will do LSA will perform the SVD step for you, so you won't need to do it manually -- just know that it is being done!
@@ -101,6 +115,8 @@ Knowing the appropriate number of topics is impossible *a priori*, so we need to
 **Warning!** This will take some time to run! Matrix multipliation on large matrices is always going to be computationally intensive!
 
 ```{r}
+library(lsa)
+
 lyricsRawMatrix = as.matrix(lyricsTDM)
 
 s = svd(lyricsRawMatrix)$d # D is the diagonal matrix for our weights.
@@ -112,7 +128,6 @@ topicCount = dimcalc_share()(s)
 That feels like a lot of topics, but let's go with it. Again, this will take some time to run!
 
 ```{r}
-library(lsa)
 
 lyricsLSA = lsa(lyricsTDM, topicCount)
 
@@ -136,7 +151,7 @@ NNMF works as follows:
 
 - We propose that we can multiple two component matrices to reproduce our original matrix. All of these matrices contain only 0 or positive values.
 
-- We will start with our original term-document matrix (*O*). We know that is 9118 rows (words) by 2402 columns (songs). 
+- We will start with our original term-document matrix (*O* -- typically denoted as *V*). We know that is 9118 rows (words) by 2402 columns (songs). 
 
 - We can then choose a number of topics (*k* = 15). This will give us a features matrix (*F* -- typically denoted as *W*) that is 9118 rows by 15 columns. It will also give us a coefficient matrix (*C* -- typically denoted as *H*) that is 15 rows by 2402 columns.
 
@@ -146,7 +161,7 @@ NNMF works as follows:
 
 Since our data is already prepped, we can just pass our TDM right into the `nmf` function...in theory.
 
-In reality, though, we need to add a small constant to our matrix. Why? The *k*-means that is being implemented on the backend of `nmf` will have some issues with all of those 0's; in other words, it will handle a smaller sparse matrix, not a bigger sparse matrix. It is not big deal
+In reality, though, we need to add a small constant to our matrix. Why? The *k*-means that is being implemented on the backend of `nmf` will have some issues with all of those 0's; in other words, it will handle a smaller sparse matrix, not a bigger sparse matrix. It is not big deal to add this small constant.
 
 ```{r}
 library(tibble)
@@ -161,7 +176,7 @@ lyricsTibble = lyricsTibble %>%
 rownames(lyricsTibble) = rownames(lyricConvert)
 ```
 
-**Warning!** This takes a really long time to run! The clustering that is happening within the matrices is a pain -- if you have ever messed around with cluster selection, this will be familiar. Run it with smaller numbers of *k* to have it finish in decent time; the saved model object is in the data folder. 
+**Warning!** This takes a really long time to run! The clustering that is happening within the matrices is a pain -- if you have ever messed around with cluster selection, this run time will be familiar. Run it with smaller numbers of *k* to have it finish in decent time; the saved model object is in the data folder. 
 
 ```{r, eval = FALSE}
 library(NMF)
@@ -194,7 +209,7 @@ head(wMatrix[order(-wMatrix$V5), ], 25)
 
 ```
 
-We can find all of the words that fit within a topic (the *features*) based upon a threshold.
+We can find all of the words that fit within a topic (the *features*) based upon a pre-defined threshold.
 
 ```{r}
 lyricFeatures = extractFeatures(lyricsNNMF)
@@ -204,9 +219,9 @@ rownames(wMatrix[lyricFeatures[[1]], ])
 
 ## Latent Dirichlet Allocation
 
-Non-negative matrix factorization is a useful tool that we will see again (it is great for working with images). For topic models, though, it has been surplanted by latent dirichlet allocation (LDA)
+LSA is the godfather of topic models and non-negative matrix factorization is a useful tool that we will see again (it is great for working with images and has great extensions to factor analysis). For topic models, though, the current state of the art is some variation of latent dirichlet allocation (LDA).
 
-Let's start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling. ics via LDA.
+Let's start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling.
 
 Suffice it to say, one can approach this in (at least) one of two ways. In one sense, LDA is a dimension reduction technique, much like the family of techniques that includes PCA, factor analysis, non-negative matrix factorization, etc. We will take a whole lot of terms, loosely defined, and boil them down to a few topics. In this sense, LDA is akin to discrete PCA. Another way to think about this is more from the perspective of factor analysis, where we are keenly interested in interpretation of the result, and want to know both what terms are associated with which topics, and what documents are more likely to present which topics. The following is the plate diagram and description for standard LDA from Blei, Jordan, and Ng (2003).
 
@@ -332,13 +347,18 @@ If you print out the wordlist_1 object, you will see the words asssociated with 
 
 Now with some theory under our belt, we can take a look at analyzing real data.
 
-Just like our sentiment analysis, there is a fair chunk of cleaning to do:
+Just like our sentiment analysis, there is a fair chunk of cleaning to do. The `textProcessor` function would do a lot of work for us, but we don't really need it to do as much since we already created a pretty clean object. We are, however, going to randomly remove some observations from our data (if the reasons are not obvious now, they will be soon). 
+
 
 ```{r}
 library(stm)
 
-lyricText = textProcessor(documents = cleanLyrics$text, 
-                          metadata = cleanLyrics, 
+set.seed(1001)
+
+holdoutRows = sample(1:nrow(cleanLyrics), 100, replace = FALSE)
+
+lyricText = textProcessor(documents = cleanLyrics$text[-c(holdoutRows)], 
+                          metadata = cleanLyrics[-c(holdoutRows), ], 
                           stem = FALSE)
 
 lyricPrep = prepDocuments(documents = lyricText$documents, 
@@ -361,6 +381,7 @@ The 4 plots that are returned are going to try to help us determine the best num
 It is worthwhile to note that we can also do model selection with the stm package, but that is some work that will be best done if you want some additional playtime.
 
 With our 5 topics, we can start our actual model:
+
 ```{r}
 set.seed(1001)
 
@@ -428,53 +449,61 @@ lyricPrep$documents[[3]]
 lyricPrep$vocab[lyricPrep$documents[[3]][1, ]]
 ```
 
-
-Topic models can be extended to include covariates. If we add a variable to the prevalence argument, we are examining how much each topic contributes to a document given some other data.
-
-```{r}
-set.seed(1001)
-
-topicPredictor = stm(documents = executionsPrep$documents, 
-             vocab = executionsPrep$vocab, prevalence = ~ totalVictims,
-             data = executionsPrep$meta, K = 5, verbose = FALSE)
-
-labelTopics(topicPredictor)
-```
-
-With our new model, we can actually test the effect of totalVictims on topic.
+While the previous methods would certainly allow us to classify new document, they do work best for informational retrieval. There are times that we don't want to train a new model (and go through the step of determining a topic number), but instread just want to apply our trained model on new data. Topic models, on the other hand, are great for predicting topic probabilities for unseen document.
 
 ```{r}
-victimEffect = estimateEffect(1:5 ~ totalVictims, stmobj = topicPredictor, 
-               metadata = executionsPrep$meta)
+newLyricText = textProcessor(documents = cleanLyrics$text[holdoutRows], 
+                          metadata = cleanLyrics[holdoutRows, ], 
+                          stem = FALSE)
 
-summary(victimEffect, topics = c(1:5))
+newLyricCorp = alignCorpus(new = newLyricText, old.vocab = topics5$vocab)
 
-plot.estimateEffect(victimEffect, "totalVictims", method = "continuous", 
-                    model = topicPredictor, topics = 1, labeltype = "frex")
-
-plot.estimateEffect(victimEffect, "totalVictims", method = "continuous", 
-                    model = topicPredictor, topics = 2, labeltype = "frex")
-
-plot.estimateEffect(victimEffect, "totalVictims", method = "continuous", 
-                    model = topicPredictor, topics = 3, labeltype = "frex")
+newLyricsFitted = fitNewDocuments(model = topics5, documents = newLyricCorp$documents, 
+                newData = newLyricCorp$meta, origData = lyricPrep$meta)
 ```
 
 
-We can add additional information to our models: content. What we get here is a better understand about how people use language within a topic differently.
+Topic models can be extended to include covariates, where we are examining how much each topic contributes to a document given some other data.
 
-```{r}
-set.seed(1001)
+We can also add additional information to our models: content. What we get here is a better understanding about how people use language within a topic differently.
 
-topicContent = stm(documents = executionsPrep$documents, 
-             vocab = executionsPrep$vocab, content = ~ codefsYes,
-             data = executionsPrep$meta, K = 5, verbose = FALSE)
+<!-- ```{r} -->
+<!-- set.seed(1001) -->
 
-labelTopics(topicContent)
-```
+<!-- topicPredictor = stm(documents = executionsPrep$documents,  -->
+<!--              vocab = executionsPrep$vocab, prevalence = ~ totalVictims, -->
+<!--              data = executionsPrep$meta, K = 5, verbose = FALSE) -->
 
-With this new model, we can see how people without and with codefendents use language within a topic:
+<!-- labelTopics(topicPredictor) -->
+<!-- ``` -->
 
-```{r}
-plot(topicContent, type = "perspectives", topics = 1)
-```
+<!-- ```{r} -->
+<!-- victimEffect = estimateEffect(1:5 ~ totalVictims, stmobj = topicPredictor,  -->
+<!--                metadata = executionsPrep$meta) -->
+
+<!-- summary(victimEffect, topics = c(1:5)) -->
+
+<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
+<!--                     model = topicPredictor, topics = 1, labeltype = "frex") -->
+
+<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
+<!--                     model = topicPredictor, topics = 2, labeltype = "frex") -->
+
+<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
+<!--                     model = topicPredictor, topics = 3, labeltype = "frex") -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- set.seed(1001) -->
+
+<!-- topicContent = stm(documents = executionsPrep$documents,  -->
+<!--              vocab = executionsPrep$vocab, content = ~ codefsYes, -->
+<!--              data = executionsPrep$meta, K = 5, verbose = FALSE) -->
+
+<!-- labelTopics(topicContent) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- plot(topicContent, type = "perspectives", topics = 1) -->
+<!-- ``` -->
 

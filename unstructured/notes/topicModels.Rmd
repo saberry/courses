@@ -41,22 +41,32 @@ library(tm)
 
 library(textstem)
 
-# load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
 
-load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
+# load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
 
-hardRemove = c(78, 91, 136, 213, 222, 232, 239, 245, 248, 268, 277, 285, 291, 
-               309, 419, 424, 425, 460, 467, 482, 490, 519, 532, 545, 555, 654, 
-               658, 682, 705, 719, 722, 780, 794, 795, 802, 836, 851, 878, 891, 
-               921, 924, 972, 985, 995, 1026, 1041, 1101, 1102, 1111, 1144, 1145, 
-               1158, 1166, 1172, 1186, 1202, 1204, 1209, 1215, 1257, 1287, 1311, 
-               1316, 1326, 1342, 1361, 1493, 1534, 1584, 1609, 1629, 1649, 1667, 
-               1676, 1679, 1707, 1710, 1720, 1755, 1760, 1798, 1805, 1855, 1861, 
-               1918, 1929, 1994, 2000, 2011, 2017, 2018, 2027, 2039, 2055, 2164, 
-               2200, 2254, 2285, 2303, 2334, 2373, 2397, 2401, 2406, 2434, 2469, 
-               2475, 2499, 2507, 2527, 2534, 2540, 2566, 2570, 2655, 2724, 2729, 
-               2736, 2764, 2767, 2771, 2803, 2843, 2877, 2905, 2913, 2944, 2951, 
-               2972, 2995, 3043, 3092)
+hardRemove = c(34, 78, 91, 94, 107, 136, 150, 202, 210, 213, 222, 229, 232, 
+               239, 245, 248, 268, 276, 277, 284, 285, 291, 309, 310, 356, 
+               403, 419, 424, 425, 460, 467, 482, 490, 497, 519, 532, 545, 
+               555, 585, 586, 616, 639, 642, 648, 653, 654, 658, 682, 704, 
+               705, 719, 722, 760, 780, 794, 795, 802, 832, 836, 851, 867, 
+               872, 878, 891, 921, 924, 931, 944, 972, 985, 995, 1026, 1029, 
+               1032, 1041, 1042, 1063, 1101, 1102, 1111, 1115, 1121, 1124,
+               1126, 1128, 1144, 1145, 1158, 1166, 1172, 1175, 1186, 1202, 
+               1204, 1209, 1211, 1215, 1218, 1225, 1240, 1251, 1256, 1257, 
+               1272, 1287, 1311, 1316, 1326, 1327, 1342, 1361, 1421, 1462, 
+               1493, 1534, 1584, 1609, 1627, 1629, 1635, 1638, 1649, 1667, 
+               1676, 1679, 1690, 1696, 1707, 1710, 1717, 1720, 1755, 1758, 
+               1760, 1780, 1786, 1788, 1798, 1805, 1847, 1855, 1858, 1861, 
+               1866, 1882, 1895, 1918, 1929, 1946, 1952, 1994, 2000, 2011, 
+               2017, 2018, 2019, 2027, 2032, 2039, 2055, 2069, 2143, 2164, 
+               2193, 2200, 2201, 2204, 2246, 2254, 2285, 2303, 2318, 2334,
+               2347, 2373, 2383, 2395, 2397, 2401, 2402, 2406, 2434, 2443,
+               2459, 2469, 2472, 2475, 2499, 2507, 2527, 2534, 2540, 2563,
+               2564, 2566, 2570, 2572, 2597, 2604, 2632, 2638, 2655, 2661,
+               2666, 2685, 2696, 2719, 2721, 2724, 2729, 2736, 2740, 2754,
+               2764, 2767, 2768, 2771, 2803, 2843, 2877, 2903, 2905, 2913, 
+               2944, 2951, 2969, 2972, 2978, 2995, 3016, 3041, 3043, 3048, 3092)
 
 cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
   filter(warningIndicator == 0) %>% 
@@ -128,7 +138,6 @@ topicCount = dimcalc_share()(s)
 That feels like a lot of topics, but let's go with it. Again, this will take some time to run!
 
 ```{r}
-
 lyricsLSA = lsa(lyricsTDM, topicCount)
 
 lyricsSpace = as.textmatrix(lyricsLSA)
@@ -136,12 +145,17 @@ lyricsSpace = as.textmatrix(lyricsLSA)
 lyricDistance = dist(t(lyricsSpace))
 ```
 
-Now we can do some exploration, like which words are associated with they word "baby"?
+Now we can do some exploration, like which words are associated with the word "dance"?
 
 ```{r}
-associate(lyricsSpace, "baby")
+associate(lyricsSpace, "dance")
 ```
 
+We can lower our threshold to get more terms:
+
+```{r}
+associate(lyricsSpace, "dance", threshold = .3)
+```
 
 ## Non-negative Matrix Factorization
 
@@ -151,13 +165,13 @@ NNMF works as follows:
 
 - We propose that we can multiple two component matrices to reproduce our original matrix. All of these matrices contain only 0 or positive values.
 
-- We will start with our original term-document matrix (*O* -- typically denoted as *V*). We know that is 9118 rows (words) by 2402 columns (songs). 
+- We will start with our original term-document matrix (*O* -- typically denoted as *V*). We know that is 8807 rows (words) by 2385 columns (songs). 
 
-- We can then choose a number of topics (*k* = 15). This will give us a features matrix (*F* -- typically denoted as *W*) that is 9118 rows by 15 columns. It will also give us a coefficient matrix (*C* -- typically denoted as *H*) that is 15 rows by 2402 columns.
+- We can then choose a number of topics (*k* = 15). This will give us a features matrix (*F* -- typically denoted as *W*) that is 8807 rows by 15 columns. It will also give us a coefficient matrix (*C* -- typically denoted as *H*) that is 15 rows by 2385 columns.
 
 - Before splitting *O* into component parts, each column is clustered so that *C* represents cluster membership and *F* represents the centroids.
 
-- When taking $FC$, we get a matrix that is 9118 by 2402 (our original dimensions). 
+- When taking $FC$, we get a matrix that is 8807 by 2385 (our original dimensions). 
 
 Since our data is already prepped, we can just pass our TDM right into the `nmf` function...in theory.
 
@@ -183,19 +197,21 @@ library(NMF)
 
 lyricsNNMF = nmf(lyricsTibble, 5, seed = 1001)
 
-save(lyricsNNMF, file = "D:/projects/courses/unstructured/data/nnmfOut.RData")
+# save(lyricsNNMF, file = "D:/projects/courses/unstructured/data/nnmfOut.RData")
+
+save(lyricsNNMF, file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/nnmfOut.RData")
 ```
 
 After waiting, we can finally start to see what words belong to what topics.
 
 ```{r}
-load("D:/projects/courses/unstructured/data/nnmfOut.RData")
+# load("D:/projects/courses/unstructured/data/nnmfOut.RData")
+
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/nnmfOut.RData")
 
 library(NMF)
 
 wMatrix = as.data.frame(basis(lyricsNNMF))
-
-wMatrix
 
 head(wMatrix[order(-wMatrix$V1), ], 25)
 
@@ -206,7 +222,6 @@ head(wMatrix[order(-wMatrix$V3), ], 25)
 head(wMatrix[order(-wMatrix$V4), ], 25)
 
 head(wMatrix[order(-wMatrix$V5), ], 25)
-
 ```
 
 We can find all of the words that fit within a topic (the *features*) based upon a pre-defined threshold.
@@ -383,10 +398,8 @@ It is worthwhile to note that we can also do model selection with the stm packag
 With our 5 topics, we can start our actual model:
 
 ```{r}
-set.seed(1001)
-
 topics5 = stm(documents = lyricPrep$documents, 
-             vocab = lyricPrep$vocab, 
+             vocab = lyricPrep$vocab, seed = 1001,
              K = 5, verbose = FALSE)
 ```
 

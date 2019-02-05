@@ -1,0 +1,119 @@
+---
+title: "Marketing Experiments"
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    highlight: zenburn
+    center: true
+    transition: fade
+    slide_level: 2
+---
+
+## {data-background="https://66.media.tumblr.com/ab162fb6a5df19e1db642cc0aea64c8e/tumblr_n19mihbKl51rqgjjao1_500.gif" data-background-size="contain"}
+
+## Why Experiments?
+
+Beyond being a building block of Science, experiments are important across many business contexts.
+
+A sizable portion of the stuff you interact with (websites, fliers) has been tested through some level of experimentation.
+
+When we need to optimize our marketing expenditures, experiments will provide a *testable* method for making decisions.
+
+## Important Considerations
+
+Experiments are tools and should be implemented with some thought:
+
+1.  Would a customer want this?
+
+2.  Can it actually be done?
+
+3.  Would we make money?
+
+## Necessary Components
+
+Experiments are used to test *hypotheses*.
+
+They need to be:
+
+- Testable
+
+- Falsifiable
+
+A research question is not a hypothesis.
+
+## {data-background="http://imgs.xkcd.com/comics/p_values.png" data-background-size="500px"}
+
+## *p*-values are dead!
+
+Not really, but you should understand what you need.
+
+How often are you willing to miss a real effect?
+
+How often are you willing to be fooled by random chance?
+
+## {data-background="https://i2.wp.com/flowingdata.com/wp-content/uploads/2014/05/Type-I-and-II-errors1.jpg?resize=620%2C465&ssl=1" data-background-size="500px"}
+
+## Necessary Components
+
+You will need at least two groups of people: 
+
+1.  Treatment
+
+2.  Control
+
+## 
+
+Do not skip out on a control condition!
+
+There is no way to test for an effect if you do not have a control group!
+
+## Necessary Components
+
+Theory-shaping research takes a long time...
+
+But the *customer-centric* world dictates raw speed.
+
+So experiments should be *small* and *fast* for deployment and completion.
+
+## {data-background="https://farm8.static.flickr.com/7123/13763731323_42cf430679_b.jpg"}
+
+## Customer-centric
+
+Satisfaction, while important, is starting to give way towards <a href="https://hbr.org/2016/08/an-emotional-connection-matters-more-than-customer-satisfaction">emotional connection</a>.
+
+Experiments are the only way to establishing, maintaining, and tweaking that emotional connection.
+
+An emotionally-connected customer is a valuable customer.
+
+##
+
+> On a lifetime value basis, emotionally connected customers are more than twice as valuable as highly satisfied customers. These emotionally connected customers buy more of your products and services, visit you more often, exhibit less price sensitivity, pay more attention to your communications, follow your advice, and recommend you more – everything you hope their experience with you will cause them to do. Companies deploying emotional-connection-based strategies and metrics to design, prioritize, and measure the customer experience find that increasing customers’ emotional connection drives significant improvements in financial outcomes.
+
+## Variable Decisions
+
+In marketing-flavored experiments, we are frequently dealing with 2 types of variables:
+
+- Leading
+
+- Lagging
+
+While these have certain meanings amongst time series folks, they capture a slightly different idea when dealing in marketing experiments.
+
+## Lagging Variables
+
+Whatever happened in the past is a lagging variable. 
+
+- What was your market share?
+
+- What is the click rate on a promotional element?
+
+## Leading Variables
+
+While explaining models is important, many are equally well suited for prediction.
+
+Leading variables will allow us to explain the lagging variables
+
+## Related Work
+
+While not experiments in a strict sense, *conjoint analyses* are useful for determing customer preferences.
+

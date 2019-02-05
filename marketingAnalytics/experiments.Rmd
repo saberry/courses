@@ -19,15 +19,19 @@ A sizable portion of the stuff you interact with (websites, fliers) has been tes
 
 When we need to optimize our marketing expenditures, experiments will provide a *testable* method for making decisions.
 
+## 
+
+As <a href = "https://adparlor.com/wp-content/uploads/2015/09/AdParlor-CaseStudy-Facebook-2015-Molson-Coors.pdf">marketing channels</a> increase, experiments are becoming increasingly important.
+
 ## Important Considerations
 
 Experiments are tools and should be implemented with some thought:
 
-1.  Would a customer want this?
+1.  Would a customer want this (desireability)?
 
-2.  Can it actually be done?
+2.  Can it actually be done (feasibility)?
 
-3.  Would we make money?
+3.  Would we make money (profitability)?
 
 ## Necessary Components
 
@@ -47,21 +51,27 @@ A research question is not a hypothesis.
 
 Not really, but you should understand what you need.
 
-How often are you willing to miss a real effect?
+How often are you willing to miss a real effect ($\beta$)?
 
-How often are you willing to be fooled by random chance?
+How often are you willing to be fooled by random chance ($\alpha$)?
+
+These two lead to *statistical power* -- the ability to detect a real effect.
+
+A <a href="https://juliasilge.shinyapps.io/power-app/">handy demonstration</a>
 
 ## {data-background="https://i2.wp.com/flowingdata.com/wp-content/uploads/2014/05/Type-I-and-II-errors1.jpg?resize=620%2C465&ssl=1" data-background-size="500px"}
 
 ## Necessary Components
 
-You will need at least two groups of people: 
+You will need at least two conditions: 
 
-1.  Treatment
+1.  Treatment 
 
 2.  Control
 
 ## 
+
+The control is how you establish a baseline.
 
 Do not skip out on a control condition!
 
@@ -89,6 +99,20 @@ An emotionally-connected customer is a valuable customer.
 
 > On a lifetime value basis, emotionally connected customers are more than twice as valuable as highly satisfied customers. These emotionally connected customers buy more of your products and services, visit you more often, exhibit less price sensitivity, pay more attention to your communications, follow your advice, and recommend you more – everything you hope their experience with you will cause them to do. Companies deploying emotional-connection-based strategies and metrics to design, prioritize, and measure the customer experience find that increasing customers’ emotional connection drives significant improvements in financial outcomes.
 
+## Design -- A Fisherian Perspective
+
+If we go back to conditions, we know that we have at least one treatment and a control group.
+
+- This is the basis for our independent variables (what we have manipulated).
+
+In our most ideal world, people will be randomly assigned to a group. 
+
+## Between Groups
+
+In a large portion of our marketing experiments, we are going to be using a between groups design.
+
+In this design, people are assigned to only one condition and tests are conducted across the various groups.
+
 ## Variable Decisions
 
 In marketing-flavored experiments, we are frequently dealing with 2 types of variables:
@@ -113,7 +137,10 @@ While explaining models is important, many are equally well suited for predictio
 
 Leading variables will allow us to explain the lagging variables
 
-## Related Work
+## Other Research-based Techniques
 
 While not experiments in a strict sense, *conjoint analyses* are useful for determing customer preferences.
 
+## A/B Tests
+
+## Effect Sizes

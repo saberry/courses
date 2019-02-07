@@ -13,17 +13,138 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+# Naive Bayes
+
 # Artificial Neural Networks
 
 Artificial Neural Networks (ANN) are a major part of the artificial intelligence toolkit and for many good reasons.
+
+## Necessary Elements
+
+There are 4 major necessary elements needed for an ANN:
+
+1.  The inputs need to be well understood.
+
+2.  The output is well understood.
+
+3.  Experience is available.
+
+4.  It is a black box.
+
+<aside>
+The "articifical" is usually dropped, but it does help to distinguish it from the a biological perspective.
+</aside>
+
+
+## The Basics 
 
 The set-up is the same as our typically classification problem: we have predictors (inputs) and an outcome (output). The difference, though, is in what happens between the input and the output. In an ANN, there are any number of hidden layers that help to transform the input to the output. 
 
 ![](nnImage.png)
 
-For instance, an input vector will travel to the first hidden layer, in which some calculation will be performed on that input. As this transformed vector moves to the next layer, it will be weighted and then transformed at the next layer. This will continue until the completely transformed vector reaches the output layer. These ANNs have another interesting feature in that they learn from their mistakes (and they indeed know that they have made mistakes). Just like every classification task, we need to use a training set and this is where our ANN learns what is correct. When we reach the output, the model will examine the errors -- our ANN does not want errors, so it will take those errors and run them back through the layers to try to re-tune then; this is a process called backpropagation (the backward propagation of errors). 
+This is what is known as a multilayer perceptron (MLP).
+
+In this MLP, an input vector will travel to the first hidden layer (i.e., the neuron), in which some calculation will be performed on that input -- this is known as the *activation function*. The activation function is split into two parts: a *combination function* and a *transfer function*. The combination function will combine the inputs into a single weighted input and the transfer function will transform the weighted values before outputting the variable into the next node. Each node is also going to receive a *bias* weight -- this is a constant weight applied to the all units in the layer, much in the way of a regression intercept beta. This process will continue until the values reach the output layer.
+
+It is worth paying some attention to the transfer function, as it can take many different forms. Some more common forms include step, linear, logistic, and hyperbolic functions. In any of these function, weighting is going to occur -- with the weighting, we should be sure to standardize our values or the largest values will dominate for many runs of the model. This notion of weighting goes hand in hand with the number of hidden layers. If our hidden layer becomes too wide, we will run the risk of overfitting the model (it will essentially learn the exact patterns found within the training data). In many cases, a single hidden layer with a hyperbolic transfer function can be enough to get reasonable results.
+
+ANNs have another interesting feature in that they learn from their mistakes (and they indeed know that they have made mistakes). When we reach the output from our first iteration, the model will examine the errors. our ANN does not really want errors beyond a certain magnitude, so it will take those errors and run them back through the layers to try to re-tune them; this is a process called backpropagation (the backward propagation of errors). It does this by adjusting the weights applied throughout the nodes. As our errors are backpropogated, the ANN will change a weight and see whether it increases or reduces the error -- it will seek to reduce the error, but not to eliminate the error (this would lead to overfitting!).
+
+This is a point, along with the previous point about the number of layers, is one that bears repeating. We want our ANN to be flexible to predicting new data; we do not want our ANN to learn everything about the training data. If your model underperforms on the test set, then you likely have overfit the ANN with too many hidden layers. 
 
 There are several different types of neural networks.
+
+## Basics: In Action
+
+The most basic of all neural nets can be done with `nnet`. 
+
+```{r, eval = FALSE}
+library(tidytext)
+
+library(tidyr)
+
+library(tm)
+
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/zappaOrCountry.RData")
+
+zappaOrCountry = zappaOrCountry %>% 
+  group_by(genre) %>% 
+  mutate(genreSequence = 1:n())
+
+textFeatures = zappaOrCountry %>% 
+  mutate(text = tolower(text),
+         text = removeWords(text, stopwords("en")), 
+         text = removePunctuation(text)) %>% 
+  group_by(genre, genreSequence) %>% 
+  unnest_tokens(., word, text) %>% 
+  count(word) %>% 
+  ungroup() %>% 
+  top_n(10000) %>% 
+  mutate(word = ifelse(grepl("^[a-z]+", word) != TRUE, NA, word)) %>% 
+  bind_tf_idf(word, genreSequence, n) %>% 
+  select(genre, genreSequence, word, tf_idf) %>% 
+  unique() %>% 
+  tidyr::spread(., key = word, value = tf_idf) %>% 
+  mutate_all(., funs(ifelse(is.na(.), 0, .))) %>% 
+  select(-genreSequence)
+
+save(textFeatures, file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+```
+
+```{r, echo = FALSE}
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+```
+
+With our data loaded in, we need to determine the mix in proportions:
+
+```{r}
+summary(as.factor(textFeatures$genre))
+```
+
+We certainly have some class imbalance, but hopefully the flexibility of the ANN will shine through.
+
+With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 447 / 2363`% of the total data. If we want to train our model on 80% of the data, we can just take 80% from each class for training.
+
+```{r}
+zappaRows = which(textFeatures$genre == "zappa")
+
+countryRows = which(textFeatures$genre == "country")
+
+genre = ifelse(textFeatures$genre == "zappa", 1, 0)
+
+scaledVars = as.data.frame(scale(textFeatures[, 2:length(names(textFeatures))]))
+
+scaledData = cbind(genre, scaledVars)
+
+set.seed(1001)
+
+trainRows = c(sample(zappaRows, floor(length(zappaRows) * .8), replace = FALSE), 
+              sample(countryRows, floor(length(countryRows) * .2), replace = FALSE))
+
+trainingData = scaledData[trainRows, ]
+
+testingData = scaledData[-c(trainRows), ]
+```
+
+Now, we can train our model:
+
+```{r}
+library(nnet)
+
+oneLayerNN = nnet(genre ~ ., data = scaledData, subset = trainRows, size = 2, 
+                  MaxNWts = 13 * (ncol(scaledVars) + 1) + 13 + 1, 
+                  maxit = 500)
+```
+That should have moved pretty quickly.
+
+Now, we need to start looking at how we did on the training data:
+
+```{r}
+temporaryTestData = select(trainingData, -genre)
+
+results = compute(oneLayerNN, temporaryTestData)
+```
+
 
 ## Feed-forward Neural Networks
 

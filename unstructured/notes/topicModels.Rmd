@@ -1,6 +1,11 @@
 ---
-title: "Topic Models"
-output: html_document
+title: "Text Analysis"
+description: |
+  Topic Models
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}

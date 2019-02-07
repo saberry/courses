@@ -10,9 +10,11 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+# Introduction
+
 Surveys are powerful data collection tools.  In addition to being powerful, survey forms are easy and cheap to create.  Unfortunately, the ease in which surveys can be created often lead to many problems.  Perhaps the biggest problem is the misconception that surveys are simply a collection of questions that can be thrown together.  Researchers, especially those who are taking their first swing at survey research, often think they can merely ask a few questions, analyze the data, and publish the results.  This is most often characterized as, "It is just a survey", but this could not be farther from the truth.  Poor questions will lead to meaningless data.  
 
-The following paper will outline some of the issues you need to consider before deciding to use a survey.  This is not intented to exhaust every single issue within the survey methodology world, but to help you think more about properly designing survey questions (with a heavy focus on things you should not do when writing questions).  Again, the focus is on survey questions, not on considerations for specific administration methods (e.g., web, paper) nor analysis techniques.  We will also not discuss writing questions for cross-cultural research (just as a small nugget of information, though, you cannot just ask the same question across different cultures and assume the question has the same meaning).  Although sampling is very important, we will eschew any discussion of it in the scope of this paper.  This is to avoid putting the cart (sampling) before the horse (questions).  You can specify your sample frames, draw a beautifully representative sample, and have all of that work be for nothing if your questions are of poor quality.  
+We are going to start by outlining some of the issues you need to consider before deciding to use a survey.  This is not intented to exhaust every single issue within the survey methodology world, but to help you think more about properly designing survey questions (with a heavy focus on things you should not do when writing questions).  Again, the focus is on survey questions, not on considerations for specific administration methods (e.g., web, paper) nor analysis techniques.  We will also not discuss writing questions for cross-cultural research (just as a small nugget of information, though, you cannot just ask the same question across different cultures and assume the question has the same meaning).  Although sampling is very important, we will eschew any discussion of it in the scope of this discussion.  This is to avoid putting the cart (sampling) before the horse (questions).  You can specify your sample frames, draw a beautifully-representative sample, and have all of that work be for nothing if your questions are of poor quality.  
 
 As a final introductory thought, you need to be thinking about your study as a whole before creating your survey.  It is important to consider the theoretical underpinnings, the constructs within the theory, the hypotheses derived from the constructs, and how you are going to analyze your hypotheses.  The following flowchart provides a clear illustration of what you need to be thinking about before you write your survey:
 
@@ -38,11 +40,15 @@ digraph {
 
 # Item Design
 
-Good survey questions are easy to write, but bad survey questions are even easier to write.  Many survey questions are created without paying the proper respect to the notion of measurement error.  The poorer the question, the more error it introduces to your analyses, and the less meaning your analyses will possess.  Therefore, we should always think about minimizing our measurement error when crafting our questions.  
+Good survey questions are easy to write, but bad survey questions are even easier to write.  Many survey questions are created without paying the proper respect to the notion of measurement error.  The poorer the question, the more error it introduces to your analyses, and the less meaning your analyses will possess.  Therefore, we should always think about minimizing our measurement error when crafting our questions. 
+
+$$ score_{observed} = score_{true} + error $$
 
 Minimizing measurement error is not always an easy task, but there are some simple guidelines you should follow when crafting your questions to help minimize the error derived from your question wording:
 
 - Avoid double-barreled questions (i.e., asking two distinct questions within the same question)
+
+  - Do you disapprove or approve of drinking coffee and tea?
 
 - Avoid biased or leading questions (e.g., "Tell me how much you like a product" should be "Tell me how much you dislike or like a product")
 
@@ -54,9 +60,9 @@ Minimizing measurement error is not always an easy task, but there are some simp
 
 - The response options should logically match the question
 
-These are just a few of the very general, long-standing guidelines, but they will only get you partially there. You should focus on the readability, length, and complexity of your questions. Your questions should be easy to read and not require additional read-throughs. Your questions should clearly present the object/attitude/behavior. Your questions should not, unless you are specifically using a long-question format for memory cue purposes, contain extemporaneous information (e.g., "Some people think one way, while others think another way, what do you think?"). You should also avoid having hypothetical contingencies in your questions (e.g., "How would you feel if event A happened because event X happened?"). You need to be socially- and culturally-aware when you are writing your questions (e.g., do not ask victims of violence probing questions about their experience with violence). 
+These are just a few of the very general, long-standing guidelines, but they will only get you partially there. You should focus on the readability, length, and complexity of your questions. Your questions should be easy to read and not require additional read-throughs. Your questions should clearly present the object/attitude/behavior. Your questions should not, unless you are specifically using a long-question format for memory cue purposes, contain extemporaneous information (e.g., "Some people think one way, while others think another way, what do you think?" -- we will come back to this point). You should also avoid having hypothetical contingencies in your questions (e.g., "How would you feel if event A happened because event X happened?"). You need to be socially- and culturally-aware when you are writing your questions (e.g., do not ask victims of violence probing questions about their experience with violence), but this can be taken to an extreme. 
 
-When you write your questions, you should also be thinking about to what concept(s) your questions relate. As an example, questions on a math test are not designed to assess how well you do on each individual question, but are instead designed to assess your overall math ability. Your survey questions should be designed similarly. It is best to imagine how each question will map onto the latent construct (the underlying concept, e.g., academic success, depression, political ideology) that you are wanting to study. Going back to the origins of measurement theory, questions were not intended to analyzed individually, but as composites that describe the latent trait. It is beyond the scope of this article to dive into factor analysis, but you should design your questions with factor analysis in mind.
+When you write your questions, you should also be thinking about to what concept(s) your questions relate. As an example, questions on a math test are not designed to assess how well you do on each individual question, but are instead designed to assess your overall math ability. Your survey questions should be designed similarly. It is best to imagine how each question will map onto the latent construct (the underlying concept, e.g., academic success, depression, political ideology) that you are wanting to study. Going back to the origins of measurement theory, questions were not intended to analyzed individually, but as composites that describe the latent trait. This will become more evident when we start to discuss factor analysis later.
 
 The previous information primarily concerned the creation of your own questions. For our sake, however, let's imagine that you do not want to create your own questions, but only want to use previously-published questions. This is often done for the sake of comparability. That is great, but we cannot turn a blind eye towards survey questions with an "academic pedigree". Researchers often think that pedigreed items have developed, through their extensive use, an Excalibur-type quality. A careful inspection of many of these questions will uncover some severe defects in Excalibur's metallurgy. Many nationally-recognized surveys contain poor items. These items run the gamut from being double-barrelled to outdated to just-plain-awful. If you choose to use pre-existing questions, please be on the look-out for bad items and do not become beholden to an item simply because "INSERT NAME OF RESPECTED RESEARCHER" used it. These items deserve just as much scrutiny as your own items. When bad items are discovered, do science a favor and refrain from using them.
 
@@ -160,12 +166,17 @@ Although these response options are clearly ordered, linguistic differentiation 
 
 Guttman scales have unidimensional, binary, ranked (from least to most extreme) statements that participants endorse. It is assumed that a participant will endorse all of the statements with a lower rank than the statement he/she actually endorses:
 
-> Please select the statement that best fits you.  
-> - You are willing to permit immigrants to live in your country.  
-> - You are willing to permit immigrants to live in your community.  
-> - You are willing to permit immigrants to live in your neighborhood.  
-> - You are willing to permit immigrants to live next door to you.  
-> - You would permit your child to marry an immigrant.  
+- Please select the statement that best fits you.  
+
+  - You are willing to permit immigrants to live in your country.  
+  
+  - You are willing to permit immigrants to live in your community.  
+  
+  - You are willing to permit immigrants to live in your neighborhood.  
+  
+  - You are willing to permit immigrants to live next door to you.  
+  
+  - You would permit your child to marry an immigrant.  
 
 While Guttman scales are useful for creating short surveys, they work best when dealing with hierarchical arguments.
 
@@ -173,9 +184,11 @@ While Guttman scales are useful for creating short surveys, they work best when 
 
 Ipsative response options are best thought of as forced-choice scales, where respondents are forced to choose between two options.
 
-> Which of the two statements is most like you?  
-> - I am the life of the party  
-> - I regularly balance my checkbook  
+- Which of the two statements is most like you?  
+
+  - I am the life of the party  
+  
+  - I regularly balance my checkbook  
 
 Ipsative measures are best used to compare traits within an individual, not necessarily across individuals.
 
@@ -191,9 +204,9 @@ Phrase completions are unidimensional measures that ask respondents to place the
 
 ### Likert
 
-- Likert items are bi-polar items that allow respondents to select the direction and strength of agreement with a statement or question.
+Likert items are bi-polar items that allow respondents to select the direction and strength of agreement with a statement or question.
 
-- How much do you disagree or agree with a topic?
+- To what extent do you disagree or agree with a Floyd Fowler with regard to survey design?
 
   - Strongly disagree
 
@@ -205,40 +218,68 @@ Phrase completions are unidimensional measures that ask respondents to place the
 
   - Strongly agree
 
-- In Likert items, the distance between each option is equal (equidistant) and are symmetrical.
+In Likert items, the distance between each option is equal (equidistant) and are symmetrical.
 
-- Likert items can be summed or averaged to produce a scale score (a Likert scale).
+Likert items can be summed or averaged to produce a scale score (a Likert scale). When we talk about analyses, this conversation will become more relevant.
 
-- Neutral points and N/As
+There is a good conversation to be had about neutral points and N/As.
 
 <aside>
 The common "strongly disagree" to "strongly agree" response option format is only one specific instance of Likert response option formats. The defining features of Likert response options are that the responses are symetrical, have equal intervals between the response options, and are bipolar (e.g., hate to love, sad to happy).  Therefore, any set of response options that follow these conventions are Likert response option formats.
 </aside>
 
-
 # Survey Design
 
-Individual items serve as the building block for the entire survey. And just as those building blocks need to be carefully constructed, the arrangement of those items need to be carefully constructed 
+Just as bricks are individual pieces of a building, items are individual pieces of a survey. Just as bricks need to be carefully arranged to create a strong structure, our survey items need to be arranged in a way that creates a strong survey.
 
 ## Item Ordering and Wording
 
-We have already talked about some issues related to item wording, but here are some additional thoughts:
+We have already talked about some issues related to item wording, but here are some additional discussion points:
 
 - Generally, demographic questions should go at the end (there are some exceptions).
-
-- Verbal cues take precedence over visual cues.
-
-  - As such, all scale points should be labeled.
 
 - Question instructions should come at the beginning of a question, not at the end.
 
 - "Some people"...
 
+<aside>
+The <a href="https://electionstudies.org/project/anes-2016-pilot-study/">ANES</a> is the biggest instigator of the "some people" problem!
+</aside>
+
+- Verbal cues take precedence over visual cues.
+
+  - As such, all scale points should be labeled.
+
+In nearly every case, your scale points should be words. If you use numbers as response options, here is what happens.
+
+
+```{r, echo = FALSE}
+library(dplyr)
+
+library(ggplot2)
+
+data.frame(responseOption = c(1, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5,
+                              1, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5,
+                               0, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4,
+                              1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 
+                               -2, -1, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 
+                              -1, -1, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2),
+           response = rep(c("1-5", "0-4", "-2-2"), each = 24)) %>% 
+  ggplot(., aes(responseOption, color = response)) +
+  geom_density() +
+  theme_minimal()
+
+```
+
+
+
 ## Design Choices
+
+These will become more obvious as we begin our dive into survey programming next week, but the following discussion points are worth a look:
 
 - One page or multiple pages?
 
-- Leave progress bars to the tyros.
+- Progress bars?
 
 - In general, use radio buttons for response options.
 

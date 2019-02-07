@@ -1,0 +1,255 @@
+---
+title: "Factor Analysis"
+output: html_document
+---
+
+# Factor Analysis
+
+## Measurement & Latent Variables
+
+If I asked you your height, could you tell me? How do you know your height and what allowed you to know your height? Like most, you have probably been measured at the doctor's office with some device marked with inches.
+
+Now, if I were to ask you how you felt, what would you tell me? You might say that you are feeling well or not feeling too well, but how did you measure this? Did you use your wellness measuring tape or your wellness balance beam -- unlikely. Instead, you likely thought about everything going on -- your current health, general mood, and whatever else you deemed important at the time. Put another way, I could essentially be asking your about your affect (mood). Unfortunately, we can't measure your affect like we can measure your height. There is no agreed upon method for measuring your current affect (there isn't even an argument between Imperial and metric to be had).
+
+Affect is an example of a latent variable -- we have a pretty good idea that it exists and we have operationalized it, but there is no way that we can physically measure it. If we think of what latent tends to mean, hidden, we start to understand what latent variables are -- variables that are hidden, but still interesting. Instead, we have to rely on a series of questions that gets us close to what we think is affect. This process of "getting at" affect through questions is what is known as *measurement*. You have been involved with measurement for a very long time, even if you did not know it. If you ever took a high-stakes standardized test (e.g., GRE, GMAT, LSAT), then you were directly involved in measurement -- we can't actually measure the mass of your mathematical reasoning ability, so we have to ask questions to measure that ability.
+
+An important part of measurement concerns <span title="Don't listen to him..."; style="text-decoration: none">error</span>. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
+
+### On Principal Compenents Analysis And Factor Analysis
+
+You might have already learned about a technique used for taking items and reducing them down -- principal components analysis (PCA). People will even tell you that they are the same thing. The logical question is are factor analysis and pca the same things? They are both matrix factorization techniques, but the similarities start to end pretty quickly after that.
+
+  - Causal direction: In PCA, the items are the cause of the component (think how ingredients combine to make a pancake -- the pancake exists because the ingredients exist). In factor analysis, the latent factor gives rise to the items (i.e., the items reflect the construct -- questions for mathematical reason exist because there is a construct for mathematical reasoning that exists beyond the existence of the items).
+  
+  - Component/Factor Interpretation: These is no interpretation of a component -- it simply exists to reduce the variables. Factors represent the latent variables are important.
+  
+  - Variance: PCA attempts to extract as much variance as possible from the items. Each succesive component after the first will extract less variance than the first
+  
+  - Measurement error: PCA assumes perfect measurement
+
+The <span class="pack">psyc</span> package will make life easy for us. Let's see what these differences mean in terms of our output:
+
+```{r}
+library(dplyr)
+
+library(psych)
+
+testData = bfi %>% 
+  select(starts_with("A", ignore.case = FALSE), 
+         starts_with("C"))
+
+testPCA = principal(r = testData, nfactors = 2, rotate = "none")
+
+testFA = fa(r = testData, nfactors = 2, rotate = "none")
+
+testPCA
+
+testFA
+```
+
+While items might load on the same factor/component, the magnitudes are much different. We also see differences in communality (h2 -- item correlations with all other items) and item uniqueness (u2 -- variance that is unique to the item and not the factor/component). We can also see that our PCA extracted more variance from the items than did our EFA (.48 to .36).
+
+## Determining Factor Numbers
+
+Determining the appropriate number of factors in an exploratory factor analysis can be complex. How many might theory dictate? Is there a strong theory at all? In an exploratory setting, it is helpful to conduct something called a parallel analysis (PA). PA is a Monte Carlo simulation that takes into account the number of items and rows within your data and then produces a random matrix of the same shape.
+
+```{r}
+psych::fa.parallel(testData)
+```
+
+This is the most automated way of finding a potentially suitable number of factors. We are given some output appropriate for both factor analysis and principal components analysis, with a graphical representation provided. In this case, parallel analysis would suggest 4 factors to be retained for a factor analysis. If some theory exists, you can also use that information to guide your factor numbers. 
+
+While you will often get some different results, you can also use the <span class="func">nfactors</span> function:
+
+```{r, eval = TRUE}
+testData %>% 
+  na.omit() %>% 
+  cor() %>% 
+  psych::nfactors()
+```
+
+Now we are provided a variety of different metrics for determining the number of factors to retain. We can see that the suggested number of factors range from 2 (very simple structure with complexity 1 and MAP) to 5 (very simple structure with complexity 2). Given the results of our parallel analysis and our sample size adjusted BIC, we could make a good argument for retaining 4 factors.
+
+## Rotation
+
+You might remember how we rotate axes to try to get our components to fit together better. Generally, PCA forces an orthogonal rotation -- in other words, the vertices will always maintain 90s. Factor analysis, will allow for orthogonal rotations, but also oblique rotations (the vertices can go above or below 90). While pictures certainly help, there is something very important at play here. As you remember from PCA, an orthogonal rotation would hold that the factors (or components) are not correlated. For components, this makes sense. For our scale, however, would you guess that the items being analzyed are not correlated? By using an oblique rotation, we are allowing the factors to be as correlated as necessary.
+
+Our rotations, though not terribly different, will produce different loading patterns.
+
+```{r}
+orthRotation = fa(r = testData, nfactors = 2, rotate = "varimax")
+
+obliqueRotation = fa(r = testData, nfactors = 2, rotate = "promax")
+
+orthRotation
+
+obliqueRotation
+```
+
+We can see that our oblique rotation produces a correlation of .34 between the two factors. I will leave it up to you to determine if that is a strong enough correlation to warrant an orthogonal rotation. An orthogonal rotation, while limiting the correlation between factors, does produce "cleaner" results. If the factors are not correlated, we can interpret each one in isolation. In an oblique rotation with correlated factors, we have to interpret the factors simultaneously and consider how items loading on multiple factors behave. 
+
+## Factor Loadings
+
+We can think of factor loadings as the correlation between an item and a factor -- they are interpreted in this manner.
+
+Let's take a peak at the factor loadings of our oblique solution from above:
+
+```{r}
+obliqueRotation$loadings
+```
+
+We can see that our output is hiding values of small magnitude (refer to the previous results for all values) -- this is for ease in examining the loading matrix and we could consider these as neglible loadings given the weakness of the loading. We can read these very much in the same way that we read correlations. For factor 1 (MR1 in the output), we see that items C1 through C5 load pretty strongly (with A4 having a weak loading). So, someone who offers a high response on C5 might have lower values of whatever latent trait is being measured, while they might have high values of the latent trait if they respond with a higher value on question C2.
+
+## Factor Scoring
+
+We have gone through the necessary steps of performing our factor analysis to this point, but what do we ultimately get out of it? In the end, we want to take our factors and produce some type of score.
+
+What kind of score should we produce? If we use the numeric values given by the observed variables (e.g., 1-5, 0-4), then we can imagine producing some type of aggregate score (i.e., a sum or an average score). If you ever took an undergraduate Psychology course, you have probably already done something like this:
+
+```{r}
+testData = testData %>% 
+  rowwise() %>% 
+  mutate(agreeAverage = (sum(A1, A2, A3, A4, A5, na.rm = TRUE) / 5), 
+         consAverage = (sum(C1, C2, C3, C4, C5, na.rm = TRUE) / 5))
+```
+
+
+Do those aggregate scores tell the complete truth? Remember how we just talked about loadings? The factor loadings are essentially telling us how much the variable is related to the factor. If we use a simple aggregate score, is that relationship captured? I am afraid not; aggregate scores are going to give the same weight to every item, regardless of how highly it loads on any given factor. What about cross-loadings? This type of aggregate scoring would completely ignore them!
+
+Instead, we can use factor scores. There are several different types of factor scores that we can compute, but we are going to compute Thurstone scores. 
+
+Thurstone score are incredibly easy to produce by hand, so let's give it a try.
+
+To compute those scores, we need to produce a correlation matrix of our observed scores. For simplicity, let see what a one factor model would look like.
+
+```{r}
+agreeDat = bfi %>% 
+  select(starts_with("A", ignore.case = FALSE))
+
+agreeCorrs = cor(agreeDat, use = "pairwise")
+```
+
+
+Then, we need to get the loadings from our factor analysis results:
+
+```{r}
+agreeFA = fa(agreeCorrs, rotate = "promax", scores = "regression")
+
+agreeLoadings = agreeFA$loadings[1:5, 1]
+```
+
+Now, we have everything that we need: item loadings, item correlations, and observed scores.
+
+The first step is to get the matrix product between the inverse correlation matrix and the factor loading matrix:
+
+```{r}
+w = solve(agreeCorrs, agreeLoadings)
+```
+
+
+Finally, we center and scale the observed data, and do matrix multiplication for the product w that we just found:
+
+```{r}
+agreeScaled = agreeDat %>% 
+  scale(., center = TRUE, scale = TRUE)
+
+facScores = agreeScaled %*% w
+
+head(facScores)
+```
+
+
+We can check these against those returned from our results:
+
+```{r}
+head(predict(agreeFA, agreeDat))
+```
+
+Now, let's see how well those scores are correlated with simple aggregate scores.
+
+```{r}
+simpleScores = agreeDat %>% 
+  mutate(simpleScore = rowMeans(.))
+```
+
+```{r}
+cor(facScores[, 1], simpleScores$simpleScore, use = "complete")
+```
+
+We can see that the scores are certainly correlated, but the factor scores are likely closer to *true scores*.
+
+## Reliability
+
+Factor analysis falls under a broader notion of what is called *Classical Testing Theory* (CTT). In CTT, the notion of reliability is of supreme importance. Reliability is most easily defined as being able to produce the same result from a measure. If I give you the same measure a few months apart and you score similarly on both measures, then we are likely dealing with a reliable test. It is important to note that reliable is not the same as valid. Validity, with regard to measurement, is knowing that our measure is measuring what we intend it to measure (e.g., our measure of likelihood to engage in whistleblowing is actually measuring a person's likelihood to blow the whistle). A measure can be reliable without being valid -- remember it just has to produce the same results time after time. 
+
+Assessing reliability is generally an easy task. The most simple version of reliability, is Cronbach's measure of internal consistency, or $\alpha$. Cronbach's $\alpha$ is simply the best split-half correlation within a measure (internal consistency means that the whole measure is reliable within itself). 
+
+Getting $\alpha$ is easy enough:
+
+```{r}
+psych::alpha(agreeDat, check.keys = TRUE)
+```
+
+We get a fair chunk of output, but let's just focus on the "std.alpha" value of .71. By most "rules-of-thumb", anything of .7 is acceptable for general purpose use. If we were wanting to make very important decisions with our measure, we might look for something approaching or exceeding .9. 
+
+You likely noticed the "check.keys = TRUE" arguement -- alpha is bound by test length and item correlations. In a case where some items are negatively correlated, that will greatly reduce our $\alpha$ coefficient. Let's try it for ourselves:
+
+```{r}
+psych::alpha(agreeDat)
+```
+
+Very different, right?
+
+Let's calculate it on our own. We will need to recode our negatively correlated variable (A1) first.
+
+```{r}
+
+agreeDatRecode = agreeDat %>% 
+  mutate(A1 = abs(A1-7)) # This recodes our scale direction
+
+nvar = length(agreeDatRecode)
+
+# This computes the covariance matrix of our data.
+
+C = cov(agreeDatRecode, use = "complete.obs")
+
+n = dim(C)[2]
+
+total = rowMeans(agreeDatRecode, na.rm = TRUE)
+
+# The tr function is just adding everything on the 
+# diagonal from our covariance matrix.
+
+alpha.raw = (1 - psych::tr(C)/sum(C)) * (n/(n - 1))
+```
+
+How did we do? We perfectly replicated our raw alpha value from the output. This is an easy example, but more elaborate ones don't take much more effort. 
+
+We did all of this to say that $\alpha$ helps us to know how consistent a one factor measure is within itself. In many circumstances where you find yourself with a unidimensional factor structure, $\alpha$ will be more than sufficient for convincing people that your scale is reliable (weaknesses aside).
+
+There are, however, many other forms of reliability ($\alpha$ is based off of something else called the Kuder-Richardson 20). One popular and conceptually helpful form of reliability is McDonald's $\omega$. McDonald's $\omega$ is well-suited for hierarchical factor structures, in which you might have various subscales that assess something bigger. 
+
+Earlier, we played with the bfi data. Let's return to that, but with a hypothesis that the 5 factors of the bfi are actually subfactors of some larger latent personality variable.
+
+```{r}
+bfiSubFactors = bfi %>% 
+  select(-gender, -education, -age)
+
+omegaTest = psych::omega(bfiSubFactors, nfactors = 5, 
+             rotate = "promax", plot = FALSE)
+
+omega.diagram(omegaTest, sl = FALSE)
+```
+
+This is what our factor structure would look like in a hierarchical fashion. We have the general factor (g) and our 5 subfactors (also called grouping factors). We can see how strongly our subfactors load onto our general factor with the provided values. We can also see how strongly each individual items loads onto a subfactor.
+
+We can also look at some reliability values (and a cleaner loading matrix):
+
+```{r}
+omegaTest
+```
+
+
+While we see that we can get an $\alpha$ value, we also have Guttman's $\lambda_6$, and 3 different $\omega$ values that are of interest to us. Since we are dealing with something of a hierarchical nature, we already know that $\alpha$ and $\lambda_6$ won't be appropriate.  $\omega_h$ gives us an idea about the reliability of the general factor (perhaps not super in this case) and $\omega_t$ gives us the total reliability of the test (very good). 
+
+We can also see item loadings for the general factor and each subfactor. Generally, we find that the items that we would anticipate loading together (e.g., all N items load together, and all O items load together), along with some cross-loading items from other subfactors.

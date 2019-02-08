@@ -59,6 +59,8 @@ There are several different types of neural networks.
 The most basic of all neural nets can be done with `nnet`. 
 
 ```{r, eval = FALSE}
+library(dplyr)
+
 library(tidytext)
 
 library(tidyr)
@@ -77,9 +79,9 @@ textFeatures = zappaOrCountry %>%
          text = removePunctuation(text)) %>% 
   group_by(genre, genreSequence) %>% 
   unnest_tokens(., word, text) %>% 
-  count(word) %>% 
-  ungroup() %>% 
-  top_n(10000) %>% 
+  count(word, sort = TRUE) %>% 
+  ungroup() %>%
+  top_n(500) %>% 
   mutate(word = ifelse(grepl("^[a-z]+", word) != TRUE, NA, word)) %>% 
   bind_tf_idf(word, genreSequence, n) %>% 
   select(genre, genreSequence, word, tf_idf) %>% 
@@ -89,6 +91,8 @@ textFeatures = zappaOrCountry %>%
   select(-genreSequence)
 
 save(textFeatures, file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+
+save(textFeatures, file = "D://projects/courses/unstructured/data/textFeatures.RData")
 ```
 
 ```{r, echo = FALSE}
@@ -112,38 +116,58 @@ countryRows = which(textFeatures$genre == "country")
 
 genre = ifelse(textFeatures$genre == "zappa", 1, 0)
 
-scaledVars = as.data.frame(scale(textFeatures[, 2:length(names(textFeatures))]))
+genre = as.factor(make.names(genre))
+
+minMaxScale = function(x){
+  (x - min(x)) / (max(x) - min(x))
+}
+
+scaledVars = textFeatures %>% 
+  select(-genre) %>% 
+  mutate_all(., funs(minMaxScale(.)))
 
 scaledData = cbind(genre, scaledVars)
 
 set.seed(1001)
 
-trainRows = c(sample(zappaRows, floor(length(zappaRows) * .8), replace = FALSE), 
-              sample(countryRows, floor(length(countryRows) * .2), replace = FALSE))
+trainRows = c(sample(zappaRows, floor(length(zappaRows) * .7), replace = FALSE), 
+              sample(countryRows, floor(length(countryRows) * .7), replace = FALSE))
+
+testingData = scaledData[-trainRows, ]
 
 trainingData = scaledData[trainRows, ]
-
-testingData = scaledData[-c(trainRows), ]
 ```
+
+<aside>
+For now, we will stick with one of the classics in nnet. The neuralnet package has some great features, but the formula interface is very limited.
+</aside>
 
 Now, we can train our model:
 
 ```{r}
-library(nnet)
+library(caret)
 
-oneLayerNN = nnet(genre ~ ., data = scaledData, subset = trainRows, size = 2, 
-                  MaxNWts = 13 * (ncol(scaledVars) + 1) + 13 + 1, 
-                  maxit = 500)
+numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, verboseIter = FALSE, 
+                         summaryFunction = twoClassSummary)
+
+fit2 <- train(genre ~ ., data = trainingData, method = 'nnet', 
+              trControl = numFolds)
+
+fit2 <- train(genre ~ ., data = trainingData, method = 'mlpML', 
+              trControl = numFolds)
+
+fit2 <- train(genre ~ ., data = trainingData, method = 'mlpKerasDropout', 
+              trControl = numFolds)
+
+results1 <- predict(fit2, newdata=trainingData)
+
+conf1 <- confusionMatrix(results1, trainingData$genre)
+
+results2 <- predict(fit2, newdata=testingData)
+
+conf2 <- confusionMatrix(results2, testingData$genre)
 ```
-That should have moved pretty quickly.
 
-Now, we need to start looking at how we did on the training data:
-
-```{r}
-temporaryTestData = select(trainingData, -genre)
-
-results = compute(oneLayerNN, temporaryTestData)
-```
 
 
 ## Feed-forward Neural Networks

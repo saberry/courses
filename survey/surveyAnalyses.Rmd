@@ -1,7 +1,5 @@
 ---
-title: "Text Analysis"
-description: |
-  Text Classification
+title: "Survey Analyses"
 output:
   radix::radix_article:
     toc: true
@@ -15,7 +13,8 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 # Package Install
 
 ```{r, eval = FALSE}
-install.packages(c("lsa", "NMF", "stm"))
+install.packages(c("dplyr", "psych", "mirt", "ltm", "ggplot", "GGally", 
+                   "viridis", "ggridges"))
 ```
 
 
@@ -70,8 +69,6 @@ populationCorrection = (n * N) / (n + N - 1)
 populationCorrection
 ```
 
-
-## Power Analysis
 
 # Power Analysis
 
@@ -152,7 +149,7 @@ Now, if I were to ask you how you felt, what would you tell me? You might say th
 
 Affect is an example of a latent variable -- we have a pretty good idea that it exists and we have operationalized it, but there is no way that we can physically measure it. If we think of what latent tends to mean, hidden, we start to understand what latent variables are -- variables that are hidden, but still interesting. Instead, we have to rely on a series of questions that gets us close to what we think is affect. This process of "getting at" affect through questions is what is known as *measurement*. You have been involved with measurement for a very long time, even if you did not know it. If you ever took a high-stakes standardized test (e.g., GRE, GMAT, LSAT), then you were directly involved in measurement -- we can't actually measure the mass of your mathematical reasoning ability, so we have to ask questions to measure that ability.
 
-An important part of measurement concerns <span title="Don't listen to him..."; style="text-decoration: none">error. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
+An important part of measurement concerns error. Error can come from many different sources (measure, person, environment, etc.) and "distorts" the observed score.
 
 ### On Principal Compenents Analysis And Factor Analysis
 
@@ -360,6 +357,8 @@ total = rowMeans(agreeDatRecode, na.rm = TRUE)
 # diagonal from our covariance matrix.
 
 alpha.raw = (1 - psych::tr(C)/sum(C)) * (n/(n - 1))
+
+alpha.raw
 ```
 
 How did we do? We perfectly replicated our raw alpha value from the output. This is an easy example, but more elaborate ones don't take much more effort. 
@@ -393,9 +392,11 @@ While we see that we can get an $\alpha$ value, we also have Guttman's $\lambda_
 
 We can also see item loadings for the general factor and each subfactor. Generally, we find that the items that we would anticipate loading together (e.g., all N items load together, and all O items load together), along with some cross-loading items from other subfactors.
 
+# IRT
+
 ## Item Response Theory And Factor Analysis
 
-Last week, we learned about latent variables and how we can use factor analysis to construct measures for assessing latent traits. While we are still dealing in the world of latent variables, we are taking a new approach to measuring those latent variables -- Item Response Theory (IRT). While both allow us to measure a person's level of a latent trait, IRT gives us the power to understand the person and the items. We can recall that factor analysis falls under the broader heading of Classical Test Theory (CTT) -- the name is a clear indication that the focus is on the test as a whole, not individual items. 
+While we are still dealing in the world of latent variables, we are taking a new approach to measuring those latent variables -- Item Response Theory (IRT). While both allow us to measure a person's level of a latent trait, IRT gives us the power to understand the person and the items. We can recall that factor analysis falls under the broader heading of Classical Test Theory (CTT) -- the name is a clear indication that the focus is on the test as a whole, not individual items. 
 
 In addition to this broadened understanding, IRT has a different focus from a measurement perspective than factor analysis. Perhaps most important is the notion of measurement error in IRT. In factor analysis, measurement error is assumed to be consistent across each item; this is not the case for IRT.
 
@@ -461,19 +462,19 @@ So, we have a pretty good idea that item 3 is the most difficult item and the mo
 The third parameter, $c_i$, is the psuedoguessing parameter. Even the blind squirrel finds a nut and $c_i$ accounts for this. Essentially, the guessing parameter offers a slight penalty for the chance of guessing a correct answer.
 
 
-# Models And Parameters
+## Models And Parameters
 
-## 1PL
+### 1PL
 
 Now that we know what our parameters mean, we can start putting them into models. The one parameter logistic model (1PL) only estimates item difficulty ($b_i$). It assumes that all items discriminate equally and that all items have the same guessing parameter. 
 
 Although some minor differences, you will often see the 1PL and Rasch model used interchangibly.
 
-## 2PL
+### 2PL
 
 The two parameter logistic model (2PL) adds the discrimination parameter, $a_i$, into the model.
 
-## 3PL
+### 3PL
 
 The three parameter logistic model (3PL) adds in the guessing parameter, $c_i$. You might wonder how in the world a guessing parameter is added! If someone could guess the correct answer (think about a multiple choice test), would the probability of a correct answer ever be 0? I would think not. So, $c_i$ just includes a lower-bound asymtote. 
 
@@ -504,7 +505,7 @@ While we see that the probability for a low ability individual obtaining a corre
 With all of these parameters, the probability of a correct response can be expressed as follows: $$p_i(\theta) = c_i + \frac{1 - c_i}{1 + e^{-a_i(\theta - b_i)} }$$
 
 
-# Scoring
+## Scoring
 
 Scoring in IRT models works a bit differently than scoring in CTT. 
 
@@ -550,7 +551,7 @@ LSAT %>%
 
 We can see that overall scores are most correlated with item 3, followed by item 2, and item 4. If we recall our ICC plot from above, this probably should not surprise us too much -- item 3 is definitely the best item, while items 1 and 5 don't look as nice.
 
-## Different Measurement Levels
+### Different Measurement Levels
 
 So far, we have discussed models that are largely dealing with dichotomous variables (largely incorrect and correct). These are aptly names dichotomous models. However, we know that not all measures have a binary response. If we have multiple response options (perhaps a Likert response option format), then we need to use a polytomous model. One common model is the Graded Response Model (GRM). 
 
@@ -559,17 +560,19 @@ The GRM is used with the express purpose of ordinal, polytomous response options
 Let's take a look:
 
 ```{r}
+library(dplyr)
+
+library(ggplot2)
+
+library(ggridges)
+
 library(psych)
 
-library(dplyr)
+library(viridis)
 
 testData = bfi %>% 
   dplyr::select(starts_with("C")) %>% 
   na.omit()
-
-library(ggridges)
-library(viridis)
-library(ggplot2)
 
 testData %>% 
   tidyr::gather(key = question, value = score) %>% 
@@ -577,7 +580,6 @@ testData %>%
   geom_density_ridges_gradient() +
   scale_fill_viridis(option = "B") +
   theme_minimal()
-
 
 grmMod = mirt(testData, model = 1, itemtype = "graded", verbose = FALSE)
 
@@ -589,7 +591,7 @@ In our coefficient output, we see coefficients for each item (b1:b5). These coef
 
 Just like our dichotomous models, we can also see our item characteristic curves.
 
-```{r, fig.height=9, fig.width=9}
+```{r}
 
 plot(grmMod, type = 'trace', which.items = 1:5, 
      facet_items = TRUE, main = "GRM")

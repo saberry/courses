@@ -15,6 +15,158 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Naive Bayes
 
+With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central tendancies violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods with often similar performance. 
+
+With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific classes of customers cancelling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
+
+With "Bayesian" in the name, you would probably guess that we are going to be dealing with probabilities and we certainly are. Not that you need it, but let's do a really quick refresher on probability, odds, and likelihoods.
+
+*Probability* is bound between 0 and 1, and indicates the chance of an event occuring. 
+
+*Odds* are scaled from 0 to $\infty$ and are the ratio of the probability of a particular event occurring to the probability of it not occurring. With a probability of occurrance at .2, we would have an odds of 1 to 4 of the event occurring.
+
+*Likelihood* is the ratio of two related conditional probabilites and can be expressed in two different forms:
+
+- The probability of outcome *A*, given *B*, and the probability of *A*, given not *B* (*A* is conditional on *B*)
+
+- The odds of *A*, given *B*, and the overall odds of *A*
+
+Conversion between probability and odds is as follows:
+
+$$odds = -1 +  \frac{1}{1 - probability}$$
+$$probability = 1 - \frac{1}{1 + odds}$$
+
+If we know that we have a probability of .7, we find an odds of:
+
+```{r}
+-1 + (1 / (1 - .7))
+```
+
+If we have an odds of 1.75, we can find a probability of:
+
+```{r}
+1 - (1 / (1 + 1.75))
+```
+
+
+
+## A Quick And Dirty Example
+
+We will step away from text just for a little bit to see a good example of how Naive Bayes can be put to great use. The `rsample` package is great for creating data for us in cross-validation, but it also has a data set called "attrition" (created by IBM for Watson training). Attrition contains a lot of demographic-flavored variables and a variable called...Attrition! Let's see if we can use all of the features within the data to predict attrition. 
+
+```{r}
+library(caret)
+
+library(dplyr)
+
+library(klaR)
+
+library(rsample)
+
+# Looking at the data, there are some variables needing conversion
+# to factors.
+
+attrition = attrition %>%
+  mutate_at(c("JobLevel", "StockOptionLevel", "TrainingTimesLastYear"), factor)
+
+# We could use base R or caret to perform our splitting, but we can 
+# keep rolling with rsample (praise be to Hadley and Max).
+
+set.seed(1001)
+
+split = initial_split(attrition, prop = .6, strata = "Attrition")
+
+attritionTrain = training(split)
+
+attritionTest  = testing(split)
+
+y = attritionTrain$Attrition
+
+x = dplyr::select(attritionTrain, -Attrition)
+
+# set up 10-fold cross validation procedure
+nbTrainControl = trainControl(method = "cv", number = 10)
+
+# train model
+nbAttrition = train(x = x, y = y,
+  method = "nb", trControl = nbTrainControl)
+
+nbAttrition
+
+# results
+confusionMatrix(nbAttrition)
+```
+
+Out of the box, that is not too bad:
+
+```{r}
+# Incorporating a smooth for 0 value probability cells:
+
+searchGrid = expand.grid(fL = 0:5, usekernel = FALSE, adjust = 1)
+
+# train model
+nbAttritionSmoothed = train(x = x, y = y,
+  method = "nb", trControl = nbTrainControl,
+  tuneGrid = searchGrid, preProc = c("center", "scale"))
+
+nbAttritionSmoothed
+
+confusionMatrix(nbAttritionSmoothed)
+```
+
+By adding a smoothing parameter alone, we actually did worse on average. Let's try adding a non-parametric kernel to tweak our continuous variables (in theory they should be normally distributed, so the kernel will help to take care of any non-normal variables).
+
+```{r}
+searchGrid = expand.grid(usekernel = c(TRUE, FALSE), 
+                           fL = 0:5, adjust = seq(0, 5, by = 1))
+
+nbAttritionTuned = train(x = x, y = y,
+  method = "nb", trControl = nbTrainControl,
+  tuneGrid = searchGrid, preProc = c("center", "scale"))
+
+nbAttritionTuned
+
+confusionMatrix(nbAttritionTuned)
+```
+
+Now we are getting somewhere. Let's add one more feature to our model to reduce down our feature space:
+
+```{r}
+searchGrid = expand.grid(usekernel = TRUE, 
+                         fL = 5, adjust = 5)
+
+nbAttritionTunedPCA = train(x = x, y = y,
+  method = "nb", trControl = nbTrainControl,
+  tuneGrid = searchGrid, preProc = c("center", "scale", "pca"))
+
+nbAttritionTunedPCA
+
+confusionMatrix(nbAttritionTunedPCA)
+```
+
+
+Let's see how our best run does with our test data:
+
+```{r}
+pred = predict(nbAttritionTuned, newdata = attritionTest)
+
+confusionMatrix(pred, attritionTest$Attrition, positive = "Yes")
+```
+
+A few key pieces of information for us beyond the confusion matrix:
+
+We should hope to find that our Accuracy rate is significantly higher than our *No Information Rate*.
+
+*Kappa* is an agreement statistic. Here it is the agreement between our observed accuracy rate and an expected accuracy rate. Anything over .4 is deemed by most sources as adequate, but it gets better as we approach 1.
+
+*Mcnemar's test* is looking at the marginal values of the confusion matrix to see if they are significantly different. 
+
+*Sensitivity* is the true positive rate.  We did not do too well. 
+
+*Specificity* is the true negative rate. We did a fine job here.
+
+Look at the help file for `confusionMatrix` for the calculations of everything.
+
 # Artificial Neural Networks
 
 Artificial Neural Networks (ANN) are a major part of the artificial intelligence toolkit and for many good reasons.

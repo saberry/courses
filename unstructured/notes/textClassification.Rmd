@@ -9,13 +9,13 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 
 # Naive Bayes
 
-With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central tendancies violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods with often similar performance. 
+With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central assumptions violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods with often similar performance. 
 
 With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific classes of customers cancelling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
 
@@ -48,7 +48,7 @@ If we have an odds of 1.75, we can find a probability of:
 1 - (1 / (1 + 1.75))
 ```
 
-
+With this information in hand, we can then compute the independent conditional probability distribution (conditioned on the outcome variable) for each and every predictor variable. From there, we are taking the product of those conditional probabilities.
 
 ## A Quick And Dirty Example
 
@@ -85,11 +85,11 @@ y = attritionTrain$Attrition
 x = dplyr::select(attritionTrain, -Attrition)
 
 # set up 10-fold cross validation procedure
-nbTrainControl = trainControl(method = "cv", number = 10)
 
-# train model
+nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
+
 nbAttrition = train(x = x, y = y,
-  method = "nb", trControl = nbTrainControl)
+  method = "nb", trControl = nbTrainControl, metric = "Accuracy")
 
 nbAttrition
 
@@ -97,14 +97,17 @@ nbAttrition
 confusionMatrix(nbAttrition)
 ```
 
+<aside>
+We have taken our normal train/test cross-validation and bumped it up to a *k*-fold cross-validation. It will create *k* paritions within the data, use one as a validation set and the remaining training sets. This is repeated for every fold, so that all folds (and thus all observations) are used for validation once, and the results are averaged. It tends to offer a less biased model than basic train/test CV.
+</aside>
+
 Out of the box, that is not too bad:
 
 ```{r}
-# Incorporating a smooth for 0 value probability cells:
+# Incorporating a Laplacian smooth for 0 value probability cells:
 
 searchGrid = expand.grid(fL = 0:5, usekernel = FALSE, adjust = 1)
 
-# train model
 nbAttritionSmoothed = train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
   tuneGrid = searchGrid, preProc = c("center", "scale"))
@@ -210,44 +213,25 @@ There are several different types of neural networks.
 
 The most basic of all neural nets can be done with `nnet`. 
 
-```{r, eval = FALSE}
-library(dplyr)
+```{r}
+numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, 
+                        verboseIter = FALSE, summaryFunction = twoClassSummary)
 
-library(tidytext)
+attritionFit = train(Attrition ~ ., data = attritionTrain, method = 'nnet', 
+              trControl = numFolds, metric = "Accuracy", 
+              preProc = c("center", "scale"), trace = FALSE)
 
-library(tidyr)
+attritionFit
 
-library(tm)
+results1 = predict(attritionFit, newdata = attritionTest)
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/zappaOrCountry.RData")
-
-zappaOrCountry = zappaOrCountry %>% 
-  group_by(genre) %>% 
-  mutate(genreSequence = 1:n())
-
-textFeatures = zappaOrCountry %>% 
-  mutate(text = tolower(text),
-         text = removeWords(text, stopwords("en")), 
-         text = removePunctuation(text)) %>% 
-  group_by(genre, genreSequence) %>% 
-  unnest_tokens(., word, text) %>% 
-  count(word, sort = TRUE) %>% 
-  ungroup() %>%
-  top_n(500) %>% 
-  mutate(word = ifelse(grepl("^[a-z]+", word) != TRUE, NA, word)) %>% 
-  bind_tf_idf(word, genreSequence, n) %>% 
-  select(genre, genreSequence, word, tf_idf) %>% 
-  unique() %>% 
-  tidyr::spread(., key = word, value = tf_idf) %>% 
-  mutate_all(., funs(ifelse(is.na(.), 0, .))) %>% 
-  select(-genreSequence)
-
-save(textFeatures, file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
-
-save(textFeatures, file = "D://projects/courses/unstructured/data/textFeatures.RData")
+confusionMatrix(results1, attritionTest$Attrition)
 ```
 
-```{r, echo = FALSE}
+
+## On To Lyrics
+
+```{r, echo = TRUE}
 load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
 ```
 
@@ -259,7 +243,7 @@ summary(as.factor(textFeatures$genre))
 
 We certainly have some class imbalance, but hopefully the flexibility of the ANN will shine through.
 
-With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 447 / 2363`% of the total data. If we want to train our model on 80% of the data, we can just take 80% from each class for training.
+With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 447 / 2363`% of the total data. If we want to train our model on 70% of the data, we can just take 80% from each class for training.
 
 ```{r}
 zappaRows = which(textFeatures$genre == "zappa")
@@ -275,7 +259,7 @@ minMaxScale = function(x){
 }
 
 scaledVars = textFeatures %>% 
-  select(-genre) %>% 
+  dplyr::select(-genre) %>% 
   mutate_all(., funs(minMaxScale(.)))
 
 scaledData = cbind(genre, scaledVars)
@@ -290,40 +274,24 @@ testingData = scaledData[-trainRows, ]
 trainingData = scaledData[trainRows, ]
 ```
 
-<aside>
-For now, we will stick with one of the classics in nnet. The neuralnet package has some great features, but the formula interface is very limited.
-</aside>
-
 Now, we can train our model:
 
 ```{r}
-library(caret)
+numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, 
+                        verboseIter = FALSE, summaryFunction = twoClassSummary)
 
-numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, verboseIter = FALSE, 
-                         summaryFunction = twoClassSummary)
+fit2 = train(genre ~ ., data = trainingData, method = 'nnet', 
+              trControl = numFolds, trace = FALSE)
 
-fit2 <- train(genre ~ ., data = trainingData, method = 'nnet', 
-              trControl = numFolds)
+# fit2 = train(genre ~ ., data = trainingData, method = 'mlpML',
+#               trControl = numFolds)
 
-fit2 <- train(genre ~ ., data = trainingData, method = 'mlpML', 
-              trControl = numFolds)
+# fit2 = train(genre ~ ., data = trainingData, method = 'mlpKerasDropout',
+#               trControl = numFolds)
 
-fit2 <- train(genre ~ ., data = trainingData, method = 'mlpKerasDropout', 
-              trControl = numFolds)
+results1 = predict(fit2, newdata = trainingData)
 
-results1 <- predict(fit2, newdata=trainingData)
-
-conf1 <- confusionMatrix(results1, trainingData$genre)
-
-results2 <- predict(fit2, newdata=testingData)
-
-conf2 <- confusionMatrix(results2, testingData$genre)
+confusionMatrix(results1, trainingData$genre)
 ```
 
-
-
-## Feed-forward Neural Networks
-
-## Recurrent Neural Networks
-
-## Convulutional Neural Networks
+This is a very basic neural network and much has occurred in the NN space. 

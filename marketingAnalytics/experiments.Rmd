@@ -164,6 +164,78 @@ plot(tPower) +
   ggplot2::theme_minimal()
 ```
 
+
+## About *t*-tests
+
+Here is a snapshot of some data from 1000 rows:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, comment = ""}
+library(dplyr)
+
+clicks = data.frame(linksClicked = round(runif(1000, min = 4, max = 10)))
+
+clicks$gender = sample(c("male", "female"), 1000, replace = TRUE) 
+
+clicks$linksClicked = ifelse(clicks$gender == "male", clicks$linksClicked + 3, clicks$linksClicked) 
+
+knitr::kable(head(clicks))
+```
+
+## 
+
+Consider these regression results:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, comment = ""}
+broom::tidy(summary(lm(linksClicked ~ gender, clicks))) %>% 
+  knitr::kable()
+```
+
+## 
+
+And these summary stats:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, comment = ""}
+clicks %>% 
+  group_by(gender) %>% 
+  dplyr::summarize(mean = mean(linksClicked), 
+            sd = sd(linksClicked), 
+            n = n()) %>% 
+  knitr::kable()
+```
+
+## 
+
+And this *t*-test output:
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, comment = ""}
+broom::tidy(t.test(linksClicked ~ gender, clicks, alternative = "less")) %>% 
+  knitr::kable(col.names = c("difference", "group 1 mean", "group 2 mean", 
+                             "t stat", "p", "df", "conf low", "conf high", 
+                             "method", "alternative"))
+```
+
+## {data-background="https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif" data-background-size="contain"}
+
+## Computation
+
+$$t = \frac{\bar{x_1} - \bar{x_2}}{{\sqrt{\frac{S^2}{n_1}+\frac{S^2}{n_2}}}}$$  
+
+where:  
+
+
+$$s^2 = \frac{\Sigma(i_1 - \bar{x_1})^2 + \Sigma(i_2 - \bar{x_2})}{n_1+n_2-2}$$  
+
+## Or...
+
+Just make your life easy:
+
+```{r, eval = FALSE}
+BSDA::tsum.test(mean.x, s.x, n.x, 
+                mean.y, s.y, n.y)
+```
+
+I will say no more...
+
 ## On Effect Sizes
 
 Effect sizes provide a standardized metric for the size of a difference.
@@ -212,6 +284,8 @@ Both are statistically significant.
 
 But which one would be "more" significant?
 
+## {data-background="https://media1.giphy.com/media/3OSo3PPaXdw0U/giphy.gif?cid=3640f6095c6387354c6f697436b01cb4" data-background-size="contain"}
+
 <p class="fragment fade-in-then-semi-out">The magnitude of the effect is almost identical!</p>
 
 ## Necessary Experiments Components
@@ -222,7 +296,7 @@ You will need at least two conditions:
 
 <p class="fragment fade-in-then-semi-out">Control</p>
 
-## On Power {data-transition="convex"}
+## On Controls {data-transition="convex"}
 
 The control is how you establish a baseline.
 
@@ -281,7 +355,7 @@ tDat = data.frame(Print = c("New logo, printed", "Old logo, printed"),
 knitr::kable(tDat)
 ```
 
-Does anybody remember that regression issue when values on your outcome can change for a variable based upon the values for another variable?
+Does anybody remember that regression issue when values on your outcome can change for a variable based upon the values/levels for another variable?
 
 ## Other Research-based Techniques
 

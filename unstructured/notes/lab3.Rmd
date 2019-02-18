@@ -1,0 +1,38 @@
+---
+title: "Classification"
+description: |
+  Lab 3
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE)
+```
+
+# Step 1 -- Reading Tabular Data From PDF.
+
+Last week, we saw how to read text from a pdf or image. While this is certainly helpful, we saw that it was going to retain a line-by-line strucutre for that data. This would work well for anything with text, but it would not do any good with tabular data. 
+If we want to (easily) retain some type of table strucutre from a pdf, we can use the tabulizer package to extract it out. You can pass along a pdf and pull any tables out. You can also do this interactively. 
+
+```{r}
+library(tabulizer)
+
+testData = tabulizer::extract_tables("D:/projects/courses/unstructured/data/tableData.pdf")
+```
+
+
+Once your data is in, you will be faced with a list structure.
+
+```{r}
+testData = as.data.frame(testData)
+```
+
+# Step 2 -- Read In Text Data
+
+# Step 3 -- Read In Table
+
+# Step 4 -- Join And Classify
+

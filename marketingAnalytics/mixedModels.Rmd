@@ -1,0 +1,93 @@
+---
+title: "Mixed Models"
+description: |
+  A Whole New Level To Regressions
+output:
+  radix::radix_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+# Regression
+
+
+Suppose that we have done an experiment in which we performed a manipulation to our email solicitation for our sales. For our experiment, we are wanting to see if these different emails will result in more money spent on our e-platform. We might hope to see some really promising effects:
+
+```{r}
+library(ggplot2)
+
+library(dplyr)
+
+salesData = data.frame(sales = runif(1500, min = 0, max = 100), 
+                       condition = sample(c("treatment", "control"), 1500, replace = TRUE), 
+                       timeZone = sample(c("est", "cst"), 1500, replace = TRUE))
+
+salesData$sales = ifelse(salesData$condition == "treatment", 
+                         salesData$sales + runif(1500, min = 15, max = 25), salesData$sales)
+
+salesData$sales = ifelse(salesData$timeZone == "cst", 
+                         salesData$sales + runif(1500, min = 50, max = 75), salesData$sales)
+
+ggplot(salesData, aes(condition, sales)) + 
+  geom_boxplot() + 
+  theme_minimal()
+
+```
+
+That is a pretty powerful effect and we likely would not even to do much in the way of a statistical test, but we know how important those values are to everyone:
+
+```{r}
+broom::tidy(lm(sales ~ condition, data = salesData))
+```
+
+Certainly an effect is to be found there. If we dig into the data a bit more, though, we might find some variables that shed some light onto our effect. If we have a variable that would relate to time zone, we might have a natural grouping variable. When we have such a variable, we migth consider that we have a hierarchy to our data.
+
+# Mixed Models
+
+You will hear "mixed models", "mixed effects models", "hierarchical linear models", "nested models", and/or "multilevel models"; these are all slight variations on a common theme. For the sake of our work here, we will keep it at mixed models. Within our mixed model, we have an additional source of cloudiness: fixed and random effects. The random effects don't pose much of an issue (we will define it later), but fixed effects have 4 different definitions depending upon whom you ask. For the sake of simplicity (again), we are going to consider fixed effects as an effect on the individual unit of analysis. This will all start to make sense once we take a look at the models.
+
+Mixed models don't get bogged down by large groups and the smaller groups do not get buried by the larger groups (in linear models, you likely learned about balance in *t*-tests; mixed models will attenuate the effects of group imbalance.) and mixed models will not overfit or underfit when we have repeated samples/measurement.
+
+All we really need to do is to add another equation to our models:
+
+$$sales = \beta_{intercept} + \beta_{condition}*Condition + \epsilon$$
+
+The error term would assumed to be normally distributed with a mean of 0 and some standard deviation:
+
+$$\epsilon \sim \mathscr{N}(0, \sigma) $$
+
+With that, we can take those equations and shuffle them around a bit to capture the data generation process for sales:
+
+$$sales \sim \mathscr{N}(\mu, \sigma)$$
+
+$$\mu = \beta_{intercept} + \beta_{condition}*Condition$$
+
+Now with that, we can add the effects for another variable at a higher level (i.e., the effects of time zone):
+
+$$sales = \beta_{intercept} + \beta_{condition}*Condition + (effect_{timezone} +  \epsilon)$$
+
+And look at the error terms:
+
+$$ effect_{timezone} \sim \mathscr{N}(0, \tau)$$
+Where we can say that the effect of time zone is normally distributed with a mean of 0 and some standard deviation. 
+
+And rolling it all together, we get:
+
+$$sales = (\beta_{intercept} + effect_{timezone}) + \beta_{condition}*Condition + \epsilon)$$
+
+We can now take this model and estimate it. 
+
+```{r}
+library(lme4) 
+
+summary(lmer(sales ~ condition + (1|timeZone), data = salesData))
+```
+
+We see our standard regression information (and the coefficients are very similar to what we saw before). We do see a huge difference in our standard errors -- we are adding the individual intercepts for our random effect and getting a better understanding of the uncertainty of the overall average.
+
+We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon time zone after getting the information from our fixed effects (i.e., the sales can move around nearly 41 dollars from time zone alone). We can compare the standard deviation for time zone to the coefficient for condition -- time zone is contributing to more variability within dollars spent than condition. We can also add the variance components and divide by the random effects variance to get its variance accounted for (`r 1771.2 / (1771.2 + 901.5)`).
+

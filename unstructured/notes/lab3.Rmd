@@ -12,27 +12,46 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FALSE)
 ```
 
-# Step 1 -- Reading Tabular Data From PDF.
+# Reading Tabular Data From PDF
 
-Last week, we saw how to read text from a pdf or image. While this is certainly helpful, we saw that it was going to retain a line-by-line strucutre for that data. This would work well for anything with text, but it would not do any good with tabular data. 
+Last week, we saw how to read text from an image. While this is certainly helpful, we saw that it was going to retain a line-by-line strucutre for that data. This would work well for anything with text, but it would not do any good with tabular data. 
+
+<aside>
+You can read text from a pdf with `pdftools`.
+</aside>
+
 If we want to (easily) retain some type of table strucutre from a pdf, we can use the tabulizer package to extract it out. You can pass along a pdf and pull any tables out. You can also do this interactively. 
 
 ```{r}
 library(tabulizer)
 
-testData = tabulizer::extract_tables("D:/projects/courses/unstructured/data/tableData.pdf")
+testData = tabulizer::extract_tables("C://Users/sberry5/Documents/teaching/courses/unstructured/data/tableData.pdf")
 ```
 
-
-Once your data is in, you will be faced with a list structure.
+Once your data is in, you will be faced with a list structure. Converting it should be simple from there.
 
 ```{r}
 testData = as.data.frame(testData)
+
+head(testData)
 ```
 
-# Step 2 -- Read In Text Data
+# Your Task
 
-# Step 3 -- Read In Table
+We have a whole slew of documents in a folder called *lab3Data*. You will find a great many .png files of text and a .pdf file with some information on it about the people. 
 
-# Step 4 -- Join And Classify
+The first step would be reading in all of the text and getting it into a data structure. 
 
+```{r}
+library(tesseract)
+
+doc1_1 = ocr("C://Users/sberry5/Documents/teaching/courses/unstructured/data/doc1_Page_1.png")
+
+doc1_2 = ocr("C://Users/sberry5/Documents/teaching/courses/unstructured/data/doc1_Page_2.png")
+
+# Hint -- you can get these together with the paste functiton and the collapse argument!
+```
+
+Remember, you will want to see if the image needs cleaned before getting onto any analyses.
+
+Once we have all of our data read, cleaned, and organized, you might give a whirl to some form of classification. While we certainly do not have a ton of text to deal with here, it would be good to explore (you can definitely stretch this out to more data if you split on sentences!). 

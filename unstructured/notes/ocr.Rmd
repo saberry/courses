@@ -12,6 +12,20 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+# Packages
+
+```{r, eval = FALSE}
+install.packages(c("kernlab", "magick", "tesseract", "pdftools"))
+```
+
+Give the following a try, but move on if it does not work!
+
+```{r, eval = FALSE}
+install.packages(c("rJava", "tabulizer"))
+```
+
+If it does not work, look at this <a href="https://github.com/ropensci/tabulizer">github</a> page when on your own machine.
+
 # Text
 
 So far, we have been in the world of text made with the sole intention of displaying it on a screen. That is, however, just a very small slice of the text that is out in the world. Take a pdf file, for instance. We would imagine that it has been generated for appearing on a screen, but it is a vastly different animal than our traditional web-based print. 
@@ -76,12 +90,12 @@ pointPlot +
   geom_abline(intercept = 2, color = "green")
 ```
 
-
+That looks like an appropriate hyperplane, but what are the support vectors? They are the individual vectors (observations) that help to define the hyperplane!
 
 
 ## Attrition (again)
 
-R has many classic packages, with `e1071` being one of them. For our work in caret, will also play with `kernlab`.
+R has many classic packages, with `e1071` being one of them. For our work in caret, will play with `kernlab`.
 
 ```{r}
 library(caret)
@@ -92,14 +106,8 @@ library(kernlab)
 
 library(rsample)
 
-# Looking at the data, there are some variables needing conversion
-# to factors.
-
 attrition = attrition %>%
   mutate_at(c("JobLevel", "StockOptionLevel", "TrainingTimesLastYear"), factor)
-
-# We could use base R or caret to perform our splitting, but we can 
-# keep rolling with rsample (praise be to Hadley and Max).
 
 set.seed(1001)
 
@@ -117,8 +125,7 @@ nbAttrition = train(Attrition ~ ., data = attritionTrain,
 nbAttrition
 ```
 
-We see that we have a tuning parameter called `C`. Remember the planes that we drew earlier, where the goal was to correctly classify and maximize the margins? We cannot always do both in reality and the `C` parameter indicates which we prefer. Higher C values will push us towards *c*orrect classification over maximizing the margins. It essentially serves as a regularization parameter. The values that the `C` parameter can take can be very small to very large
-
+We see that we have a tuning parameter called `C` (Cost). Remember the planes that we drew earlier, where the goal was to correctly classify and maximize the margins? We cannot always do both in reality and the `C` parameter indicates which we prefer. Higher C values will push us towards *c*orrect classification over maximizing the margins. It essentially serves as a regularization parameter. The values that the `C` parameter can be very small (think .000001) to very large (1000). 
 
 ```{r}
 svmAttrition = train(Attrition ~ ., data = attritionTrain,
@@ -166,9 +173,11 @@ letterName = read_html("https://archive.ics.uci.edu/ml/machine-learning-database
   na.omit()
 
 names(letterData) = letterName
+
+rmarkdown::paged_table(letterData)
 ```
 
-This is classic letter data. In which the shape of letters has been broken down to 16 features. 
+This is classic letter data, in which the shape of letters has been broken down to 16 features. 
 
 We can go through our now routine data-prep steps:
 
@@ -204,22 +213,32 @@ plot_ly(letterData, x = ~`x-box`, y = ~`y-box`, z = ~onpix, color = ~lettr,
           type= "scatter3d", mode = "markers")
 ```
 
-That is going to be a nope for me. We are dealing with only 3 dimensions (out of several more) and I am not entirely convinced that we could find linear lines to do that splitting for us.
+That is going to be a nope for me. We are dealing with only 3 dimensions (out of several more) and I am not entirely convinced that we could find linear lines to do that splitting for us (eyes cannot, but a machine might be able to).
 
-Instead, we can do some kernel transformations for the SVD. This might cause better separation in our data, thus lending to better predictions. We will also add in a new tuning parameter: sigma. Sigma is going to control the smoothness of the decision boundary. Since we are dealing in nonlinear space, the decision boundary can be very choppy (low values of sigma and likely to overfit -- a local classifier) or very smooth (higher values of sigma and more likely to produce training errors -- a global classifier).
+Instead, we can do some kernel transformations for the SVD. This kernel transformation can take our non-separable linear space, transform it to even higher dimensional space, and then achieve linear separation. This improved separation in data might lead to better predictions. The particular type of kernel we will use for our SVM is a radial basis function.
 
-```{r}
+We will also add in a new tuning parameter: sigma. Sigma is going to control the smoothness of the decision boundary. Since we are dealing in nonlinear space, the decision boundary can be very choppy (low values of sigma and likely to overfit -- essentially a local classifier) or very smooth (higher values of sigma and more likely to produce training errors -- a global classifier).
+
+```{r, eval = FALSE}
 tuningGrid = expand.grid(C = c(1, 5, 10), 
                          sigma = c(.5, 1, 5, 10))
 
-svmLetterLinear = train(lettr ~ ., data = letterTrain, method = "svmRadial", 
+svmLetterRBF = train(lettr ~ ., data = letterTrain, method = "svmRadial", 
                         trControl = svmTrainControl, metric = "Accuracy", 
                         preProcess = c("center", "scale"), 
                         tuneGrid = tuningGrid)
+```
 
-svmLetterLinear
+```{r}
+load("C://Users/sberry5/Documents/teaching/courses/unstructured/data/svmLetterRBF.RData")
 
-svmLetterTest = predict(svmLetterLinear, letterTest)
+svmLetterRBF
+```
+
+It appears that a higher Cost, coupled with a lower sigma, leads to the best prediction
+
+```{r}
+svmLetterRBFTest = predict(svmLetterRBF, letterTest)
 
 confusionMatrix(svmLetterLinear, letterTest$lttr)
 
@@ -234,13 +253,17 @@ Knowing how one might perform OCR with SVM is important, but you probably won't 
 ```{r}
 library(magick)
 
-library(pdftools)
+# library(pdftools)
 
 library(tesseract)
 
 loveCraftLetter = ocr("C://Users/sberry5/Documents/teaching/courses/unstructured/data/lovecraftLetter.jpg")
 
+cat(loveCraftLetter)
+
 letterConfidence = ocr_data("C://Users/sberry5/Documents/teaching/courses/unstructured/data/lovecraftLetter.jpg")
+
+letterConfidence
 ```
 
 That is pretty good on its own. This document also gives us some insight into the difficulties between OCR and ICR (intelligent character recognition). Machines do a great job with machine-generated text, but have a tougher time (out of the gate) with handwritten text.
@@ -262,3 +285,6 @@ cleanedConfidence = ocr_data(cleanedLetter)
   
 ```
 
+Certainly better on some characters/words.
+
+Next time, we are going to talk tabulizer...hopefully!

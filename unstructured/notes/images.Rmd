@@ -17,15 +17,16 @@ knitr::opts_chunk$set(echo = FALSE)
 By now, you have learned several ways of plotting geospatial data, so I am just going to leave you with the following:
 
 ```{r}
-library(ggplot2)
-
 library(leaflet)
 
 library(rgdal)
 
 library(sp)
 
-shpFile = readOGR(dsn = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
+# shpFile = readOGR(dsn = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
+                  stringsAsFactors = FALSE)
+
+shpFile = readOGR(dsn = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
                   stringsAsFactors = FALSE)
 
 latLon = spTransform(shpFile, CRS("+proj=longlat +datum=WGS84"))
@@ -40,7 +41,7 @@ leaflet(latLon) %>%
 
 With so much focus on creating clickable maps, we should focus some attention on actual analyses of those maps. One way we can do this is by using *Point Pattern Analysis* (PPA). PPA comes in many different forms, but we are ultimately going to end up testing if our data has Complete Spatial Randomness (CSR) or if it is distributed in some other way (uniform/regular or clustered).  In PPA, we view CSR as being the null hypothesis.
 
-In PPA, we are not looking at the frequency with which a point occurs.  Instead, we are only looking for a point's presence and where it is in space compared to other points.  The figure below contains all of homes marked for destruction, the geographic mean, and an ellipse that captures the standard distance deviation of the houses. The ellipses are largely stacked on top of each other (save for Anthropology), but they give us a good idea of how the points are distributed (the horizontal ovals match the shape of our data pretty nicely).  If our points were distributed in a different manner, the "deviation ellipses" would give us an idea of shape and direction. 
+In PPA, we are not looking at the frequency with which a point occurs.  Instead, we are only looking for a point's presence and where it is in space compared to other points.  The figure below contains all of homes marked for destruction, the geographic mean, and an ellipse that captures the standard distance deviation of the houses. The ellipses give us a good idea of how the points are distributed.  If our points were distributed in a different manner, the "deviation ellipses" would give us an idea of shape and direction. 
 
 
 ```{r}
@@ -77,8 +78,6 @@ yy = stDevY * sin(z)
 
 alpha = atan2(yy, xx)
 
-# alpha <- alpha%%pi
-
 alpha = alpha * 180/pi
 
 rad = sqrt(xx^2 + yy^2)
@@ -110,14 +109,14 @@ We can also take a look at local intensity by using kernel intensity estimation 
 
 In selecting a method, we essentially have a choice between capturing highly-local events very well or viewing larger smoothed areas without the apparent presence of local instances.  Methods like Diggle and Stoyan pick up on all of the universities better because they are calculating intensity with a smaller radius; however, these offer very little more than the point pattern plot for the data in our example.  In the current example, we use a leave-one-out intensity calculation; in other words it does not assess the kernel intensity contribution of a point in calculating its own intensity.
 
-In the following figure, we can see that the areas with the greatest intensities are clearly hitting where we have the most universities.
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 library(maptools)
 
 library(spatstat)
 
 shpFile = raster::shapefile(x = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
+
+shpFile = raster::shapefile(x = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
 
 window = as.owin(W = shpFile)
 
@@ -126,34 +125,9 @@ allPPP = ppp(x = latLonOnly$x, y = latLonOnly$y,
 
 plot(allPPP, pch = "+")
 
-plot(quadratcount(allPPP, nx = 4, ny = 2), add = T, col = "blue")
+plot(quadratcount(allPPP, nx = 4, ny = 2), add = TRUE, col = "blue")
 
-regionalIntensity = data.frame(usRegion = factor(), number = numeric())
-
-for (i in unique(contUS@data$SUB_REGION)){
-  subPop = contUS[contUS@data$SUB_REGION==i, ]
-  
-  subPPP = ppp(allPPP$x, allPPP$y, window = as.owin(subPop))
-  
-  regionalIntensity = rbind(regionalIntensity, 
-                            data.frame(usRegion = factor(i, levels = contUS@data$SUB_REGION),
-                                       number = subPPP$n))
-}
-
-colorScale = color.scale(regionalIntensity[order(regionalIntensity[, 2]), 2], 
-                         color.spec = "rgb", extremes = c("blue", "orange"), alpha = .05)
-
-par(mar=c(5,13,4,2)) 
-
-barplot(regionalIntensity[order(regionalIntensity[, 2]), 2], 
-        names.arg = regionalIntensity[order(regionalIntensity[, 2]), 1], 
-        horiz = T, las = 2, space = 1, col = colorScale)
-
-plot(density.ppp(allPPP, sigma = bw.ppl(allPPP), edge = T))
-
-plot(Gest(allPPP))
-
-envLTest = envelope(allPPP, Lest, nsim = 150, global = TRUE, verbose = FALSE)
+plot(density.ppp(allPPP, sigma = bw.ppl(allPPP), edge = TRUE))
 ```
 
 
@@ -162,21 +136,21 @@ envLTest = envelope(allPPP, Lest, nsim = 150, global = TRUE, verbose = FALSE)
 All of the descriptive stuff for the PPA is great, but we need to know how our point pattern is distributed.  There are several different nearest neighbor analyses of spatial dependence from which we may choose (e.g., F, G), but we are going to use Ripley's K function, $K(r) =  \lambda^{-1}$, for obvious reasons (less obviously, it handles more points and uses different scale lengths for estimation).  The K function is not exactly a nearest neighbor function in a strict sense, but is often grouped with them.    
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results="hide", fig.align='center'}
-envLTest = envelope(allPPP, Lest, nsim = 150, global = TRUE, verbose = FALSE)
+envKTest = envelope(allPPP, Kest, nsim = 150, global = TRUE, verbose = FALSE)
 
-plot(envLTest, main = "K Function Test")
+plot(enKLTest, main = "K Function Test")
 ```
 
-Examining the plot tells us several things.  The most obvious is that our data (represented by the black line) is below the CSR line.  This would indicate that our point pattern is clustered.  The next bit of information we get from this plot is that our data is not within the CSR envelope; this can be interpreted as "significant"" clustering.  Finally, we can see that the clustering increases as our distance measure unit (*r*) increases.  In looking at our point pattern, this is all readily apparent.   
-
-
+Examining the plot tells us several things.  The most obvious is that our data (represented by the black line) is below the CSR line.  This would indicate that our point pattern is more dispersed than what random data might suggest (if it were above the line, it would mean that our data was more clustered than what random data might suggest).  The next bit of information we get from this plot is that our data is within the CSR envelope; this can be interpreted as "non significant"" dispersion.  Finally, we can see that the dispersion increases as our distance measure unit (*r*) increases.  In looking at our point pattern, this is all readily apparent.   
 
 # Item Detection
 
 ```{r}
 library(OpenImageR)
 
-jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png")
+# jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png")
+
+jason = readImage("D:/projects/courses/unstructured/data/f13JV.png")
 
 longImage = reshape2::melt(jason)
   
@@ -185,30 +159,52 @@ rgbImage = reshape(longImage, timevar = "Var3",
 
 rgbImage = rgbImage %>% 
   mutate(Var1 = rev(Var1), 
-         var2 = rev(Var2),)
+         var2 = rev(Var2))
 
-##########
-# Part 4 # Finding a bright object
-##########
-
-with(rgbImage, plot(Var2, Var1, col = rgb(rgbImage[, 3:5]), asp = 1, pch = "."))
+plot(rgbImage$Var2, rgbImage$Var1, col = rgb(rgbImage[, 3:5]), 
+     asp = 1, pch = ".")
 
 forestOnly = rgbImage[rgbImage$Var2 > 850 | rgbImage$Var2 < 625, ]
 
-forestMean <- apply(forestOnly[, 3:5], 2, mean)  # Find typical sand color values
+forestMean = apply(forestOnly[, 3:5], 2, mean)
 
-forestSD <- apply(forestOnly[, 3:5], 2, sd)
+forestSD = apply(forestOnly[, 3:5], 2, sd)
 
-colorZ <- sweep(rgbImage[, 3:5], 2, forestMean, "-")  # How much do all colors
+colorZ = sweep(rgbImage[, 3:5], 2, forestMean, "-")
 
-colorZ <- sweep(colorZ, 2, forestSD, "/")  # deviate from sand colors?
+colorZ = sweep(colorZ, 2, forestSD, "/")
 
-plot(density(rowSums(colorZ)))
-
-# Plot a "binarized" image, based on color Z-scores
-
-plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 4), asp = 1, pch = ".")
+plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 4), 
+     asp = 1, pch = ".")
 ```
+
+# Feature Extraction
+
+```{r}
+library(magick)
+
+image_read("D:/projects/courses/unstructured/data/f13JV.png") %>% 
+  image_resize("200") %>%
+  image_convert(type = "Grayscale", colorspace = "gray") %>% 
+  image_write(format = "png", path = "D:/projects/courses/unstructured/data/jasonSmall.png", 
+              density = "300x300", quality = 100)
+
+jasonSmall = readImage("D:/projects/courses/unstructured/data/jasonSmall.png")
+
+jasonSmall = base::matrix(jasonSmall, nrow = 83, ncol = 200)
+
+init_gb = GaborFeatureExtract$new()
+
+gb_im = init_gb$gabor_feature_extraction(image = jasonSmall, scales = 5, orientations = 8,
+                                         downsample_gabor = FALSE, downsample_rows = NULL,
+                                          downsample_cols = NULL, gabor_rows = 39, 
+                                          gabor_columns = 39, plot_data = TRUE, 
+                                          normalize_features = FALSE, threads = 3)
+
+init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
+                            margin_btw_plots = 0.65, thresholding = TRUE)
+```
+
 
 
 https://appsilon.com/ship-recognition-in-satellite-imagery-part-i/

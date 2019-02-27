@@ -1,0 +1,95 @@
+0. All true experiments:
+  A) Require sophisticated modeling approaches
+  B) Should be designed with rules of thumb
+  C) Need a treatment and a control group
+  D) Use deep neural networks to generate results
+
+1. When deciding to implement an experiment, which of the following is not a consideration?
+  A) Whether the experiment results would lead to profitabililty
+  B) Whether the experiment results would lead desireable user outcomes
+  C) Whether the experiment is actually feasible to conduct
+  D) Whether the experiment results would lead to marketable findings
+  
+2. Customer satisfaction has long been held as an important metric. Which of the following is gathering steam towards surpassing customer satisfaction?
+  A) Emotional connection
+  B) Emotional intelligence
+  C) Qualitative feedback
+  D) Consumer insight
+  
+3. Hypotheses should be constructed to be:
+  A) Testable and falsifiable
+  B) Speculative and tenuous
+  C) Testable and error free
+  D) Falsifiable and robust
+
+4. Statistical power can most easily be thought of as:
+  A) Having a huge sample
+  B) Having the ability to detect an effect if it exists
+  C) The beta value giving p-values an elbow off the top rope
+  D) Having large regression coefficients
+  
+5. As you effect size decreases in magnitude, the sample size necessary to find that effect:
+  A) Is unchanged
+  B) Decreases
+  C) It is always context dependent
+  D) Increases
+  
+6. Someone on your team (likely Pat or Chris) suggests that an experiment needs to be conducted. This person suggests that you use anywhere between 20 and 30 people per experimental condition to be able to find the effect. What would be the most appropriate response?
+  A) Congratulate Pat/Chris on the sound experimental design
+  B) Carry on as though you did not hear anything
+  C) Gently explain to Pat/Chris that a power analysis would be more appropriate
+  D) Wish Pat/Chris luck on any future endeavours 
+  
+7. If we hold power at .8, what other values do we need to arrive at a suitable sample size?
+  A) Regression slopes and intercepts
+  B) Effect size and alpha 
+  C) Standard errors and dot products
+  D) Hyperpriors and markov chains
+  
+8. If I am wanting to test the difference between the means (not to be confused with the mean difference) of two separate groups, which of the following tests would I use?
+  A) Independent samples t-test
+  B) Mann Whitney U test
+  C) Scheffe's test
+  D) Logistic regression
+  
+9. Type I error is:
+  A) The false positive rate
+  B) The false negative rate
+  C) A looming threat
+  D) The true positive rate divided by the true negative rate
+
+10. Type II error is:
+  A) My favorite error
+  B) 1 - beta
+  C) The false positive rate
+  D) The false negative rate
+
+11. With what you know about Type I and Type II errors (you just answered the questions, so you know), we would say that the alpha value (our p-value) from our test statistics can best be characterized as:
+  A) Our willingness to oversample a critical population
+  B) Our willingness to undersample a critical population
+  C) Our willingness to falsely accept the null hypothesis
+  D) Our willingness to falsely reject the null hypothesis
+
+12. While standard linear models (slims) are broadly useful, they might not take grouping or hiearchical structures into account. If we find such structures within our data and we want to explore how that variable will impact our model, we might want to use:
+  A) A mixed-effects model
+  B) A fixed-effects model
+  C) A random-effects model
+  D) An intercept-only model
+  
+13. When examing the results from a slim and the fixed-effects portion of what some might term a hiearchical linear model, we would likely see the biggest differences:
+  A) In the regression coefficients
+  B) In the standard errors for the coefficients
+  C) In the standard errors for the intercepts
+  D) In the model-adjusted AIC values
+  
+14. Effect sizes like Cohen's d provide a standardized way to examine:
+  A) The magnitude of a difference
+  B) The direction of the difference
+  C) The inverse to the p-value
+  D) The absolute value of the t statistic
+  
+15. During the presentation, many teams hit upon the concept of multicollinearity. Of the following 4 statements, only one will not demonstrate an issue with multicollinearity
+  A) Examining the correlation matrix of predictor variables to look for highly-correlated variables
+  B) Seeing increased effects sizes
+  C) Wild jumps in regression coefficients when adding more variables to the model
+  D) Coefficient sign flips when adding more variables to the model

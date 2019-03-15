@@ -18,8 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Mondays & Wednesdays -- 10:00 to 2:00
 
-These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in chat with me about anything (stats, programming, career, etc.).
-
+These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in and chat with me about absolutely anything (stats, programming, career, etc.).
 
 # Class Days and Time
 
@@ -29,7 +28,7 @@ Location -- L003
 
 # Course Objectives
 
-By the end of this class, I want for you to be able use the general linear model, generalized linear models, and interpret results from both.  While mastery is not required, you will have a high-level understanding of these methods and you should be able to appropriately apply them to problems.  
+By the end of this class, I want for you to be able use the general linear model, generalized linear models, and interpret results from both. You will also be able to identify practical reasons for using mixed effects models and how Bayesian Statistics can be used. While mastery is not required, you will have a high-level understanding of these methods and you should be able to appropriately apply them to problems.  
 
 # Attendance
 
@@ -47,12 +46,11 @@ All homework assignments must be submitted in an html file knitted from Rmarkdow
 
 A significant portion of your grade will come from the homework map (i.e., your path towards statistical enlightenment). The skills roadmap has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
 
-Please feel free to work together on the bronze level of homework (i.e., not the optional sections), but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's. 
+Please feel free to work together on the bronze level of homework, but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's -- you will be graded accordingly. 
 
 ## Skills Map
 
 The skills map is intended to let you get practice in areas that most interest you personally (maybe categorical data does not really interest you, but you enjoy the GLM). If you really want to dig into the theoretical aspects of the topic, you can! Maybe you want to get a feel for how this might work with "dirty" data. Think of the added levels of the homework as sidequests.
-
 
 # Exam
 
@@ -60,7 +58,7 @@ There will be one exam during the course of this semester and it will be a takeh
 
 # Presentations
 
-I promise you that these will be the easiest presentations you will ever give.  Select your coursework that you liked best and prepare a 2 minute overview of what you did and what you found (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation, not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results.  
+I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriate of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a way defensible way.  
 
 # R
 
@@ -91,83 +89,59 @@ B- = 232-250 points
 
 C+ = 223-249 points
 
-# Topic 1 -- Breaking The Point-And-Click Chains
+# Schedule
 
-*Mon., 03-18 & Wed., 03-20*
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
 
-R and RStudio
-
-Reproducible Research
-
-Probability, Data Types, Distributions, and Samples
-
-Model Selection
-
-# Topic 2 -- A Picture Is Worth ~1000 Words
-
-*Mon., 08-29*
-
-Data Exploration
-
-Data Visualization
-
-Visual Inference
-
-# Topic 3 -- Categorical Data Analysis
-
-*Wed., 09-03*
-
-**Homework #1 assigned on Mon., 09-03**
-
-Visualization
-
-Association
-
-Contingency Tables and $\chi^2$
-
-Correspondence Analysis
-
-# Topic 4 -- The General Linear Model
-
-*Mon., 09-05 & Wed., 09-10*
-
-**Homework #2 assigned on Mon., 09-10**
-
-Linear regression   
-
-T-tests  
-
-ANOVA and its variations  
-
-# Topic 5 -- Generalized Linear Models
-
-*Mon., 09-12 & Wed., 09-17  *
-
-Families and Link Functions
-
-Logistic regression
-
-Poisson regression
-
-## **Mon., 09-17 -- TEST 1 ASSIGNED**
-
-# Topic 6 -- Mixed Models
-
-**Homework #3 assigned on Mon., 09-24**
-
-*Wed., 09-19 & Mon., 09-24*
-
-Fixed and random effects
-
-# Topic 7 -- The Great Statistics Civil War
-
-*Wed., 09-26*
-
-Bayesian Data Analysis
-
-# Presentations
-
-*Monday, October 01*
-
-Location: TBD
+data.frame(Week = c(1, "", 2, "", 3, "",
+                    4, "", 5, "", 6, "", 
+                    7, "", 8),
+           Date = c("03/18 (M)", 
+                    "03/20 (W)", 
+                    "03/25 (M)", 
+                    "03/27 (W)", 
+                    "04/01 (M)", 
+                    "04/03 (W)", 
+                    "04/08 (M)", 
+                    "04/10 (W)", 
+                    "04/15 (M)", 
+                    "04/17 (W)", 
+                    "04/22 (M)",
+                    "04/24 (W)",
+                    "04/29 (M)", 
+                    "05/01 (W)", 
+                    "05/06 (M)"), 
+           Topic = c("Introduction", 
+                     "Probability, Data Types, Distributrions, Samples", 
+                     "Data Exploration and Visualization", 
+                     "Categorical Data Analysis", 
+                     "The General Linear Model", 
+                     "The General Linear Model", 
+                     "Generalized Linear Models", 
+                     "Generalized Linear Models", 
+                     "Mixed Models", 
+                     "Mixed Models", 
+                     "Hippitus Hoppitus -- no class",
+                     "Bayesian Data Analysis", 
+                     "Bayesian Data Analysis", 
+                     "Review", 
+                     "Presentations"), 
+           # Description = unlist(topicDesc),
+           Assignments = c("", 
+                        "", 
+                        "Homework #1 Assigned", 
+                        "",
+                        "",
+                        "Homework #2 Assigned",
+                        "",
+                        "",
+                        "Midterm Assigned",
+                        "",
+                        "",
+                        "Homework #3 Assigned", 
+                        "", "", 
+                        "Same time, day, and place")) %>% 
+  knitr::kable(., format = "latex")
+```
 

@@ -89,5 +89,33 @@ summary(lmer(sales ~ condition + (1|timeZone), data = salesData))
 
 We see our standard regression information (and the coefficients are very similar to what we saw before). We do see a huge difference in our standard errors -- we are adding the individual intercepts for our random effect and getting a better understanding of the uncertainty of the overall average.
 
-We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon time zone after getting the information from our fixed effects (i.e., the sales can move around nearly 41 dollars from time zone alone). We can compare the standard deviation for time zone to the coefficient for condition -- time zone is contributing to more variability within dollars spent than condition. We can also add the variance components and divide by the random effects variance to get its variance accounted for (`r 1771.2 / (1771.2 + 901.5)`).
+We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon time zone after getting the information from our fixed effects (i.e., the sales can move around 40 dollars from time zone alone). We can compare the standard deviation for time zone to the coefficient for condition -- time zone is contributing to more variability within dollars spent than condition. We can also add the variance components and divide by the random effects variance to get its variance accounted for -- $intercept_{variance} / (intercept_{variance}  + residual_{variance})$.
 
+That was for a random intercepts model, but we could also add more to it. 
+
+```{r}
+visualizationData = readr::read_csv("https://www.nd.edu/~sberry5/data/visualizationData.csv")
+
+names(visualizationData) = c("spent", "visits", "adSource")
+
+visualizationData$adSource[visualizationData$adSource == "cancer"] = "print"
+
+visualizationData$adSource[visualizationData$adSource == "cardiac"] = "radio"
+
+visualizationData$adSource[visualizationData$adSource == "general"] = "web"
+
+ggplot(visualizationData, aes(spent, visits)) + 
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  theme_minimal()
+```
+That is a pretty clear effect for the number of visits and the total spent.
+
+But let's look a bit further:
+
+```{r}
+ggplot(visualizationData, aes(spent, visits, color = adSource)) + 
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  theme_minimal()
+```

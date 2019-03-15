@@ -7,8 +7,18 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
+
+# Packages
+
+```{r, eval = FALSE}
+install.packages(c("leaflet", "rgdal" , "sp", "plotrix", "maptools", 
+                   "spatstat", "OpenImageR"))
+
+devtools::install_github("bnosac/image", subdir = "image.darknet", build_vignettes = TRUE)
+```
+
 
 # Geospatial Analysis
 
@@ -23,11 +33,11 @@ library(rgdal)
 
 library(sp)
 
-# shpFile = readOGR(dsn = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
+shpFile = readOGR(dsn = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp",
                   stringsAsFactors = FALSE)
 
-shpFile = readOGR(dsn = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
-                  stringsAsFactors = FALSE)
+# shpFile = readOGR(dsn = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
+#                   stringsAsFactors = FALSE)
 
 latLon = spTransform(shpFile, CRS("+proj=longlat +datum=WGS84"))
 
@@ -51,6 +61,8 @@ latLonOnly = lapply(1:length(shpFile@polygons), function(x) {
 })
 
 latLonOnly = dplyr::bind_rows(latLonOnly)
+
+# If you want to even mess around with getting an ellipse on a leaflet map.
 
 meanCenterX = mean(latLonOnly$x)
 
@@ -101,22 +113,20 @@ plotrix::draw.ellipse(meanCenterX, meanCenterY, a = stDevX, b = stDevY, border =
 ```
 
 
-You should notice that the mean locations are different from the mean locations in the interactive map.  Recall that we are only looking at the presence of the points in the PPA, not the number of points at a location.  We are only concerned that Harvard has a point, not that there are 8 points there.  Within the PPA perspective, this makes intuitive sense.  Things are rarely stacked on top of each other in nature (single-family homes, trees, beaver dams), so PPA does not deal with stacked points.
+Recall that we are only looking at the presence of the points in the PPA, not the number of points at a location.  We are only concerned that a house has a point, not that there are any number of points there.  Within the PPA perspective, this makes intuitive sense.  Things are rarely stacked on top of each other in nature (single-family homes, trees, beaver dams), so PPA does not deal with stacked points.
 
 ### Intensity
 
 We can also take a look at local intensity by using kernel intensity estimation -- kernel intensity is essentially kernel density, it just has a different name in the spatial context. You will, however, see them frequently interchanged.  Kernel intensity estimation allows us to determine where in our space points are most likely to occur.  In this particular example, we used likelihood cross-validation bandwidth (i.e., radius) selection.  We could have used a number of different *bandwidth* methods (e.g., Diggle, Stoyan), but this method works well with our data; ideally, we would have selected a method based more on theory, but this is an exploratory process.  
 
-In selecting a method, we essentially have a choice between capturing highly-local events very well or viewing larger smoothed areas without the apparent presence of local instances.  Methods like Diggle and Stoyan pick up on all of the universities better because they are calculating intensity with a smaller radius; however, these offer very little more than the point pattern plot for the data in our example.  In the current example, we use a leave-one-out intensity calculation; in other words it does not assess the kernel intensity contribution of a point in calculating its own intensity.
+In selecting a method, we essentially have a choice between capturing highly-local events very well or viewing larger smoothed areas without the apparent presence of local instances.  Methods like Diggle and Stoyan pick up on all of the points better because they are calculating intensity with a smaller radius; however, these offer very little more than the point pattern plot for the data in our example.  In the current example, we use a leave-one-out intensity calculation; in other words it does not assess the kernel intensity contribution of a point in calculating its own intensity.
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
+```{r}
 library(maptools)
 
 library(spatstat)
 
 shpFile = raster::shapefile(x = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
-
-shpFile = raster::shapefile(x = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
 
 window = as.owin(W = shpFile)
 
@@ -135,22 +145,24 @@ plot(density.ppp(allPPP, sigma = bw.ppl(allPPP), edge = TRUE))
 
 All of the descriptive stuff for the PPA is great, but we need to know how our point pattern is distributed.  There are several different nearest neighbor analyses of spatial dependence from which we may choose (e.g., F, G), but we are going to use Ripley's K function, $K(r) =  \lambda^{-1}$, for obvious reasons (less obviously, it handles more points and uses different scale lengths for estimation).  The K function is not exactly a nearest neighbor function in a strict sense, but is often grouped with them.    
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results="hide", fig.align='center'}
-envKTest = envelope(allPPP, Kest, nsim = 150, global = TRUE, verbose = FALSE)
+```{r}
+envKTest = envelope(allPPP, Kest, nsim = 100, global = TRUE, verbose = FALSE)
 
-plot(enKLTest, main = "K Function Test")
+plot(envKTest, main = "K Function Test")
 ```
 
 Examining the plot tells us several things.  The most obvious is that our data (represented by the black line) is below the CSR line.  This would indicate that our point pattern is more dispersed than what random data might suggest (if it were above the line, it would mean that our data was more clustered than what random data might suggest).  The next bit of information we get from this plot is that our data is within the CSR envelope; this can be interpreted as "non significant"" dispersion.  Finally, we can see that the dispersion increases as our distance measure unit (*r*) increases.  In looking at our point pattern, this is all readily apparent.   
 
 # Item Detection
 
+If faced with finding a needle in a haystack, we can use some pretty simple image detection.
+
 ```{r}
+library(dplyr)
+
 library(OpenImageR)
 
-# jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png")
-
-jason = readImage("D:/projects/courses/unstructured/data/f13JV.png")
+jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png")
 
 longImage = reshape2::melt(jason)
   
@@ -178,18 +190,22 @@ plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 4),
      asp = 1, pch = ".")
 ```
 
+You might want to try this with the *boats* image.
+
 # Feature Extraction
+
+We saw a little bit about feature extraction when looking at the data for the letter. Feature extraction is an important point that we will elaborate more on next time.
 
 ```{r}
 library(magick)
 
-image_read("D:/projects/courses/unstructured/data/f13JV.png") %>% 
+image_read("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png") %>% 
   image_resize("200") %>%
   image_convert(type = "Grayscale", colorspace = "gray") %>% 
-  image_write(format = "png", path = "D:/projects/courses/unstructured/data/jasonSmall.png", 
+  image_write(format = "png", path = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/jasonSmall.png", 
               density = "300x300", quality = 100)
 
-jasonSmall = readImage("D:/projects/courses/unstructured/data/jasonSmall.png")
+jasonSmall = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/jasonSmall.png")
 
 jasonSmall = base::matrix(jasonSmall, nrow = 83, ncol = 200)
 
@@ -201,27 +217,81 @@ gb_im = init_gb$gabor_feature_extraction(image = jasonSmall, scales = 5, orienta
                                           gabor_columns = 39, plot_data = TRUE, 
                                           normalize_features = FALSE, threads = 3)
 
-init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
-                            margin_btw_plots = 0.65, thresholding = TRUE)
+# init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
+#                             margin_btw_plots = 0.65, thresholding = TRUE)
 ```
 
+While this is a bit of a mess, you could try it with the *giraffe* image.
 
 
-https://appsilon.com/ship-recognition-in-satellite-imagery-part-i/
+# Image Identifcation
 
-```{r}
-devtools::install_github("bnosac/image", subdir = "image.darknet", build_vignettes = TRUE)
-```
+*You Only Look Once* image identification is an increasingly-popular technique because of its speed. Instead of using really deep neural networks to transverse an image, YOLO looks at the entire image, imposes a grid, and starts creating bounding boxes with some probability of being an object.
 
+These are also fast because we are dealing with pretrained models -- *tiny yolo* is an existing model and we can use already established *Visual Object Classes* for the weights.
 
-```{r}
+```{r, eval = FALSE}
 library(image.darknet)
 
-yolo_voc <- image_darknet_model(type = "classify", 
+yoloVOC = image_darknet_model(type = "classify", 
+                                     model = "tiny-yolo-voc.cfg", 
+                                     weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
+                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+
+jasonClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
+                          object = yoloVOC, top = 10)
+
+jasonClassifcation
+
+yoloVOCDetect = image_darknet_model(type = "detect", 
+                                     model = "tiny-yolo-voc.cfg", 
+                                     weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
+                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+
+jasonDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
+                          object = yoloVOCDetect, threshold = .001)
+```
+
+
+If we were using computer vision to detect this specific thing, we might not fair too well. We can try some different models -- these can be downloaded <a href="https://pjreddie.com/darknet/imagenet/">here</a>.
+
+
+```{r, eval = FALSE}
+yoloVOC = image_darknet_model(type = "classify", 
+                              model = "darknet19.cfg", 
+                              weights = system.file(package="image.darknet", "models", "darknet19_448.weights"), 
+                              labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+
+jasonClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
+                                            object = yoloVOC, top = 10)
+
+jasonClassifcation
+
+yoloVOCDetect = image_darknet_model(type = "detect", 
+                                    model = "darknet19.cfg", 
+                                    weights = system.file(package="image.darknet", "models", "darknet19_448.weights"), 
+                                    labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+
+jasonDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
+                                   object = yoloVOCDetect, threshold = .01)
+```
+
+Still not too good, so let's find something easier:
+
+```{r, eval = FALSE}
+yoloVOC = image_darknet_model(type = "classify", 
+                                     model = "darknet19.cfg", 
+                                     weights = system.file(package="image.darknet", "models", "darknet19.weights"), 
+                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+
+animalClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/giraffe.jpg", 
+                          object = yoloVOC, top = 10)
+
+yoloVOCDetect = image_darknet_model(type = "detect", 
                                      model = "darknet.cfg", 
                                      weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
                                      labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
 
-x <- image_darknet_classify(file = "C:/Users/sberry5/Downloads/test.jpeg", 
-                          object = yolo_voc)
+animalDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/giraffe.jpg", 
+                          object = yoloVOCDetect, threshold = .001)
 ```

@@ -1,5 +1,5 @@
 ---
-title: "Deep Neural Networks"
+title: "The Future Is Now"
 output:
   radix::radix_article:
     toc: true
@@ -10,21 +10,46 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, eval = FALSE)
 ```
 
+# Packages
+
+```{r}
+install.packages(c("xgboost", "text2vec", "keras", "lime"))
+
+library(dplyr)
+
+library(ggplot2)
+
+library(httr)
+
+library(keras)
+
+library(lime)
+
+library(magick)
+
+library(parallel)
+
+library(rsample)
+
+library(rvest)
+
+library(text2vec)
+
+library(xgboost)
+
+# DO NOT RUN:
+
+install_keras(tensorflow = "gpu")
+```
+
+
 # An Unvisited Past
 
 Before we really get into what might be coming in the (near) future, it would be useful to get a glimpse of the what was helpful in the past. 
 
-Many of the things that we have done together have been computationally intensive. Sometimes there is nothing to be done. Many problems, though, present well for using parallel computing. Instead of running a job on one core of your machine, you can choose to split the job up over how many cores your machine has (usually leaving 1 open for safety reasons).
+Many of the things that we have done together have been computationally intensive. Sometimes there is nothing to be done and you just have to wait. Many problems, though, present well for using parallel computing. Instead of running a job on one core of your machine, you can choose to split the job up over how many cores your machine has (usually leaving 1 open for safety reasons).
 
 ```{r, eval = FALSE}
-library(dplyr)
-
-library(httr)
-
-library(parallel)
-
-library(rvest)
-
 pictureLinks = read_html("https://mendoza.nd.edu/mendoza-directory?employeetype=All") %>% 
   html_nodes(".directory-image .profileimage") %>% 
   html_attr("src")
@@ -177,6 +202,27 @@ file.copy(file.path("D:/projects/courses/unstructured/data/kerasImages/people/",
 
 We are just going to hold off on using this for a while, but it will be important in a bit.
 
+# TensorFlow
+
+Here is a little known fact -- R is slightly slow. Why? Mostly because of its low-level interpreter. For most analyses, R is relying on a Basic Linear Algebra System (BLAS). The default BLAS is used for its stability and not at all for its speed. Any Linux-based users can switch it out easily, but Windows is a massive pain. Great to know, but why is it important. Once you get your head around the prospect that languages have various numeric computation engines living beneath them, it starts to open door to increasing speed.
+
+TensorFlow is nothing but a computation engine and there are many such engines out there now: Torch, Caffe, H_2O, and Theano, to name a few. TensorFlow, however, seems to be doing a pretty good job at being popular. In addition to its popularity, it can also play nicely in many different languages. It does not hurt that it was developed and is still used by Google.
+
+Tensor flow relies on...tensors. These are just multidimensional arrays and can be thought of mapping data up one dimension higher.
+
+![](tensors.jpeg)
+
+# Graphics Processing Unit
+
+While being able to take advantage of our CPU is useful, the GPU is the king of speed. Most of the fancy stuff that we are going to be doing will run on a CPU, but it can take some time to finish. 
+
+This is the computational embodiment of "would you rather fight a horse or 100 geese?". If we think about what GPUs are asked to do -- transorm data into different spaces -- we can see where they might be useful for statistics.
+
+# Keras
+
+Keras has been built as a front-end for different lower-level libraries (like TensorFlow). It just serves to make TensorFlow (or a few other backend) easier to use.
+
+<a href="https://keras.io/#installation">Installation Instructions</a>
 
 # Deep Convolutional Neural Networks
 
@@ -201,36 +247,15 @@ The ReLU activation is probably what you will most commonly see for these models
 
 The softmax function we see at the end is just providing the mapping of the output to class probability distribution.
 
-# TensorFlow
-
-There are many deep-learning languages out there now: Torch, Caffe, H_2O, and Theano, to name a few. TensorFlow, however, seems to be doing a pretty good job at being popular. In addition to its popularity, it can also play nicely in many different languages.
-
-The big question is...what is it? Basically, it is just a numeric computation engine.
-
-![](tensors.jpeg)
-
-
-# Keras
-
-Keras has been built as a front-end for different lower-level libraries (like TensorFlow). It just serves to make TensorFlow easier to use.
-
-```{r}
-library(keras)
-
-install_keras(tensorflow = "gpu")
-```
+The size of the boxes in both figures help to illustrate an important point: the first layers extract very high-level features (just like the features we saw last time). They are picking up on things like lines, colors, and course shapes. As we pass into the next layers, the feature map becomes smaller -- here, we are picking up on small details within the images. If we use a pretrained model, we can freeze those top layers; this will help to keep the broad generalizations from the models.
 
 ## Regression
 
 Classification is always a fun task, but we should note that anything we would normally do on the modeling side can be done in Keras. 
 
-Let's go back to that `attrition` data that we played with when we were using Naive Bayes.
+Let's go back to that `attrition` data that we played with when we were using Naive Bayes. Data prep is always the trickiest part of these models:
 
 ```{r}
-library(rsample)
-
-library(ggplot2)
-
 splits = initial_split(attrition, .6)
 
 trainingDataWhole = training(splits)
@@ -340,7 +365,9 @@ explanation = explain(as.data.frame(testingData), explainer, n_features = 2)
 
 
 ```{r,eval=TRUE, echo=FALSE}
-load("D:/projects/courses/unstructured/notes/explanationOut.RData")
+# load("D:/projects/courses/unstructured/notes/explanationOut.RData")
+
+load("C:/Users/sberry5/Documents/teaching//courses/unstructured/notes/explanationOut.RData")
 
 rmarkdown::paged_table(explanation[,2:9])
 ```
@@ -445,12 +472,6 @@ A boosted model will combine the votes from several models (*bagging*) and then 
 </aside>
 
 ```{r}
-library(lime)
-
-library(xgboost)
-
-library(text2vec)
-
 getMatrix = function(text) {
   tokenized = itoken(text, progressbar = FALSE)
   create_dtm(tokenized, vectorizer = hash_vectorizer())
@@ -479,7 +500,9 @@ meanAccuracy
 ```
 
 ```{r,echo=FALSE, eval=TRUE}
-load("D:/projects/courses/unstructured/notes/limeExplanations.RData")
+# load("D:/projects/courses/unstructured/notes/limeExplanations.RData")
+
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/notes/limeExplanations.RData")
 
 meanAccuracy
 ```
@@ -620,13 +643,9 @@ We can see that we started getting pretty good accuracy towards the end of our e
 
 ## Pretrained Models
 
-There will be times to train your own models, but sometimes a previously used model is useful. If you are trying to identify common items, 
+There will be times to train your own models, but sometimes a previously-used model is useful. If you are trying to identify common items, we might use the *vgg16* model with *imagenet* weights. Many of the pretrained models are going to identify common objects (e.g., Common Objects in Context).
 
 ```{r}
-library(lime)
-
-library(magick)
-
 plot_superpixels("D:/projects/courses/unstructured/data/kerasImages/train/monsters/monster001.jpg")
 ```
 
@@ -665,7 +684,9 @@ imagenet_decode_predictions(res)
 ```
 
 ```{r, echo = FALSE, eval = TRUE}
-load("D:/projects/courses/unstructured/notes/imageNetPred.RData")
+# load("D:/projects/courses/unstructured/notes/imageNetPred.RData")
+
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/notes/imageNetPred.RData")
 
 res1
 ```
@@ -691,3 +712,25 @@ plot_image_explanation(explanation[explanation$case == "monsterTest.jpg", ])
 ![](seth.png)
 
 ![](monsters.png)
+
+# Services
+
+<a href="https://cloud.google.com/vision/">Google</a>
+
+<a href="https://azure.microsoft.com/en-us/services/cognitive-services/">Microsoft</a>
+
+# Fun Stuff
+
+![](berryFam.jpg)
+
+<a href="https://medium.com/mlreview/making-ai-art-with-style-transfer-using-keras-8bb5fa44b216">Style Transfer</a>
+
+<a href="https://github.com/google/deepdream/blob/master/dream.ipynb">Google DeepDream</a>
+
+# Julia
+
+Sunrise...sunset. Everything comes and goes, and languages are not any different.
+
+While it is not there yet, there is a reasonable chance that <a href="https://julialang.org/">Julia</a> is going to cut into the space that R and Python hold.
+
+While we might not need another tool right now, Julia offers some massive advantages over both R and Python. The biggest is pure speed. While it is still young, be on the look-out for it.

@@ -165,6 +165,16 @@ plot(tPower) +
 ```
 
 
+##
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+tPower = pwr.t.test(n = 350, d = 0.25, power = NULL, 
+                    type= "two.sample", alternative = "two.sided")
+
+plot(tPower) + 
+  ggplot2::theme_minimal()
+```
+
 ## About *t*-tests
 
 Here is a snapshot of some data from 1000 rows:
@@ -359,9 +369,9 @@ Does anybody remember that regression issue when values on your outcome can chan
 
 ## Other Research-based Techniques
 
-While not experiments in a strict sense, *conjoint analyses* are useful for determing customer preferences.
+While not experiments in a strict sense, *conjoint analyses* are useful for determing customer preferences for combinations of elements.
 
-*A/B tests* will be our primary focus next time!
+*A/B tests* are essentially *t*-tests for designing communications.
 
 
 ## {data-background="https://media0.giphy.com/media/d9zdrVleeAc0g/200.webp?cid=3640f6095c5f8da34836477255719655" data-background-size="contain"}

@@ -186,6 +186,15 @@ ggplot(data = balancedTableDF) +
 ```
 
 
+Categorical data, especially in combinations, can be thought of as *sets* (i.e., a group of unique objects). Set and their various brethern are cornerstones of math, but the visualization of those sets has largely been in the world of the Venn diagram. Venn diagrams are great for very small sets, but quickly fall apart when our sets become large. 
+
+```{r}
+library(UpSetR)
+
+
+```
+
+
 ## Contingency Tables
 
 

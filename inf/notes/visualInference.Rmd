@@ -13,6 +13,25 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, error = FALSE)
 ```
 
+
+
+## What You Will Need
+
+We can use the <a href="https://github.com/saberry/inferviz">inferviz</a> package to do some interesting things:
+
+```{r, eval = FALSE}
+devtools::install_github("saberry/inferviz")
+```
+
+## Apophenia
+
+It's a real thing and it does have good uses.
+
+![](https://a.1stdibscdn.com/archivesE/upload/f_8718/f_72239431492621734498/P1820172_l.JPG)
+
+Without regard to the visual component, it can have great use in storytelling.
+
+
 ## Testing Hypotheses
 
 We have talked about the purposes of visualization: exploration and inference. When we are thinking about inference in a visual sense, we tend to think about seeing patterns that support our hypotheses. In the coming weeks, we are going to talk about statistical models that assist in inference. We can also create inferential tests (think *p*-values) with visualization.
@@ -48,7 +67,9 @@ ggplot(mtcars, aes(mpg, hp)) +
 Let's maybe consider some more challenging data.
 
 ```{r}
-reviewData = read.csv("http://www.nd.edu/~sberry5/data/allReviews.csv")
+library(rsample)
+
+data("attrition")
 ```
 
 ### Hypotheses
@@ -58,14 +79,14 @@ Let's propose that a relationship exists between the number of words written and
 ### Inference
 
 ```{r, fig.height=9, fig.width=9, fig.pos="center"}
-inferviz::simViz(reviewData, rating, wordCount, 
+inferviz::simViz(attrition, MonthlyIncome, TotalWorkingYears, 
                  distractors = 7, answer = FALSE)
 ```
 
 ### Reality
 
 ```{r, fig.height=9, fig.width=9, fig.pos="center"}
-ggplot(reviewData, aes(rating, wordCount)) +
+ggplot(attrition, aes(MonthlyIncome, TotalWorkingYears)) +
   geom_point() +
   theme_bw()
 ```

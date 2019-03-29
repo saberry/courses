@@ -1,11 +1,8 @@
 ---
 title: "The General Linear Model"
 output:
-  html_document:
-    theme: flatly
-    highlight: zenburn
-    css: documentCSS.css
-    code_folding: show
+  distill::distill_article:
+    css: cleanCSS.css
 ---
 
 ```{r setup, include=FALSE}
@@ -18,20 +15,20 @@ The general linear model is one of the foundations of statistical inference.
 
 The most important thing that you need to know is that it comprises three major techniques:
 
-#### Regression
+**Regression** tests the effects of variables on a dependent variable and will produce a predicted value for each observation.
 
-#### *t*-tests
+**t-tests** are often used to test for differences between groups (or between a population and sample)
 
-#### ANOVA
+**Analysis of variance** can be used to test mean differences between more than 2 groups. 
 
 
 ## Assumptions
 
 As with nearly all statistical tests, the general linear model has some assumptions built into it for proper inference.
 
-- Linear relationship 
+- Linear relationship between variables:
 
-```{r, echo = TRUE}
+```{r, echo = FALSE}
 x = rnorm(1000)
 
 y = x + rnorm(1000)
@@ -42,25 +39,25 @@ plot(x, y)
 ```
 
 
-- Multivariate normality
+- Multivariate normality within errors:
 
 
-```{r}
+```{r, echo = FALSE}
 testMod = lm(y ~ x)
 
 hist(testMod$residuals)
 ```
 
 
-- Little multicollinearity
+- Little multicollinearity (relationships between predictor variables):
 
 
-```{r}
+```{r, echo = FALSE}
 plot(rnorm(100), rnorm(100))
 ```
 
 
-- Homoscedasticity
+- Homoscedasticity (errors should be randomly distributed):
 
 
 ```{r}
@@ -68,7 +65,7 @@ plot(testMod$fitted.values, testMod$residuals)
 ```
 
 
-- No auto-correlations
+- No auto-correlations (time 1 does not influence time 2).
 
 
 Assumptions are very important. They are not, however, statistical death sentences.
@@ -78,7 +75,7 @@ Assumptions are very important. They are not, however, statistical death sentenc
 
 Andrew Gelman has proposed the following assumptions for the modern linear regression:
 
-1.  Validity
+1.  **Validity**
 
 2.  Linearity
 
@@ -88,34 +85,19 @@ Andrew Gelman has proposed the following assumptions for the modern linear regre
 
 5.  Normality of errors
 
-
-### Modern Approaches
-
-Speaking of *modern*, let's get a few things out of the way:
-
-We won't be transforming variables for the sake of it!
-
-We won't be dropping outliers!
-
-
 ## Regression
 
-#### Do You Know...OLS
-
-Linear regression is likely the most important statistical technique.
+Linear regression is one of the most powerful statistical techniques. 
 
 Let's look at the following plot:
 
-```{r}
+```{r, echo = FALSE}
 library(ggplot2)
 
 ggplot(xyDat, aes(x, y)) +
   geom_point(alpha = .75) +
   theme_minimal()
-
-
 ```
-
 
 To perform our regression analysis, we need to make a line pass through the data to satisfy the following conditions:
 
@@ -127,7 +109,7 @@ To perform our regression analysis, we need to make a line pass through the data
 
 Here is a plot with all of those points marked.
 
-```{r}
+```{r, echo = FALSE}
 library(dplyr)
 
 datSummary = xyDat %>% 
@@ -144,14 +126,12 @@ ggplot(xyDat, aes(x, y)) +
   geom_hline(yintercept = datSummary$y, linetype = "dashed", color = "#ff5501") +
   geom_vline(xintercept = datSummary$x, linetype = "dashed", color = "#ff5501") +
   theme_minimal()
-
-
 ```
 
 
 With those identified, we can fit a line through those points.
 
-```{r}
+```{r, echo = FALSE}
 ggplot(xyDat, aes(x, y)) +
   geom_point(alpha = .75) +
   geom_smooth(method = "lm", se = FALSE) +
@@ -159,8 +139,9 @@ ggplot(xyDat, aes(x, y)) +
   geom_hline(yintercept = datSummary$y, linetype = "dashed", color = "#ff5501") +
   geom_vline(xintercept = datSummary$x, linetype = "dashed", color = "#ff5501") +
   theme_minimal()
-
 ```
+
+The regression line gets adjusted so that it has the shortest squared distance between each and every point.
 
 ## Points and Lines
 
@@ -234,7 +215,6 @@ explainedSS = sum((xyMod$fitted.values - mean(xyMod$model$y))^2)
 residualSS = sum((xyMod$model$y - xyMod$fitted.values)^2)
 
 r2 = explainedSS / totalSS
-
 ```
 
 ### *F*-test
@@ -256,7 +236,7 @@ fStat = (residualSS / 1) / (explainedSS / (nrow(xyDat) - 2))
 
 We use the *t*-test to determine if the slope of our line is different than zero. We are essentially testing each of our $\beta$ (coefficients) for significant slope.
 
-## For Real
+### In R
 
 ```{r, eval = TRUE}
 
@@ -297,7 +277,7 @@ Do they make sense?
 
 ## Let's See How This Holds Up
 
-${mpg} = \alpha + \beta_{1} gdp_{t} + \beta_{2}  generosity_{t} + \epsilon$
+${happy} = \alpha + \beta_{1} gdp_{t} + \beta_{2}  generosity_{t} + \epsilon$
 
 ```{r}
 twoPredictors$coefficients['(Intercept)'] + 
@@ -329,6 +309,8 @@ The "Scale-Location" plot is similar to our "Residuals vs Fitted" plot, but is b
 Finally, "Residuals vs Leverage" shows us observations exhibiting a high degree of leverage on our regression.
 
 ## A Demonstration
+
+NOTE! This is only if you want to see the back-end of a linear model. If you do not care, just ignore this part!
 
 ```{r}
 # predictors and response
@@ -439,7 +421,6 @@ No matter the reference category, we are allowing our intercept to differ for ea
 
 # Ordered Factors
 
-
 ```{r}
 library(dplyr)
 
@@ -452,8 +433,6 @@ crimeScore = crimeScore %>%
          ageRec = as.ordered(ageRec))
 ```
 
-
-
 If we include an ordered factor in our model, we might get a surprising result:
 
 ```{r}
@@ -464,7 +443,7 @@ summary(orderedMod)
 ```
 
 
-What R is returning is an orthogonal polynomial contrast.  We are dealing with k-1 higher-order approximations of the trends of the variable (linear, quadratic, cubic, ^4, etc.).  So in our model, we are looking at the effects of each trend level on our dependent variable.
+What R is returning is an *orthogonal polynomial contrast*.  We are dealing with k-1 higher-order approximations of the trends of the variable (linear, quadratic, cubic, ^4, etc.).  So in our model, we are looking at the effects of each trend level on our dependent variable.
 
 ```{r, echo = FALSE}
 
@@ -603,7 +582,6 @@ ggplot(plotDat, aes(cut, meanPrice, group = 1)) +
 ```
 
 From looking at the visualization, we can see how these different "approximations" can fit the data pretty well.
-
 
 Converting them to numeric will entail a careful theoretical examination of the question at hand and the nature of the ordinal categories, but you get the nice and easier numeric interpretation that comes along with the numeric.  Converting them to factors leads us to the treatment contrasts that we used earlier.
 

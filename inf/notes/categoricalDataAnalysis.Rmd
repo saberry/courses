@@ -1,17 +1,22 @@
 ---
 title: "Categorical Data Analysis"
 output:
-  html_document:
-    theme: flatly
+  distill::distill_article:
     toc: true
-    toc_float: true
-    highlight: zenburn
-    css: leviathan.css
+    toc_depth: 2
+    css: cleanCSS.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
 ```
+
+## Packages
+
+```{r, eval = FALSE}
+install.packages(c("UpSetR", "ggmosaic", "vcd", "rgl", "vcdExtra"))
+```
+
 
 Categorical data is common. You will see it in just about any domain that you would want to explore. It does, however, have its own unique set of challenges. For example, we cannot get means for categorical variables and we cannot get correlations between two categorical values. 
 
@@ -186,12 +191,51 @@ ggplot(data = balancedTableDF) +
 ```
 
 
-Categorical data, especially in combinations, can be thought of as *sets* (i.e., a group of unique objects). Set and their various brethern are cornerstones of math, but the visualization of those sets has largely been in the world of the Venn diagram. Venn diagrams are great for very small sets, but quickly fall apart when our sets become large. 
+Some categorical data, especially in combinations, can be thought of as *sets* (i.e., a group of unique objects). Sets and their various brethern are cornerstones of math, but the visualization of those sets has largely been in the world of the Venn diagram. Venn diagrams are great for very small sets, but quickly fall apart when our sets become large. Venn diagrams also have larger issues with circles and proportional sizes.
+
+```{r}
+teamMembership = read.csv("http://www.nd.edu/~sberry5/data/teamMembershipData.csv")
+```
+
+
+```{r, echo = FALSE}
+library(VennDiagram)
+
+venn.plot <- draw.triple.venn(area1 = 114, area2 = 94, area3 = 90, n12 = 6, n23 = 4, n13 = 6, 
+    n123 = 2, category = c("Team 1", "Team 2", "Team 3"), lty = "blank", 
+    fill = c("skyblue", "pink1", "mediumorchid"))
+
+grid.draw(venn.plot)
+```
+
+With different data, but with 5 groups (not that it matters):
+
+```{r, echo = FALSE}
+venn.plot <- draw.quintuple.venn(area1 = 301, area2 = 321, area3 = 311,
+	area4 = 321, area5 = 301, n12 = 188, n13 = 191, n14 = 184, n15 = 177,
+	n23 = 194, n24 = 197, n25 = 190, n34 = 190, n35 = 173, n45 = 186, n123 = 112,
+	n124 = 108, n125 = 108, n134 = 111, n135 = 104, n145 = 104, n234 = 111,
+	n235 = 107, n245 = 110, n345 = 100, n1234 = 61, n1235 = 60, n1245 = 59,
+	n1345 = 58, n2345 = 57, n12345 = 31,
+	category = c("A", "B", "C", "D", "E"),
+	fill = c("dodgerblue", "goldenrod1", "darkorange1", "seagreen3", "orchid3"),
+	cat.col = c("dodgerblue", "goldenrod1", "darkorange1", "seagreen3", "orchid3"),
+	cat.cex = 2,
+	margin = 0.05,
+	cex = c(1.5, 1.5, 1.5, 1.5, 1.5, 1, 0.8, 1, 0.8, 1, 0.8, 1, 0.8, 1, 0.8, 
+	1, 0.55, 1, 0.55, 1, 0.55, 1, 0.55, 1, 0.55, 1, 1, 1, 1, 1, 1.5),
+	ind = TRUE)
+
+grid.draw(venn.plot)
+```
+
+
+Instead, set plots have been created to provide better visual inspections of sets.
 
 ```{r}
 library(UpSetR)
 
-
+upset(teamMembership, order.by = "freq", empty.intersections = "on")
 ```
 
 
@@ -214,17 +258,20 @@ When we are dealing with purely categorical variables, it is not *proper* to say
 
 When we want to see the association between two categorical variables, we can use a few different techniques. The ones that you will most commonly see are Cramer's *V* (also noted as $\phi_c$) and the $\phi$ coefficient. Cramer's *V* is handy because it ranges from 0 (no association) to 1 (perfect association). The $\phi$ coefficient's range will change based upon the distribution of the variables (but only if one of those variables has more than two categories).
 
-In the case of a 2 x 2 contingency table, both Cramer's *V* and the $\phi$ coefficient will be the same (they will also be the same as our old friend Pearson's *r*).
+In the case of a 2 x 2 contingency table, both Cramer's *V* and the $\phi$ coefficient will be the same (they will also be the same as our old friend Pearson's *r*). An important consideration is that Cramer's *V* can actually go up to 1, whereas the other values cannot.
 
 A number of packages will run $\phi_c$ and $\phi$, but you can get them both through the <span class="func">assocstats</span> function in <span class="pack">vcd</span>:
 
 ```{r}
-
 summary(assocstats(table(balanced)))
 ```
 
 
-### Independence
+<aside>
+The contingency coefficient is the square root of $\chi^2$ divided by $N + \chi^2$. It is only ever positive.
+</aside>
+
+We can start to look at these values to decide whether there is association within our data or independence.
 
 ## $chi^2$
 
@@ -277,7 +324,7 @@ nonManagerNonExemptExpected = (row1Total * column1Total) / 100
 nonManagerNonExemptExpected
 ```
 
-So the expected count for that particular cell is 18.8.
+So the expected count for that particular cell is `r nonManagerNonExemptExpected`.
 
 We can do the same for the remaining groups now:
 
@@ -312,6 +359,8 @@ manEx = (managerExemptObserved - managerExemptExpected)^2 /
   managerExemptExpected
 
 chiSquareRes = nonManNonEx + nonManEx + manNonEx + manEx
+
+chiSquareRes
 ```
 
 We can save all of that hassle and just use the <span class="func">chisq.test</span> function. 
@@ -319,6 +368,8 @@ We can save all of that hassle and just use the <span class="func">chisq.test</s
 
 ```{r}
 test = chisq.test(balanced$exemptNY, balanced$managerNY, correct = FALSE)
+
+test
 ```
 
 In a $\chi^2$ test, we can use the *p*-value to tell us whether or not the rows and columns fit the expected distribution or are significantly associated. Given our small $\chi^2$ and our large *p*-value, we can be pretty certain that our rows and columns are not associated (which we have already seen in our association measures above) and the number expected versus the number observed are not significantly different.
@@ -326,7 +377,7 @@ In a $\chi^2$ test, we can use the *p*-value to tell us whether or not the rows 
 
 ### The Yates Correction
 
-You might have noticed the correct = FALSE argument above. If we set that argument to TRUE, we are doing what is called Yate's correction. Our contingency table has binomial frequencies with discreet probability. In our $\chi^2$ test, we are taking those binomial frequencies and applying them a continuous $\chi^2$ distribution (the $\chi^2$ distribution is a distribution of *k* -- meaning number of variables -- sums of squares for normal variables). Yates found this to be tenuous, so subtracted .5 from the difference between expected and observed values.
+You might have noticed the correct = FALSE argument above. If we set that argument to TRUE, we are doing what is called Yate's correction. Our contingency table has binomial frequencies with discreet probability. In our $\chi^2$ test, we are taking those binomial frequencies and applying them to a continuous $\chi^2$ distribution (the $\chi^2$ distribution is a distribution of *k* -- meaning number of variables -- sums of squares for normal variables). Yates found this to be tenuous, so subtracted .5 from the difference between expected and observed values.
 
 ```{r}
 chisq.test(balanced$exemptNY, balanced$managerNY, correct = TRUE)
@@ -412,11 +463,12 @@ shipChiSquare$expected
 ```
 
 Observed: 
+
 ```{r}
 shipChiSquare$observed
 ```
 
-Remember that our $\chi^2$ looking at $observed - expected$ and then dividing by expected. If we take our $observed - expected$ and divide it by square root of expected counts, we get a signed value that we can use for plotting the *directional* associaiton for a particular cell.
+Remember that our $\chi^2$ is looking at $observed - expected$ and then dividing by expected. If we take our $observed - expected$ and divide it by square root of expected counts, we get a signed value that we can use for plotting the *directional* associaiton for a particular cell.
 
 ```{r}
 assoc(shipCount, shade = TRUE)

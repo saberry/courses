@@ -6,6 +6,7 @@ output:
     highlight: zenburn
     css: documentCSS.css
     center: true
+
 ---
 
 ```{r setup, include=FALSE}

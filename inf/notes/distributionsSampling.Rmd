@@ -1,6 +1,7 @@
 ---
 title: |
-      | Distributions
+      | Probability, 
+      | Distributions,
       | Sampling
 output:
   html_document:
@@ -14,6 +15,13 @@ output:
 ```{r setup, include=FALSE, echo = FALSE, warning=FALSE, message = FALSE, comment = ""}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 ```
+
+## Necessary Packages
+
+```{r, eval = FALSE}
+install.packages(c("animation", "ggplot2", "gridExtra", "plotly", "prob"))
+```
+
 
 ## Probability
 
@@ -70,7 +78,7 @@ totalPositive = truePositive + falsePositive
 totalPositive
 ```
 
-Now, of those `R totalPositive` positive tests, what is the probability of being a vampire:
+Now, of those `r totalPositive` positive tests, what is the probability of being a vampire:
 
 ```{r}
 truePositive / totalPositive
@@ -83,6 +91,53 @@ While this might seem silly and contrived (it is), it provides a nice demostrati
 3. We determine some type of uncertainty estimate
 
 While we will get into during the coming weeks, this is essentially what we are doing when we are specifying the power of a test (probability of a hypothesis being correct is .8) and our significance level (there is less than a .05 chance that we have a false positive).
+
+
+### Conditional Probability
+
+The above assumes a level of independence. However, we might be faced with a situation in which we have *conditional probability* -- what is the probability that something will occur given the probability of something occuring before. Playing cards offer a nice example here. If we know that there are 4 aces in a deck of 52 playing cards, then we have a *P(A)* of 4/52 for drawing an ace. If we draw another card, what is the probability that it will also be an ace? It is a *P(B)* of 3/51. We can annotate this as *P(B|A) = 3/51*. If that first card was not an ace, our second card would have a probability of 4/51 of being an ace. Now we have two separate probability statements:
+
+$$P(B|A) = 3/51, \, P(B|A^C) = 4/51$$
+
+
+It would look like this:
+
+$$P(B|A) = \frac{P(A \cap B)}{P(A)}$$
+
+If we want to know the probability that we are going to get two aces, we can compute it as follows:
+
+$$P(both\,aces) = P(A \cap B) = P(A)*P(B|A)$$
+
+```{r}
+pA = 4/52
+
+pBA = 3/51
+
+pA * pBA
+```
+
+
+Let's try it out:
+
+```{r}
+library(prob)
+
+playingCards = cards()
+
+# The following produces every possible combination of 2 drawn cards!
+
+draw2Cards = urnsamples(playingCards, size = 2)
+
+# The following will give the probability of each event.
+
+probabilitySpace = probspace(draw2Cards)
+
+# Now we can look at the probability of getting two aces.
+
+Prob(probabilitySpace, all(rank == "A"))
+```
+
+
 
 ## The Normal Distribution
 
@@ -157,6 +212,8 @@ ggplot(walks, aes(step, position, group = person)) +
 ```
 
 
+### Galton Boards
+
 ```{r, eval = FALSE}
 library(animation)
 
@@ -165,7 +222,11 @@ ani.options(nmax = 215, interval = .5, autoplay = FALSE)
 quincunx()
 ```
 
-If we look at the density plots above, we can see that we are likely dealing with a standard normal distribution ($\mu=0$, $\sigma=1$). Although not requisite, we might want to standardize our variables to fit a standard normal distribution: $z = \frac{x_i-\mu}{\sigma}$. Transforming variables into *z*-scores makes it easy to compare values.
+Although not requisite, we might want to standardize our variables to fit a standard normal distribution: 
+
+$$z = \frac{x_i-\mu}{\sigma}$$
+
+Transforming variables into *z*-scores makes it easy to compare values.
 
 For example, we might take a person who scored a 3.2 on the auditor exam (CIA) in 2015. In 2014, a different auditor also scored a 3.2. Clearly, they both scored the same; however, the story should not end there. Let's consider the following information:
 
@@ -188,10 +249,12 @@ Let's play with this for a little bit:
 ciaExam2014 = rnorm(n = 5000, mean = 3.04, sd = 1.41)
 
 plot(density(ciaExam2014))
+
 abline(v = c(3.04, 3.2), col = c("black", "red"))
 ```
 
 We can find out how many people our person in 2014 bested:
+
 ```{r, echo = TRUE}
 pnorm(3.2, 3.04, 1.41)
 
@@ -200,26 +263,30 @@ pnorm(person2014Z)
 
 You can see that giving the *z* or the actual values produced the same results!
 
-
 We can consider that everything that falls under our curve is 1 (i.e., it is 100%). So, if we wanted to find the proportion of people doing better than our reference people, we would just subtract our distribution function from 1.
 
 ```{r}
 1 - pnorm(person2014Z)
 ```
 
-
-If we use pnorm to find the proportion/probability, we can feed a proportion to qnorm to find z.
+We can also through a proportion to qnorm to find z.
 
 ```{r, echo = TRUE}
 qnorm(.45)
 ```
 
+We can also use the `vistributions` package to play around with probability distributions visually.
+
+```{r, eval = FALSE}
+install.packages(c("shinyBS", "vistributions"))
+
+vistributions::vdist_launch_app()
+```
 
 
 ## Populations and Samples
 
 ### Central Limit Theorem
-
 
 The CLT dictates that as we increase the number of samples from a population, we will begin to approach normally distributed means.
 
@@ -227,18 +294,19 @@ The CLT dictates that as we increase the number of samples from a population, we
 library(gridExtra)
 
 set.seed(123)
+
 r = 10000
+
 n = 200     
 
-
 sample.means = function(samps, r, n) {
-  rowMeans(matrix(samps,nrow=r,ncol=n))
+  rowMeans(matrix(samps, nrow = r, ncol = n))
 }
 
-qqplot.data = function (vec) {
+qqplot.data = function(vec) {
   y = quantile(vec[!is.na(vec)], c(0.25, 0.75))
   x = qnorm(c(0.25, 0.75))
-  slope = diff(y)/diff(x)
+  slope = diff(y) / diff(x)
   int = y[1L] - slope * x[1L]
 
   d = data.frame(resids = vec)
@@ -247,15 +315,20 @@ qqplot.data = function (vec) {
 }
 
 generate.plots = function(samps, samp.means) {
-  p1 = qplot(samps, geom="histogram", bins=30, main="Sample Histogram") + theme_minimal()
-  p2 = qplot(samp.means, geom="histogram", bins=30, main="Sample Mean Histogram") + theme_minimal()
+  p1 = qplot(samps, geom = "histogram", bins = 30, 
+             main = "Sample Histogram") + 
+    theme_minimal()
+  p2 = qplot(samp.means, geom = "histogram", bins = 30, 
+             main="Sample Mean Histogram") + 
+    theme_minimal()
   grid.arrange(p1,p2,ncol=2)
 }
-
 ```
 
 
 ### Uniform
+
+Likely the most vanilla of all distributions, the uniform distribution is pretty simple. We don't even get any fancy Greek letters to give us an idea about its shape, just a minimum and a maximum. Why? Because knowing the min and max will tell us that there is an equal probability of drawing a value anywhere within that range.
 
 ```{r}
 samps = runif(r*n)
@@ -268,8 +341,10 @@ generate.plots(samps, samp.means)
 
 ### Poisson
 
+The poisson is an interesting distribution -- it tends to deal with count-related variables (and will be the distribution we use when we get into poisson regression). It tells us the probability of a count occuring.  We know its $\lambda$, or average number of events (incidence rate).
+
 ```{r}
-samps = rpois(r*n,lambda=3)
+samps = rpois(r * n, lambda = 3)
 
 samp.means = sample.means(samps, r, n)
 
@@ -278,8 +353,11 @@ generate.plots(samps, samp.means)
 
 
 ### Exponential
+
+The exponential distribution is excellent when we are looking at how long something lasts or arrivals within a process (car part life, people joining a line, survival). We can only know one thing about the exponential distribution: $\mu$
+
 ```{r}
-samps = rexp(r*n,rate=1)
+samps = rexp(r * n, rate = 1)
 
 samp.means = sample.means(samps, r, n)
 
@@ -302,7 +380,6 @@ plot(density(population))
 Now, let's take a small sample (*n* = 75) of our population:
 
 ```{r, echo = TRUE}
-
 set.seed(1001)
 
 smallSample = sample(population, 75, replace = FALSE)

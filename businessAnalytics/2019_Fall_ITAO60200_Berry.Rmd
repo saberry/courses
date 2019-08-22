@@ -34,6 +34,8 @@ Location -- Mendoza 161
 
 - Analyze data to test hypotheses, reach conclusions, and defend positions
 
+- Develop action plans based upon results
+
 # Attendance
 
 Attendance in this course is not required, in that I will not be taking attendance; attendance is certainly recommended (and even encouraged).  While the lecture presentations will be available, they are not verbatim recitations of what was covered and you may not rely on them to make it through everything in the course.  Learning statistics takes effort and attending class is but one small part of that effort.  
@@ -42,7 +44,7 @@ Although attendance is not required, we will have a weekly short comprehension c
 
 # Readings
 
-There is no official textbook for this course, but there are going to be a few assorted readings and resources for topics.  I will also share resources for topics.  We (read: you) are absolutely not committed to the readings; however, they will give you some very helpful background and I encourage you to read them; in other words, they are suggested readings, not required readings. 
+There is no official textbook for this course, but there are going to be a few assorted readings and resources for topics.  I will also share resources for topics. We will discuss these readings on Wednesdays of each week. 
 
 # Homework
 
@@ -52,17 +54,14 @@ A significant portion of your grade will come from the homework skills map (i.e.
 
 Please feel free to work together on the bronze level of homework, but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's -- you will be graded accordingly. 
 
-## Skills Map
 
-The skills map is intended to let you get practice in areas that most interest you personally (maybe categorical data does not really interest you, but you enjoy the GLM). If you really want to dig into the theoretical aspects of the topic, you can! Maybe you want to get a feel for how this might work with "dirty" data. Think of the added levels of the homework as sidequests.
+# Exams
 
-# Exam
-
-There will be one exam during the course of this semester and it will be a take-home test.  You **cannot** work together on this.  You will have one week to complete the test.
+There will be one exam during the course of this semester.
 
 # Presentations
 
-I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriateness of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a way defensible way.  
+Team presentations
 
 # R
 
@@ -71,7 +70,7 @@ There are many statistical programs available and you have likely had some expos
 
 # Grade Breakdown
 
-Comprehension Checks -- 30 points (11%)
+Comprehension Checks and participation -- 30 points (11%)
 
 Homework -- 90 points (31%)
 
@@ -96,6 +95,7 @@ C+ = 223-249 points
 # Schedule
 
 ```{r, echo = FALSE, message=FALSE, warning=FALSE}
+
 library(dplyr)
 
 library(kableExtra)
@@ -119,33 +119,57 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                     "10/10 (W)"), 
            Topic = c("Introduction", 
                      "Probability",
-                     "Sampling Distributions", 
-                     "", 
-                     "Confidence Intervals", 
-                     "", 
+                     "Distributions", 
+                     "Point and Interval Estimation", 
                      "Hypothesis Testing", 
-                     "", 
+                     "Experiments", 
                      "The General Linear Model", 
                      "", 
-                     "The General Linear Model", 
-                     "", 
-                     "Optimization",
+                     "Midterm", 
+                     "Non-parametric models", 
+                     "Optimization", 
+                     "AI", 
+                     "",
                      "Presentations"), 
            Assignments = c("", 
                         "", 
-                        "Homework #1 Assigned", 
+                        "Homework #1", 
+                        "",
+                        "Homework #2",
                         "",
                         "",
-                        "Homework #2 Assigned",
                         "",
                         "",
-                        "Midterm Assigned",
                         "",
+                        "Homework #3",
+                        "", 
                         "",
-                        "Homework #3 Assigned", 
-                        "",
-                        "Same time, day, and place")) %>% 
+                        "")) %>% 
   knitr::kable(., format = "latex") %>% 
   kable_styling(latex_options = "striped")
+
 ```
 
+# Readings
+
+```{r, echo = FALSE, message=FALSE, warning=FALSE}
+
+data.frame(Week = c(1:7),
+           Topic = c("Introduction/Probability", 
+                     "Sampling Distributions", 
+                     "Confidence Intervals", 
+                     "Hypothesis Testing", 
+                     "The General Linear Model", 
+                     "Optimization", 
+                     "AI"), 
+           Article = c("Is Data Science the Fourth Pillar of the Scientific Method?", 
+                       "Do You Understand The Variance In Your Data?", 
+                       "", 
+                       "A/B Testing: How Retailers Can Optimize\nTheir Sales With Experimentation", 
+                       "", 
+                       "Don't Just Analyze Your Business, Optimize It", 
+                       "This High-Tech Solution to Disaster\nResponse May Be Too Good to Be True")) %>% 
+  knitr::kable(., format = "latex") %>% 
+  kable_styling(latex_options = "striped")
+
+```

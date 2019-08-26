@@ -25,11 +25,11 @@ install.packages(c("animation", "ggplot2", "gridExtra", "plotly", "prob"))
 
 ## Probability
 
-
+Probability is a foundation for stats. Even though it provides this nice foundation, it can be useful by itself. For example, you might be interested to know the probability that someone will quit within 6 months of working. To find the probability, all we need to do is to take the target outcome and divide it by all possible outcomes: $$P = \frac{target}{all \, \,outcomes}$$. If we see that we have 1200 total employees and 300 of them quit at 6 months, we would find a probability of $$300 / 1200 = .25$$. We could determine that people have a 25% chance of quitting at the 6-month mark.
 
 ### Joint Probability
 
-Not everything occurs in isolation (like vampires...hopefully). Some things, like turnover might have several things happing at the same time.
+Not everything occurs in isolation. Some things, like turnover, might have several things happening at the same time.
 
 Let's look at the following table:
 
@@ -109,15 +109,21 @@ $$ Pr(A|B) = \frac{Pr(A)Pr(B|A)}{Pr(B)} $$
 
 Let's break it down a little bit more. $Pr(A|B)$ is given the conditional probability of A given that B occurred. This is what is known as the *posterior probability*. This is the probability of a customer service employee quitting $Pr(quit|CS)$. 
 
-Now we come to the *prior probability* -- $Pr(A)$. This is the probability of quiting by itself -- $Pr(quit)$ We would get a probability of .5
+Now we come to the *prior probability* -- $Pr(A)$. This is the probability of quitting by itself -- $Pr(quit)$ We would get a probability of .5
 
-Next comes the *liklihood*, which is the inverse of the posterior probability -- $Pr(B|A)$. This is the liklihood that any person in customer service quit -- $Pr(CS|quit)$ How many CS people are there? There are 3. How many quit? Two employees quit
+Next comes the *likelihood*, which is the inverse of the posterior probability -- $Pr(B|A)$. This is the likelihood that any person in customer service quit -- $Pr(CS|quit)$ How many CS people are there? There are 3. How many quit? Two employees quit. Therefore, $2/3 = .67$.
 
+We also have our *marginal probability* -- $Pr(CS)$. Recall that we have 3 customer service employees out of 4 total employees, so our probability of being a customer service employee is .75.
+
+If we put it all together, we get:
+
+$$ Pr(quit|CS) = \frac{.5 * .67}{.75} = .45$$
+This means that the percent probability that someone will quit, given that they work in customer service, is 45%.
 
 $$ Pr(quit|cs) = \frac{Pr(cs|quite)Pr(quit)}{Pr(cs)} $$
+We can also use Bayes Theorem for looking at base rates!
 
-
-Vampirism, while on a tempory cultural downward trend, will always be of interest to some. Let's suppose that we have a test for vampirism. This test will correctly detect vampirism 95% of the time, but 1% of the time there is a false positive (i.e., it says that someone is a vampire, when they are just a mere mortal). Thankfully, vampires are an exceedingly rare lot -- only .1% of the population is actually a vampire. 
+Vampirism, while on a temporary cultural downward trend, will always be of interest to some. Let's suppose that we have a test for vampirism. This test will correctly detect vampirism 95% of the time, but 1% of the time there is a false positive (i.e., it says that someone is a vampire, when they are just a mere mortal). Thankfully, vampires are an exceedingly rare lot -- only .1% of the population is actually a vampire. 
 
 So the natural question would be: what is the probability that you are actually a vampire if you test positive?
 
@@ -176,7 +182,7 @@ Now, of those `r totalPositive` positive tests, what is the probability of being
 truePositive / totalPositive
 ```
 
-While this might seem silly and contrived (it is), it provides a nice demostration for what happens in most of our statistics:
+While this might seem silly and contrived (it is), it provides a nice demonstration for what happens in most of our statistics:
 
 1. We specify some state of the world (e.g., our hypotheses is false or not)
 2. We get some type of imperfect information about our hypothesis (data)
@@ -386,7 +392,7 @@ generate.plots(samps, samp.means)
 
 ### Poisson
 
-The poisson is an interesting distribution -- it tends to deal with count-related variables (and will be the distribution we use when we get into poisson regression). It tells us the probability of a count occuring.  We know its $\lambda$, or average number of events (incidence rate).
+The Poisson is an interesting distribution -- it tends to deal with count-related variables (and will be the distribution we use when we get into Poisson regression). It tells us the probability of a count occurring.  We know its $\lambda$, or average number of events (incidence rate).
 
 ```{r}
 samps = rpois(r * n, lambda = 3)

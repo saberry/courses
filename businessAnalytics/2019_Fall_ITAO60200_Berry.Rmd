@@ -32,6 +32,8 @@ Location -- Mendoza 161
 
 - Identify different distributions and understand when to use each one
 
+- Select the appropriate statistical technique to answer questions
+
 - Analyze data to test hypotheses, reach conclusions, and defend positions
 
 - Develop action plans based upon results
@@ -61,7 +63,7 @@ There will be one exam during the course of this semester.
 
 # Presentations
 
-Team presentations
+Team presentations will be used as a final exam.
 
 # R
 
@@ -74,9 +76,9 @@ Comprehension Checks and participation -- 30 points (11%)
 
 Homework -- 90 points (31%)
 
-Test -- 120 points (41%)
+Test -- 100 points (34%)
 
-Presentation -- 50 points (17%)
+Presentation -- 70 points (24%)
 
 Total -- 290 points
 
@@ -145,30 +147,6 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                         "", 
                         "",
                         "")) %>% 
-  knitr::kable(., format = "latex") %>% 
-  kable_styling(latex_options = "striped")
-
-```
-
-# Readings
-
-```{r, echo = FALSE, message=FALSE, warning=FALSE}
-
-data.frame(Week = c(1:7),
-           Topic = c("Introduction/Probability", 
-                     "Sampling Distributions", 
-                     "Confidence Intervals", 
-                     "Hypothesis Testing", 
-                     "The General Linear Model", 
-                     "Optimization", 
-                     "AI"), 
-           Article = c("Is Data Science the Fourth Pillar of the Scientific Method?", 
-                       "Do You Understand The Variance In Your Data?", 
-                       "", 
-                       "A/B Testing: How Retailers Can Optimize\nTheir Sales With Experimentation", 
-                       "", 
-                       "Don't Just Analyze Your Business, Optimize It", 
-                       "This High-Tech Solution to Disaster\nResponse May Be Too Good to Be True")) %>% 
   knitr::kable(., format = "latex") %>% 
   kable_styling(latex_options = "striped")
 

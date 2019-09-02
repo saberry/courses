@@ -4,7 +4,7 @@ output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, warning=FALSE, message = FALSE, comment = ""}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
 ```
 
 ### The Normal Distribution
@@ -14,9 +14,40 @@ The normal distribution should not be too much of a mystery to us.
 ```{r}
 library(ggplot2)
 
-set.seed(1001)
+library(gridExtra)
+
+set.seed(123)
+
+r = 10000
+
+n = 200     
 
 population = data.frame(population = rnorm(n = 1000000, mean = 0, sd = 1))
+
+sample.means = function(samps, r, n) {
+  rowMeans(matrix(samps, nrow = r, ncol = n))
+}
+
+qqplot.data = function(vec) {
+  y = quantile(vec[!is.na(vec)], c(0.25, 0.75))
+  x = qnorm(c(0.25, 0.75))
+  slope = diff(y) / diff(x)
+  int = y[1L] - slope * x[1L]
+
+  d = data.frame(resids = vec)
+  
+  return(d)
+}
+
+generate.plots = function(samps, samp.means) {
+  p1 = qplot(samps, geom = "histogram", bins = 30, 
+             main = "Sample Histogram") + 
+    theme_minimal()
+  p2 = qplot(samp.means, geom = "histogram", bins = 30, 
+             main="Sample Mean Histogram") + 
+    theme_minimal()
+  grid.arrange(p1,p2,ncol=2)
+}
 
 regions = data.frame(sdPlus1 = mean(population$population) + sd(population$population), 
                      sdMinus1 = mean(population$population) - sd(population$population), 
@@ -50,34 +81,6 @@ ggplot(population, aes(population)) +
 
 The normal distribution is important, as many things are naturally normally distributed.
 
-```{r}
-pos = replicate(1000, sum(runif(16, -1, 1)))
-
-plot(density(pos))
-```
-
-
-```{r}
-library(plyr)
-
-library(ggplot2)
-
-dataSteps = function(stepSize) {
-  walks = data.frame(person = rep(1:100, each = stepSize), 
-           position = unlist(rlply(100, cumsum(c(0, runif((stepSize - 1), -1, 1))))), 
-           step = rep(1:stepSize, times = 100))
-  
-  return(walks)
-}
-
-walks = dataSteps(16)
-
-ggplot(walks, aes(step, position, group = person)) + 
-  geom_line(color = "#ff5500", alpha = .5) + 
-  theme_minimal()
-```
-
-
 ### Galton Boards
 
 ```{r, eval = FALSE}
@@ -94,7 +97,7 @@ quincunx()
 Likely the most vanilla of all distributions, the uniform distribution is pretty simple. We don't even get any fancy Greek letters to give us an idea about its shape, just a minimum and a maximum. Why? Because knowing the min and max will tell us that there is an equal probability of drawing a value anywhere within that range.
 
 ```{r}
-samps = runif(r*n)
+samps = runif(r * n)
 
 samp.means = sample.means(samps, r, n)
 
@@ -127,6 +130,23 @@ samp.means = sample.means(samps, r, n)
 generate.plots(samps, samp.means)
 ```
 
+## Determining Distributions
+
+There might be times when you want to see how a variable might be distributed:
+
+```{r, echo = TRUE}
+
+library(fitdistrplus)
+
+normalTest = rnorm(1000, mean = 2.5, sd = 1)
+
+descdist(normalTest)
+
+plot(fitdist(normalTest, distr = "norm"))
+
+```
+
+Of course we were able to fit a normal distribution to our data -- we created it by drawing from a normal distribution! Determining the underlying distribution of a variable has implications when we start using variables in models. 
 
 
 <!-- Although not requisite, we might want to standardize our variables to fit a standard normal distribution:  -->
@@ -195,46 +215,38 @@ generate.plots(samps, samp.means)
 
 ### Central Limit Theorem
 
-The CLT dictates that as we increase the number of samples from a population, we will begin to approach normally distributed means.
+The CLT dictates that as we increase the number of samples from a population, we will begin to approach normally-distributed means.
 
 ```{r}
-library(gridExtra)
+pos = replicate(1000, sum(runif(16, -1, 1)))
 
-set.seed(123)
+plot(density(pos))
+```
 
-r = 10000
 
-n = 200     
+```{r}
+library(plyr)
 
-sample.means = function(samps, r, n) {
-  rowMeans(matrix(samps, nrow = r, ncol = n))
-}
+library(ggplot2)
 
-qqplot.data = function(vec) {
-  y = quantile(vec[!is.na(vec)], c(0.25, 0.75))
-  x = qnorm(c(0.25, 0.75))
-  slope = diff(y) / diff(x)
-  int = y[1L] - slope * x[1L]
-
-  d = data.frame(resids = vec)
+dataSteps = function(stepSize) {
+  walks = data.frame(person = rep(1:100, each = stepSize), 
+           position = unlist(rlply(100, cumsum(c(0, runif((stepSize - 1), -1, 1))))), 
+           step = rep(1:stepSize, times = 100))
   
-  return(d)
+  return(walks)
 }
 
-generate.plots = function(samps, samp.means) {
-  p1 = qplot(samps, geom = "histogram", bins = 30, 
-             main = "Sample Histogram") + 
-    theme_minimal()
-  p2 = qplot(samp.means, geom = "histogram", bins = 30, 
-             main="Sample Mean Histogram") + 
-    theme_minimal()
-  grid.arrange(p1,p2,ncol=2)
-}
+walks = dataSteps(16)
+
+ggplot(walks, aes(step, position, group = person)) + 
+  geom_line(color = "#ff5500", alpha = .5) + 
+  theme_minimal()
 ```
 
 
 
-## Other Distribution Fun
+### Sampling From Distributions
 
 Let's start with a Gaussian distribution of 10000 observations:
 
@@ -304,7 +316,7 @@ We are also getting into issues related to point estimation.
 
 Let's consider the following:
 
-```{r}
+```{r, echo = TRUE}
 mean(population)
 
 mean(biggerSample)
@@ -312,21 +324,16 @@ mean(biggerSample)
 mean(biggestSample)
 ```
 
-
 We can even take another sample from our population:
 
-```{r}
+```{r, echo = TRUE}
 mean(sample(population, 2500, replace = FALSE))
 ```
 
 Let's take a bigger sample:
 
-```{r}
+```{r, echo = TRUE}
 mean(sample(population, 5000, replace = FALSE))
 ```
 
 In and of itself, this is interesting. It has applications, however, to null hypothesis significance testing.
-
-## Sampling Distributions
-
-All of this has led nicely to sampling distributions. 

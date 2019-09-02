@@ -109,17 +109,17 @@ Let's break it down a little bit more. $Pr(A|B)$ is given the conditional probab
 
 Now we come to the *prior probability* -- $Pr(A)$. This is the probability of quitting by itself -- $Pr(quit)$ We would get a probability of .5.
 
-Next comes the *likelihood*, which is the inverse of the posterior probability -- $Pr(B|A)$. This is the likelihood that any person in customer service quit -- $Pr(CS|quit)$ How many CS people are there? There are 3. How many quit? Two employees quit. Therefore, $2/3 = .67$.
+Next comes the *likelihood*, which is the inverse of the posterior probability -- $Pr(B|A)$. This is the likelihood that any quitters were in CS -- $Pr(CS|quit)$ -- the probability of being in CS given that a person quit. How many quit? Two employees quit. How many of the quitters were in CS? Two. Therefore, $2/2 = 1$.
 
 We also have our *marginal probability* -- $Pr(CS)$. Recall that we have 3 customer service employees out of 4 total employees, so our probability of being a customer service employee is .75.
 
 If we put it all together, we get:
 
-$$ Pr(quit|CS) = \frac{.5 * .67}{.75} = .45$$
-This means that the percent probability that someone will quit, given that they work in customer service, is 45%.
+$$ Pr(quit|CS) = \frac{.5 * 1}{.75} = .67$$
+This means that the percent probability that someone will quit, given that they work in customer service, is 67%.
 
 $$ Pr(quit|cs) = \frac{Pr(cs|quite)Pr(quit)}{Pr(cs)} $$
-This gives us a pretty good idea about base rates. If you just looked at how many people in customer service quit, you might overstate that probability a bit (you would not be paying attention to the base rates and additional information). However, by working through the conditional probability, we can be a lot more confident in our probability value.
+This gives us a pretty good idea about base rates. If you just looked at how many people in customer service quit, you might overstate/understate that probability a bit (you would not be paying attention to the base rates and additional information). However, by working through the conditional probability, we can be a lot more confident in our probability value.
 
 Here is a play on the classic example:
 

@@ -1,0 +1,135 @@
+---
+title: "Point Estimation and Intervals"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE, echo = FALSE, warning=FALSE, message = FALSE, comment = ""}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
+```
+
+The vast majority of our work in stats is to produce point estimates and intervals around that estimate. Even the simple things (e.g., means, medians) are point estimates and we are frequently hear confidence intervals reported.
+
+# Point Estimation
+
+Point estimates are just that -- some single value that provides an estimation for a sample. Like every statistic we ever produce, this point can have varying levels of precision. 
+
+There are a few characteristic that a point estimate should have:
+
+1.  It should be *consistent*. Consistency in point estimation is best achieved through obtaining a sufficiently large sample from the population. 
+
+```{r}
+population = rnorm(100000, mean = 10, sd = 2)
+
+mean(population)
+
+median(population)
+
+replicate(10, mean(sample(population, 100, replace = FALSE)))
+
+replicate(10, mean(sample(population, 1000, replace = FALSE)))
+
+replicate(10, mean(sample(population, 10000, replace = FALSE)))
+
+replicate(10, mean(sample(population, 50000, replace = FALSE)))
+
+```
+
+We can see that increasing our sample yields re-sample means that are closer to the population value.
+
+2.  It should be *unbiased*. The term unbiased can be confusing, only because it can mean different things in different statistical contexts. In most regards, though, unbiased just means that the estimate does not drift (too far) from the population value. This can be illustrated by taking the mean observation value of the sampled statistics.
+
+```{r}
+mean(population)
+
+mean(replicate(10, mean(sample(population, 50000, replace = FALSE))))
+```
+
+
+3.  It should be *efficient*. Here, efficiency means that the best estimator is the one with the smallest *variance* within the sampled estimates. The mean tends to be a pretty efficient estimator for the normal distribution. It does, however, tend to fall apart when dealing with skewed distributions.
+
+```{r}
+skewedPopulation = population^2
+
+hist(skewedPopulation)
+
+mean(skewedPopulation)
+
+median(skewedPopulation)
+```
+
+The variance is worth spending just a little bit of time discussing (it is, after all, a point estimate). Variance (and its friend, standard deviation) will offer insight into how spread out your data is. Here is the formula for the population variance:
+
+$$\sigma^2 = \frac{\sum(X-\mu)^2}{N}$$
+
+Let's compute that by hand:
+
+```{r}
+
+populationMean = mean(population)
+
+sum((population - populationMean)^2) / length(population)
+```
+
+Let's test that against R's var():
+
+```{r}
+var(population)
+```
+
+It looks like we are pretty close, but not exact. We calculated the population variance, but we should probably use the sample variance. This formula is very complicated, so be prepared:
+
+$$\sigma^2 = \frac{\sum(X-\mu)^2}{N - 1}$$
+
+```{r}
+sum((population - populationMean)^2) / (length(population) - 1)
+```
+
+And there we have it. Most of the time, using stats based upon the sample will be perfect. 
+
+The variance is also useful for calculating the standard deviation. All we need to do is to take the square root of the variance and we will get the standard deviation:
+
+```{r}
+sqrt(sum((population - populationMean)^2) / (length(population) - 1))
+
+sd(population)
+```
+
+If you are interested in a very practical applications for standard deviation, portfolio risk and stock volatility can be explored using the standard deviation.
+
+
+# Interval Estimation
+
+Point estimation is great, but what is the key word -- estimation. The word estimation let's us know that our value may not be true to the population value. To help model that uncertainty within our estimate, we can create an interval around that point estimate. Our interval estimates are generally going to take two forms: a 95% interval or a 99% interval. These intervals will give us a "list" of possible ranges that our values could take.
+
+Here is a formula for computing the confidence interval for a mean drawn from a normal distribution:
+
+$$\mu \pm z * \sigma_M$$
+
+We see some stuff here that we have not seen before! The first is the *z*, but this is not going to be too tricky to find. We can use some really handy rules about our normal distribution to find an appropriate *z*. If we want to find 95% of the normal distribution, the corresponding *z* value is 1.96 (roughly). This means that 95% of the normal distribution is 1.96 standard deviations from the mean (it is the 97.5 percentile of the distribution). For a 99% confidence interval, thus covering 99% of the normal distribution, we would use a *z* value of 2.58. 
+
+We also see that bit with the $\mu_M$. That is the *standard error of the mean*. 
+
+$$\sigma_M = \frac{\sigma}{\sqrt{N}}$$
+
+
+
+Let's compute a 95% confidence interval for our population mean:
+
+```{r}
+populationMean = mean(population)
+
+populationSD = sd(population)
+
+populationN = length(population)
+
+error = qnorm(.975) * populationSD / sqrt(populationN)
+
+lowerBound = populationMean - error
+
+upperBound = populationMean + error
+
+lowerBound
+
+upperBound
+```
+

@@ -64,7 +64,6 @@ $$\sigma^2 = \frac{\sum(X-\mu)^2}{N}$$
 Let's compute that by hand:
 
 ```{r}
-
 populationMean = mean(population)
 
 sum((population - populationMean)^2) / length(population)
@@ -84,7 +83,7 @@ $$\sigma^2 = \frac{\sum(X-\mu)^2}{N - 1}$$
 sum((population - populationMean)^2) / (length(population) - 1)
 ```
 
-And there we have it. Most of the time, using stats based upon the sample will be perfect. 
+And there we have it. Most of the time, using stats based upon the sample will be perfect. The whole thing with $N - 1$ relates to the *degrees of freedom*. With any statistic, the degrees of freedom describe the values that can be allowed to vary when calculating the statistic. When dealing with sample variance, we have *N* (the number of people) that can vary. We subtract the 1 because we have to compute 1 parameter before calculating the stat; that parameter is the mean.
 
 The variance is also useful for calculating the standard deviation. All we need to do is to take the square root of the variance and we will get the standard deviation:
 
@@ -99,15 +98,15 @@ If you are interested in a very practical applications for standard deviation, p
 
 # Interval Estimation
 
-Point estimation is great, but what is the key word -- estimation. The word estimation let's us know that our value may not be true to the population value. To help model that uncertainty within our estimate, we can create an interval around that point estimate. Our interval estimates are generally going to take two forms: a 95% interval or a 99% interval. These intervals will give us a "list" of possible ranges that our values could take.
+Point estimation is great, but what is the key word -- estimation. The word estimation let's us know that our value may not be true to the population value. To help model that uncertainty within our estimate, we can create an interval around that point estimate. Our interval estimates are generally going to take two forms: a 95% interval or a 99% interval. These intervals will give us a "list" of possible ranges that our values could take if we repeatedly sample the population.
 
 Here is a formula for computing the confidence interval for a mean drawn from a normal distribution:
 
 $$\mu \pm z * \sigma_M$$
 
-We see some stuff here that we have not seen before! The first is the *z*, but this is not going to be too tricky to find. We can use some really handy rules about our normal distribution to find an appropriate *z*. If we want to find 95% of the normal distribution, the corresponding *z* value is 1.96 (roughly). This means that 95% of the normal distribution is 1.96 standard deviations from the mean (it is the 97.5 percentile of the distribution). For a 99% confidence interval, thus covering 99% of the normal distribution, we would use a *z* value of 2.58. 
+We see some stuff here that we have not seen before! The first is the *z*, but this is not going to be too tricky to find. We can use some really handy rules about our normal distribution to find an appropriate *z*. If we want to find 95% of the normal distribution, the corresponding *z* value is 1.96 (roughly). This means that 95% of the normal distribution is plus/minus 1.96 standard deviations from the mean (it is the 97.5 percentile of the distribution). For a 99% confidence interval, thus covering 99% of the normal distribution, we would use a *z* value of 2.58 (this is the 99.5 percentile of the distribution). 
 
-We also see that bit with the $\mu_M$. That is the *standard error of the mean*. 
+We also see that bit with the $\mu_M$. That is the *standard error of the mean*. The standard error of the mean feels unnecessary, but it is giving us some different information. Where the standard deviation offers how much individuals within the sample deviate from the sample mean, the standard error of the mean is how far the sample mean deviates from the likely population mean.
 
 $$\sigma_M = \frac{\sigma}{\sqrt{N}}$$
 
@@ -118,18 +117,51 @@ Let's compute a 95% confidence interval for our population mean:
 ```{r}
 populationMean = mean(population)
 
-populationSD = sd(population)
+largeSample = sample(population, 10000, replace = FALSE)
 
-populationN = length(population)
+sampleMean = mean(largeSample)
 
-error = qnorm(.975) * populationSD / sqrt(populationN)
+sampleSD = sd(largeSample)
 
-lowerBound = populationMean - error
+sampleN = length(largeSample)
 
-upperBound = populationMean + error
+error = qnorm(.975) * sampleSD / sqrt(sampleN)
+
+lowerBound = sampleMean - error
+
+upperBound = sampleMean + error
 
 lowerBound
 
 upperBound
+```
+
+This is good stuff! We have a population mean of `r populationMean`. Our sample mean is `r sampleMean`, with a lower bound of `r lowerBound` and an upperbound of `r upperBound`. Here is how we discuss this value: we would say that if we drew any number of samples from this population, 95% of the samples will contain the population mean between `r lowerBound` and `r upperBound`. The unspoken implication here is that 5% of those samples will not contain the true population value (the proportional value of .05 probably seems familiar).
+
+While all of this stuff is cool in and of itself, it has practical applications. Most importantly, any point estimate without an interval is not really telling the complete story. Let's consider the following example:
+
+```{r}
+rawScoresMSBA = rnorm(100, mean = 100, sd = 10)
+
+rawScoresMSA = rnorm(100, mean = 100, sd = 25)
+
+group = rep(c("MSBA", "MSA"), each = 100)
+
+completeData = data.frame(scores = c(rawScoresMSBA, rawScoresMSA), 
+                          group = group)
+
+library(dplyr)
+
+completeData %>% 
+  group_by(group) %>% 
+  summarize(mean(scores), sd(scores))
+```
+
+Those two point estimates tell a pretty important story, so let's dig deeper:
+
+```{r}
+sampledData = completeData %>% 
+  group_by(group) %>% 
+  sample_frac(.75, replace = FALSE)
 ```
 

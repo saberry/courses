@@ -116,9 +116,11 @@ We also have our *marginal probability* -- $Pr(CS)$. Recall that we have 3 custo
 If we put it all together, we get:
 
 $$ Pr(quit|CS) = \frac{.5 * 1}{.75} = .67$$
+
 This means that the percent probability that someone will quit, given that they work in customer service, is 67%.
 
 $$ Pr(quit|cs) = \frac{Pr(cs|quite)Pr(quit)}{Pr(cs)} $$
+
 This gives us a pretty good idea about base rates. If you just looked at how many people in customer service quit, you might overstate/understate that probability a bit (you would not be paying attention to the base rates and additional information). However, by working through the conditional probability, we can be a lot more confident in our probability value.
 
 Here is a play on the classic example:

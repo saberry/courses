@@ -1,0 +1,198 @@
+---
+title: "The Dark Art of Scraping"
+author: "A Telephasic Workshop"
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    highlight: pygments
+    center: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, eval = TRUE)
+```
+
+## Scraping Can Be Easy
+
+You have already made friends with `rvest` and SelectorGadget.
+
+With `rvest`, getting tables and anything within the html is very easy.
+
+## But...
+
+Sometimes you need to dig into the structure to find what you want.
+
+##
+
+What if we just want the names from this <a href="https://mendoza.nd.edu/mendoza-directory/">page</a>?
+
+## 
+
+SelectorGadget might lead us to this:
+
+```{r}
+library(rvest)
+
+read_html("https://mendoza.nd.edu/mendoza-directory/") %>% 
+  html_nodes(".a-profile") %>% 
+  html_text() %>%
+  head(10) %>% 
+  knitr::kable() 
+```
+
+##
+
+Is that what we want?
+
+##
+
+We will need to get a little bit more into the CSS to extract only the needed information.
+
+## Learning CSS
+
+With your free time, you can learn about CSS selectors:
+
+<a href = "https://flukeout.github.io/">The CSS Diner</a>
+
+<a href = "https://www.w3schools.com/cssref/css_selectors.asp">Selector Reference</a>
+
+## Using CSS
+
+If we just want the names, we just need to add a little more information about the nodes.
+
+```{r}
+library(rvest)
+
+read_html("https://mendoza.nd.edu/mendoza-directory/") %>% 
+  html_nodes(".a-profile:nth-child(1)") %>% 
+  html_text() %>% 
+  head(10) %>% 
+  knitr::kable() 
+```
+
+
+## The Wheels Always Come Off
+
+You might find that CSS will not always get you what you want.
+
+This is happening with greater frequency.
+
+## When CSS Won't Work
+
+Let's look at the college football playoff ticket options <a href="https://www.cfp-rsvp.com/home">page</a>.
+
+Say we want the listed prices.
+
+## 
+
+This should work:
+
+```{r, eval = FALSE}
+read_html("https://cfp-rsvp.com/home") %>% 
+  html_nodes(".price-current")
+```
+
+## But...
+
+```{r,}
+read_html("https://cfp-rsvp.com/home") %>% 
+  html_nodes(".price-current")
+```
+
+
+## {data-background="https://media.giphy.com/media/YVPwi7L2izTJS/giphy.gif"}
+
+## {data-background="https://media.giphy.com/media/hmE2rlinFM7fi/giphy.gif"}
+
+## Why Did This Happen?
+
+It should have worked, given that we used the appropriate CSS.
+
+The problem is that the information does not really live on that page.
+
+We need to do some additional digging.
+
+##
+
+We need to check the network and look for a specific file.
+
+We don't even need to scrape anything.
+
+## {data-background="https://media.giphy.com/media/VHHxxFAeLaYzS/giphy.gif"}
+
+## json
+
+Some work needs to be done, but you have the information.
+
+```{r, eval = FALSE}
+library(jsonlite)
+
+fromJSON("https://api.dibitnow.com/api/v1/eventPerformers/getEventPerformers?eventId=15")
+```
+
+It is worth noting that json tables are becoming more common.
+
+So scraping them can be a challenge, but finding the source is easy.
+
+##
+
+Sometimes, json won't even be able to save you.
+
+## Selenium
+
+When things get tough, you can turn to Selenium.
+
+Selenium provides web browser automation. 
+
+## Selenium In Action
+
+```{r, eval = FALSE}
+library(purrr)
+
+library(RSelenium)
+
+rd = rsDriver(browser = c("firefox"))
+
+driver = rd$client
+
+driver$navigate("https://www.cfp-rsvp.com/home")
+
+element = driver$findElement("css", "body")
+
+element$sendKeysToElement(list(key = "page_down"))
+
+elements = driver$findElements(using = "css selector", ".price-current")
+
+ticketPrices = map(elements, ~ .x$getElementText()[[1]])
+```
+
+## Just Because We Can
+
+```{r, eval = FALSE}
+element = driver$findElements(using = "css selector", "a[href*=team]")
+
+driver$mouseMoveToLocation(webElement = element[[1]])
+
+driver$click()
+
+driver$close()
+
+rd$server$stop()
+```
+
+
+## {data-background="https://media.giphy.com/media/26tPnAAJxXTvpLwJy/giphy.gif"}
+
+## Wrapping Up
+
+Through `rvest` or `RSelenium`, you will probably be able to scrape the target data.
+
+Both will let you sign into a webpage and proceed onward. 
+
+You can also pass other information into a website through the headers.
+
+##
+
+In any scraping exercise, proceed with care.
+
+Pay attention to the ToS and don't hit the site too hard.

@@ -16,9 +16,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Office Hours
 
-By majority vote!
+MTW: 12:00 to 1:00
 
-We will vote on my official office hour times. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in and chat with me about absolutely anything (stats, programming, career, etc.).
+F: 10:00 to 12:00
+
+These are the official times. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in and chat with me about absolutely anything (stats, programming, career, etc.).
 
 # Class Days and Time
 

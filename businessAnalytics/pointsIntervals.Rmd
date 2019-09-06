@@ -4,10 +4,10 @@ output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE, echo = FALSE, warning=FALSE, message = FALSE, comment = ""}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 ```
 
-The vast majority of our work in stats is to produce point estimates and intervals around that estimate. Even the simple things (e.g., means, medians) are point estimates and we are frequently hear confidence intervals reported.
+The vast majority of our work in stats is to produce point estimates and intervals around that estimate. Even the simple things (e.g., means, medians) are point estimates and we frequently see confidence intervals reported.
 
 # Point Estimation
 
@@ -96,6 +96,10 @@ sd(population)
 If you are interested in a very practical applications for standard deviation, portfolio risk and stock volatility can be explored using the standard deviation.
 
 
+<aside>
+Variance and standard deviation provide essentially the same information, but the sd is on the same scale as the mean.
+</aside>
+
 # Interval Estimation
 
 Point estimation is great, but what is the key word -- estimation. The word estimation let's us know that our value may not be true to the population value. To help model that uncertainty within our estimate, we can create an interval around that point estimate. Our interval estimates are generally going to take two forms: a 95% interval or a 99% interval. These intervals will give us a "list" of possible ranges that our values could take if we repeatedly sample the population.
@@ -136,7 +140,7 @@ lowerBound
 upperBound
 ```
 
-This is good stuff! We have a population mean of `r populationMean`. Our sample mean is `r sampleMean`, with a lower bound of `r lowerBound` and an upperbound of `r upperBound`. Here is how we discuss this value: we would say that if we drew any number of samples from this population, 95% of the samples will contain the population mean between `r lowerBound` and `r upperBound`. The unspoken implication here is that 5% of those samples will not contain the true population value (the proportional value of .05 probably seems familiar).
+This is good stuff! We have a population mean of `r populationMean`. Our sample mean is `r sampleMean`, with a lower bound of `r lowerBound` and an upperbound of `r upperBound`. How we interpret these intervals is important. We would say that if we drew any number of samples from this population, we could produce confidence intervals for every single sample. 95% of the sampled confidence intervals will contain the population mean between each confidence interval's `r lowerBound` and `r upperBound`. The unspoken implication here is that 5% of those samples will not contain the true population value within the confidence interval (the proportional value of .05 probably seems familiar). These confidence intervals are always assumed to come from repeated samples. These confidence intervals absolutely do no allow us to state that we are 95% sure that the population value is between the lower and upper bounds.
 
 While all of this stuff is cool in and of itself, it has practical applications. Most importantly, any point estimate without an interval is not really telling the complete story. Let's consider the following example:
 
@@ -157,11 +161,15 @@ completeData %>%
   summarize(mean(scores), sd(scores))
 ```
 
-Those two point estimates tell a pretty important story, so let's dig deeper:
+Those two point estimates tell a pretty important story, so let's dig deeper and take a sample from our data and look at the intervals:
 
 ```{r}
-sampledData = completeData %>% 
+completeData %>% 
   group_by(group) %>% 
-  sample_frac(.75, replace = FALSE)
+  sample_frac(.75, replace = FALSE) %>% 
+  summarize(mean = mean(scores), sd = sd(scores), n = n()) %>% 
+  mutate(error = qnorm(.975) * sd / n, 
+         lower = mean - error, 
+         upper = mean + error) %>% 
+  as.data.frame()
 ```
-

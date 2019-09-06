@@ -149,68 +149,6 @@ plot(fitdist(normalTest, distr = "norm"))
 Of course we were able to fit a normal distribution to our data -- we created it by drawing from a normal distribution! Determining the underlying distribution of a variable has implications when we start using variables in models. 
 
 
-<!-- Although not requisite, we might want to standardize our variables to fit a standard normal distribution:  -->
-
-<!-- $$z = \frac{x_i-\mu}{\sigma}$$ -->
-
-<!-- Transforming variables into *z*-scores makes it easy to compare values. -->
-
-<!-- For example, we might take a person who scored a 3.2 on the auditor exam (CIA) in 2015. In 2014, a different auditor also scored a 3.2. Clearly, they both scored the same; however, the story should not end there. Let's consider the following information: -->
-
-<!-- In 2014, the CIA had $\mu=3.04$ with a $\sigma=1.41$. -->
-
-<!-- In 2015, the CIA had $\mu=2.86$ with a $\sigma=1.34$. -->
-
-<!-- With that knowledge, which CIA examinee performed better compared to the population of examinees? -->
-
-<!-- ```{r, echo = TRUE} -->
-<!-- person2014Z = (3.2 - 3.04) / 1.41 -->
-
-<!-- person2015Z = (3.2 - 2.86) / 1.34 -->
-<!-- ``` -->
-
-<!-- Let's play with this for a little bit: -->
-
-
-<!-- ```{r, echo = TRUE} -->
-<!-- ciaExam2014 = rnorm(n = 5000, mean = 3.04, sd = 1.41) -->
-
-<!-- plot(density(ciaExam2014)) -->
-
-<!-- abline(v = c(3.04, 3.2), col = c("black", "red")) -->
-<!-- ``` -->
-
-<!-- We can find out how many people our person in 2014 bested: -->
-
-<!-- ```{r, echo = TRUE} -->
-<!-- pnorm(3.2, 3.04, 1.41) -->
-
-<!-- pnorm(person2014Z) -->
-<!-- ``` -->
-
-<!-- You can see that giving the *z* or the actual values produced the same results! -->
-
-<!-- We can consider that everything that falls under our curve is 1 (i.e., it is 100%). So, if we wanted to find the proportion of people doing better than our reference people, we would just subtract our distribution function from 1. -->
-
-<!-- ```{r} -->
-<!-- 1 - pnorm(person2014Z) -->
-<!-- ``` -->
-
-<!-- We can also through a proportion to qnorm to find z. -->
-
-<!-- ```{r, echo = TRUE} -->
-<!-- qnorm(.45) -->
-<!-- ``` -->
-
-<!-- We can also use the `vistributions` package to play around with probability distributions visually. -->
-
-<!-- ```{r, eval = FALSE} -->
-<!-- install.packages(c("shinyBS", "vistributions")) -->
-
-<!-- vistributions::vdist_launch_app() -->
-<!-- ``` -->
-
-
 ## Populations and Samples
 
 ### Central Limit Theorem
@@ -226,8 +164,6 @@ plot(density(pos))
 
 ```{r}
 library(plyr)
-
-library(ggplot2)
 
 dataSteps = function(stepSize) {
   walks = data.frame(person = rep(1:100, each = stepSize), 

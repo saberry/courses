@@ -7,7 +7,7 @@ output: distill::distill_article
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 ```
 
-Linear regression is a powerful tool and can be used on a great number of problems. However, not everything is linear. Within an discipline, there are well-known non-linear effects (e.g., magnetic force and distance, sound pressure and distance). Stress and performance provides an excellent example. Stress comes in a few different forms, namely *eustress* and *distress*. We should all know what distress is, but eustress is commonly called positive stress. It can be experienced whenever we encounter fun challenges or problems. When you have all of the resources (emotional and physical) to cope with a challenge, you should experience eustress. The stress specturm has an interesting relationship to job performance, in that we tend to see an inverted U. At the lowest levels of stress (what we might call complete calm), people tend to not perform at their best. As stress increases (approaching eustress), we see a rapid increase in performance levels. As stress hits a certain point, it becomes distress and performance drops off quickly. It might look something like the following:
+Linear regression is a powerful tool and can be used on a great number of problems. However, not everything is linear. Within many discipline, there are well-known non-linear effects (e.g., magnetic force and distance, sound pressure and distance). Stress and performance provides an excellent example. Stress comes in a few different forms, namely *eustress* and *distress*. We should all know what distress is, but eustress is commonly called positive stress. It can be experienced whenever we encounter fun challenges or problems. When you have all of the resources (emotional and physical) to cope with a challenge, you should experience eustress. The stress specturm has an interesting relationship to job performance, in that we tend to see an inverted U. At the lowest levels of stress (what we might call complete calm), people tend to not perform at their best. As stress increases (approaching eustress), we see a rapid increase in performance levels. As stress hits a certain point, it becomes distress and performance drops off quickly. It might look something like the following:
 
 ```{r, echo = FALSE}
 
@@ -32,135 +32,187 @@ stressPerformance <- genSpline(dt = stressPerformance, newvar = "performance",
 ggplot(stressPerformance, aes(stressLevels, performance)) + 
   geom_point() +
   theme_minimal()
+```
 
+You might need the following packages:
+
+```{r, eval = FALSE}
+install.packages(c("car", "caret", "mgcv", "splines"))
 ```
 
 
-We can see very quickly what would happen if we fit a linear regression model to this data:
 
-```{r, echo = FALSE}
-ggplot(stressPerformance, aes(stressLevels, performance)) + 
-  geom_point() +
-  geom_smooth(method = "lm") +
-  theme_minimal()
-```
-
-And that would be pretty close to a 0 coefficient. We clearly see a relationship, but the linear model is not built for such relationships.
-
-```{r}
-summary(lm(performance ~ stressLevels, data = stressPerformance))
-```
-
-
-# Quadratic Regression
-
-We can take our predictor variable, stressLevels, and take it to a higher power. We can use some data for performance and stress similar to what we just saw:
+Let's read in some similar data and play around:
 
 ```{r}
 stressPerformance = read.csv("http://www.nd.edu/~sberry5/data/stressPerformance.csv")
-
-ggplot(stressPerformance, aes(stressLevels, performance)) + 
-  geom_point() +
-  stat_smooth(method = "lm", formula = y ~ I(x^2)) +
-  theme_minimal()
 ```
-
-That really does not get us there, so we can try a higher-order term -- maybe a cubic:
-
-```{r}
-ggplot(stressPerformance, aes(stressLevels, performance)) + 
-  geom_point() +
-  stat_smooth(method = "lm", formula = y ~ I(x^3)) +
-  theme_minimal()
-```
-
-We could keep going, but we aren't going to see too much improvement past a certain point. No matter what we do, we won't be able to capture all of the data with a quadratic term.
-
-For the sake of it, let's see how a model will perform:
-
-```{r}
-summary(lm(performance ~ I(stressLevels^3), data = stressPerformance))
-```
-
-We see that stressLevels could be a significant predictor, but we are not really accounting for much in the way of variance.
-
-# Polynomial Regression
-
-A starting place is to try to fit a polynomial term to our linear regression model -- thus, a polynomial regression. 
-
-```{r}
-ggplot(stressPerformance, aes(stressLevels, performance)) + 
-  geom_point() +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 2)) +
-  theme_minimal()
-```
-
-This is looking pretty good! We could try to fit a larger polynomial:
-
-```{r}
-ggplot(stressPerformance, aes(stressLevels, performance)) + 
-  geom_point() +
-  stat_smooth(method = "lm", formula = y ~ poly(x, 3)) +
-  theme_minimal()
-```
-
-We could also see which model has the best performance:
-
-```{r}
-summary(lm(performance ~ poly(stressLevels, 2), data = stressPerformance))
-```
-
-```{r}
-summary(lm(performance ~ poly(stressLevels, 3), data = stressPerformance))
-```
-
-# Non-linear Regression
-
-Real talk time -- a non-linear regression is really hard to fit. Why is it hard to fit? You have to know the form that your nonlinearity takes so that you can model that form. If you don't know the mathematical shape of your nonlinear function, then you would be guessing.
-
-# Spline Regression
-
-## Smoothing
-
-There are many types of smooths. You will frequently see the loess (local regression – sometimes you will hear it as locally-weighted scatterplot smoothing or lowess). With a loess line, we are fitting some polynomial (generally the linear or the quadratic) to a small section of our data at a time (i.e., a local group) – this is a little bit more complicated than our moving average window type of smooth. Each small section has an associated line and each line gets joined with the line in the next group (these are referred to as knots). Since we are largely in control here, we get to specify how wiggly things might get.
-
-You will also see regression splines (largely what we will be using here today). The great thing about these is that we can penalize them!
-
-# Generalized Additive Models
-
-## Additive Models
-
-Very briefly, an additive model is not much different than our normal interpretation of a model. In our additive model, we can look at the affect of a predictor on a dependent variable without any consideration for what other variables might be in the model. We can add these effects to best predict our response.
-
-## GAM
-
-During the last few weeks, we have largely been working in the generalized linear models framework. We are going to stay in the general vicinity, but start moving to some more interesting places! We have mostly seen straight lines being fitted to various things. As many of you have likely noted, it often seems like a straight line doesn’t really fit the relationships that we can see within our data. So, what do you do? We could always go the transformation route, but that seems a bit antiquated at this point...don’t you think? 
-
-What if we fit a smooth line to our data instead of trying to jam a single straight line somewhere it does not want to be or do something like throwing a single quadratic term into the model? Now we are doing something interesting.
 
 The `car` package is old-school R, but still has some handy stuff for us. 
 
 ```{r}
 library(car)
 
-library(dplyr)
-
-plot(execPayShort[1:1000,])
+scatterplotMatrix(stressPerformance)
 ```
 
-The splom that we just saw gives us a really good idea about the relationships within the data. The green line is a linear line and the red line is a smoothed line. If those are not sitting on top of each other, then you might want to think carefully about the relationship that is present.
+The splom gives us a really good idea about the relationships within the data -- don't use if for big data sets, but having the bivariate relationships in one place can be handy for initial data exploration.
+
+We can see very quickly what would happen if we fit a linear regression model to this data:
 
 ```{r}
-plot(SALARY ~ AGE, data = execPayShort)
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ AGE, 
-                data = execPayShort))[order(execPayShort$AGE)], col = "red")
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ I(AGE^2), 
-                data = execPayShort))[order(execPayShort$AGE)], col = "blue")
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ I(AGE^3), 
-                data = execPayShort))[order(execPayShort$AGE)], col = "green")
+ggplot(stressPerformance, aes(stressLevels, performance)) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_minimal()
+```
+
+And that would be pretty close to a 0 coefficient. We clearly see a relationship, but the linear model is not exactly built for such relationships.
+
+```{r}
+linearMod = lm(performance ~ stressLevels, 
+               data = stressPerformance)
+
+summary(linearMod)
+
+caret::RMSE(linearMod$fitted.values, stressPerformance$performance)
+```
+
+We can see that our linear model does not do very well and our root mean squared error (RMSE) is pretty bad.
+
+<aside>
+The RMSE is defined as the standard deviation of the residuals. The lower the value, the less dispersion there is around our regression line. It is a popular metric for assessing prediction accuracy.
+</aside>
+
+# Polynomial Regression
+
+When encountering something that looks nonlinear, one of the first steps is to transform the predictor variable. We can take our predictor variable, stressLevels, and take it to a higher power.
+
+```{r}
+ggplot(stressPerformance, aes(stressLevels, performance)) + 
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2)) +
+  theme_minimal()
+```
+
+While that looks pretty good, we could try to go up one more term:
+
+```{r}
+ggplot(stressPerformance, aes(stressLevels, performance)) + 
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x + I(x^2) + I(x^3)) +
+  theme_minimal()
+```
+
+We could keep going, but we aren't going to see too much improvement past a certain point.
+
+For the sake of it, let's see how a model will perform:
+
+```{r}
+summary(lm(performance ~ stressLevels + I(stressLevels^2), 
+           data = stressPerformance))
+```
+
+For this model, we have: $y = b_0 + b_1X + b_2X^2$. The coefficient for $b_1$ will give us the rate of change (just like always) and $b_2$ tells us how the direction and steepness of the curve (a positive value is upwards, while a negative value is downwards).
+
+As a shortcut, we could just use the `poly` function:
+
+```{r}
+ggplot(stressPerformance, aes(stressLevels, performance)) + 
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ poly(x, 2, raw = TRUE)) +
+  theme_minimal()
+```
+
+We could also see which model has the best performance:
+
+```{r}
+quadMod = lm(performance ~ poly(stressLevels, 2), 
+             data = stressPerformance)
+
+summary(quadMod)
+```
+
+```{r}
+cubicMod = lm(performance ~ poly(stressLevels, 3), 
+              data = stressPerformance)
+
+summary(cubicMod)
+```
+
+```{r}
+caret::RMSE(quadMod$fitted.values, stressPerformance$performance)
+```
+
+This gets to an interesting point -- we see that we have a nonlinear relationship, but we are still using the linear regression. Why might that be? It is because our coefficients are still linear (there is also this wild stuff about the parameters being linear in multidimensional space -- check it out sometime). In other words, we are applying the higher order term to the data, not the coefficient.
+
+# Non-linear Regression
+
+Real talk time -- a non-linear regression is really hard to fit. Why is it hard to fit? You have to know the form that your nonlinearity takes so that you can model that form. If you don't know the mathematical shape of your nonlinear function, then you would be guessing. Some things in the world take well-known mathematical forms and others could be a wiggly mess.
+
+Since our inverted U is a parabola, we can supply the necessary formula: $a(x - b)^2 + c$. The *a* paramter controls our parabola's direction -- a positive value makes a normal U and a negative makes an inverted U. It also controls how steep the curve is. The *b* and *c* parameters specify the vertex.
+
+We also have to supply some initial starting points for the nonlinear regression. Whenever we deal in nonlinear space, crazy things happen and we will see more of that when we talk about optimization.
+
+```{r}
+nonLinearMod = nls(performance ~ I((-a * (stressLevels - b)^2) + c), 
+                   data = stressPerformance, 
+                   start = list(a = .5, b = 20, c = 20))
+
+summary(nonLinearMod)
+```
+
+What can we take from this? Really just that our data fits this model pretty well.
+
+
+```{r}
+caret::RMSE(fitted(nonLinearMod), stressPerformance$performance)
+
+plot(stressPerformance$stressLevels, stressPerformance$performance)
+
+points(stressPerformance$stressLevels, predict(nonLinearMod, newdata = stressPerformance), 
+       col = "cornflowerblue")
+```
+
+
+# Smoothing
+
+There are many types of smooths. You will frequently see the loess (local regression – sometimes you will hear it as locally-weighted scatterplot smoothing or lowess). With a loess line, we are fitting some polynomial (generally the linear or the quadratic) to a small section of our data at a time (i.e., a local group) – this is a little bit more complicated than our moving average window type of smooth. Each small section has an associated line and each line gets joined with the line in the next group (these are referred to as *knots*). Since we are largely in control here, we get to specify how wiggly things might get.
+
+```{r}
+library(splines)
+
+knots = quantile(stressPerformance$stressLevels, p = c(0.25, 0.5, 0.75))
+
+splineModel = lm(performance ~ bs(stressLevels, knots = knots), 
+                 data = stressPerformance)
+
+summary(splineModel)
+```
+
+Check out those coefficients! What do they mean? Nobody knows! Once we start fitting splines, the coefficients are not interpretable. What is important, though, is the prediction.
+
+```{r}
+caret::RMSE(splineModel$fitted.values, stressPerformance$performance)
+```
+
+We can see that our prediction rate is getting better now.
+
+## GAM
+
+Very briefly, an additive model is not much different than our normal interpretation of a model. In our additive model, we can look at the effect of a predictor on a dependent variable without any consideration for what other variables might be in the model. We can add these effects to best predict our response.
+
+```{r}
+plot(performance ~ stressLevels, data = stressPerformance)
+lines(sort(stressPerformance$stressLevels),
+      fitted(lm(performance ~ stressLevels, 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "red")
+lines(sort(stressPerformance$stressLevels), 
+      fitted(lm(performance ~ I(stressLevels^2), 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "blue")
+lines(sort(stressPerformance$stressLevels), 
+      fitted(lm(performance ~ I(stressLevels^3), 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "green")
 ```
 
 The preceding figure shows us 3 different lines: a linear regression line, and two higher-order trends. We will use them as a reference.
@@ -168,7 +220,7 @@ The preceding figure shows us 3 different lines: a linear regression line, and t
 Let’s check this out:
 
 ```{r}
-lmTest = lm(SALARY ~ AGE, data = execPayShort)
+lmTest = lm(performance ~ stressLevels, data = stressPerformance)
 
 summary(lmTest)
 ```
@@ -179,7 +231,7 @@ Nothing too new here, so let’s move along!
 ```{r}
 library(mgcv)
 
-gamTest = gam(SALARY ~ AGE, data = execPayShort)
+gamTest = gam(performance ~ stressLevels, data = stressPerformance)
 
 summary(gamTest)
 ```
@@ -189,47 +241,61 @@ You should notice that there is no difference between our standard linear model 
 Let’s try to smooth. In the following code, you will notice how we wrapped out term in <span class="func">s</span>(). Believe it or not, this is to specify a smooth term. We could spend a whole week on different ways to smooth things, but we will just stick with <span class="func">s</span>() and its defaults for now.
 
 ```{r}
-gamTestSmooth = gam(SALARY ~ s(AGE), data = execPayShort)
+gamTestSmooth = gam(performance ~ s(stressLevels), 
+                    data = stressPerformance)
 
 summary(gamTestSmooth)
+
+plot(gamTestSmooth)
 ```
 
 After smoothing our term, we can see that our output has changed. Instead of getting a linear regression coefficient, we get an edf (estimated degrees of freedom). While these edf values lack the clean interpretation of our linear regression coefficients, we can still get a great deal of information from them. The closer edf is to 1, the more linear in nature the term actually is. However, as edf goes beyond 1, we have an increasingly wigglier relationship. 
 
 Since we included a smooth term, we can see that our model fit has improved from our previous gam without a smooth term.
 
+```{r}
+caret::RMSE(gamTestSmooth$fitted.values, stressPerformance$performance)
+```
+
+
 If we plot our newly-fitted gam model back onto our previous visualization, here is what we get:
 
 ```{r}
-plot(SALARY ~ AGE, data = execPayShort)
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ AGE, 
-                data = execPayShort))[order(execPayShort$AGE)], col = "red")
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ I(AGE^2), 
-                data = execPayShort))[order(execPayShort$AGE)], col = "blue")
-lines(sort(execPayShort$AGE), 
-      fitted(lm(SALARY ~ I(AGE^3), 
-                data = execPayShort))[order(execPayShort$AGE)], col = "green")
-lines(sort(execPayShort$AGE), 
-      fitted(gam(SALARY ~ s(AGE), data = execPayShort))[order(execPayShort$AGE)], 
+plot(performance ~ stressLevels, data = stressPerformance)
+lines(sort(stressPerformance$stressLevels),
+      fitted(lm(performance ~ stressLevels, 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "red")
+lines(sort(stressPerformance$stressLevels), 
+      fitted(lm(performance ~ stressLevels + I(stressLevels^2), 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "blue")
+lines(sort(stressPerformance$stressLevels), 
+      fitted(lm(performance ~ stressLevels + I(stressLevels^2) + I(stressLevels^3), 
+                data = stressPerformance))[order(stressPerformance$stressLevels)], col = "green")
+lines(sort(stressPerformance$stressLevels), 
+      fitted(gam(performance ~ s(stressLevels), data = stressPerformance))[order(stressPerformance$stressLevels)], 
       col = "orange") 
 ```
 
-The soft orange line is our gam fit. We can see that it does not rocket upwards, like our higher-order terms, but is instead capturing a bit of the downward trend towards the larger values of the enabling variable.
+The soft orange line is our gam fit. This is where things are getting interesting. We can see that our gam line is not really a parabola like the polynomial terms. 
 
 ## Bias/Variance Trade-Off
 
-The wiggle can be controlled and you are the one to control it (all models are your monster, so build them in a way that you can control it). An important consideration to make with the wiggle (and with almost all of our decision from here on out) is the bias/variance trade-off. You will see this called other things (e.g., error/variance), depending on with whom you are hanging around. Since we have only talked about bias briefly, we do not need to worry about getting bias in this sense conflated with anything else.
+The wiggle can be controlled and you are the one to control it (all models are your monster, so build them in a way that you can control it). An important consideration to make with the wiggle is the bias/variance trade-off. You will see this called other things (e.g., error/variance), depending on with whom you are hanging around. Since we have only talked about bias briefly, we do not need to worry about getting bias in this sense conflated with anything else.
 
 It works like this: you cannot have your cake and eat it too. Do you want your in-sample predicition to be awesome (low bias)? Great! You can count on getting that at the expense of higher variance. The lower the variance, the better your model will predict new data. Well that sounds easy – just go with the lowest variance. But...that might contribute to missing some weird pattern. Again, it is just a decision to make (you likely won't be facing off with your monsters in the Arctic in the end).
+
+<aside>
+While conceptually dissimilar, the bias/variance trade is in the same boat as Type I/Type II errors (or sensitivity -- true positive -- and specificity -- true negative -- in machine learning parlance). 
+</aside>
 
 With our gam models, the wigglier your line, the lower your bias will be and the better you are doing at predicting in sample. 
 
 ```{r}
 library(ggplot2)
 
-gamTestLambda1 = gam(SALARY ~ s(AGE, sp = 0, k = 40), data = execPayShort)
+gamTestLambda1 = gam(performance ~ s(stressLevels, sp = 0, k = 80, bs = "cr"), 
+                     data = stressPerformance, 
+                     method = "REML")
 
 p = predict(gamTestLambda1, type = "lpmatrix")
 
@@ -237,14 +303,15 @@ beta = coef(gamTestLambda1)
 
 s = p %*% beta
 
-plotDat = cbind.data.frame(s = s, age = na.omit(execPayShort$AGE))
+plotDat = cbind.data.frame(s = s, stress = na.omit(stressPerformance$stressLevels))
 
-gam1Plot = ggplot(plotDat, aes(age, s)) + 
+gam1Plot = ggplot(plotDat, aes(stress, s)) + 
   geom_line(color = "#ff5500", size = 2.5) +
-  geom_point(data = execPayShort, aes(AGE, SALARY), alpha = .5) +
+  geom_point(data = stressPerformance, aes(stressLevels, performance), alpha = .5) +
   theme_minimal()
 
-gamTestLambda9 = gam(SALARY ~ s(AGE, sp = 0.9, k = 40), data = execPayShort)
+gamTestLambda9 = gam(performance ~ s(stressLevels, sp = .9, k = 40), 
+                     data = stressPerformance)
 
 p = predict(gamTestLambda9, type = "lpmatrix")
 
@@ -252,11 +319,11 @@ beta = coef(gamTestLambda9)
 
 s = p %*% beta
 
-plotDat = cbind.data.frame(s = s, age = na.omit(execPayShort$AGE))
+plotDat = cbind.data.frame(s = s, stress = na.omit(stressPerformance$stressLevels))
 
-gam9Plot = ggplot(plotDat, aes(age, s)) + 
+gam9Plot = ggplot(plotDat, aes(stress, s)) + 
   geom_line(color = "#ff5500", size = 2.5) +
-  geom_point(data = execPayShort, aes(AGE, SALARY), alpha = .5) +
+  geom_point(data = stressPerformance, aes(stressLevels, performance), alpha = .5) +
   theme_minimal()
 
 library(gridExtra)
@@ -265,3 +332,8 @@ gridExtra::grid.arrange(gam1Plot, gam9Plot)
 ```
 
 In the top plot, we have allowed our line a bit more flexibility to wiggle -- you can see the line bending more to fit the pattern within your data. We are going to get very good in-sample prediction here, at the expense of out-of-sample prediction. The bottom plot, is a bit more reserved. It will undoubtedly do better out-of-sample, but might be missing something within the in-sample data.
+
+```{r}
+caret::RMSE(gamTestLambda1$fitted.values, stressPerformance$performance)
+```
+

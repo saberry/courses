@@ -113,7 +113,7 @@ summary(lm(performance ~ stressLevels + I(stressLevels^2),
            data = stressPerformance))
 ```
 
-For this model, we have: $y = b_0 + b_1X + b_2X^2$. The coefficient for $b_1$ will give us the rate of change (just like always) and $b_2$ tells us how the direction and steepness of the curve (a positive value is upwards, while a negative value is downwards).
+For this model, we have: $y = b_0 + b_1X + b_2X^2$. The coefficient for $b_1$ will give us the rate of change (just like always) and $b_2$ can tell us the direction and steepness of the curve (a positive value means the curve opens upwards, while a negative value is downwards).
 
 As a shortcut, we could just use the `poly` function:
 
@@ -164,6 +164,15 @@ summary(nonLinearMod)
 
 What can we take from this? Really just that our data fits this model pretty well.
 
+We also get the following formula: $-.01853(stressLevels - 49.6278)^2 + 62.35989$
+
+```{r}
+predict(nonLinearMod, newdata = stressPerformance)[1]
+
+(-.01853*(stressPerformance$stressLevels[1] - 49.6278)^2) + 62.35989
+```
+
+That is pretty good!
 
 ```{r}
 caret::RMSE(fitted(nonLinearMod), stressPerformance$performance)
@@ -285,7 +294,7 @@ The wiggle can be controlled and you are the one to control it (all models are y
 It works like this: you cannot have your cake and eat it too. Do you want your in-sample predicition to be awesome (low bias)? Great! You can count on getting that at the expense of higher variance. The lower the variance, the better your model will predict new data. Well that sounds easy – just go with the lowest variance. But...that might contribute to missing some weird pattern. Again, it is just a decision to make (you likely won't be facing off with your monsters in the Arctic in the end).
 
 <aside>
-While conceptually dissimilar, the bias/variance trade is in the same boat as Type I/Type II errors (or sensitivity -- true positive -- and specificity -- true negative -- in machine learning parlance). 
+While conceptually dissimilar, the bias/variance trade is in the same boat as Type I/Type II errors (or sensitivity -- true positive -- and specificity -- true negative -- in machine learning parlance). They are just decisions that need to be made.
 </aside>
 
 With our gam models, the wigglier your line, the lower your bias will be and the better you are doing at predicting in sample. 
@@ -333,7 +342,17 @@ gridExtra::grid.arrange(gam1Plot, gam9Plot)
 
 In the top plot, we have allowed our line a bit more flexibility to wiggle -- you can see the line bending more to fit the pattern within your data. We are going to get very good in-sample prediction here, at the expense of out-of-sample prediction. The bottom plot, is a bit more reserved. It will undoubtedly do better out-of-sample, but might be missing something within the in-sample data.
 
+Here is a closer look at it:
+
+```{r}
+gam1Plot
+```
+
+
 ```{r}
 caret::RMSE(gamTestLambda1$fitted.values, stressPerformance$performance)
 ```
 
+## Your Turn
+
+Use the `mtcars` data (it is already there). Do some visual exploration and look at the relationship between `mpg` and `disp`. For fun, try to fit a linear model to the data. After fitting that model, try any of the non-linear stuff we just discussed. Does one do better than the other?

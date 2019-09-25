@@ -1,0 +1,94 @@
+---
+title: "Midterm Review"
+output:
+  html_document:
+    theme: darkly
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, message = FALSE, warning = FALSE, comment = "")
+options(scipen = 30)
+```
+
+## Hypotheses
+
+Hypotheses lay the foundation for our analyses and they take two forms: the null and the alternative hypothesis. The alternative hypothesis is what we think we are going to find -- it is the interesting part of our hypothesis. The null hypothesis, while not interesting, is very important because it gives us a baseline notion of the world. 
+
+## Experiments
+
+## Regression
+
+If we want to predict an outcome (i.e., the dependent variable) using any number of variables (i.e., predictors/independent variables), then regression is what we want.
+
+We can use the `lm` function:
+
+```{r, eval=FALSE}
+lm(DV ~ predictor1 + predictor2, data = yourData)
+```
+
+If we want to create a model where we predict Murder rates by assault arrests per 100000 people and the percent of population in urban areas, we could create the following model:
+
+```{r}
+murderModel = lm(Murder ~ Assault + UrbanPop, data = USArrests)
+
+summary(murderModel)
+```
+
+
+Let's break down the major parts of the summary.
+
+### Coefficients
+
+Let's look at the coefficients from our model:
+
+```{r}
+coef(murderModel)
+```
+
+Our intercept has a value of `r coef(murderModel)["(Intercept)"]`. This would indicate that a state with 0% urban population and an assault rate of 0 would have `r coef(murderModel)["(Intercept)"]` murders per 100000 people.
+
+Aside from the intercept, we have our coefficients (or slopes). The coefficient for assault, `r coef(murderModel)["Assault"]`, would suggest that for every unit increase in the number of assaults per 100000, the number of murders per 100000 would increase by `r coef(murderModel)["Assault"]`. This is holding the value for `UrbanPop` constant.
+
+For every unit increase in `UrbanPop`, the murder rate per 100000 goes down by `r coef(murderModel)["UrbanPop"]`.
+
+### Standard Errors
+
+These are the average distances that an observation falls from the regression line. It is essentially the standard deviation for the coefficient.
+
+### t-value
+
+If we divide the coefficient by the standard error, we get the *t*-value. Another way to state this problem is that we are dividing the mean effect (the coefficient) by the standard deviation. This is a simple version of the *t*-test formula. If a coefficient is sufficiently larger than its standard error, than the *t*-value will be large -- as a good rule, any value over 1.96 is probably a sufficient *t*-value. We don't need to get deep into the weeds here, but we are going to compare our *t*-value to a distribution of values. We want to see a *t*-value out towards the tails of the distribution -- suggesting that we have a difference from 0.
+
+### p-value
+
+We need to test our *t*-value to determine if it is significantly different from 0. This is where the *p*-value comes into play. The *p*-value is complicated. It is a form of probability, but absolutely not the probability that something will happen. Instead, we are looking at the probability of finding the reported *t*-value if our null hypothesis was true. Recall that the null hypothesis would suggest that our coefficients do not have any impact on the dependent variable (the coefficient would be 0). For the `Assault` variable, our *t*-value is `r broom::tidy(murderModel)$statistic[2]`. This is a large value and we would have a very small chance (`< .000001`) of finding such a large effect if our null hypothesis was true. With this *p*-value, we would say that we would find a *t*-value of that magnitude in about .000000000001216% of samples simply by random error if the null hypothesis was true.
+
+Remember this: every single test statistic lives on the assumption that this analysis will be conducted many times and not just once. So while we find a large *t*-value and a tiny *p*-value, it does not mean that we will not make a faulty rejection of our null hypothesis. People have proposed that there is up to a 50% chance of incorrectly rejecting the null for the population with a single *p*-value of .05 and up to a 15% chance for a *p*-value of .01. 
+
+## t-tests
+
+If we want to compare the means of two different groups, we can use a *t*-test.
+
+To perform a *t*-test in R, we can use the following code:
+
+```{r}
+sleepyDrugs = t.test(extra ~ group, data = sleep)
+
+sleepyDrugs
+```
+
+The *t* and *p*-values have the same m
+
+## ANOVA
+
+Like a *t*-test, but for more than 2 groups.
+
+### In R
+
+```{r}
+bugModel = aov(count ~ spray, data = InsectSprays)
+
+summary(bugModel)
+```
+

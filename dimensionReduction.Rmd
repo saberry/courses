@@ -1,0 +1,47 @@
+---
+title: "Dimension Reduction"
+output: revealjs::revealjs_presentation
+---
+
+## What?
+
+You have all encountered data that seems to have a lot of columns. 
+
+What variables are important? 
+
+Without any theory, how do you select which variables to include in a model?
+
+We can use a variety of methods to reduce many variables into a smaller set of variables.
+
+## Methods
+
+We are going to discuss 2 main techniques:
+
+Principal Components Analysis (PCA)
+
+Exploratory Factor Analysis (EFA)
+
+## An Important Note
+
+These are both matrix factorization techniques. 
+
+- Like many other dimension reduction methods.
+
+Despite what you might hear, these two are not the same thing.
+
+## Which To Use?
+
+There is only one consideration!
+
+The causal direction.
+
+## 
+
+In PCA, the component exists because of the variables.
+
+In EFA, the variables exist because of the factor.
+
+## PCA
+
+## EFA
+

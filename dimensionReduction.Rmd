@@ -1,6 +1,12 @@
 ---
 title: "Dimension Reduction"
-output: revealjs::revealjs_presentation
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    highlight: zenburn
+    center: true
+    transition: fade
+    slide_level: 2
 ---
 
 ## What?
@@ -11,7 +17,11 @@ What variables are important?
 
 Without any theory, how do you select which variables to include in a model?
 
-We can use a variety of methods to reduce many variables into a smaller set of variables.
+## 
+
+You don't always have to keep variables as they are.
+
+Instead, you can reduce many variables into a smaller set of variables.
 
 ## Methods
 
@@ -25,15 +35,13 @@ Exploratory Factor Analysis (EFA)
 
 These are both matrix factorization techniques. 
 
-- Like many other dimension reduction methods.
-
 Despite what you might hear, these two are not the same thing.
 
 ## Which To Use?
 
 There is only one consideration!
 
-The causal direction.
+<p class="fragment fade-in-then-semi-out">Causality</p>
 
 ## 
 
@@ -41,7 +49,77 @@ In PCA, the component exists because of the variables.
 
 In EFA, the variables exist because of the factor.
 
+## I Lied...
+
+There is another consideration that ties to the first.
+
+<p class="fragment fade-in-then-semi-out">Interpretability</p>
+
+## 
+
+Components from a PCA do not have any real meaning.
+
+Factors from an EFA absolutely have meaning.
+
 ## PCA
+
+PCA takes our multidimensional data and reduces it down to fewer dimensions. 
+
+This is accomplished by using the strength of item relationships (eigenvalues) and direction of item relationships (eigenvectors). 
+
+This strength and direction is then used to *rotate* the data and project it to a smaller space.
+
+## Data
+
+```{r}
+hospitalData <- read.csv("http://www.nd.edu/~sberry5/data/hospitalData.csv")
+
+names(hospitalData)
+```
+
+## A Quick Plot
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(plotly)
+
+plot_ly(hospitalData, x = ~HospAge, y = ~AHAAdmissions, z = ~TotalOperExpense, color = ~as.factor(NFP), colors = c('#BF382A', '#0C4B8E')) %>%
+  add_markers() 
+```
+
+## And after PCA
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(ggplot2); library(ggfortify); library(factoextra)
+
+keepVariables = c("HospAge", "AHAAdmissions", "TotalOperExpense")
+
+pcaResult = princomp(hospitalData[, keepVariables], cor = TRUE)
+
+autoplot(pcaResult, 
+         data = hospitalData, colour = "NFP", 
+         loadings = TRUE, loadings.label = TRUE) +
+  theme_minimal()
+```
+
+
+##
+
+```{r}
+fviz_pca_ind(pcaResult, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
+```
+
+
+##
+
+```{r}
+fviz_pca_var(pcaResult,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+             )
+```
+
 
 ## EFA
 

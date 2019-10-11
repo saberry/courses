@@ -4,11 +4,15 @@ library(httr)
 
 surveyID = "SV_9Fjwrg4TKCSg125"
 
+surveyID = "SV_eJmYJFlpzjQ4bv7"
+
 apiToken = "DSfaY34hc6jFdTOHiEns1sFf4IOtfuJbB15O0Xz2"
 
 dataCenter = 'ca1'
 
 getQualtricsData <- function(apiToken, dataCenter, surveyID) {
+   
+   library(httr)
    
    baseUrl <- paste("https://", 
                     dataCenter, 
@@ -21,7 +25,7 @@ getQualtricsData <- function(apiToken, dataCenter, surveyID) {
                        "X-API-TOKEN" = apiToken)
    
    startSurveyDownload = POST(url = baseUrl, 
-                              body = list("format" = "json", 
+                              body = list("format" = "csv", 
                                           "compress" = "false"),
                               add_headers(.headers = requestHeaders), 
                               encode = "json")
@@ -57,7 +61,7 @@ getQualtricsData <- function(apiToken, dataCenter, surveyID) {
    downloadData <- GET(url = downloadLink,
                        add_headers(.headers = requestHeaders), progress())
    
-   out <- jsonlite::fromJSON(content(downloadData, as = "text"), flatten = TRUE)$responses
+   out <- data.table::fread(content(downloadData, as = "text"))
    
    keepVariables <- grep("responseID|^values", names(out), value = TRUE)
    

@@ -1,0 +1,153 @@
+---
+title: "Sentiment Analysis"
+output:
+  revealjs::revealjs_presentation:
+    theme: solarized
+    center: true
+    transition: fade
+    slide_level: 2
+---
+
+## Sentiment 
+
+Used when we want to know the general *feelings* of text. 
+
+Applied to Twitter and other social media posts
+
+Can use it anywhere where people have written/said something.
+
+Sentiment can take many different forms: positive/negative affect, emotional states, and even financial contexts.
+
+## 
+
+We will cover two forms of sentiment:
+
+- Word level (simple)
+
+- Sentence level (complex)
+
+## Skipping Around
+
+We are not going to get into text prep now. 
+
+It is practically its own lecture.
+
+
+## Helpful Packages
+
+```{r, eval = FALSE}
+install.packages(c("tidytext", "sentimentr"))
+```
+
+
+## Simple
+
+Let's consider the following statements:
+
+```{r, warning = FALSE, message = FALSE}
+library(dplyr); library(tidyr); library(tidytext)
+
+statement <- "I dislike beer, but I really love the shine."
+
+tokens <- tibble(text = statement) %>% 
+  unnest_tokens(tbl = ., output = word, input = text)
+
+tokens
+```
+
+
+## 
+
+Using our tokens against a pre-defined dictionary:
+
+```{r, warning = FALSE, message = FALSE}
+tokens %>%
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>% 
+  mutate(sentiment = positive - negative)
+```
+
+
+## Thinking About The Output
+
+Do you think that disklike and love are of the same magnitude? 
+
+I might say that love is stronger than dislike. 
+
+Let's switch out our sentiment library to get something with a little better notion of polarity.
+
+##
+
+```{r, warning = FALSE, message = FALSE}
+tokens %>%
+  inner_join(get_sentiments("afinn"))
+```
+
+Now this looks a bit more interesting! "Love" has a stronger positive polarity than "dislike" has negative polarity. So, we could guess that we would have some positive sentiment.
+
+##
+
+We can get an idea of our sentence's overall sentiment, if we divide the sum of our word sentiments by the number of words within the dictionary
+
+```{r, warning = FALSE, message = FALSE}
+tokens %>%
+  inner_join(get_sentiments("afinn")) %>% 
+  summarize(n = nrow(.), sentSum = sum(score)) %>% 
+  mutate(sentiment = sentSum / n)
+```
+
+##
+
+These simple sentiment analyses provide some decent measures to the sentiment of our text. 
+
+We are ignoring big chunks of our text by just counting keywords.
+
+## Smarter Sentiment Analysis
+
+```{r, warning = FALSE, message = FALSE}
+library(sentimentr); library(lexicon); library(magrittr)
+
+statement <- "I dislike beer, but I really love the shine."
+
+sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)
+```
+
+##
+
+The first part of our sentence starts out negative (dislike has a sentiment value of -1).
+
+We have an adversarial "but" that will downweight whatever is in the initial phrase.
+
+We have the amplified sentiment of "love" (with a weight of .75 in our dictionary).
+
+With all of this together, we get a much better idea about the sentiment of our text.
+
+## An Added Bonus
+
+I want to show you gganimate!
+
+```{r, eval = FALSE}
+library(gganimate); library(ggplot2)
+
+ggplot(mtcars, aes(mpg, wt, color = as.factor(cyl))) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_color_brewer(type = "qual") +
+  theme_minimal() +
+  transition_states(cyl)
+```
+
+
+##
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(gganimate); library(ggplot2)
+
+ggplot(mtcars, aes(mpg, wt, color = as.factor(cyl))) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_color_brewer(type = "qual") +
+  theme_minimal() +
+  transition_states(cyl)
+```

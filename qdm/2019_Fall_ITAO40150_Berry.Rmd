@@ -1,0 +1,171 @@
+---
+title: |  
+      | Quantitative Decision Modeling
+      | ITAO 40150
+header-includes:
+   - \usepackage[dvipsnames]{xcolor}
+output: pdf_document
+fontsize: 12pt
+urlcolor: CornflowerBlue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+# Office: 337 Mendoza
+
+# Email: seth.berry@nd.edu
+
+# Office Hours
+
+## By Vote
+
+If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in to chat with me about anything (class, stats, programming, etc.).
+
+
+# Class Days and Time
+
+Tuesday and Thursday: L051
+
+- Section 1: 9:30 - 10:45
+
+- Section 2: 11:00 - 12:15
+
+
+# Course Objectives
+
+By the end of the course, students will be able to:
+
+- Identify business problems that can be solved using advanced quantitative techniques.
+
+  - Our problems come from information systems, operations, accounting, finance, and marketing. Examples include process improvement, portfolio selection, financial planning, logistics systems, revenue management, etc.
+  
+  - The techniques we study are simulation and optimization.
+  
+- Model and solve these problems with a variety of software (R and potentially Python/Julia). The more you understand the details of these models, the better you will be able to find applications at your workplace.
+
+- Improve your programming skills. Only a basic familiarity with programming is assumed at the outset.
+
+- Improve your quantitative problem solving skills.
+
+
+# Textbooks
+
+- (Optional) Practical Management Science (PMS), 6th edition by Winston and Albright.
+
+# Software
+
+[R](https://cloud.r-project.org/)
+
+[RStudio](https://rstudio.com/products/rstudio/download/#download)
+
+# Course Activities
+
+## Attendance
+
+Attendance in this course is not required, in that I will not be taking attendance; attendance is certainly recommended (and even encouraged).  While the lecture presentations will be available, they are not verbatim recitations of what was covered and you may not rely on them to make it through everything in the course (especially when we start programming).  Learning takes effort and attending class is but one small part of that effort.  
+
+Although attendance is not required, we will have a weekly lab. Each lab is worth 10 points and is essentially a participation credit. These are meant to be done in class -- if you are not in class when they are given, you cannot submit them.   
+
+## Readings
+
+There is no *official* textbook for this course. There will, however, be readings posted for each topic. You are not committed to the readings, but they will certainly provide an expanded understanding of the content. 
+
+## Class Exercises
+
+After learning a topic, students will work individually in class to solve one or two questions related to the new topic. Although these exercises will not be graded, you will get much more out of them then listening to me talk about how to do these things.
+
+## Homework
+
+There will be three assignments which will be graded. These assignments and suggested due dates will be announced during the class. Each person should turn in their own assignment, but you are absolutely free to collaborate with people in class. Collaboration does not meaning copying -- it means that you have worked together to solve the problem and both people have their own unique answers to the problem. It is advised to start the assignments early and bring questions to office hours.
+
+A significant portion of your grade will come from the homework skills map. The skills roadmap has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
+
+Please feel free to work together on the bronze level of homework (i.e., not the optional sections), but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's. 
+
+## Midterm
+
+The midterm will require programming. However, the scope of the midterm is limited to only a few topics.
+
+## Presentations
+
+The final for this class will be a group presentation (and accompanying write-up). You will be graded on the in-class presentation, the write-up, and peer evaluations.
+
+# R
+
+There are many statistical programs available and you have likely had some exposure to many of them.  In this course, we will be using R almost exclusively.  R is a free and open-source statistical computing language and it is *lingua franca* for modern statistics.  We are going to dedicate some time to learning R and working through examples together.  If you have never done any object-oriented programming, it will take a little work -- I am only ever an email or visit away.  
+
+# Grading
+
+Comprehension Checks -- 50 points (16%)
+
+Homework -- 90 points (29%)
+
+Midterm Exam -- 70 points (23%)
+
+Final Presentation -- 100 points (32%)
+
+Total -- 310 points
+
+
+\newpage
+
+# Schedule
+
+```{r, results='asis'}
+library(dplyr)
+data.frame(Week = c(1, "", 2, "", 3, "",
+                    4, "", 5, "", 6, "", 
+                    7, "", 8),
+           Date = c("10/29 (T)", 
+                    "10/31 (TR)", 
+                    "11/05 (T)", 
+                    "11/07 (TR)", 
+                    "11/12 (T)", 
+                    "11/14 (TR)", 
+                    "11/19 (T)", 
+                    "11/21 (TR)", 
+                    "11/26 (T)", 
+                    "11/28 (TR)", 
+                    "12/03 (T)",
+                    "12/05 (TR)",
+                    "12/10 (T)",
+                    "12/12 (TR)", 
+                    "12/16-20"), 
+           Topic = c("Intro and R Tutorial", 
+                     "RMarkdown Tutorial", 
+                     "Process Simulation 1", 
+                     "Process Simulation 2", 
+                     "Linear Programming 1", 
+                     "Linear Programming 2", 
+                     "Midterm Review", 
+                     "Midterm Exam", 
+                     "Network Models, Integer, Nonlinear Programming", 
+                     "Thanksgiving", 
+                     "Simulation", 
+                     "Project Day", 
+                     "Project Day",
+                     "Final Review", 
+                     "Final*"), 
+           Assignments = c("", 
+                        "", 
+                        "HW1", 
+                        "",
+                        "HW2",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "HW3",
+                        "",
+                        "",
+                        "",
+                        "")) %>% 
+  stargazer::stargazer(., summary = FALSE, header = FALSE, title = "Tentative Schedule")
+```
+
+- Section 1: 12/16, 10:30 - 12:30
+
+- Section 2: 12/20, 10:30 - 12:30 (I'm so sorry).

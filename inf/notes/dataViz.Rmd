@@ -10,10 +10,13 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-knitr::opts_knit$set(animation.fun = knitr::hook_scianimator)
 
 library(ggplot2); library(lazerhawk); library(plotly); library(dygraphs)
-library(dplyr); library(gganimate); library(ggthemes)
+library(dplyr); library(gganimate); library(ggthemes); library(visibly)
+
+# The lazerhawk and visibly packages are from github:
+# devtools::install_github('m-clark/lazerhawk')
+# devtools::install_github('m-clark/visibly')
 
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
@@ -477,34 +480,6 @@ We are frequently fortunate enough to have a considerable amount of data.
 Depending on what type of plotting we want to do, we could run into problems very quickly.
 
 
-<!-- ## Test {.flexbox .vcenter} -->
-
-<!-- ```{r, fig.height=4, fig.width=4, fig.show='animate', fig.path="img//"} -->
-<!-- df = data.frame(x = rnorm(5000), y = rnorm(5000)) -->
-
-<!-- # df = as.data.frame(sapply(df, rep.int, times = 3)) -->
-<!-- # -->
-<!-- # df$alphaValue = rep(c(0, .5, .1), each = 5000) -->
-
-<!-- ggplot(df, aes(x, y)) + -->
-<!--   geom_point() + -->
-<!--   theme_trueMinimal() -->
-
-<!-- ggplot(df, aes(x, y)) + -->
-<!--   geom_point(alpha = .5) + -->
-<!--   theme_trueMinimal() -->
-
-<!-- ggplot(df, aes(x, y)) + -->
-<!--   geom_point(alpha = .1) + -->
-<!--   theme_trueMinimal() -->
-
-<!-- ggplot(df, aes(x, y)) + -->
-<!--   geom_point(alpha = .075) + -->
-<!--   theme_trueMinimal() -->
-
-<!-- ``` -->
-
-
 ## Alpha
 
 
@@ -533,16 +508,6 @@ alpha01 = ggplot(diamonds, aes(carat, price)) +
 multiplot(alpha0, alpha5, alpha1, alpha01, cols = 4)  
 ```
 
-<!-- ## Test -->
-
-<!-- ```{r, fig.height=5.5, fig.width=10, fig.align="center", fig.show='animate'} -->
-<!-- alpha01 = ggplot(mtcars, aes(mpg, hp, frame = cyl)) + -->
-<!--   geom_point(alpha = .5) + -->
-<!--   theme_bw() -->
-
-<!-- gganimate::gganimate(alpha01) -->
-<!-- ``` -->
-
 
 ## Jitter
 
@@ -558,7 +523,6 @@ ggplot(diamonds, aes(carat, price)) +
   theme_bw() +
   ggtitle("I Told You It Wouldn't Work")
 ```
-
 
 
 ## Looks Pretty Clear... {.flexbox .vcenter}
@@ -653,6 +617,7 @@ ggplot(diamonds, aes(carat, price)) +
 
 
 ##
+
 ```{r, fig.height=3, fig.width=4.75}
 p = ggplot(diamonds, aes(carat, price)) +
   geom_point(alpha = .1) +
@@ -901,6 +866,63 @@ ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
 
 
 
+# The Correct Tool For The Job
+
+## Continuous Data
+
+Scatterplots
+
+
+## Continious and Categorical
+
+```{r}
+ggplot(diamonds, aes(as.factor(cut), price)) +
+  geom_jitter() +
+  theme_minimal()
+```
+
+## Boxplots
+
+```{r}
+ggplot(diamonds, aes(as.factor(cut), price)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+
+## Violin Plots
+
+```{r}
+ggplot(diamonds, aes(as.factor(cut), price)) +
+  geom_violin() +
+  theme_minimal()
+```
+
+## Sina Plots
+
+```{r}
+library(ggforce)
+ggplot(diamonds, aes(as.factor(cut), price)) +
+  geom_violin() +
+  geom_sina() +
+  theme_minimal()
+```
+
+## Categorical and Categorical
+
+```{r}
+diamonds %>% 
+  group_by(cut, color) %>% 
+  summarize(count = n()) %>% 
+  ggplot(., aes(cut, color, fill = count)) +
+  geom_tile() +
+  theme_minimal()
+```
+
+
+## An Excellent Resource
+
+<a href="https://serialmentor.com/dataviz/index.html">Claus Wilke's Book</a>
+
 ## Important People
 
 Mike Bostok -- D3
@@ -917,6 +939,6 @@ Paul Tol -- Physicist and Viz Expert
 
 Edward Tufte -- Information Display
 
-Hadley Wickham -- Reigning Data Science Heavyweight Champion
+Hadley Wickham -- A million things
 
 Leland Wilkinson -- The Grammar of Graphics

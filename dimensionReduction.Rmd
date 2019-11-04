@@ -2,8 +2,7 @@
 title: "Dimension Reduction"
 output:
   revealjs::revealjs_presentation:
-    theme: night
-    highlight: zenburn
+    theme: solarized
     center: true
     transition: fade
     slide_level: 2
@@ -29,13 +28,13 @@ We are going to discuss 2 main techniques:
 
 Principal Components Analysis (PCA)
 
-Exploratory Factor Analysis (EFA)
+Factor Analysis (Exploratory Factor Analysis -- EFA)
 
 ## An Important Note
 
 These are both matrix factorization techniques. 
 
-Despite what you might hear, these two are not the same thing.
+Despite the rumors, they are not the same.
 
 ## Which To Use?
 
@@ -61,28 +60,59 @@ Components from a PCA do not have any real meaning.
 
 Factors from an EFA absolutely have meaning.
 
+## What Is The Meaning?
+
+Brushing vague ideas like interpretability and causality aside: 
+
+PCA components don't mean anything (technically). 
+
+EFA factors measure *latent* variables.
+
+## Latent Variables
+
+Latent variables are variables that cannot be directly measured.
+
+## Helpful Packages
+
+```{r, eval = FALSE}
+install.packages(c("psych", "factoextra"))
+```
+
+## Helpful Functions
+
+For PCA, you have some choices: `princomp()` or `prcomp()`
+
+For EFA, use `psych::fa()`
+
+How many factors/components do you need: `psych::fa.parallel()`
+
+
 ## PCA
 
 PCA takes our multidimensional data and reduces it down to fewer dimensions. 
 
-This is accomplished by using the strength of item relationships (eigenvalues) and direction of item relationships (eigenvectors). 
+This is accomplished by using the variance between variables (eigenvalues) and direction of axes (eigenvectors). 
 
 This strength and direction is then used to *rotate* the data and project it to a smaller space.
+
+Just as a reminder, only use PCA when you want to reduce the number of variables.
 
 ## Data
 
 ```{r}
-hospitalData <- read.csv("http://www.nd.edu/~sberry5/data/hospitalData.csv")
+hospitalData = read.csv("http://www.nd.edu/~sberry5/data/hospitalData.csv")
 
 names(hospitalData)
 ```
 
-## A Quick Plot
+
+## A Quick Visualization
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 library(plotly)
 
-plot_ly(hospitalData, x = ~HospAge, y = ~AHAAdmissions, z = ~TotalOperExpense, color = ~as.factor(NFP), colors = c('#BF382A', '#0C4B8E')) %>%
+plot_ly(hospitalData, x = ~HospAge, y = ~AHAAdmissions, z = ~TotalOperExpense, 
+        color = ~as.factor(NFP), colors = c('#BF382A', '#0C4B8E')) %>%
   add_markers() 
 ```
 
@@ -102,24 +132,122 @@ autoplot(pcaResult,
 ```
 
 
-##
+## Individual Distances
 
-```{r}
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
 fviz_pca_ind(pcaResult, col.ind = "cos2", 
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"))
 ```
 
 
-##
+## Variable Contribution
 
-```{r}
-fviz_pca_var(pcaResult,
-             col.var = "contrib", # Color by contributions to the PC
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+fviz_pca_var(pcaResult, col.var = "contrib",
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-             repel = TRUE     # Avoid text overlapping
-             )
+             repel = TRUE)
 ```
 
 
+## Contributions To Components
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+fviz_contrib(pcaResult, choice = "var", axes = 1, top = 5)
+```
+
+## Contributions To Components
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+fviz_contrib(pcaResult, choice = "var", axes = 2, top = 5)
+```
+
+##
+
+We will come back to PCA in a bit.
+
 ## EFA
 
+If you are dealing in latent variable space, EFA is what you want to use.
+
+You are still reducing your items into a smaller space, but there is some theory about what the items mean.
+
+##
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(psych); library(corrplot); library(dplyr)
+
+bfi %>% 
+  select(-gender, -education, -age) %>% 
+  cor(use = "pairwise.complete.obs") %>% 
+  corrplot.mixed()
+```
+
+
+## Loadings
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+big5 = bfi %>% 
+  na.omit() %>% 
+  select(-gender, -education, - age) %>% 
+  fa(., nfactors = 5, rotate = "promax")
+
+as.data.frame(big5$loadings[, 1:3]) %>% 
+  DT::datatable(.)
+```
+
+## Communality & Uniqueness
+
+If we want to know how much variance is unique to a variable, we can look at *uniqueness*.
+
+Note that this is variance that is not explained by the factor.
+
+It should be low.
+
+If we take $1-uniqueness$, we get *communality*.
+
+Communality tells us how much a variable correlates with every other variable.
+
+##
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+data.frame(communalities = big5$communalities, 
+           uniqueness = big5$uniquenesses) %>% 
+  DT::datatable(.)
+```
+
+
+## Scores
+
+Both PCA and EFA will produce scores for the components/factors.
+
+These scores are what you would use for models.
+
+## Factor Scores
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+data.frame(agreeable = big5$scores[,4], 
+           age = dplyr::select(na.omit(bfi), age)) %>% 
+  ggplot(., aes(agreeable, age)) + 
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  theme_minimal()
+```
+
+## Component Scores
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+data.frame(component1 = pcaResult$scores[, 1], 
+           vendorsTotal = hospitalData$TotVen) %>% 
+  ggplot(., aes(component1, vendorsTotal)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  theme_minimal()
+```
+
+## Additional Issues
+
+Factor scores are a defining feature.
+
+The number of factors/components to retain is fuzzy.
+
+Rotation selection is meaningful.

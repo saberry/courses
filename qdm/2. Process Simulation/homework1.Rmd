@@ -1,0 +1,136 @@
+---
+title: 'Homework #1'
+author: "Your Name Here"
+date: "11/4/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Bronze
+
+Each of the following sections is worth 10 points apiece.
+
+## A Bank
+
+For this example, assume that one teller has an average working time of 3 minutes with a standard deviation of .5 minutes. Also assume that 1 customer comes every 2 minutes.
+
+What are the average waiting times in systems with 1 teller, 2 tellers, and 3 tellers? How many tellers would you recommend using based upon your results. 
+
+```{r}
+workTimeMean
+
+workTimeSD
+
+numberTellers
+
+arrivalRate
+
+simulationTime
+
+customer <- trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(bank)}) %>%
+  seize("teller") %>% 
+  timeout(function() {rnorm(n = 1, mean = workTimeMean, sd = workTimeSD)}) %>% 
+  release("teller")
+
+bank <- simmer("bank") %>% 
+  add_resource("teller", capacity = numberTeller, queue_size = 8) %>% 
+  add_generator("Customer", customer, function() {c(0, rexp(100, arrivalRate), -1)})
+
+run(bank, until = simulationTime)
+
+result = get_mon_arrivals(bank)
+
+finishers <- result[result$finished == TRUE, ]
+
+finishers$waitingTime <- finishers$end_time - finishers$start_time - finishers$activity_time
+```
+
+## A Call Center
+
+In a typical 8-hour shift, customers call a help desk at an exponential rate of 1 person every 4 minutes. The average call can be approximated by a normal distribution with a mean of 10 minutes and a standard deviation of 2 minutes. The help desk manager is trying to decide how many customer service (CS) reps to hire. There is a total of 10 lines that can be split between hold lines and CS lines. Starting with 1 CS rep and going up to 5 CS reps, determine how many CS reps need to be hired to achieve a service level of .99 and keep the mean waiting time below 2 minutes.
+
+```{r}
+callTimeMean
+
+callTimeSD
+
+arrivalRate
+
+simulationTime
+
+csNumber
+
+holdNumber
+
+caller <- trajectory("caller") %>% 
+  set_attribute("start_time", function() {now(callCenter)}) %>% 
+  seize("phoneLine") %>% 
+  timeout(function() rnorm(1, callTimeMean, callTimeSD)) %>% 
+  release("phoneLine")
+
+callCenter <- simmer("callCenter") %>% 
+  add_resource("phoneLine", capacity = csNumber, queue_size = holdNumber) %>% 
+  add_generator("caller", caller, mon = 2, function() {c(0, rexp(1000, arrivalRate), -1)})
+
+run(callCenter, 120)
+
+results <- get_mon_arrivals(callCenter)
+
+results$waitingTime <- results$end_time - results$start_time - results$activity_time
+
+sum(results$finished[results$finished == TRUE]) / length(results$finished)
+
+mean(results$waitingTime)
+```
+
+# Silver
+
+The following problem is worth 6 points.
+
+## An Airport
+
+
+```{r}
+arrivalRate
+
+inspection1WorkingMean
+inspection1WorkingSD
+
+additionalInspection1WorkingMean
+additionalInspection1WorkingSD
+
+line2Percentage
+
+simulationTime
+
+passenger <- trajectory("passenger") %>% 
+  set_attribute("start_time", function() {now(airport)}) %>% 
+  seize("insp1") %>% 
+  timeout(function() rnorm(1, inspection1WorkingMean, inspection1WorkingSD)) %>% 
+  release("insp1") %>% 
+  branch(function() sample(0:1, 1, prob = c(1 - line2Percentage, line2Percentage)) == 1, 
+         continue = TRUE,
+         trajectory() %>% 
+           seize("insp2") %>% 
+           timeout(function() rnorm(1, additionalInspection1WorkingMean, additionalInspection1WorkingSD)) %>% 
+           release("insp2")
+  )
+  
+airport <- simmer("airport") %>% 
+  add_resource("insp1", capacity = 2, queue_size = Inf) %>% 
+  add_resource("insp2", capacity = 2, queue_size = Inf) %>% 
+  add_generator("passenger", passenger, mon = 2, function() {c(0, rexp(1000, arrivalRate), -1)})
+
+run(airport, simulationTime)
+```
+
+# Gold
+
+The following problem is worth 4 points
+
+## An Airport -- Expanded
+

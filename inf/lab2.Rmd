@@ -1,0 +1,58 @@
+---
+title: "Lab 2"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# On Centering
+
+Let's return to our crime data and one of our models:
+
+```{r}
+crimeScore = readr::read_csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+```
+
+Let's look at the summary of a few variables:
+
+```{r}
+library(dplyr)
+
+crimeScore %>% 
+  select(SSL_SCORE, WEAPONS_ARR_CNT, NARCOTICS_ARR_CNT) %>% 
+  summary()
+```
+
+We see a minimum of 1 for both weapons and narcotics, a mean of 1.2 for weapons, and a mean of 2.06 for narcotics.
+
+```{r}
+twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(twoVars)
+```
+
+If we mean center our predictors, we have a meaningful intercept!
+
+```{r}
+crimeScore %>% 
+  mutate(weaponsCenter = WEAPONS_ARR_CNT - mean(WEAPONS_ARR_CNT, na.rm = TRUE), 
+         narcCenter = NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, na.rm = TRUE)) %>% 
+  lm(SSL_SCORE ~ weaponsCenter + narcCenter, data = .) %>% 
+  summary()
+```
+
+We can now say that at mean values of weapons and narcotics arrest, the SSL_SCORE is 319.
+
+You don't have to center on just means -- you can choose whatever value might be meaningful.
+
+
+# New Data
+
+
+Use the `lab02Data.csv` in the data folder on Sakai.
+
+There are a few models that might emerge from the data -- possibly a few for predicting salary and a few for predicting overall satisfaction. Feel free to explore either route that seems interesting to you.
+
+After running your models, take some time to interpret your coefficients. What does it mean for the relationship between the predictor and the DV. Is this surprising to you or did it fit your hypotheses?

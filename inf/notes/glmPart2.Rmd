@@ -1,0 +1,289 @@
+---
+title: "General Linear Model"
+description: |
+  Expanded Topics
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We have already seen the basics of the general linear model (linear regression, *t*-tests, and ANOVAs). Now, we are going to get into some expanded topics related to the general linear model: centering, interactions, two-way ANOVAs, paired *t*-tests, and statistical power.
+
+## Centerign
+
+Think back to what the intercept means in the context of a linear regression model: it is the value of the DV/outcome when everything else is at 0. There are times where that makes sense (you can have 0 dollars, but I don't recommend it). 
+
+What if we want to have a meaningful intercept?
+
+```{r}
+crimeScore = read.csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+
+library(dplyr)
+
+uncentered = lm(SSL_SCORE ~ NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(uncentered)
+```
+
+Now we can do some very simple centering: we can just subtract the mean of the item from every observation of that item.
+
+```{r}
+crimeScore %>% 
+  mutate(narcCenter = NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, na.rm = TRUE)) %>% 
+  lm(SSL_SCORE ~ narcCenter, data = .) %>% 
+  summary()
+```
+
+We can see that nothing really changes except for the intercept's coefficient. Let's think about what is being said here: with narcotics arrest count being a 0, we would expect the SSL score to be 277 on average. Since we centered that narcotics variable, though, the 0 is actually the mean of variable (2.06). 
+
+## Interactions
+
+We can start by looking at a multiple regression with 2 variables:
+
+```{r}
+twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(twoVars)
+```
+
+Let's explore interactions (moderation to some). A key idea here is that interactions change the nature of our model. Instead of supposing that the predictor variables act in isolation on the DV, the interaction is essentially providing expanded context for our model. We are essentially saying that the values of one variable will have an effect with values of another variable on the DV. Here is what this looks like in words:
+
+"What is the effect of X on Y?"
+
+"It depends on Z's value."
+
+```{r}
+intMod = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * NARCOTICS_ARR_CNT, data = crimeScore)
+
+summary(intMod)
+```
+
+This is the model that we have estimated:
+
+$$score = b_0 + b_1(weapons) + b_2(narcotics) + b_3(weapons*narcotics)$$
+
+The interpretation of our main effects don't really change. 
+
+Our interaction terms ($b_3$) is providing the amount of change in the slope of the regression of score on weapons when narcotics changes by one unit. So as narcotics arrests increase, we see an increase in the effect of weapons arrests on score (but only a tiny one).
+
+To predict what the score value would be for certain values of weapons arrests, we could reformulate our model as:
+
+$$score = b_0 + (b_1 + b3*narcotics)weapons + b_2(narcotics)$$
+
+
+
+```{r}
+library(effects)
+
+modEffects = effect("WEAPONS_ARR_CNT*NARCOTICS_ARR_CNT", intMod)
+
+plot(modEffects)
+```
+
+This is offering the relationship between weapons arrests and score at various levels of narcotics arrests.
+
+```{r}
+crimeScoreGender = crimeScore %>% 
+  filter(SEX_CODE_CD != "X") %>%
+  select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT)
+
+intMod2 = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD, data = crimeScoreGender)
+
+summary(intMod2)
+```
+
+Compared to women, men's score increases by 19.25 on average for each weapons arrest.
+
+Sometimes it helps to see what is going on with a plot:
+
+```{r}
+modEffects = effect("WEAPONS_ARR_CNT*SEX_CODE_CD", intMod2)
+
+plot(modEffects)
+```
+
+Here is another way (and probably easier) to visualize this effect:
+
+```{r}
+library(interactions)
+
+interact_plot(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
+```
+
+
+```{r}
+sim_slopes(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
+```
+
+
+```{r}
+probe_interaction(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
+```
+
+For the sake of it, let's look at one more continuous by continuous interaction:
+
+
+```{r}
+domNarc = lm(SSL_SCORE ~ NARCOTICS_ARR_CNT * DOMESTIC_ARR_CNT , data = crimeScore)
+
+summary(domNarc)
+```
+
+Let's look at these interactions:
+
+```{r}
+probe_interaction(domNarc, pred = NARCOTICS_ARR_CNT, modx = DOMESTIC_ARR_CNT)
+```
+
+And also some categorical interactions:
+
+```{r}
+crimeScore2 = crimeScore %>% 
+  filter(AGE_CURR != "" & SEX_CODE_CD != "X") %>% 
+  mutate(SEX_CODE_CD = droplevels(.$SEX_CODE_CD),
+         AGE_CURR = droplevels(.$AGE_CURR), 
+         AGE_CURR = relevel(.$AGE_CURR, ref = "less than 20"))
+
+sexMod = lm(SSL_SCORE ~ SEX_CODE_CD, data = crimeScore2)
+
+summary(sexMod)
+
+ageMod = lm(SSL_SCORE ~ AGE_CURR, data = crimeScore2)
+
+summary(ageMod)
+
+sexAge = lm(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR, data = crimeScore2)
+
+summary(sexAge)
+```
+
+```{r}
+cat_plot(sexAge, pred = SEX_CODE_CD, modx = AGE_CURR, geom = "line")
+```
+
+
+## Two-way ANOVA
+
+Remember that whole issue with the ANOVA being the flipped regression, we can highlight that perfectly here:
+
+```{r}
+summary(aov(SSL_SCORE ~ SEX_CODE_CD + AGE_CURR, data = crimeScore2))
+
+summary(aov(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR, data = crimeScore2))
+```
+
+```{r}
+TukeyHSD(aov(SSL_SCORE ~ SEX_CODE_CD + AGE_CURR, data = crimeScore2), which = "SEX_CODE_CD:AGE_CURR")
+```
+
+## Paired t-tests
+
+We have already seen the use cases for a standard independent samples *t*-test ()
+
+
+## Power Analysis
+
+Do you want to melt most people's brains?
+
+>-  Don't use rules of thumb!
+
+>-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
+
+## Power Analysis
+
+We need three of the following parameters:
+
+>-  Effect size
+
+>-  Sample size
+
+>-  Significance level
+
+>-  Power
+
+>-  We **should** always be doing this *a priori*
+
+>-  Sometimes, it is fun to be a "statistical coroner"
+
+## Effect Sizes
+
+We won't get too deep here, just know that it is a way to determine the difference between groups.
+
+- It's an improvement of *p*-values alone.
+
+Cohen's *d* is likely the most common.
+
+Let theory be your guide.
+
+> - Be realistic!
+
+## Power
+
+Power is ability to detect an effect.
+
+- In NHST words, we are trying to determine if we correctly reject the null hypothesis.
+
+- Type I errors: Reject a true $H_{o}$ (false positive)
+
+- Type II errors: Reject a false $H_{o}$ (false negative)
+
+>- Which is more dangerous?
+
+## Putting It All Together
+
+Let's use the <span class="func">pwr</span> package.
+
+```{r}
+library(pwr)
+
+pwr.f2.test(u = 1, v = NULL, f2 = .05, power = .8)
+
+```
+
+In the function: 
+
+- u is the numerator df (*k* - 1)
+
+- v is the denominator df (*n* - *k*) 
+
+- f2 is signficance level
+
+- \(\Pi = 1 -\beta\)
+
+- \(\beta = Type\,II_{prob}\)
+
+
+## Your Turn!
+
+Use various values to do an *a priori* power analyses.
+
+How does the proposed sample size change as the number of predictors goes up?
+
+What if you tweak the significance level?
+
+What about power?
+
+
+## Different Test, Different Power Tests
+
+We just did a test for a linear regression model.
+
+Here is one for a *t*-test:
+
+```{r}
+tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8, 
+                    type= "two.sample", alternative = "greater")
+
+plot(tPower)
+```
+
+
+## Congratulations
+
+>-  Your knowledge now far exceeds most professionals!
+  

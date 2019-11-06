@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
 ```
 
+# Bronze (20 points)
+
 ## Step 1
 
 ### Find Your Data
@@ -22,16 +24,24 @@ Understanding your data is critical. Not only do you need to know what variables
 
 ### Forumlate 2 Distinct Hypotheses
 
-Your dependent variable can be the same for both hypotheses. Specify your hypotheses.
+Your dependent variable can be the same for both hypotheses. Specify your hypotheses before you do any analyses.
 
 ## Step 4
 
 ### Visualize Your Hypotheses
 
-For your two hypotheses, create visualizations that show the relationships.
+For your two hypotheses, create visualizations that show the relationships and offer a preliminary explanation.
 
 ## Step 5
 
 ### Analyze Your Data
 
 Use any of the methods that we have discussed to this point. Present and interpret your results. Discuss any potential limitations and highlight anything interesting.
+
+# Silver (8 points)
+
+Use the appropriate power analyses to ensure that your analyses were sufficiently powered. 
+
+# Gold (12 points)
+
+Generate one new hypothesis informed from your previous results. State, visualize, and test that hypothesis. Offer an explanation for your findings and conduct the appropriate power analysis. 

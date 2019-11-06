@@ -1,0 +1,90 @@
+---
+title: "Lab 1"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## The Data
+
+Let's play around with some data about apps in the Play Store.
+
+```{r}
+playStore = read.csv("http://www.nd.edu/~sberry5/data/googleplaystore.csv")
+```
+
+As we look at our data, we see some variables are clearly categorical:
+
+```{r}
+str(playStore)
+```
+
+Variables like `Category`, `Type`, `Content.Rating`, and potentially `Installs` could be interesting to mess around with from a categorical data analysis perspective. But first...we should probably check to see what is going on with those variables:
+
+```{r}
+summary(playStore$Category)
+
+summary(playStore$Type)
+
+summary(playStore$Content.Rating)
+```
+
+In looking at our summaries, it appears that we might want to do a bit of cleaning before we dive into any analyses. Why? If we don't we are going to have bad problems with unreliable estimates given cell counts.
+
+We can start with removing low count stuff on the `Content.Rating` variable. The following demonstrates once such way of doing it:
+
+```{r, eval = FALSE}
+library(dplyr)
+
+playStore = playStore %>% 
+  filter(Content.Rating != "" & Content.Rating != "Unrated" & Content.Rating != "Adults only 18+") %>% 
+  mutate(Content.Rating = droplevels(Content.Rating))
+
+playStore = playStore %>%
+  filter(Content.Rating != "" & Content.Rating != "Unrated" & Content.Rating != "Adults only 18+") %>%
+  filter(Type == "Free" | Type == "Paid") %>% 
+  mutate(Content.Rating = droplevels(Content.Rating), 
+         Type = droplevels(Type))
+```
+
+You will also want to clean up the `Type` variable, but you will likely want to use the "Or" operator (`|`) to create your statement. While there is clearly a bad category in the `Category` variable, it is completely up to you about how you might want to proceed with anything else. 
+
+## Visualize
+
+For the sake of starting out, do a little bit of visualization among some of your categorical variables. For example, producing a visualization for `Content.Rating` and `Type` can help shed some insight into the relationships (or lack thereof):
+
+```{r, eval = FALSE}
+library(ggmosaic)
+
+library(dplyr)
+
+playStore %>% 
+  select(Content.Rating, Type) %>% 
+  table() %>%
+  as.data.frame() %>% 
+  ggplot() +
+  geom_mosaic(aes(weight = Freq, x = product(Content.Rating), fill = Type)) + 
+  scale_fill_brewer(type = "qual")
+```
+
+Feel free to tackle any additional visualizations that might be of interest to you.
+
+## Analyze
+
+After conducting your visualizations, you might have a pretty good idea about what is going on between your categories. We can use an $\chi^2$ to test those categories for independence.
+
+```{r, eval = FALSE}
+chisq.test(playStore$Content.Rating, playStore$Type, correct = FALSE)
+```
+
+What does that test result mean in terms of the association between those variables?
+
+It is also worth trying to visualize the directional association between those variables.
+
+```{r, eval = FALSE}
+playStore %>% 
+  select(Content.Rating, Type) %>% 
+  assoc(., shade = TRUE)
+```

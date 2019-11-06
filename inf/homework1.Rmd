@@ -1,0 +1,107 @@
+---
+title: "Advanced Statistical Inference"
+author: 'Homework #1'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Bronze Tier
+
+Each task is worth 2 points.
+
+## Task 1
+
+Use the attrition data from the rsample package.
+
+```{r}
+library(rsample)
+
+data("attrition")
+```
+
+Engage in some data exploration by using `summary` functions.
+
+In addition to the `summary` function, the `describe` functions from the psych and Hmisc packages are great (but for slightly different purposes). Use any function you wish
+
+## Task 2
+
+How do those variables look? Do they appear to all make sense? Are there any extreme values? Are any of them coded in such a way that don't make sense? Discuss anything interesting that you found.
+
+Be sure to use the `str` function or the `glimpse` function from dplyr to check the structure of the data.
+
+## Task 3
+
+Pick at least 3 variables for which you want to explore relationships. Given any issues you found in Task 2, convert variables as needed with `as.factor` (forces a variable into a factor -- think about a nominal variable), `as.numeric` (forces a variable into a numeric), or anything else that you deem necessary (e.g., create new variables with `mutate`). 
+
+## Task 4
+
+Using the ggplot2 package, create some visualizations. The structure of a ggplot object is as follows:
+
+```{r}
+ggplot(yourData, aes(x = variableOnX, y = variableOnY)) + 
+  geom_point()
+```
+
+If you want to add some type of grouped function (by color, for instance), you might do something like this:
+
+```{r}
+ggplot(yourData, aes(x = variableOnX, y = variableOnY, color = variableToColor)) + 
+  geom_point()
+```
+
+Once you have produced a visualization, explain what it means. Naturally, good viz doesn't need explanation, but let's do it regardless!
+
+## Task 5
+
+Use the `simViz` function from inferviz to see how well you actually do in finding an actual relationship.
+
+```{r}
+library(inferviz)
+
+simViz(yourData, variableOnX, variableOnY, distractors = 3, answer = FALSE)
+```
+
+
+First, pick two new variables for relationship exploration -- make sure that you have not seen them before.
+
+When you run it the first time, keep the distractors argument at the default value. When asked if you want to see the real data select 1 (No). Now try it with more distractors (maybe 5 or 6).
+
+How did you do? Where you able to spot the real relationship or were you fooled by your basic human need for pattern finding?
+
+Discuss what you think this means.
+
+# Silver Tier
+
+For up to 4 points, use the leadershipRatingsAgreement.csv file in the data folder. 
+
+You can use any of the following functions to read a csv file into R (from slow to fast):
+
+```{r}
+read.csv("path/to/your/file.csv")
+
+readr::read_csv("path/to/your/file.csv")
+
+data.table::fread("path/to/your/file.csv")
+```
+
+Which variables have the strongest positive relationship and which have the strongest negative relationship? Once you have found those relationships, plot them both.
+
+Which 4 variables have the strongest relationship with the effect variable? Explain how you found this relationship. Produce plots for each of those relationships and include both linear trend lines and smoothed trend lines.  
+
+# Gold Tier
+
+For up to 6 points, use the leadership data found in the data folder. This is a .dta file (from Stata) and can be read in using the appropriate function from the haven package. 
+
+```{r}
+haven::read_dta("path/to/leadership")
+```
+
+
+Using verbs from the dplyr package (specifically, `group_by` and `summarize`), find the *effect* mean for each leaderID. Which leader(s) had the highest effect mean and which leader(s) had the lowest effect mean.
+
+Take your highest and lowest leaders and keep the leaderID. With the leaderID in hand, find those leaders in the leadershipRatingsAgreement data.
+
+Excluding effect, construct a plot with forceful, enabling, strategic, operational, vitality, and productivity on the x-axis (the y-axis will contain the value for each variable). Next color the points by leaderID.

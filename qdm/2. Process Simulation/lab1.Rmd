@@ -1,0 +1,113 @@
+---
+title: "Lab 1"
+author: "Your Name Here"
+date: "11/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(simmer)
+
+library(simmer.plot)
+```
+
+## The Situation
+
+A hospital has a lot of different things going on with it, but we are going to model a pretty easy process. 
+
+Let's model some exciting times: between 12:00am and 8:00am. Given that this is prime emergency room action, we know that people come in about every 15 minutes (according to an exponential distribution. When a patient walks into a hospital (or an emergency room), they are going to visit a registration desk.
+
+From the desk, 75% of patients go directly to x-ray and 25% go to the lab. Once all of those patients are done, they visit the doctor.
+
+The working times are listed below:
+
+Admit: normal(3, .1)
+
+X-ray: normal(15, 3)
+
+Lab: normal(15, 6)
+
+Doctor: normal(30, 6)
+
+You can assume that each of these servers/workstations can only serve one person at a time.
+
+## Process Flow Map
+
+```{r}
+library(DiagrammeR)
+
+grViz("
+digraph {
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+  
+  node [shape = box, style = filled, color = black, fillcolor = aliceblue]
+  A [label = '']
+  B [label = '']
+  C [label = '']
+  D [label = '']
+
+  A->B A->C B->D C->D
+}
+")
+```
+
+## The Model
+
+We are going to see some things that we have not used before: branches and logs.
+
+A branch will let you define subtrajectories and logs will print messages out to the console (they are good for checking your sanity).
+
+```{r}
+patient <- trajectory("patient") %>% 
+  set_attribute("start_time", function() now(hospital)) %>% 
+  seize("desk") %>% 
+  log_("I'm at the desk") %>% 
+  timeout(function() rnorm(1, 3, .1)) %>% 
+  release("desk") %>%
+  branch(function() sample(1:2, 1, prob = c(.75, .25)), 
+         continue = c(TRUE, TRUE), 
+         trajectory() %>%
+           log_("In xray") %>% 
+           seize("xray") %>% 
+           timeout(function() rnorm(1, 15, 6)) %>% 
+           release("xray") %>% 
+           log_("leaving xray"), 
+         trajectory() %>%
+           log_("In lab") %>% 
+           seize("lab") %>% 
+           timeout(function() rnorm(1, 15, 6)) %>% 
+           release("lab") %>% 
+           log_("leaving lab")) %>% 
+  seize("doctor") %>% 
+  log_("With doctor") %>% 
+  timeout(function() rnorm(1, 30, 6)) %>% 
+  release("doctor") %>% 
+  log_("leaving doctor")
+
+# If you remove the log messages, you can plot the trajectory.
+# This serves as the process flow map.
+# plot(patient)
+
+hospital <- simmer("hospital") %>% 
+  add_resource("desk", capacity = 1) %>% 
+  add_resource("xray", capacity = 1) %>% 
+  add_resource("lab", capacity = 1) %>% 
+  add_resource("doctor", capacity = 1) %>% 
+  add_generator("patient", patient, mon = 2, function() c(0, rexp(100, 1/15), -1))
+
+run(hospital, 480)
+
+results <- get_mon_arrivals(hospital)
+
+resourceResults = get_mon_resources(hospital)
+
+plot(resourceResults, "utilization")
+
+```
+
+
+After running your initial simulation, what do you see as the bottleneck (the server that is slowing down progress) in this particular system? Make a recommendation for changing this system and implement that change. How many more people does this system get through with your change?
+
+Time permitting consider an option in which nearly everything remains the same, except for the inclusion of another server: a PA. After finishing with the x-ray or lab, patients can see either the doctor (25%) or the PA (75%).

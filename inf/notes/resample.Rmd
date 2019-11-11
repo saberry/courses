@@ -1,0 +1,322 @@
+---
+title: "Resampling"
+description: |
+  A new article created using the Distill format.
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# A Standard Model
+
+At this point, we have been using single models pretty regularly. Let's fit a simple model:
+
+```{r}
+library(dplyr)
+
+turnoverData <- read.csv("D:/projects/courses/businessAnalytics/turnoverData.csv", stringsAsFactors = FALSE)
+
+slim <- lm(startingSalary ~ age + numberPriorJobs, data = turnoverData)
+
+turnoverData$fittedValue <- slim$fitted.values
+
+turnoverData$residValue <- slim$residuals
+```
+
+# A Resampled Model
+
+We have spoken a few times about what all of our test statistics are based upon: repeated samples from the population. Unfortunately, we rarely have the time or resources to actually do this. As luck would have it, though, we can treat our sample as a population. If it is a population, then we can repeatedly sample from that population.
+
+This resampling can take on a few different forms and those different forms can answer slightly different questions. We are going to discuss three specific techniques: *bootstrapping*, *subsampling*, and *permutation*. Do keep in mind, though, that there are many different forms of resampling.
+
+This is also highly-related to something you are doing in machine learning, so try to think about what that might be.
+
+
+## Bootstraps
+
+Bootstraps are not a new technique, but they are used more now then when they were first introduced (computers have gotten faster). Bootstrapping involves taking full samples out of the population. The trick here, though, is that the sampling happens with replacement. This means that the same observation can appear in the bootstrapped data more than once and that is by design. 
+
+Bootstrap samples provide some pretty cool advantages. Perhaps the biggest is that the underlying distribution of the variables does not need to be normal. As we generate a statistic for each of our samples, we can almost guarentee that our resulting distribution will be normal. We can also easily get the 95% confidence interval of the distribution of test statistics.
+
+```{r}
+modelVars <- select(turnoverData, startingSalary, age, numberPriorJobs)
+
+bootstrapping <- function(df) {
+  df <- df
+  
+  sampledRows <- sample(1:nrow(df), nrow(df), replace = TRUE)
+  
+  df <- df[sampledRows, ]
+  
+  bsMod <- lm(startingSalary ~ age + numberPriorJobs, data = df)
+  
+  results <- broom::tidy(bsMod)
+  
+  return(results)
+}
+
+bootstrapping(modelVars)
+
+bsRep <- replicate(1000, bootstrapping(modelVars), simplify = FALSE)
+
+bsCombined <- do.call("rbind", bsRep)
+
+hist(bsCombined$statistic[bsCombined$term == "age"], col = "black")
+
+abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "black")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+```
+
+Let's also find the 95% confidence interval. 
+
+```{r}
+mean(bsCombined$statistic[bsCombined$term == "age"])
+
+ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "age"], .975)
+
+ciLower <- quantile(bsCombined$statistic[bsCombined$term == "age"], .025)
+
+hist(bsCombined$statistic[bsCombined$term == "age"], col = "black")
+
+abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+
+abline(v = ciUpper, col = "cornflowerBlue", lwd = 2)
+
+abline(v = ciLower, col = "cornflowerBlue", lwd = 2)
+```
+
+### Residual Bootstrapping
+
+Shuffling data around is pretty easy. After running our first model, we stuck our predicted values and our residuals back into the original data. We did this because we are going to use them for a specific type of bootstrap: residual bootstrapping. 
+
+Clearly the first step was to create the model. Next, we are going to add a random residual to a specific predicted value: 
+
+```{r}
+randomResid <- function(df) {
+  df <- df
+  
+  sampledRows <- sample(1:nrow(df), nrow(df), replace = FALSE)
+  
+  df$randomResid <- df[sampledRows, "residValue"]
+  
+  df$yStar <- df$fittedValue + df$randomResid
+  
+  residMod <- lm(yStar ~ age + numberPriorJobs, data = df)
+  
+  results <- broom::tidy(residMod)
+  
+  return(results)
+}
+
+randomResid(turnoverData)
+
+residRep <- replicate(1000, randomResid(turnoverData), simplify = FALSE)
+
+residCombined <- do.call("rbind", residRep)
+
+hist(residCombined$statistic[residCombined$term == "age"], col = "black")
+
+abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+
+hist(residCombined$statistic[residCombined$term == "numberPriorJobs"], col = "black")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+```
+
+Why might we want to perform this type of bootstrap? It put less trust in the model. This type of resampling approach would guess that the original regression model has the proper form, but has no assumptions about how the residuals are distributed. 
+
+## Subsample
+
+Using subsampling is very similar to bootstraps, but with some key exceptions. The first is right in the name; we are going to draw a smaller sample out of our data. We are also not going to use replacement. 
+
+How much of a sample you take is up to you, but don't go too small or large.
+
+```{r}
+bootstrapping <- function(df, type = c("bs", "subsample")) {
+  df <- df
+  
+  sampledRows <- switch(type, 
+                        bs = sample(1:nrow(df), nrow(df), replace = TRUE), 
+                        subsample = sample(1:nrow(df), round(nrow(df) * .75), replace = FALSE))
+  
+  df <- df[sampledRows, ]
+  
+  bsMod <- lm(startingSalary ~ age + numberPriorJobs, data = df)
+  
+  results <- broom::tidy(bsMod)
+  
+  return(results)
+}
+
+ssRep <- replicate(1000, bootstrapping(modelVars, type = "subsample"), simplify = FALSE)
+
+ssCombined <- do.call("rbind", ssRep)
+
+hist(ssCombined$statistic[ssCombined$term == "age"], col = "black")
+
+abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+
+hist(ssCombined$statistic[ssCombined$term == "numberPriorJobs"], col = "black")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+```
+
+Just like we did before, let's see the CIs.
+
+```{r}
+mean(ssCombined$statistic[ssCombined$term == "age"])
+
+quantile(ssCombined$statistic[ssCombined$term == "age"], .975)
+
+quantile(ssCombined$statistic[ssCombined$term == "age"], .025)
+```
+
+
+## Permutation
+
+The purpose is the same, but the mechanism is different. Instead of sampling our data, we are going to create random shuffles of our data (specifically, our outcome variable). We don't have to have every single permutation present for our circumstances, but it is possible for small experimental design settings. 
+
+The primary goal here is to create a distribution (just like we did before), but we are creating a *null distribution*. A reasonable question is why we would ever want to do this type of thing. The best reason is the start of proof. If the null distribution is real, you should never find the hypothesized effect (or almost never). If you shuffle your dependent variable around, you should observe very few effects.
+
+<aside>
+Maybe you have seen something similar with visualizations?
+</aside>
+
+```{r}
+permuteBS <- function(df) {
+  df <- df
+  
+  sampleValues <- sample(1:nrow(df), nrow(df), replace = TRUE)
+  
+  df$startingSalary <- df[sampleValues, "startingSalary"]
+  
+  bsMod <- lm(startingSalary ~ age + numberPriorJobs, data = df)
+  
+  results <- broom::tidy(bsMod)
+  
+  return(results)
+}
+```
+
+```{r}
+bsRep <- replicate(1000, permuteBS(modelVars), simplify = FALSE)
+
+bsCombined <- do.call("rbind", bsRep)
+
+hist(bsCombined$statistic[bsCombined$term == "age"])
+
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "black")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+```
+
+Our observed effect is way out in the tail of our null distribution: this gives a pretty clear idea that we can probably reject the null for this model.
+
+We can also derive a one-tailed *p*-value for our null distribution:
+
+```{r}
+(sum(bsCombined$statistic[bsCombined$term == "numberPriorJobs"] > 2.013)) / nrow(bsCombined)
+```
+
+Or a two-tailed *p*-value:
+
+```{r}
+(sum(abs(bsCombined$statistic[bsCombined$term == "numberPriorJobs"]) > 2.013)) / nrow(bsCombined)
+```
+
+## A Brief Demonstration of infer
+
+```{r}
+library(infer)
+
+nullDist <- modelVars %>% 
+  specify(startingSalary ~ age) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(1000, type = "permute") %>% 
+  calculate("slope")
+
+visualise(nullDist) +
+  shade_p_value(obs_stat = 401, direction = "right") +
+  shade_confidence_interval(endpoints = get_ci(nullDist))
+```
+
+## Computational Power
+
+When running our bootstrapping functions, things were generally going pretty fast; running 1000 replications is no problem. However, we probably won't be doing this just 1000. We will probably be doing it many thousands of times. If we are going to be running that many simulations, we probably want to get full use of our machines. 
+
+We can do that by running our models in parallel.
+
+```{r, eval = FALSE}
+timeRunner <- function(repNumber) {
+  replicate(repNumber, randomResid(turnoverData), simplify = FALSE)
+}
+
+library(parallel)
+
+cl <- parallel::makeCluster(10)
+
+clusterExport(cl, c("turnoverData", "timeRunner", "randomResid"))
+
+clusterEvalQ(cl, library(dplyr))
+
+t1 <- proc.time()
+residOut <- clusterEvalQ(cl, timeRunner(1000))
+proc.time() - t1
+
+residOut <- purrr::flatten(residOut) %>% 
+  bind_rows(.)
+
+t1 <- proc.time()
+test4 <- timeRunner(10000)
+proc.time() - t1
+
+stopCluster(cl)
+```
+
+An alternative way is as follows:
+
+```{r, eval = FALSE}
+timeRunner <- function(repNumber) {
+  replicate(repNumber, expr = {
+    out <- randomResid(turnoverData)
+    out$number <- repNumber
+    return(out)
+  }, simplify = FALSE)
+}
+
+cl <- parallel::makeCluster(10)
+
+clusterExport(cl, c("turnoverData", "timeRunner", "randomResid"))
+
+clusterEvalQ(cl, library(dplyr))
+
+t1 <- proc.time()
+residOut <- parLapply(cl, 1:141, function(x) timeRunner(x))
+proc.time() - t1
+
+residOut <- purrr::flatten(residOut) %>% 
+  bind_rows(.)
+```
+
+Or...
+
+```{r, eval = FALSE}
+t1 <- proc.time()
+residOut <- parSapply(cl, 1:141, function(x,...) {
+  timeRunner(x)
+}, simplify = FALSE)
+proc.time() - t1
+
+residOut <- purrr::flatten(residOut) %>% 
+  bind_rows(.)
+
+stopCluster(cl)
+```
+
+The parallel apply statement are a bit slower than what we previously used when we just evaluated the statement, but you should keep these in mind because they are very helpful to keep in mind if you are doing anything that a `for` loop might normally do.

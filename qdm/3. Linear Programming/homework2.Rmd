@@ -32,20 +32,20 @@ You have 3 things to report:
 ```{r}
 library(linprog)
 
-objectiveFunction <- c(40, 7.50)
+objectiveFunction <- c()
 
 names(objectiveFunction) <- c("oil", "flower")
 
 constraintValues <- 8960
 
-constraintMatrix <- rbind(c(30, 3))
+constraintMatrix <- rbind(c())
 
 linprog::solveLP(objectiveFunction, constraintValues, constraintMatrix, maximum = TRUE)
 ```
 
 ### Part 2
 
-Given the market conditions that exist, Canopy Growth needs to produce at least 50 units of oil to satisify holiday demand. You will need to use the ROI package to specify lower and upper bounds on your objective functions.
+Given the market conditions that exist, Canopy Growth needs to produce at least 50 units of oil to satisify holiday demand (this is the lowerbound value for this variable). You will need to use the ROI package to specify lower and upper bounds on your objective functions.
 
 You have 3 things to report:
 
@@ -58,17 +58,20 @@ You have 3 things to report:
 ```{r}
 library(ROI)
 
+variableBounds <- V_bound(li = 1:2, ui = 1:2, lb = c(), ub = c(Inf, Inf))
+
 cgOP <- OP(objective = c(40, 7.50), 
            constraints = L_constraint(L = matrix(c(30, 3), nrow = 1, ncol = 2), 
                                       dir = "<=", 
                                       rhs = 8960), 
            maximum = TRUE, 
-           bounds = list(upper = c(Inf, Inf), 
-                         lower = c(50, 0)))
+           bounds = variableBounds)
 
 result <- ROI_solve(cgOP)
 
 solution(result)
+
+result$message
 ```
 
 
@@ -100,4 +103,55 @@ What is the optimal dose for beams 1 and 2?
 
 ## Gold
 
-https://thalis.math.upatras.gr/~tsantas/DownLoadFiles/Hillier&Lieberman_7th-edition_Chapter3.pdf
+A steel mill is trying to reduce emissions of three particular kinds of air pollutants.
+
+The following are clean air standards for the facility (in millions of pounds):
+
+```{r}
+data.frame(pollutant = c("particulates", "sulfer oxides", "hydrocarbons"), 
+           requiredReduction = c(60, 150, 125))
+```
+
+The steel mill has two major sources of these pollutants: blast furnaces and open-hearth furnances. To reduce the pollutants from these two furnace types, engineers are exploring using taller smokestacks, filters, and cleaner fuels.
+
+The following are maximum estimated reduction rates (in millions of pounds) for various abatement methods:
+
+```{r}
+data.frame(pollutant = c("particulates", "sulfer oxides", "hydrocarbons"), 
+           ts_blastFurnace = c(12, 35, 37), 
+           ts_openHearth = c(9, 42, 53), 
+           filter_blastFurnace = c(25, 18, 28), 
+           filter_openHearth = c(20, 31, 24), 
+           fuels_blastFurnace = c(17, 56, 29), 
+           fuels_openHearth = c(13, 49, 20))
+```
+
+Each of these abatement methods can be used to any proportion.
+
+The following table specifies the cost for fully-adopting each method (if the proportion is 1):
+
+```{r}
+data.frame(method = c("taller smokestacks", "filters", "fuels"), 
+           blastFurnaces = c(8, 7, 11), 
+           openHearth = c(10, 6, 9))
+```
+
+
+The ultimate goal of the steel mill is to minimize the money spent on each abatement method, while hitting the require reduction thresholds.
+
+This creates the following linear program:
+
+$$Minimize Z = 8_{x1} + 10_{x2} +7_{x3} +6_{x4} + 11_{x5} + 9_{x6}$$
+
+**Subject to the following emission reduction constrains:**
+
+$$12_{x1} + 9_{x2} + 25_{x3} + 20_{x4} + 17_{x5} + 13_{x6} \geq 60 \\
+35_{x1} + 42_{x2} + 18_{x3} + 31_{x4} + 56_{x5} + 49_{x6} \geq 150 \\
+37_{x1} + 53_{x2} + 28_{x3} + 24_{x4} + 29_{x5} + 20_{x6} \geq 125
+$$
+
+**Subject to the following technology limitation constrains:**
+
+$$x_j \leq 1$$
+
+What is each abatement methods optimal proportion?

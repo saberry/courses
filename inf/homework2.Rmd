@@ -29,15 +29,18 @@ The main goal is explain the *effect* variable.
 
 ### Bronze
 
-After examining the variables within the given data, generate at least 3 testable hypotheses; these should be generated before any visual exploration. Use regression to test your hypotheses and produce visualizations.
+After examining the variables within the given data, generate at least 3 testable hypotheses; these should be generated before any visual exploration. 
+
+Conduct an *a prior* power analysis and determine the sample size needed for the size of the effect you would expect to achieve -- be conservative in your estimates. Remember that you will need to use the $f^2$ value and it can calculated as:
+
+$$f^2 = \frac{R^2_{adjusted}}{1 - R^2_{adjusted}}$$
+
+
+Use regression to test your hypotheses and produce appropriate visualizations.
 
 Discuss the results of your model, both in terms of the model performance and your hypotheses. 
 
 ### Silver
-
-Conduct an post-hoc power analysis and determine if you achieved sufficient power for the effect(s). Remember that you will need to use the $f^2$ value and it can calculated as:
-
-$$f^2 = \frac{R^2_{adjusted}}{1 - R^2_{adjusted}}$$ 
 
 Additionally, conduct any form of resampling and discuss the output from your resampled results.
 

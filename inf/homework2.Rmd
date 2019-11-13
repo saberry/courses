@@ -1,0 +1,46 @@
+---
+title: "Homework 2"
+author: "Your Name Here"
+date: "11/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## What Makes An Effect Leader?
+
+Why are some people seen as effective leaders and others are not? Are there any behaviors or characteristics that can help us quantify what an effective leader looks like? 
+
+The data that we are using comes from a large survey of employees and their direct manager (i.e., each leader provided self-ratings and their direct subordinates provided rating about the leader -- this is reflected by the `Rater` variable). This data contains individual items and the scale score for those items. The scale are hierarchical and are constructed as follows:
+
+The *forceful* scale contains the following subscales: takesCharge, declares, pushes
+
+The *enabling* scale contains the following subscales: empowers, listens, supports
+
+The *strategic* scale contains the following subscales: direction, growth, innovation
+
+The *operational* scale contains the following subscales: execution, efficiency, order
+
+This are also a number of demographic variables within this data (e.g., age, experience, gender, tenure). 
+
+The main goal is explain the *effect* variable. 
+
+### Bronze
+
+After examining the variables within the given data, generate at least 3 testable hypotheses; these should be generated before any visual exploration. Use regression to test your hypotheses and produce visualizations.
+
+Discuss the results of your model, both in terms of the model performance and your hypotheses. 
+
+### Silver
+
+Conduct an post-hoc power analysis and determine if you achieved sufficient power for the effect(s). Remember that you will need to use the $f^2$ value and it can calculated as:
+
+$$f^2 = \frac{R^2_{adjusted}}{1 - R^2_{adjusted}}$$ 
+
+Additionally, conduct any form of resampling and discuss the output from your resampled results.
+
+### Gold
+
+Consider any potential problems of your original regression model(s). Were there any observations exhibiting leverage? How sure are you about the standard errors? Identify one specific issue and revise your model strategy to allieviate that issue.

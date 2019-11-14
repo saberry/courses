@@ -9,11 +9,11 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-## What Makes An Effect Leader?
+## What Makes An Effective Leader?
 
 Why are some people seen as effective leaders and others are not? Are there any behaviors or characteristics that can help us quantify what an effective leader looks like? 
 
-The data that we are using comes from a large survey of employees and their direct manager (i.e., each leader provided self-ratings and their direct subordinates provided rating about the leader -- this is reflected by the `Rater` variable). This data contains individual items and the scale score for those items. The scale are hierarchical and are constructed as follows:
+The data that we are using comes from a large survey of employees and their direct manager (i.e., each leader provided self-ratings and their direct subordinates provided rating about the leader -- this is reflected by the `Rater` variable). We are most interested in subordinate ratings. This data contains individual items and the scale score for those items. The scale are hierarchical and are constructed as follows:
 
 The *forceful* scale contains the following subscales: takesCharge, declares, pushes
 
@@ -23,27 +23,26 @@ The *strategic* scale contains the following subscales: direction, growth, innov
 
 The *operational* scale contains the following subscales: execution, efficiency, order
 
-This are also a number of demographic variables within this data (e.g., age, experience, gender, tenure). 
+There are also a number of demographic variables within this data (e.g., age, experience, gender, tenure). 
 
-The main goal is explain the *effect* variable. 
+The main goal is explain the *effect* variable. You can use individual items, scale subscores, and/or scale scores. 
 
 ### Bronze
 
 After examining the variables within the given data, generate at least 3 testable hypotheses; these should be generated before any visual exploration. 
 
-Conduct an *a prior* power analysis and determine the sample size needed for the size of the effect you would expect to achieve -- be conservative in your estimates. Remember that you will need to use the $f^2$ value and it can calculated as:
+Conduct an *a prior* power analysis and determine the sample size needed for the effect size you would expect to achieve -- be conservative in your estimates. Without previous knowledge or research, you will have to think before just picking a number here. Remember that you will need to use the $f^2$ value and it can calculated as:
 
 $$f^2 = \frac{R^2_{adjusted}}{1 - R^2_{adjusted}}$$
 
-
-Use regression to test your hypotheses and produce appropriate visualizations.
+After conducting your power analysis, use linear regression to test your hypotheses and produce appropriate visualizations.
 
 Discuss the results of your model, both in terms of the model performance and your hypotheses. 
 
 ### Silver
 
-Additionally, conduct any form of resampling and discuss the output from your resampled results.
+Conduct any form of resampling and discuss the output from your resampled results. How do the resultant distribution help to support your hypotheses?
 
 ### Gold
 
-Consider any potential problems of your original regression model(s). Were there any observations exhibiting leverage? How sure are you about the standard errors? Identify one specific issue and revise your model strategy to allieviate that issue.
+Consider any potential problems of your original regression model(s). Were there any observations exhibiting leverage? How sure are you about the standard errors? Identify one specific issue and revise your model strategy to help allieviate that issue.

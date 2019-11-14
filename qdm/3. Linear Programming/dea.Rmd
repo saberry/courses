@@ -1,0 +1,219 @@
+---
+title: "Data Enveloping Analysis"
+description: |
+  Linear Programming With A Twist
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Efficiency is an important metric in many businesses. If, for instance, you decide to get into the franchise game, you might want to determine how all of your locations are performing relative to each other. This is where Data Enveloping Analysis (DEA) would come in handy.
+
+In DEA, we are going to be comparing similar units -- these units are called *Decision Making Units* (DMUs). We will calculate the efficiency of each DMU with a series of inputs and outputs. The great thing about DMU is that the inputs and outputs do not need to be directly comparable to each.
+
+To calculate efficiency, we just need to do the following:
+
+$$efficiency = \frac{output}{input}$$
+
+In a simple system, this could be really easy:
+
+```{r}
+storeData = data.frame(store = c("store1", "store2", "store3", 
+                                 "store4", "store5", "store6"),
+                       employeeCount = c(51, 60, 43, 53, 43, 44),
+                       pizzaSold = c(169, 243, 173, 216, 155, 169))
+
+storeData
+```
+
+```{r}
+storeData$pizzaSold / storeData$employeeCount
+```
+
+With those simple values, we can see that store 4 is the most efficient. We can go 1 extra step and see the relative efficiency:
+
+```{r}
+(storeData$pizzaSold / storeData$employeeCount) / max(storeData$pizzaSold / storeData$employeeCount)
+```
+
+Store 4 is 100% efficient. This can be extended even further when we get into more output variables:
+
+```{r}
+storeData = data.frame(store = c("store1", "store2", "store3", 
+                                 "store4", "store5", "store6"),
+                       employeeCount = c(51, 60, 43, 53, 43, 44),
+                       pizzaSold = c(169, 243, 173, 216, 155, 169),
+                       breadSticksSold = c(119, 167, 158, 138, 161, 157))
+
+storeData
+```
+
+Nothing changes for our `pizzaSold` variable, but we can also see the relative efficiencies for our breadsticks sold variable:
+
+```{r}
+(storeData$breadSticksSold / storeData$employeeCount) / 
+  max(storeData$breadSticksSold / storeData$employeeCount)
+```
+
+Now things are getting interesting! We see that store 5 is the most efficient in terms of breadsticks sold. 
+
+Let's put those values into a table:
+
+```{r}
+efficiencyData = data.frame(store = 1:6, 
+                            pizzaEff = (storeData$pizzaSold / storeData$employeeCount) / 
+                              max(storeData$pizzaSold / storeData$employeeCount), 
+                            breadEff = (storeData$breadSticksSold / storeData$employeeCount) / 
+                              max(storeData$breadSticksSold / storeData$employeeCount))
+
+efficiencyData
+```
+
+If we plot this:
+
+```{r}
+library(ggplot2)
+
+ggplot(efficiencyData, aes(pizzaEff, breadEff, label = store)) +
+  geom_text() +
+  theme_minimal()
+```
+
+We arrive at what we call the *efficiency frontier*. This is the collection of stores that represent the greatest in efficiency for one, both, or a combination of outcomes.
+
+All of this has been conceived upon the notion of single inputs. If we have more than 1 input, we need to do some extra work.
+
+$$efficiency = \frac{(u_1 \,* \, output_1) + (u_2 \,* \, output_2)}{(v_1 \,* \, input_1) + (v_2 \,* \, input_2)}$$
+Items $v_1$, $v_2$, $u_1$, and $u_2$ are all weights that go into the efficiency. Where, though, do those weights come from...linear programming.
+
+Let's consider that we have the following data:
+
+```{r}
+storeData = data.frame(store = c("store1", "store2", "store3", 
+                                 "store4", "store5", "store6"),
+                       employeeCount = c(51, 60, 43, 53, 43, 44),
+                       managementHours = c(38, 45, 33, 43, 38, 35),
+                       pizzaSold = c(169, 243, 173, 216, 155, 169),
+                       breadSticksSold = c(119, 167, 158, 138, 161, 157))
+
+storeData
+```
+
+Since we have 6 stores, we have 6 linear programming problems to solve. This is the form that each will take:
+
+Objective function:
+
+$$Maximize=\frac{(169 \, * \, u_1) + (119 \, * \, u_2)}{(51 \, * \, v_1) + (38 \, * \, v_2)}$$
+
+Subject to:
+
+$$S2:\frac{(243 \, * \, u_1) + (167 \, * \, u_2)}{(60 \, * \, v_1) + (45 \, * \, v_2)} \leq 1$$
+
+$$S3:\frac{(173 \, * \, u_1) + (158 \, * \, u_2)}{(43 \, * \, v_1) + (33 \, * \, v_2)} \leq 1$$
+
+$$S4:\frac{(216 \, * \, u_1) + (138 \, * \, u_2)}{(53 \, * \, v_1) + (43 \, * \, v_2)} \leq 1$$
+
+$$S5:\frac{(155 \, * \, u_1) + (161 \, * \, u_2)}{(43 \, * \, v_1) + (38 \, * \, v_2)} \leq 1$$
+
+$$S6:\frac{(169 \, * \, u_1) + (157 \, * \, u_2)}{(44 \, * \, v_1) + (35 \, * \, v_2)} \leq 1$$
+
+The constraint being less than or equal to 1 is setting the upper bounds for our efficiency metric. An efficiency of 1 is the most efficient we can get.
+
+And we are almost there! Our problem, formulated as they are, will not be solvable. To make them work, we need to shuffle our equations about just a little bit:
+
+$$Maximize=(169 \, * \, u_1) + (119 \, * \, u_2)$$
+
+Subject to:
+
+$$S2:((243 \, * \, u_1) + (167 \, * \, u_2)) - ((60 \, * \, v_1) + (45 \, * \, v_2)) \leq 0$$
+
+$$S3:((173 \, * \, u_1) + (158 \, * \, u_2)) - ((43 \, * \, v_1) + (33 \, * \, v_2)) \leq 0$$
+
+$$S4:((216 \, * \, u_1) + (138 \, * \, u_2)) - ((53 \, * \, v_1) + (43 \, * \, v_2)) \leq 0$$
+
+$$S5:((155 \, * \, u_1) + (161 \, * \, u_2)) - ((43 \, * \, v_1) + (38 \, * \, v_2)) \leq 0$$
+
+$$S6:((169 \, * \, u_1) + (157 \, * \, u_2)) - ((44 \, * \, v_1) + (35 \, * \, v_2)) \leq 0$$
+$$(51 \, * \, v_1) + (38 \, * \, v_2) = 1$$
+
+```{r}
+library(dplyr)
+
+library(rDEA)
+
+inputVariables = select(storeData, employeeCount, managementHours)
+
+outputVariables = select(storeData, pizzaSold, breadSticksSold)
+
+deaModel = dea(XREF = inputVariables, YREF = outputVariables, 
+               X = inputVariables, Y = outputVariables, 
+               model = "input", RTS = "constant")
+```
+
+After running the model, we can break it down into the main components. First, let's look at efficiency:
+
+```{r}
+deaModel$thetaOpt
+```
+
+If we know that 1 is as efficient as possible, we see that stores 1 and 6 might not be doing as well as the others. 
+
+What do we do about this? We can use some additional information from the model:
+
+```{r}
+deaModel$lambda
+```
+
+These lambda values are known as *shadow prices* -- these are what went into our linear program constraints. It is helpful to look at them with some names:
+
+```{r}
+shadowPrices = deaModel$lambda
+
+rownames(shadowPrices) = storeData$store
+
+colnames(shadowPrices) = storeData$store
+
+shadowPrices
+```
+
+If we want to make improvements to store 1, we can use the shadow prices for those stores on the efficiency frontier to suggest some possible solutions. For store 1, the only stores that offer any input are store 2:
+
+```{r}
+store2Employees = 60
+
+store2Lambda = .6435
+
+store2Total = store2Employees * store2Lambda
+
+store2Total
+```
+
+And store 3:
+
+```{r}
+store3Employees = 43
+
+store3Lambda = .073
+
+store3Total = store3Employees * store3Lambda
+
+store3Total
+```
+
+Now we can take our two shadow price corrected totals and add them:
+
+```{r}
+shadowTotal = store2Total + store3Total
+
+shadowTotal
+```
+
+With that, we can look at the difference between store 1 and our shadow total:
+
+```{r}
+51 - shadowTotal
+```
+
+This means that store 1 has an excess of `r 51 - shadowTotal` employees.

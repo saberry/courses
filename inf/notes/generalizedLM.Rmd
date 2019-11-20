@@ -461,205 +461,234 @@ Remember our original model had some issues with separation. Now is a good time 
 Determine some cut-off values for backers and build a new model. See if you can take care of the separation issue and if you can improve upon the coefficient.
 
 
-<!-- # Poisson Regression -->
+# Poisson Regression
 
-<!-- ## Key Points -->
+## Key Points
 
-<!-- 1.  Poisson regression is for count-based dependent variables (e.g., how many touchdowns does a team get, how many safety violations does a factory have, how many credit cards do you have under your name) -->
+1.  Poisson regression is for count-based dependent variables (e.g., how many touchdowns does a team get, how many safety violations does a factory have, how many credit cards do you have under your name)
 
-<!-- 2.  If you have a lot of zeroes in your data, you might want to consider a zero-inflated Poisson. -->
+2.  If you have a lot of zeroes in your data, you might want to consider a zero-inflated Poisson.
 
-<!-- 3.  If your count variable does not follow a Poisson distribution, then you might want to use a negative binomial model. -->
+3.  If your count variable does not follow a Poisson distribution, then you might want to use a negative binomial model.
 
-<!-- ## The (Sometimes) Thin Line -->
+```{r}
+read.csv("https://www.nd.edu/~sberry5/data/breakdowns.csv")
 
-<!-- This gets into an area where we need to think long and hard about our dependent variable and what it actually might be. -->
+dpois(100, 1)
+```
 
-<!-- - Since Poisson regression gets its name from the Poisson distribution, we should probably see if it follows the Poisson distribution. -->
+## The Poisson Distribution
 
-<!-- ### Checking... -->
+The Poisson distribution is very similar to the binomial distribution, but has some key differences. The biggest difference is in its parameter: poisson has a single parameter noted as $\lambda$. This rate parameter is going to estimate the expected number of events during a time interval. This can be accidents in a year, pieces produced in a day, or hits during the course of a baseball season. We can find the rate by determing the number of events per interval, multiplied by the interval length.
 
-<!-- ```{r} -->
-<!-- library(vcd) -->
+$$\frac{\text{event}}{\text{interval}}*\text{interval length} $$
 
-<!-- shroudData = readr::read_csv("https://www.nd.edu/~sberry5/data/shroudData.csv") -->
+To put some numbers to that, if we have 1 accident per week in a factory and we are observing a whole year, we would get the following:
 
-<!-- poissonTest = goodfit(shroudData$shroudsProduced, type = "poisson") -->
+```{r}
+(1 / 7) * 365
+```
 
-<!-- summary(poissonTest) -->
+We expect about 52 accidents over the course of the year.
 
-<!-- plot(poissonTest) -->
-<!-- ``` -->
+Let's see what that particular distribution might look like:
 
-<!-- This is a $\chi^2$ to test if the distribution deviates from a Poisson. -->
+```{r}
+plot(density(dpois(1:52, 52)))
+```
 
-<!-- - It probably does not. -->
 
-<!-- ### Dispersion -->
+## The (Sometimes) Thin Line
 
-<!-- For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the Poisson distribution (which will use a natural log link function) or the negative binomial distribution. -->
+This gets into an area where we need to think long and hard about our dependent variable and what it actually might be.
 
-<!-- Let’s check this out (it will be important later on!). -->
+- Since Poisson regression gets its name from the Poisson distribution, we should probably see if it follows the Poisson distribution.
 
-<!-- ```{r} -->
-<!-- library(dplyr) -->
+### Checking...
 
-<!-- shroudData %>%  -->
-<!--   dplyr::select(shroudsProduced, employeeCount) %>%  -->
-<!--   group_by(employeeCount) %>%  -->
-<!--   summarize(mean = mean(shroudsProduced), var = var(shroudsProduced)) -->
-<!-- ``` -->
+```{r}
+library(vcd)
 
+shroudData = readr::read_csv("https://www.nd.edu/~sberry5/data/shroudData.csv")
 
-<!-- What is the purpose of this? We are checking the conditional means and variances. Why is this important? If our variances are larger than our means, we have *overdispersion*. We would expect values to be equally distributed over levels, but if they are really spread out, this qualifies as overdispersion – this is not good for our Poisson model because it will cause downward bias (bias, while not tricky conceptually, presents interesting thought questions). -->
+poissonTest = goodfit(shroudData$shroudsProduced, type = "poisson")
 
-<!-- As a very simple check, we can also compare the mean and the variance of our outcome variable -- they should be close to equal! -->
+summary(poissonTest)
 
-<!-- ```{r} -->
-<!-- mean(shroudData$shroudsProduced) -->
+plot(poissonTest)
+```
 
-<!-- var(shroudData$shroudsProduced) -->
-<!-- ``` -->
+This is a $\chi^2$ to test if the distribution deviates from a Poisson.
 
-<!-- It looks like everything is mostly okay (for now), so let’s proceed onward with our poisson model: -->
+- It probably does not.
 
-<!-- ```{r} -->
-<!-- poissonTest = glm(shroudsProduced ~ employeeCount,  -->
-<!--                   data = shroudData,  -->
-<!--                   family = poisson) -->
+### Dispersion
 
-<!-- summary(poissonTest) -->
+For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the Poisson distribution (which will use a natural log link function) or the negative binomial distribution.
 
-<!-- exp(poissonTest$coefficients) -->
-<!-- ``` -->
+Let’s check this out (it will be important later on!).
 
-<!-- **Important Note:** We are going to interpret this almost the same as a linear regression. The slight wrinkle here, though, is that we are looking at the log counts. In other words, an increase in one employee leads to an expected log count increase of ~.029. Just like our logisitc regression, we could exponentiate this to get 1.029189 – every employee we add gets us a 3% increase in shrouds produced. Let’s see what this looks like in action: -->
+```{r}
+library(dplyr)
 
-<!-- ```{r} -->
-<!-- shroudData = shroudData %>%  -->
-<!--   mutate(predValues = poissonTest$fitted.values) -->
+shroudData %>%
+  dplyr::select(shroudsProduced, employeeCount) %>%
+  group_by(employeeCount) %>%
+  summarize(mean = mean(shroudsProduced), var = var(shroudsProduced))
+```
 
-<!-- library(ggplot2) -->
 
-<!-- ggplot(shroudData, aes(employeeCount, predValues)) +  -->
-<!--   geom_count() + -->
-<!--   scale_size_area() + -->
-<!--   theme_minimal() -->
-<!-- ``` -->
+What is the purpose of this? We are checking the conditional means and variances. Why is this important? If our variances are larger than our means, we have *overdispersion*. We would expect values to be equally distributed over levels, but if they are really spread out, this qualifies as overdispersion – this is not good for our Poisson model because it will cause downward bias.
 
+As a very simple check, we can also compare the mean and the variance of our outcome variable -- they should be close to equal!
 
-<!-- Finally, we can look at the residual deviance (it is comparing our model to a model with intercepts only) to get at our model fit: -->
+```{r}
+mean(shroudData$shroudsProduced)
 
-<!-- ```{r} -->
-<!-- pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE) -->
-<!-- ``` -->
+var(shroudData$shroudsProduced)
+```
 
-<!-- This is a *p*-value – it should not be significant. -->
+### The Model
 
-<!-- With everything coupled together, we have a meaningful coefficient, a clear plot, and adequate model fit. Therefore, we might conclude that there is a positive relationship between number of employees on shift and shrouds produced. -->
+Recall that every distribution has a link function (or several) that tend to work well for it. The poisson distribution uses a log link function:
 
-<!-- In addition to checking our data for over dispersion before running the model, we can also check it after running our model: -->
+$$Poisson(\lambda) = \alpha + \beta X \\ log() = $$
 
-<!-- ```{r} -->
-<!-- library(AER) -->
+```{r}
+poissonTest = glm(shroudsProduced ~ employeeCount,
+                  data = shroudData,
+                  family = poisson)
 
-<!-- dispersiontest(poissonTest) -->
-<!-- ``` -->
+summary(poissonTest)
 
-<!-- The dispersion value that we see returned (0.9452052 in our case) should be under 1. A dispersion value over 1 means that we have overdispersion. Our dispersion value, coupled with our high *p*-value, indicates that we would fail to reject the null hypothesis of equidispersion -->
+exp(poissonTest$coefficients)
+```
 
-<!-- We can also look back to our model results to compare our residual deviance to our residual deviance degrees of freedom; if our deviance is greater than our degrees of freedom, we might have an issue with overdispersion. Since we are just a bit over and our overdispersion tests do not indicate any huge issue, we can be relatively okay with our model. If we had some more extreme overdispersion, we would want to flip to a quasi-poisson distribution -- our coefficients would not change, but we would have improved standard errors. -->
+**Important Note:** We are going to interpret this almost the same as a linear regression. The slight wrinkle here, though, is that we are looking at the log counts (remember that we specified the log link function). In other words, an increase in one employee leads to an expected log count increase of ~.029. Just like our logisitc regression, we could exponentiate this to get 1.029189 – every employee we add gets us a 3% increase in shrouds produced. Let’s see what this looks like in action:
 
-<!-- # Zero-inflated (ZIP) -->
+```{r}
+shroudData = shroudData %>%
+  mutate(predValues = poissonTest$fitted.values)
 
-<!-- Sometimes we have a seeming abundance of zero values within our data. We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues. What is the process that generated the zeros? Are they coming from our count model (“true” zeroes) or something else (some random process)? This is where zero-inflated models become important. ZIP models are mixture models. We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a “mixture” of different distributions. -->
+library(ggplot2)
 
-<!-- ```{r} -->
-<!-- redlights = readr::read_csv("https://www.nd.edu/~sberry5/data/redlights.csv") -->
+ggplot(shroudData, aes(employeeCount, predValues)) +
+  geom_count() +
+  scale_size_area() +
+  theme_minimal()
+```
 
-<!-- poissonRedlight = glm(citation_count ~ as.factor(camera_installed_ny),  -->
-<!--             data = redlights,  -->
-<!--             family = poisson) -->
 
-<!-- summary(poissonRedlight) -->
-<!-- ``` -->
+Finally, we can look at the residual deviance (it is comparing our model to a model with intercepts only) to get at our model fit:
 
-<!-- With this output, we are comparing citation counts against intersection without a camera and those with a camera. -->
+```{r}
+pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE)
+```
 
-<!-- We see that our coefficient is -.88529 –- this means that having a camera leads to having .88529 less log counts than without having a camera. -->
+This is a *p*-value – it should not be significant.
 
-<!-- We can also exponentiate that value to get an indicent rate: -->
+With everything coupled together, we have a meaningful coefficient, a clear plot, and adequate model fit. Therefore, we might conclude that there is a positive relationship between number of employees on shift and shrouds produced.
 
-<!-- ```{r} -->
-<!-- exp(poissonRedlight$coefficients) -->
-<!-- ``` -->
+In addition to checking our data for over dispersion before running the model, we can also check it after running our model:
 
-<!-- Now, we could say that the incident rate (redlight citations) for intersections with a camera is about .58 times less than for intersections without a camera. -->
+```{r}
+library(AER)
 
-<!-- ```{r} -->
-<!-- tapply(redlights$citation_count, redlights$camera_installed_ny, mean) #Old school group_by and summarize! -->
-<!-- ``` -->
+dispersiontest(poissonTest)
+```
 
-<!-- ```{r} -->
-<!-- 4.086172/9.903564 -->
-<!-- ``` -->
+The dispersion value that we see returned (0.9452052 in our case) should be under 1. A dispersion value over 1 means that we have overdispersion. Our dispersion value, coupled with our high *p*-value, indicates that we would fail to reject the null hypothesis of equidispersion
 
-<!-- Dividing the mean of the target group by the mean of the reference group will get us the incidence rate (i.e., for every one time someone runs a red light without a camera, it happens .41 times with camera). -->
+We can also look back to our model results to compare our residual deviance to our residual deviance degrees of freedom; if our deviance is greater than our degrees of freedom, we might have an issue with overdispersion. Since we are just a bit over and our overdispersion tests do not indicate any huge issue, we can be relatively okay with our model. If we had some more extreme overdispersion, we would want to flip to a quasi-poisson distribution -- our coefficients would not change, but we would have improved standard errors.
 
-<!-- If we take a look at citation_count’s distribution, we will see more than a few 0’s. -->
+# Zero-inflated (ZIP)
 
-<!-- ```{r} -->
-<!-- hist(redlights$citation_count) -->
-<!-- ``` -->
+Sometimes we have a seeming abundance of zero values within our data. We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues. What is the process that generated the zeros? Are they coming from our count model (“true” zeroes) or something else (some random process)? This is where zero-inflated models become important. ZIP models are mixture models. We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a “mixture” of different distributions.
 
+```{r}
+redlights = readr::read_csv("https://www.nd.edu/~sberry5/data/redlights.csv")
 
-<!-- For our redlight data, we saw that having a camera present had an effect on citations, but would it cause 0 citations? Or might there be something else contributing to the 0’s (e.g., no cars going through that intersection due to construction, no police nearby)? If there are no cars going through the intersection due to construction, is there even a chance of obtaining a non-zero response? -->
+poissonRedlight = glm(citation_count ~ as.factor(camera_installed_ny),
+            data = redlights,
+            family = poisson)
 
-<!-- ```{r} -->
-<!-- library(pscl) -->
+summary(poissonRedlight)
+```
 
-<!-- zipTest = zeroinfl(citation_count ~ as.factor(camera_installed_ny), -->
-<!--                    dist = "poisson", data = redlights) -->
+With this output, we are comparing citation counts against intersection without a camera and those with a camera.
 
-<!-- summary(zipTest) -->
-<!-- ``` -->
+We see that our coefficient is -.88529 –- this means that having a camera leads to having .88529 less log counts than without having a camera.
 
-<!-- Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflational model will not account for the 0s within our data. -->
+We can also exponentiate that value to get an indicent rate:
 
+```{r}
+exp(poissonRedlight$coefficients)
+```
 
-<!-- # Negative Binomial -->
+Now, we could say that the incident rate (redlight citations) for intersections with a camera is about .58 times less than for intersections without a camera.
 
+```{r}
+tapply(redlights$citation_count, redlights$camera_installed_ny, mean) #Old school group_by and summarize!
+```
 
-<!-- Remember that whole issue with our conditional means and standard deviations? If we would have had problems those means and variances, we would need to abandon our poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely. -->
+```{r}
+4.086172/9.903564
+```
 
-<!-- Remember this: -->
+Dividing the mean of the target group by the mean of the reference group will get us the incidence rate (i.e., for every one time someone runs a red light without a camera, it happens .41 times with camera).
 
-<!-- ```{r} -->
-<!-- redlights %>%  -->
-<!--   dplyr::select(citation_count, camera_installed_ny) %>%  -->
-<!--   group_by(camera_installed_ny) %>%  -->
-<!--   summarize(mean = mean(citation_count), var = var(citation_count)) -->
-<!-- ``` -->
+If we take a look at citation_count’s distribution, we will see more than a few 0’s.
 
-<!-- Those look like the start of problems. Let’s check our whole sample now: -->
+```{r}
+hist(redlights$citation_count)
+```
 
-<!-- ```{r} -->
-<!-- mean(redlights$citation_count) -->
-<!-- ``` -->
 
+For our redlight data, we saw that having a camera present had an effect on citations, but would it cause 0 citations? Or might there be something else contributing to the 0’s (e.g., no cars going through that intersection due to construction, no police nearby)? If there are no cars going through the intersection due to construction, is there even a chance of obtaining a non-zero response?
 
-<!-- ```{r} -->
-<!-- var(redlights$citation_count) -->
-<!-- ``` -->
+```{r}
+library(pscl)
 
-<!-- There is clearly a problem here! -->
+zipTest = zeroinfl(citation_count ~ as.factor(camera_installed_ny),
+                   dist = "poisson", data = redlights)
 
-<!-- ```{r} -->
-<!-- library(MASS) -->
+summary(zipTest)
+```
 
-<!-- nbTest = glm.nb(citation_count ~ as.factor(camera_installed_ny), data = redlights) -->
+Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflational model will not account for the 0s within our data.
 
-<!-- summary(nbTest) -->
-<!-- ``` -->
+# Negative Binomial
 
-<!-- The interpretation of our negative binomial is exactly the same as our Poisson model -- we have only relaxed the assumptions of our distribution. -->
+Remember that whole issue with our conditional means and standard deviations? If we would have had problems those means and variances, we would need to abandon our poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely.
+
+Remember this:
+
+```{r}
+redlights %>%
+  dplyr::select(citation_count, camera_installed_ny) %>%
+  group_by(camera_installed_ny) %>%
+  summarize(mean = mean(citation_count), var = var(citation_count))
+```
+
+Those look like the start of problems. Let’s check our whole sample now:
+
+```{r}
+mean(redlights$citation_count)
+```
+
+
+```{r}
+var(redlights$citation_count)
+```
+
+There is clearly a problem here!
+
+```{r}
+library(MASS)
+
+nbTest = glm.nb(citation_count ~ as.factor(camera_installed_ny), data = redlights)
+
+summary(nbTest)
+```
+
+The interpretation of our negative binomial is exactly the same as our Poisson model -- we have only relaxed the assumptions of our distribution.

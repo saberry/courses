@@ -1,0 +1,178 @@
+---
+title: "Midterm"
+author: "Your Name Here"
+date: "11/20/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Section 1
+
+Given your excellent work, Canopy Growth (CG) has decided to come back to you for some help. The market for legal cannabis has completely fallen in Canada and CG is trying to figure out where to focus attention. They are specifically interested in developing their edible/drinkable product space, but want to do so efficiently.
+
+CG estimates that every bottle of thc-infused water can sell for \$8.00 and every thc-infused candy bar can sell for \$6.00. 
+
+To produce one bottle of water, CG needs 3.5 grams of cannabis; producing one candy bar also requires 3.5 grams.
+
+Currently, Canopy Growth only has 8960 grams available.
+
+CG also knows that it costs \$2.50 to produce a bottle of water and it costs \$1.75 to produce a candy bar.
+
+Canopy Growth does not want to spend any more than \$6000.
+
+Given their cost and resource constraints, Canopy wants to maximize their potential profit from an introductory run of these two products.
+
+$$\text{Maximize P} = 8_{x1} + 6_{x2}\\
+\text{Subject to:} \\
+3.5_{x1} + 3.5_{x2} \leq 8960 \\
+2.50_{x1} + 1.75_{x2} \leq 6000$$
+
+### Questions
+
+1.  How many of each product type should be produced?
+
+2.  What is the maximum value that can be achieved by producing the products at the proposed numbers?
+
+3.  If Canopy Growth decided that they had \$8000 to throw at this problem, how might the solution change?
+
+```{r}
+library(linprog)
+
+objectiveFunction <- c(8, 6)
+
+names(objectiveFunction) <- c("water", "candy")
+
+constraintValues <- c(8960, 6000)
+
+constraintMatrix <- rbind(c(3.5, 3.5), c(2.50, 1.75))
+
+linprog::solveLP(objectiveFunction, constraintValues, constraintMatrix, maximum = TRUE, 
+                 const.dir = c("<=", "<="))
+```
+
+## Section 2
+
+Christmas is right around the corner. Money is slightly tight, but you still want to spend some money on your 3 closest friends. Instead of buying them things they will only regift next year, you decide to make some baked goods for your friends (just to be clear, this is no longer in reference to the first section). 
+
+You decide that you are going to go old-school and make divinity and caramel. You feel like you should spend at least \$50 on making everything. A single batch of either candy will cost \$5 dollars to make, but they have some different ingredient constraints. 
+
+$$\text{Minimize C} = 5_{x1} + 5_{x2}\\
+\text{Subject to:} \\
+1_{x1} + 2_{x2} \leq 12 \\
+1_{x1} + 1_{x2} \geq 50$$
+
+```{r}
+objectiveFunction <- c(5, 5)
+
+constraintValues <- c(12, 50, 1, 1)
+
+constraintMatrix <- rbind(c(1, 2), c(1, 1), c(0, 1), c(1, 0))
+
+linprog::solveLP(objectiveFunction, constraintValues, constraintMatrix, maximum = FALSE, 
+                 const.dir = c("<=", ">=", ">=", ">="))
+```
+
+
+## Section 3
+
+A production supervisor has some concerns about the overall mean cycle time to produce a specific part. 
+
+The part has to be processed by 3 machines and the working times are as follows:
+
+Machine 1 follows a normal distribution with a mean of 3 minutes and a standard deviation of 30 seconds.
+
+Machine 2 follows a normal distribution with a mean of 3 minutes and a standard deviation of 1 minutes.
+
+Machine 3 follows a normal distribution with a mean of 2.5 minutes and a standard deviation of 30 seconds.
+
+Each machine can only process one part at a time and has a queue size limit of 10.
+
+### Questions
+
+1.  In a given 8-hour shift, what is the overall mean cycle time for the finished pieces?
+
+2.  How might the production supervisor decrease the overall mean cycle time?
+
+```{r}
+library(simmer)
+
+make_parts <- trajectory("parts") %>% 
+  set_attribute("start_time", function() {now(machineShop)}) %>% 
+  seize("machine1") %>% 
+  timeout(function() ) %>% 
+  release("machine1") %>% 
+  seize("machine2") %>% 
+  timeout(function() ) %>% 
+  release("machine2") %>% 
+  seize("machine3")
+
+machineShop <- simmer("machineShop") %>% 
+  add_resource("machine1") %>%
+  add_resource("machine2") %>% 
+  add_resource("machine3") %>% 
+  add_generator("part", make_parts, mon = 2, function() {c(0, rexp(500, 1/1), -1)})  
+
+run(machineShop)
+
+result = get_mon_arrivals(machineShop)
+```
+
+## Section 4
+
+Costco is a place of simultaneous wonder and mayhem. Where else can you find everything you need in quantities that you would never need? It is not, however, all rainbows and unicorns. Before you can even get in to look everything, you need to show your membership card to someone outside -- this is perhaps a barrier to entry. A typical Costco flow (not including time spent milling around), looks like this:
+
+1 Card Checker: normal(15 seconds, 3 seconds)
+
+Shopping time: normal(30 minutes, 5 minutes) -- **Note that this is just a timeout and not a resource!** 
+
+8 Registers: normal(3 minutes, 1 minute)
+
+2 Cart Checkers: normal(30 seconds, 6 seconds)
+
+Once you are in the store, there are no queue size limits; however, people will typically balk if they see 5 people standing in a line outside of the Costco.
+
+Around this time of year, people tend to show up to Costco at a rate of about 1 person every 15 seconds. Let's observe the time between 5:00 and 7:00 in the evening.
+
+```{r}
+customer <- trajectory("Customer path") %>% 
+  set_attribute("start_time", function() {now(costco)}) %>%
+  seize("cardReader") %>% 
+  timeout(function() {rnorm(n = 1, mean = .25, sd = .05)}) %>% 
+  release("cardReader") %>%
+  timeout(function() {rnorm(n = 1, mean = 30, sd = 5)}) %>%
+  seize("register") %>% 
+  timeout(function() {rnorm(n = 1, mean = 3, sd = 1)}) %>% 
+  release("register") %>%
+  seize("cartCheck") %>% 
+  timeout(function() {rnorm(n = 1, mean = .5, sd = .1)}) %>% 
+  release("cartCheck")
+
+costco <- simmer("costco") %>% 
+  add_resource("cardReader", capacity = 1, queue_size = 5) %>%
+  add_resource("register", capacity = 8) %>%
+  add_resource("cartCheck", capacity = 2) %>%
+  add_generator("Customer", customer, mon = 2, function() {c(0, rexp(500, 1/.25), -1)})
+
+run(costco, until = 120)
+
+result <- get_mon_arrivals(costco)
+
+result$wait <- result$end_time - result$start_time - result$activity_time
+
+mean(result$wait[result$finished == TRUE])
+```
+
+### Questions
+
+1.  What is the service level in this simulation?
+
+2.  What is the mean time spent waiting throughout the whole process?
+
+3.  How could this system be improved so that we could bring down waiting time and increase the service level?
+
+## Section 5
+
+Provide one example of when you might use process simulation and one example of when you might use linear programming. Examples from class and the top Google hits yield very few points. Feel free to be creative.

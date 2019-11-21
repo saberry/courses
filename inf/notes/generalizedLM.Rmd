@@ -78,7 +78,7 @@ Our model, captured in the residual deviance, showed a marked decrease in devian
 We can test it with the following:
 
 ```{r}
-1 - pchisq(lmTest$deviance, lmTest$df.residual)
+pchisq(lmTest$deviance, lmTest$df.residual)
 ```
 
 
@@ -472,7 +472,7 @@ Determine some cut-off values for backers and build a new model. See if you can 
 3.  If your count variable does not follow a Poisson distribution, then you might want to use a negative binomial model.
 
 ```{r}
-read.csv("https://www.nd.edu/~sberry5/data/breakdowns.csv")
+breakdowns <- read.csv("https://www.nd.edu/~sberry5/data/breakdowns.csv")
 
 dpois(100, 1)
 ```
@@ -483,28 +483,44 @@ The Poisson distribution is very similar to the binomial distribution, but has s
 
 $$\frac{\text{event}}{\text{interval}}*\text{interval length} $$
 
-To put some numbers to that, if we have 1 accident per week in a factory and we are observing a whole year, we would get the following:
+To put some numbers to that, if we have 1 accident per week in a factory and we are observing a whole year, we would get the following rate:
 
 ```{r}
-(1 / 7) * 365
+(1 / 7) * 28
 ```
 
-We expect about 52 accidents over the course of the year.
+We expect about 4 accidents over the course of a month.
 
 Let's see what that particular distribution might look like:
 
 ```{r}
-plot(density(dpois(1:52, 52)))
+ggplot(data.frame(x=c(0:20)), aes(x)) +
+    geom_line(aes(y=dpois(x, (1 / 7) * 28)), colour="red")
 ```
 
+
+We can also see what it looks like for different rates (some places might be safer than others):
+
+```{r}
+ggplot(data.frame(x=c(0:35)), aes(x)) +
+  geom_line(aes(y=dpois(x, (.1 / 7) * 28)), colour="red") +
+  geom_line(aes(y=dpois(x, (.5 / 7) * 28)), colour="yellow") +
+  geom_line(aes(y=dpois(x, (5 / 7) * 28)), colour="blue") +
+  geom_line(aes(y=dpois(x, (7 / 7) * 28)), colour="green") +
+  theme_dark()
+
+```
+
+
+<aside>
+A cool thing about these distributions is that they can deal with different *exposure* rates. You don't need observations recorded over the same interval length, because you can adjust for them appropriately. They can also be used to model interarrival times and time-until events.
+</aside>
 
 ## The (Sometimes) Thin Line
 
 This gets into an area where we need to think long and hard about our dependent variable and what it actually might be.
 
 - Since Poisson regression gets its name from the Poisson distribution, we should probably see if it follows the Poisson distribution.
-
-### Checking...
 
 ```{r}
 library(vcd)
@@ -514,17 +530,22 @@ shroudData = readr::read_csv("https://www.nd.edu/~sberry5/data/shroudData.csv")
 poissonTest = goodfit(shroudData$shroudsProduced, type = "poisson")
 
 summary(poissonTest)
+```
 
+This is a $\chi^2$ to test if the distribution deviates from a Poisson. If we see a significant value, we would say that it deviates from the tested distribution. In this case, everything looks okay.
+
+
+We can also plot that test using a hanging rootogram:
+
+```{r}
 plot(poissonTest)
 ```
 
-This is a $\chi^2$ to test if the distribution deviates from a Poisson.
-
-- It probably does not.
+The bars are the observed counts and the red line/points are the fitted counts (i.e., how many would be expected). If a bar does not reach the 0 line, then the model would over-predict for that particular count; if the bar dips below the 0 line, the model under-predicts that count.
 
 ### Dispersion
 
-For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the Poisson distribution (which will use a natural log link function) or the negative binomial distribution.
+For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the Poisson distribution or the negative binomial distribution.
 
 Let’s check this out (it will be important later on!).
 
@@ -537,10 +558,9 @@ shroudData %>%
   summarize(mean = mean(shroudsProduced), var = var(shroudsProduced))
 ```
 
-
 What is the purpose of this? We are checking the conditional means and variances. Why is this important? If our variances are larger than our means, we have *overdispersion*. We would expect values to be equally distributed over levels, but if they are really spread out, this qualifies as overdispersion – this is not good for our Poisson model because it will cause downward bias.
 
-As a very simple check, we can also compare the mean and the variance of our outcome variable -- they should be close to equal!
+As an overly simple check, we can also compare the mean and the variance of our outcome variable -- they should be close to equal!
 
 ```{r}
 mean(shroudData$shroudsProduced)
@@ -552,7 +572,9 @@ var(shroudData$shroudsProduced)
 
 Recall that every distribution has a link function (or several) that tend to work well for it. The poisson distribution uses a log link function:
 
-$$Poisson(\lambda) = \alpha + \beta X \\ log() = $$
+$$y = Poisson(\lambda) \\ \text{log}(\lambda) = \alpha + \beta X$$
+
+Using the log link keeps the outcome positive (we cannot deal with negative counts). Logs, as they are prone to do, are going to tend towards an exponential relationship; just be sure that it makes sense over the entire range of your data.
 
 ```{r}
 poissonTest = glm(shroudsProduced ~ employeeCount,
@@ -564,7 +586,7 @@ summary(poissonTest)
 exp(poissonTest$coefficients)
 ```
 
-**Important Note:** We are going to interpret this almost the same as a linear regression. The slight wrinkle here, though, is that we are looking at the log counts (remember that we specified the log link function). In other words, an increase in one employee leads to an expected log count increase of ~.029. Just like our logisitc regression, we could exponentiate this to get 1.029189 – every employee we add gets us a 3% increase in shrouds produced. Let’s see what this looks like in action:
+**Important Note:** We are going to interpret this almost the same as a linear regression. The slight wrinkle here, though, is that we are looking at the log counts (remember that we specified the log link function). In other words, an increase in one employee leads to an expected log count increase of ~.029. Just like our logisitc regression, we could exponentiate this to get 1.029189 – every employee we add gets us a ~3% increase in shrouds produced. Let’s see what this looks like in action:
 
 ```{r}
 shroudData = shroudData %>%
@@ -579,13 +601,11 @@ ggplot(shroudData, aes(employeeCount, predValues)) +
 ```
 
 
-Finally, we can look at the residual deviance (it is comparing our model to a model with intercepts only) to get at our model fit:
-
 ```{r}
 pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE)
 ```
 
-This is a *p*-value – it should not be significant.
+
 
 With everything coupled together, we have a meaningful coefficient, a clear plot, and adequate model fit. Therefore, we might conclude that there is a positive relationship between number of employees on shift and shrouds produced.
 
@@ -601,9 +621,13 @@ The dispersion value that we see returned (0.9452052 in our case) should be unde
 
 We can also look back to our model results to compare our residual deviance to our residual deviance degrees of freedom; if our deviance is greater than our degrees of freedom, we might have an issue with overdispersion. Since we are just a bit over and our overdispersion tests do not indicate any huge issue, we can be relatively okay with our model. If we had some more extreme overdispersion, we would want to flip to a quasi-poisson distribution -- our coefficients would not change, but we would have improved standard errors.
 
-# Zero-inflated (ZIP)
+# Zero-inflated Poisson (ZIP)
 
-Sometimes we have a seeming abundance of zero values within our data. We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues. What is the process that generated the zeros? Are they coming from our count model (“true” zeroes) or something else (some random process)? This is where zero-inflated models become important. ZIP models are mixture models. We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a “mixture” of different distributions.
+Sometimes we have a seeming abundance of zero values within our data. We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues. What is the process that generated the zeros? Are they coming from our count model (“true” zeroes) or something else (some random process)? This is where zero-inflated models become important. ZIP models are *mixture models*. We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a “mixture” of different distributions:
+
+$$y \sim \text{ZIP}(p,\lambda) \\ \text{logit} = \alpha_p + \beta_pX \\ \text{log} = \alpha_\lambda + \beta_\lambda X$$
+
+This just formalizes the fact that our *y* can be generated from multiple processes.
 
 ```{r}
 redlights = readr::read_csv("https://www.nd.edu/~sberry5/data/redlights.csv")
@@ -615,7 +639,7 @@ poissonRedlight = glm(citation_count ~ as.factor(camera_installed_ny),
 summary(poissonRedlight)
 ```
 
-With this output, we are comparing citation counts against intersection without a camera and those with a camera.
+With this output, we are comparing citation counts against intersections without a camera and those with a camera.
 
 We see that our coefficient is -.88529 –- this means that having a camera leads to having .88529 less log counts than without having a camera.
 
@@ -643,7 +667,6 @@ If we take a look at citation_count’s distribution, we will see more than a fe
 hist(redlights$citation_count)
 ```
 
-
 For our redlight data, we saw that having a camera present had an effect on citations, but would it cause 0 citations? Or might there be something else contributing to the 0’s (e.g., no cars going through that intersection due to construction, no police nearby)? If there are no cars going through the intersection due to construction, is there even a chance of obtaining a non-zero response?
 
 ```{r}
@@ -655,11 +678,15 @@ zipTest = zeroinfl(citation_count ~ as.factor(camera_installed_ny),
 summary(zipTest)
 ```
 
-Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflational model will not account for the 0s within our data.
+Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflational model will not account for the 0s within our data. This would be a clear indication that we have something else that might be contributing to the number of 0s that we see.
 
 # Negative Binomial
 
 Remember that whole issue with our conditional means and standard deviations? If we would have had problems those means and variances, we would need to abandon our poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely.
+
+<aside>
+The negative binomial adds an extra parameter (*p*) to free up the assumption of equal means and variances.
+</aside>
 
 Remember this:
 
@@ -691,4 +718,8 @@ nbTest = glm.nb(citation_count ~ as.factor(camera_installed_ny), data = redlight
 summary(nbTest)
 ```
 
-The interpretation of our negative binomial is exactly the same as our Poisson model -- we have only relaxed the assumptions of our distribution.
+The interpretation of our negative binomial is exactly the same as our Poisson model -- we have only relaxed the assumptions of our distribution! You might notice our model fits better (even if slightly so) by using the negative binomial.
+
+## Another Distribution Worth Noting
+
+The beta distribution has many practical uses. It can be used to model variables that are bound by 0 and 1 (but do not hit 0 or 1). If you have an outcome variable that is a proportion, it would be useful to keep the beta distribution in mind. We will also see the beta distribution in the context of Bayesian analysis, because we can use it as a prior for R^2. 

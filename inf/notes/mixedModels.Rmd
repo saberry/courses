@@ -1,18 +1,21 @@
 ---
 title: "Mixed Models"
-output:
-  html_document:
-    theme: flatly
-    highlight: zenburn
-    css: documentCSS.css
-    code_folding: show
+output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
 ```
 
-## Packages
+# Main Points
+
+1.  Mixed models are used when you have some type of grouping variable within your data (e.g., departments).
+
+2.  They can also be used when you have a repeated measurement over the same person (e.g., testing).
+
+3.  Mixed models can also incorporate information from both grouping variables and repeated measurements (e.g., yearly job satisfaction across departments).
+
+# Packages
 
 We will need the following:
 
@@ -21,13 +24,85 @@ install.packages(c("lme4", "lmerTest", "merTools"))
 ```
 
 
-## Terminology
+# Terminology
 
-While the specifics of each model might take some time to get our heads all the way around, the terminology has been pretty clear -- no more. You will hear "mixed models", "mixed effects models", "hierarchical linear models", "nested models", and/or "multilevel models"; these are all slight variations on a common theme. For the sake of our work here, we will keep it at mixed models. Within our mixed model, we have an additional source of cloudiness: fixed and random effects. The random effects don't pose much of an issue (we will define it later), but fixed effects have 4 different definitions depending upon whom you ask. For the sake of simplicity (again), we are going to consider fixed effects as an effect on the individual unit of analysis. This will all start to make sense once we take a look at the models.
+While the specifics of each model you have learned to this point might take some time to get our heads all the way around, the terminology has largely been pretty clear -- no more. You will hear "mixed models", "mixed effects models", "hierarchical linear models", "nested models", and/or "multilevel models"; these are all slight variations on a common theme. For the sake of our work here, we will keep it at mixed models. Within our mixed model, we have an additional source of cloudiness: fixed and random effects. The random effects don't pose much of an issue (we will define it later), but fixed effects have 4 different definitions depending upon whom you ask (you will commonly see it used for panel or time-series data when people want to remove the variation of a group or individual). For the sake of simplicity (again), we are going to consider fixed effects as an effect on the individual unit of analysis. This will all start to make sense once we take a look at the models.
 
-## Standard Linear Model
+## Equations 
 
-For the sake of conceptual grounding, let's go back to our standard linear model:
+Let's assume that we are going to try to predict sales for a group of stores:
+
+$$sales = \beta_{intercept} + \beta_{rebate}*Rebate + \epsilon$$
+
+The error term would assumed to be normally distributed with a mean of 0 and some standard deviation:
+
+$$\epsilon \sim \mathscr{N}(0, \sigma) $$
+
+With that, we can take those equations and shuffle them around a bit to capture the data generation process for sales:
+
+$$sales \sim \mathscr{N}(\mu, \sigma)$$
+
+$$\mu = \beta_{intercept} + \beta_{rebate}*Rebate$$
+
+Now with that, we can add the effects for another variable at a higher level (i.e., the effects of store):
+
+$$sales = \beta_{intercept} + \beta_{rebate}*Rebate + (effect_{store} +  \epsilon)$$
+
+And look at the error terms:
+
+$$ effect_{store} \sim \mathscr{N}(0, \tau)$$
+
+Where we can say that the effect of store is normally distributed with a mean of 0 and some standard deviation. 
+
+And rolling it all together, we get:
+
+$$sales = (\beta_{intercept} + effect_{store}) + \beta_{rebate}*rebate + \epsilon)$$
+
+## Why Mixed Models
+
+Mixed models don't get bogged down by large groups (i.e., large groups do not dominate the inference) and the smaller groups do not get buried by the larger groups. 
+
+mixed models will not overfit or underfit when we have repeated samples/measurement. We also get improved estimates for repeated measures when dealing with mixed models.
+
+Our models retain the variation inherent within the data when we used a mixed model.
+
+## Visually Explained
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+visualizationData = readr::read_csv("https://www.nd.edu/~sberry5/data/visualizationData.csv")
+
+names(visualizationData) = c("spent", "visits", "adSource")
+
+visualizationData$adSource[visualizationData$adSource == "cancer"] = "print"
+
+visualizationData$adSource[visualizationData$adSource == "cardiac"] = "radio"
+
+visualizationData$adSource[visualizationData$adSource == "general"] = "web"
+
+ggplot(visualizationData, aes(spent, visits)) + 
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  theme_minimal()
+```
+
+That is a pretty clear effect for the number of visits and the total spent.
+
+But let's look a bit further:
+
+```{r, echo = FALSE}
+ggplot(visualizationData, aes(spent, visits, color = adSource)) + 
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  theme_minimal()
+```
+
+This changes things entirely!
+
+# Standard Linear Model
+
+For the sake of conceptual grounding, let's do some data prep and go back to our standard linear model:
 
 ```{r}
 library(dplyr)
@@ -43,33 +118,31 @@ healthData = healthData %>%
 
 lmTest = lm(SCORE ~ distanceCentered, data = healthData)
 
+summary(lmTest)
+
 ggplot(healthData, aes(SCORE, distanceCentered)) +
   geom_point() + 
-  geom_smooth(method = "lm")
-
-summary(lmTest)
+  geom_smooth(method = "lm") + 
+  theme_minimal()
 ```
 
 We have our standard output here. As before, our intercept is the average score when there is zero distance between the restaurant and department of health and our coefficient for distance is telling us that for every mile increase in distance, we are increasing our score by some tiny amount. We know that we are ignoring some information within our model, namely the clustering that occurs based upon cuisine and/or borough. 
 
+Let's take a quick look at how each of the different boroughs might behave in a model:
 
 ```{r}
 ggplot(healthData, aes(SCORE, distanceCentered, group = BORO)) +
   geom_point() + 
   geom_smooth(method = "lm") +
-  facet_wrap( ~ BORO)
+  facet_wrap( ~ BORO) + 
+  theme_minimal()
 ```
 
-
-### Why Mixed Models
-
-When we have repeated samples/measurement, mixed models will not overfit or underfit.
-
-We talked a little bit about balance in *t*-tests, but mixed models will attenuate the effects of group imbalance.
+We can see that we have very different effects for each level of BORO.
 
 ## Random Intercepts Model
 
-Let's include borough in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The **lme4** package will make this very easy:
+Let's include borough in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The `lme4` package will make this very easy:
 
 ```{r}
 library(lme4)
@@ -79,7 +152,7 @@ riMod = lmer(SCORE ~ distanceCentered + (1|BORO), data = healthData)
 
 Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. 
 
-The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The *|* specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
+The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The `|` specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
 
 We should probably check out the summary:
 
@@ -87,9 +160,23 @@ We should probably check out the summary:
 summary(riMod)
 ```
 
-We have our standard output and we can see that the coefficient have not changed, but we do see some change in our standard errors -- by integrating information about the groups, we are getting a better sense of how much uncertainty our model contains at the global average level.
+We have our standard output and we can see that our coefficients have changed from our standard linear model -- this change is purely due to the severe imbalance between our groups.
 
-We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon borough after getting the information from our fixed effects. We can compare the standard deviation for BORO to the coefficient for distanceCentered -- Borough is contributing to more variability within Scores than distance. We can also add the variance components and divide by the random effects variance to get its variance account for.
+We can see the imbalance between the groups by using the group_by and summarize:
+
+```{r}
+healthData %>% 
+  group_by(BORO) %>% 
+  summarize(n())
+```
+
+We can clearly see that we have large disparities between our groups.
+
+When groups are largely balanced, we would find that our coefficients would be the same (or very close to it).
+
+What should almost always change is our standard errors -- by integrating information about the groups, we are getting a better sense of how much uncertainty our model contains at the global average level.
+
+We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon borough after getting the information from our fixed effects (i.e., the health score can move around nearly 1 whole point from boro alone). We can compare the standard deviation for BORO to the coefficient for distanceCentered -- Borough is contributing to more variability within Scores than distance. We can also add the variance components and use that to divide by the random effects variance to get its variance account for.
 
 ```{r}
 .9879 / (.9879 + 189.9733)
@@ -97,14 +184,17 @@ We also see some additional information -- this is for our random effects. The s
 
 So while it might be doing more than what distance does, borough is not accounting for too much variance.
 
+We can also plot simulated random effect ranges for each of the random effect groups. We want to pay attention to those that are highlighted with black (i.e., the range does not cross the red line at 0). 
+
 ```{r}
 library(merTools)
 
-plotREsim(REsim(riMod))
+plotREsim(REsim(riMod), labs = TRUE)
 ```
 
+In examining the plot, we see that the random effect ranges for the Bronx has significant effects on health score.
 
-What is missing from this bit of output: *p*-values! Estimating *p*-values in a mixed model is exceedingly difficult because of varying group sizes, complete sample *n*, and how those relate to reference distributions. If you need something that will help, you can get confidence intervals in the same way that you would anything else:
+Going back to the output, did you notice anything missing: *p*-values! Estimating *p*-values in a mixed model is exceedingly difficult because of varying group sizes, complete sample *n*, and how those relate to reference distributions. If you need something that will help, you can get confidence intervals in the same way that you would anything else:
 
 ```{r}
 confint(riMod)
@@ -114,15 +204,26 @@ confint(riMod)
 If you *really* want to see *p*-values, you can get them easily:
 
 ```{r}
-
 riModP = lmerTest::lmer(SCORE ~ distanceCentered + (1|BORO), data = healthData)
 
 summary(riModP)
-
 ```
 
-**NOTE:** I would never load the lmerTest package, but would attach with colons!
+**NOTE:** I would never load the `lmerTest` package, but would attach with colons! If you load it, you will find that it masks things from lme4 that you don't want to have masked (i.e., lmer) and they are not equivalent objects!
 
+Getting predicted values from our mixed model is no different then getting them from any other model:
+
+```{r}
+mixedPred = predict(riMod)
+
+slimPred = predict(lmTest)
+
+head(cbind(actual = healthData$SCORE, 
+      mixed = mixedPred, 
+      slim = slimPred), 20)
+```
+
+While there were cases where the standard linear model did a slightly better job, our mixed model generally did a better job (even if marginally so).
 
 Let's add some more information to our model. As we dive into our data, we will notice that we also have cuisine groupings. We can add this additional grouping into our model:
 
@@ -149,11 +250,25 @@ Let's look at our variances how we did earlier:
 ```
 
 
-```{r}
-plotREsim(REsim(clusterMod))
+```{r, fig.height=7}
+plotREsim(REsim(clusterMod), labs = TRUE)
 ```
 
-If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses.
+
+We should also see if our predictions improved:
+
+```{r}
+clusterPredict = predict(clusterMod)
+
+head(cbind(actual = healthData$SCORE, 
+           clustered = clusterPredict,
+           mixed = mixedPred, 
+           slim = slimPred), 20)
+```
+
+For many observations, our predictions definitely go tighter (many are still far off, though).
+
+If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses. We could imagine two different ways that the works: one in which a restaurant's score improves as observations increase (it takes some time for the owner to get his staff fully up to speed) or one in which the score decreases as the observations increase (the "shine has worn off the penny").
 
 Let's do a bit of data processing first.
 
@@ -174,10 +289,10 @@ reviewedRest = healthDataGrouped[which(healthDataGrouped$nameLocation %in%
 
 
 ```{r}
-observationMod = lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest)
+observationModInt = lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest)
 ```
 
-In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. 
+In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. We have essentially created a model that will deal with the repeated measures for each of the locations.
 
 ```{r}
 reviewedRest %>% 
@@ -191,16 +306,20 @@ reviewedRest %>%
 ```
 
 ```{r}
-summary(observationMod)
+summary(observationModInt)
 ```
 
+Our fixed effect here would indicate that we have a slight increase in scores as our observations increase, but we can also see that scores will bounce around about 5 points on average by location alone.
 
 ```{r}
 29.46 / (29.46 + 125.82)
 ```
 
+We see that the location alone accounts for nearly 20% of the variance in health scores. 
 
 ## Hierarchical Models
+
+Hierarchical models are a slight variation on the models that we have just seen. In these models, we have groups nested within other groups. We know that we have a "BORO" variable, but a quick look at our data will show that we also have a DBA variable; this variable is giving the name of the restaurant.  One source of inquiry would be to inspect how various chain restaurants, nested within each boro, perform.
 
 Let's check out how some chain restaurants do within the boroughs. 
 
@@ -212,15 +331,87 @@ chainFood = healthDataGrouped %>%
            DBA == "SUBWAY")
 ```
 
+The model set-up is just different enough to cause some potential confusion here. Within the parentheses, we have our intercept as before, but we are also saying that we are looking at the DBA groups within the BORO groups.
+
 ```{r}
-hierMod = lme4::lmer(SCORE ~ observation + (1|DBA) + (1|DBA:BORO), 
+hierMod = lme4::lmer(SCORE ~ observation + (1|BORO/DBA), 
                      data = chainFood)
 
 summary(hierMod)
 ```
 
-```{r}
+We have our fixed effect for observation (indicating that there is a positive relationship between observations and scores) and we have individual intercepts for both BORO and DBA nested within BORO. Looking at the standard deviation of our random effects, we can see that the scores bounce around a little over 3 points from chain to chain within BORO. If we explore the variance components, we see that around 6% (11.076 / (11.076 + 1.877 + 168.91)) of the variance in score is handled within our nested random effect.
 
-plotREsim(REsim(hierMod))
+We can also look at our effect ranges: 
+
+```{r}
+plotREsim(REsim(hierMod), labs = TRUE)
 ```
 
+## Random Slopes
+
+Now that we have seen random intercepts and hierarchical models, we can add one final piece: random slopes. In the following model, we will specify a random intercept (recall, it is the 1 within our parenthesis) and a random slope (we are prefixing our grouping variable with a slope of interest). Not only will this model allow the intercept to vary between groups, but it will also allow the slope to vary between groups.
+
+```{r}
+observationModSlope = lme4::lmer(SCORE ~ observation + (1 + observation|nameLocation), data = reviewedRest)
+
+summary(observationModSlope)
+```
+
+Nothing changes with regard to our fixed effects, but we get some added information in our random effects. The random intercept variance for each location is telling us the amount that the first score bounces around from place to place (a pretty massive amount, if you ask me) and the observation variance is telling us how much variability there is within the slope between locations. 
+
+If we use the predicted values of our model, we can see what our results will look like over the observations:
+
+```{r}
+randEffPlot = reviewedRest %>% 
+  ungroup() %>% 
+  mutate(mixedPrediction = predict(observationModSlope)) %>% 
+  group_by(nameLocation) %>% 
+  ggplot(., aes(observation, mixedPrediction, group = nameLocation)) + 
+  geom_line(alpha = .5) + 
+  theme_minimal()
+  
+randEffPlot
+```
+
+Amazing! We can really see the varying intercepts for each restaurant and we can see how the slopes are completely different (some are similar, but we have a completely mixed bag of directions and magnitudes). 
+
+For the sake of demonstration, and hopefully as a way to bring everything together, let's see what predictions from a standard regression might look like compared to our mixed model:
+
+```{r}
+slimPred = predict(lm(SCORE ~ observation, data = reviewedRest))
+
+reviewedRest = reviewedRest %>% 
+  ungroup() %>% 
+  mutate(slimPrediction = slimPred)
+
+randEffPlot +
+  geom_line(data = reviewedRest, aes(observation, slimPrediction), 
+            color = "#ff5500", size = 2)
+```
+
+It looks like the standard regression line would do okay for many of our locations, but we can see that it would do poorly with many others. This should help to provide an illustration of just how flexible and powerful mixed model can be in your hands.
+
+```{r}
+randomSlopePredict = predict(observationModSlope)
+
+randomIntPredict = predict(observationModInt)
+
+head(cbind(actual = reviewedRest$SCORE, 
+           slim = slimPred,
+           randomInt = randomIntPredict, 
+           randomSlope = randomSlopePredict), 20)
+```
+
+## The Alternative
+
+If you don't want to go the mixed model route, the natural thing to do would be to conduct a regression for each individual group. Here is what that might look like:
+
+```{r}
+library(purrr)
+
+healthData %>% 
+  split(., f = .$BORO) %>% 
+  map(~ lm(SCORE ~ distanceCentered, data = .x)) %>% 
+  map(~ summary(.x))
+```

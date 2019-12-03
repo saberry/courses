@@ -1,0 +1,116 @@
+---
+title: "Final Project"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+Pat is a popular beer maker and is trying to break into the ever-crowded space of brew-pubs. Pat wants to do this as efficiently as possible, though, so that a proper budget can be allocated to marketing. 
+
+Given the popularity of craft beers, Pat decides to focus initially on only a few beers: IPAs, Stouts, and Dunkels. Stouts and IPAs are brewed through the use of top-fermenting yeasts, while dunkels are brewed with bottom fermenting yeasts. Since the majority of beers are brewed with bottom-fermenting yeasts, bottom-fermenting yeasts are cheaper to produce. 
+
+## Beer Recipes
+
+Each recipe makes 5 gallons of beer.
+
+### IPA
+
+12 pounds malts
+
+6 ounces hops
+
+1 ounce yeast
+
+10 gallons water
+
+### Stout
+
+13 pounds malts
+
+1 ounce hops
+
+1 ounce yeast
+
+10 gallons water
+
+### Dunkel
+
+10 pounds malts
+
+1 ounce hops
+
+1 ounce yeast
+
+10 gallons water
+
+## Resources and Selling Prices
+
+Pat has purchased the following amounts of raw materials:
+
+150 pounds of malts
+
+3 pounds of hops
+
+1 pound of yeast
+
+1000 gallons of purified water
+
+Pat also plans to sell each beer in 16 ounce glasses and will see each style for the following price:
+
+Dunkel: \$5.50
+
+IPA: \$6.50
+
+Stout: \$7.00
+
+Pat needs to make some of every type of beer for this initial production run. 
+
+How much of each style should Pat produce to maximize revenue.
+
+## The Beer Making Process
+
+Pat knows that this is going to take some work, so there is a push to produce the beer in the most efficient way possible. Pat recognizes that additional purchases might be necessary to keep the total brewing time down.
+
+Making beer can be broken down into the following steps:
+
+1.  Mash
+
+A single 15.5 gallon mash tun can hold 37 pounds of grain and 12 gallons of water. The average mash takes 60 minutes, with a standard deviation of 15 minutes.
+
+2.  Lautering
+
+Lautering is removing the sweet liquid from the mash and takes on average 45 minutes with a standard deviation of 10 minutes.
+
+3.  Boiling
+
+Stronger beers generally take longer to boil, with dunkels needing 60 minutes, IPAs needing 65 minutes, and stouts taking 70 minutes.
+
+4.  Fermentation
+
+Lagers generally take a long time to ferment, with the average being 23 days with a standard deviation of 2 days. Ales typically take less time and will be fermented on average after 14 days, with a standard deviation of 1 day.
+
+5.  Maturation
+
+Lagers take between 5 and 9 days to mature, IPA take between 14 and 21 days to mature, and stouts can take between 21 and 28 days.
+
+Currently, Pat has enough tuns (i.e., tanks) to make 1 batch of beer at a time. Given the optimum style mix, how long would it take Pat to prepare the beer. What can Pat do to improve his process?
+
+## Travel Time
+
+Pat needs to get an advertisement plan out. Pat plans to go to several cities and drop fliers off with friends, but the travel time needs to be minimized. 
+
+There are coordinates for the places Pat needs to visit:
+
+```{r}
+library(ggplot2)
+
+businessLocations <- read.csv("http://www.nd.edu/~sberry5/data/warehouseLocations.csv")
+
+ggplot(businessLocations, aes(x, y)) +
+  geom_point() +
+  theme_minimal()
+```
+
+Calculate the distances between each city and propose a travel plan for Pat. 

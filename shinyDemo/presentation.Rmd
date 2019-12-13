@@ -1,9 +1,9 @@
 ---
-title: "From Static, To Interactive, To Reactive"
-output:
+title: "From Static To Reactive"
+output: 
   revealjs::revealjs_presentation:
-    theme: solarized
-    center: true
+      theme: solarized
+      center: true
 runtime: shiny_prerendered
 ---
 
@@ -13,7 +13,11 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ## Packages
 
+</br>
+
 You will probably need the following packages: 
+
+</br>
 
 ```{r, eval = FALSE}
 install.packages(c("shiny", "rsconnet", "plotly", "ggplot2"))
@@ -22,11 +26,22 @@ install.packages(c("shiny", "rsconnet", "plotly", "ggplot2"))
 
 ## Static Plots
 
+</br>
+
+
+These are what we traditionally encounter.
+
+</br>
+
 Visualizations are just there to see. 
+
+</br> 
 
 While they can convey a lot of information, they offer no capacity to dig deeper. 
 
-## 
+</br>
+
+##
 
 ```{r, echo = FALSE}
 library(ggplot2)
@@ -39,11 +54,15 @@ ggplot(dplyr::starwars, aes(height, mass, color = species)) +
 
 ## Interactive Plots
 
+</br>
+
 Interactive plots are useful for letting people play with some portion of the visualization. 
+
+</br>
 
 Zooming and hovering are two example of interactions. 
 
-## Plotly Example
+##
 
 ```{r, echo = FALSE}
 library(plotly)
@@ -55,7 +74,11 @@ plot_ly(dplyr::starwars, x = ~height, y = ~mass, color = ~species) %>%
 
 ## Reactive Plots
 
+</br>
+
 We can take our interactive plots and add some neat features to them. 
+
+</br>
 
 Reactivity responds directly to a users input and changes accordingly. 
 
@@ -83,21 +106,31 @@ pageWithSidebar(
 )
 ```
 
-```{r, context="server"}
+```{r, context="server", echo = FALSE}
 output$plot1 <- renderPlotly({
-    plot_ly(plotData, x = ~get(input$xcol), y = ~get(input$ycol), color = ~get(input$colorCol)) %>% add_markers()
+    plot_ly(plotData, x = ~get(input$xcol), y = ~get(input$ycol), 
+            color = ~get(input$colorCol)) %>% 
+    add_markers()
   })
 ```
 
 ## Shiny
 
+</br>
+
 Reactive plots are created through `Shiny`. 
+
+</br>
 
 It is incredibly flexible and most of what you need can be wrapped into 2 files. 
 
-- server 
+</br>
 
-- ui 
+server 
+
+</br>
+
+ui 
 
 ## server
 
@@ -140,9 +173,15 @@ pageWithSidebar(
 
 You can deploy a Shiny app: 
 
+</br>
+
 Locally 
 
+</br>
+
 Through a package 
+
+</br>
 
 shinyapps.io 
 

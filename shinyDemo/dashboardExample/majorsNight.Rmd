@@ -1,0 +1,102 @@
+---
+title: "Information Technology, Analytics, & Operations"
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(heatmaply)
+library(networkD3)
+library(crosstalk)
+library(dygraphs)
+library(plotly) 
+```
+
+Networks
+=====================================
+
+Row
+-----------------------------------------------------------------------
+
+### Process Networks
+
+```{r}
+data(MisLinks, MisNodes)
+
+energy <- jsonlite::fromJSON("https://cdn.rawgit.com/christophergandrud/networkD3/master/JSONdata/energy.json")
+
+# Colour links
+energy$links$energy_type <- sub(' .*', '',
+                               energy$nodes[energy$links$source + 1, 'name'])
+
+sankeyNetwork(Links = energy$links, Nodes = energy$nodes, Source = 'source',
+             Target = 'target', Value = 'value', NodeID = 'name',
+             LinkGroup = 'energy_type', NodeGroup = NULL)
+```
+
+
+### Social Networks
+
+```{r}
+forceNetwork(Links = MisLinks, Nodes = MisNodes, Source = "source",
+             Target = "target", Value = "value", NodeID = "name",
+             Group = "group", opacity = 0.4)
+```
+
+
+
+Row
+-----------------------------------------------------------------------
+
+### Radial Cluster Network
+
+```{r}
+hc <- hclust(dist(USArrests), "ave")
+
+radialNetwork(as.radialNetwork(hc), fontFamily = "cursive")
+```
+
+### Dendogram Cluster Network
+
+```{r}
+dendroNetwork(hc, textColour = c("red", "green", "orange")[cutree(hc, 3)],
+               height = 600)
+```
+
+
+Financial Data
+=====================================
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+
+```{r}
+sliderInput("simAdjust", label = "Number of simulations:",
+            min = 1, max = 50, value = 10, step = 1)
+```
+
+Column
+-----------------------------------------------------------------------
+
+```{r}
+monteCarloData <- read.csv("monteCarloSims.csv")
+
+sharedDataObject <- SharedData$new(monteCarloData)
+
+shinyPlotData <- reactive({
+  monteCarloData[,c(1, 2:input$simAdjust)]
+})
+
+renderDygraph({
+  dygraph(shinyPlotData(), 
+          main = "Monte Carlo Stock Portfolio Performance\nUsing Tickers: SPY, EFA, IJS, EEM, & AGG") %>%
+  dyRangeSelector() %>% 
+  dyHighlight(highlightCircleSize = 5, 
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>% 
+  dyLegend(show = "never")
+})
+```
+

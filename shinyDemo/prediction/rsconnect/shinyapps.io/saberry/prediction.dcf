@@ -1,0 +1,10 @@
+name: prediction
+title:
+username:
+account: saberry
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1595515
+bundleId: 2663791
+url: https://saberry.shinyapps.io/prediction/
+when: 1576200161.28714

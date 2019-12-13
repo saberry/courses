@@ -1,0 +1,133 @@
+---
+title: "From Static, To Interactive, To Reactive"
+output:
+  revealjs::revealjs_presentation:
+    theme: solarized
+    center: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+## Static Plots
+
+Most of the visualizations are just there to see.
+
+While they can convey a lot of information, they offer no capacity to dig deeper.
+
+## 
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+ggplot(dplyr::starwars, aes(height, mass, color = species)) + 
+  geom_point(size = 3.5, alpha = .5) +
+  theme_minimal()
+```
+
+
+## Interactive Plots
+
+Interactive plots are useful for letting people play with some portion of the visualization.
+
+Zooming and hovering are two example of interactions
+
+## Plotly Example
+
+```{r, echo = FALSE}
+library(plotly)
+
+plot_ly(dplyr::starwars, x = ~height, y = ~mass, color = ~species) %>% 
+  add_markers()
+```
+
+
+## Reactive Plots
+
+We can take our interactive plots and add some neat features to them.
+
+Reactivity responds directly to a users input and changes accordingly.
+
+##
+
+```{r, echo=FALSE}
+
+plotData <- dplyr::starwars %>% 
+  select(height, mass, hair_color, eye_color, birth_year, 
+         homeworld, species)
+
+pageWithSidebar(
+  headerPanel('Simple Example'),
+  sidebarPanel(
+    selectInput('xcol', 'X Variable', names(plotData), 
+                selected = names(plotData)[[1]]),
+    selectInput('ycol', 'Y Variable', names(plotData), 
+                selected = names(plotData)[[2]]),
+    selectInput('colorCol', 'Color variable', names(plotData), 
+                selected = names(plotData)[[7]])
+  ),
+  mainPanel(
+    plotlyOutput('plot1')
+  )
+)
+```
+
+```{r, context="server"}
+output$plot1 <- renderPlotly({
+    plot_ly(plotData, x = ~get(input$xcol), y = ~get(input$ycol), color = ~get(input$colorCol)) %>% add_markers()
+  })
+```
+
+## Shiny
+
+Reactive plots are created through `Shiny`.
+
+It is incredibly flexible and most of what you need can be wrapped into 2 files.
+
+- server
+
+- ui
+
+## server
+
+The server is where all of the wild stuff happens.
+
+## Code Example
+
+```{r}
+output$plot1 <- renderPlotly({
+    plot_ly(plotData, x = ~get(input$xcol), y = ~get(input$ycol), color = ~get(input$colorCol)) %>% add_markers()
+  })
+```
+
+## ui
+
+The ui does exactly what you might think -- controls the look and the inputs.
+
+## Example Code
+
+```{r}
+plotData <- dplyr::starwars %>% 
+  select(height, mass, hair_color, eye_color, birth_year, 
+         homeworld, species)
+
+pageWithSidebar(
+  headerPanel('Simple Example'),
+  sidebarPanel(
+    selectInput('xcol', 'X Variable', names(plotData), 
+                selected = names(plotData)[[1]]),
+    selectInput('ycol', 'Y Variable', names(plotData), 
+                selected = names(plotData)[[2]]),
+    selectInput('colorCol', 'Color variable', names(plotData), 
+                selected = names(plotData)[[7]])),
+  mainPanel(plotlyOutput('plot1')
+  )
+)
+```
+
+
+## Demonstrations
+
+The only way to get into Shiny is to play with it -- a lot!

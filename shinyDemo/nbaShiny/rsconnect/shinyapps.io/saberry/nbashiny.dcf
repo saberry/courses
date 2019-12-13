@@ -1,0 +1,10 @@
+name: nbashiny
+title:
+username:
+account: saberry
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1595360
+bundleId: 2663692
+url: https://saberry.shinyapps.io/nbashiny/
+when: 1576197421.22101

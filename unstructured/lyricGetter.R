@@ -23,8 +23,7 @@ monthlyTop10 = allTop50 %>%
   group_by(song) %>% 
   slice(., 1) %>% 
   mutate(searchSong = gsub('[[:punct:]]', "", song, perl = TRUE), 
-         searchSong = gsub("\\s", "+", searchSong), 
-         searchArtist = stringr::str_extract(artist, "(?<=The\\s)\\w+|\\w+"))
+         searchSong = gsub("\\s", "+", searchSong))
 
 lyricGetter = function(artist, song, date) {
   
@@ -35,21 +34,24 @@ lyricGetter = function(artist, song, date) {
     
     songSearch = GET(link, add_headers(Authorization = paste("Bearer", token, sep = " ")))
     
-    searchResult = content(songSearch)
+    searchResult = jsonlite::fromJSON(content(songSearch, as = "text"))$response$`hits`
     
-    whichResult = grep(artist, searchResult$response$hits)
+    searchResult$result$strDistance <- stringdist::stringdist(searchResult$result$primary_artist$name, 
+                                                              artist, method = "jw")
     
-    whichResultValue = if(length(whichResult) > 0) {
-      whichResult[1]
-    } else 1
+    whichResult = which.min(searchResult$result$strDistance)
     
-    returnedArtist = searchResult$response$hits[[whichResultValue]]$result$primary_artist$name
+    # whichResultValue = if(length(whichResult) > 0) {
+    #   whichResult[1]
+    # } else 1
     
-    returnedArtistID = searchResult$response$hits[[whichResultValue]]$result$primary_artist$id
+    returnedArtist = searchResult$result$primary_artist$name[[whichResult]]
     
-    returnedSong = searchResult$response$hits[[whichResultValue]]$result$title
+    returnedArtistID = searchResult$result$primary_artist$id[[whichResult]]
     
-    songLink = searchResult$response$hits[[whichResultValue]]$result$url
+    returnedSong = searchResult$result$title[[whichResult]]
+    
+    songLink = searchResult$result$url[[whichResult]]
     
     lyrics = read_html(songLink) %>% 
       html_nodes(".lyrics") %>% 
@@ -61,8 +63,8 @@ lyricGetter = function(artist, song, date) {
                      artist = artist, 
                      song = song,
                      lyrics = lyrics, 
-                     date = date, 
-                     warningIndicator = ifelse(length(whichResult) == 0, 1, 0))
+                     date = date,
+                     stringDistance = searchResult$result$strDistance[whichResult])
     
     return(res)
   }, error = function(e) {
@@ -76,9 +78,15 @@ lyricGetter = function(artist, song, date) {
 
 debugonce(lyricGetter)
 
-lyricGetter(monthlyTop10$searchArtist[5], monthlyTop10$searchSong[5], monthlyTop10$date[5])
+lyricGetter(monthlyTop10$artist[1], monthlyTop10$searchSong[1], monthlyTop10$date[1])
 
-allLyrics = mapply(lyricGetter, monthlyTop10$searchArtist, monthlyTop10$searchSong, monthlyTop10$date, 
+lyricGetter(monthlyTop10$artist[5], monthlyTop10$searchSong[5], monthlyTop10$date[5])
+
+lyricGetter(monthlyTop10$artist[7], monthlyTop10$searchSong[7], monthlyTop10$date[7])
+
+tests <- monthlyTop10[1:20, ]
+
+allLyrics = mapply(lyricGetter, monthlyTop10$artist, monthlyTop10$searchSong, monthlyTop10$date, 
               SIMPLIFY = FALSE)
 
 goodRes = unlist(lapply(1:length(allLyrics), function(x) is.data.frame(allLyrics[[x]])))

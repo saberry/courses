@@ -3,7 +3,7 @@ title: "Text Analysis"
 description: |
   Introductory Concepts
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -78,6 +78,9 @@ choctawBingoLyrics = read_html("https://genius.com/James-mcmurtry-choctaw-bingo-
 choctawBingoLyrics
 ```
 
+<aside>
+You will notice that we pretty much ran the same code three times -- probably time to create a function.
+</aside>
 
 We clearly have very different songs: one about living the outlaw life, one about living the "country-boy" life, and one about your typical American family reunion. From here on, it might be worth exploring more about these three types of songs.
 
@@ -111,6 +114,14 @@ plot(bingoTags)
 ```
 
 Part of speech tagging is great if you want to know how people are using the language, not necessarily what they are using.
+
+### On Tagger and Macs
+
+The tagger package (and many others) rely on `rJava`. On a Windows machine, it usually is not much of an issue -- Macs can be a different story. Assuming that you already have Java installed. You will need to launch your terminal and type `R CMD javareconf`. After that, you need to establish a link between your R and Java.
+
+Refer to the following pages to get it going:
+
+https://zhiyzuo.github.io/installation-rJava/
 
 ## Term Frequency
 
@@ -213,7 +224,7 @@ tfidfData %>%
   rmarkdown::paged_table()
 ```
 
-Pretty interesting, right? What is the story here, though? I might be tempted to say that one of these songs is incredibly formulaic, while the other two took a little bit of actual word to write.
+Pretty interesting, right? What is the story here, though? I might be tempted to say that one of these songs is incredibly formulaic, while the other two took a little bit of actual wordsmithing to write.
 
 
 ## Correlation
@@ -223,7 +234,6 @@ Without looking ahead, what is likely the most common measure of association for
 ```{r, echo = FALSE}
 
 library(tibble)
-
 
 tibble::data_frame(` ` = c("Has word X", "No word X", "Total"),
   `Has word Y` = c("n11", "n01", "n.1"),
@@ -247,12 +257,14 @@ tibble::data_frame(` ` = c("Has word X", "No word X", "Total"),
 
 ```{r}
 phi = ((100 * 40) - (150 * 25)) / sqrt(250 * 65 * 190 * 125)
+
+phi
 ```
 
 That is a pretty small correlation, let's see a pattern that might result in something a bit more substantial:
 
 ```{r, echo = FALSE}
-tibble::data_frame(` ` = c("Has word X", "No word X", "Total"),
+tibble::tibble(` ` = c("Has word X", "No word X", "Total"),
   `Has word Y` = c("n11(150)", "n01(10)", "n.1(160)"),
                    `No word Y` = c("n10(20)", "n00(20)", "n.0(40)"), 
                    Total = c("n1.(170)", "no.(30)", "n(200)"), ) %>% 
@@ -262,8 +274,9 @@ tibble::data_frame(` ` = c("Has word X", "No word X", "Total"),
 
 ```{r}
 phi = ((150 * 20) - (20 * 10)) / sqrt(170 * 30 * 40 * 160)
-```
 
+phi
+```
 
 Since we already know how we can tokenize our documents using non-tidy work, let's make things a little bit easier for ourselves and use the `widyr` and `tidytext` packages. 
 
@@ -287,7 +300,7 @@ With relatively few documents, we don't really have too much interesting to expl
 Since we already saw some of the best that modern country has to offer, let's look at an entire album worth of country music (Luke Bryan should offer some predictable results). We can scrape the song lyrics from the Genius page.
 
 ```{r, echo = FALSE}
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/killLightsLyrics.RData")
+load("/Users/sethberry/courses/unstructured/data/killLightsLyrics.RData")
 ```
 
 
@@ -423,8 +436,6 @@ tin = paste(unlist(NLP::ngrams(unlist(strsplit("soup tin", "")), 2)), collapse =
 substring(can, seq(1, nchar(can) - 1, 2), seq(2, nchar(can), 2))
 
 substring(tin, seq(1, nchar(tin) - 1, 2), seq(2, nchar(tin), 2))
-
-
 ```
 
 We see that we have 7 bigrams for our vectors. 
@@ -433,5 +444,23 @@ We see that we have 7 bigrams for our vectors.
 stringdist("taco", "tako", method = "qgram", q = 2)
 
 stringsim("taco", "tako", method = "qgram", q = 2)
+```
+
+String distances can be handy for a great many tasks. If you want to find strings that are close to other strings (without being exact matches), then these distances can be useful. They can also be helpful when you want to join data frames with fields that might not match.  
+
+Let's consider the following:
+
+```{r}
+library(fuzzyjoin)
+
+companyData <- data.frame(name = c("Pepsi Co.", ))
+```
+
+Before we try to join these data frames, I want to introduce you to my favorite string distance measures: Jaro Winkler.
+
+```{r}
+stringdist("taco", "tako", method = "jw")
+
+stringsim("taco", "tako", method = "jw")
 ```
 

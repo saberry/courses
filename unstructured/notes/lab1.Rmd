@@ -2,7 +2,7 @@
 title: "Unstructured Data Analytics"
 description: |
   Lab 1
-output: radix::radix_article
+output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +15,9 @@ Using APIs is an important part of modern data acquisition tasks. Fortunately, t
 
 Let's start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a *token* (or *key*, or *secret*) -- mine is given below if you don't want to mess with getting your own. 
 
-When creating these URLs, we are given a base url, usually something like `https://api.yelp.com/v3/` and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the *business* directory, so we can add that to the link -- `https://api.yelp.com/v3/businesses/`. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing -- `https://api.yelp.com/v3/businesses/search`. The API now knows that we will be utilizing the search service. If you have ever included some of the extra information on a Youtube link, the next part will look pretty familiar to you: `https://api.yelp.com/v3/businesses/search?term=cambodian+thai`. Right after our `search` parameter, we pass an argument called `term` and set it equal to our search query. You likely noticed that what should have been a space was replaced by a `+` -- URLs do not do spaces and other special characters. While the `+` works just fine for a space, you might want to familiarize yourself with <a href="https://www.w3schools.com/tags/ref_urlencode.asp">URL encoding</a>. Finally, our search parameter needs another argument, `location`, giving us `https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend`. 
+When creating these URLs, we are given a base url, usually something like `https://api.yelp.com/v3/` and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the *business* directory, so we can add that to the link -- `https://api.yelp.com/v3/businesses/`. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing -- `https://api.yelp.com/v3/businesses/search`. 
+
+The API now knows that we will be utilizing the search service. If you have ever included some of the extra information on a Youtube link, the next part will look pretty familiar to you: `https://api.yelp.com/v3/businesses/search?term=cambodian+thai`. Right after our `search` parameter, we pass an argument called `term` and set it equal to our search query. You likely noticed that what should have been a space was replaced by a `+` -- URLs do not do spaces and other special characters. While the `+` works just fine for a space, you might want to familiarize yourself with <a href="https://www.w3schools.com/tags/ref_urlencode.asp">URL encoding</a>. Finally, our search parameter needs another argument, `location`, giving us `https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend`. 
 
 That is the first, and most difficult, step in getting an API call ready. The next part is pretty easy -- we just need to pass our authentication key into the request. Again, this is something that sounds tricky, but really is pretty easy. 
 
@@ -65,6 +67,16 @@ cambodianThai = GET(thaiID,
 thaiParsed = jsonlite::fromJSON(content(cambodianThai, as = "text"))
 ```
 
+On occasion, you might need to do some silly stuff to work that json stuff into a reasonable data frame:
+
+```{r}
+content(cambodianThai, as = "text") %>% 
+  jsonlite::fromJSON(., simplifyDataFrame = TRUE, flatten = TRUE) %>% 
+  unlist() %>% 
+  t() %>%  
+  tibble::as_tibble()
+```
+
 
 ## Step 4 -- Scraping Some Text
 
@@ -77,16 +89,13 @@ cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
 
 cambodianThaiHTML = read_html(cambodianThai)
 
-cambodianThaiHTML %>% 
-  html_nodes(".arrange_unit.page-option")
-
-ctRatings = cambodianThaiHTML %>% 
-  html_nodes(".review-wrapper .review-content .i-stars") %>% 
-  html_attr("title") %>% 
+ctRatings = cambodianThaiHTML %>%
+  html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__3UQrn") %>% 
+  html_attr("aria-label") %>% 
   stringr::str_extract("[0-5]")
 
 ctReviews = cambodianThaiHTML %>% 
-  html_nodes(".review-wrapper .review-content p") %>% 
+  html_nodes("p.lemon--p__373c0__3Qnnj.text__373c0__2pB8f.comment__373c0__3EKjH.text-color--normal__373c0__K_MKN.text-align--left__373c0__2pnx_ .lemon--span__373c0__3997G") %>% 
   html_text()
 
 ctData = data.frame(ratings = ctRatings, 
@@ -96,12 +105,12 @@ ctData = data.frame(ratings = ctRatings,
 ```
 
 
-## Step 4a -- Very Optional
+## Step 4b
 
-You should notice that we only pulled in 20 reviews, while we know that we have over 280 reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at 15 pages worth of reviews `(ceiling(thaiParsed$review_count / 20)`. And since we know how the links are constructed, we can just create them:
+You should notice that we only pulled in 20 reviews, while we know that we have around `r thaiParsed$review_count`reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at `(ceiling(thaiParsed$review_count / 20)` pages worth of reviews. And since we know how the links are constructed, we can just create them:
 
 ```{r, eval = FALSE}
-linkNumbers = seq(from = 0, to = (floor(288 / 20) * 20), by = 20)
+linkNumbers = seq(from = 0, to = (floor(thaiParsed$review_count / 20) * 20), by = 20)
 
 links = paste("https://www.yelp.com/biz/cambodian-thai-south-bend?start=", 
               linkNumbers, sep = "")
@@ -111,16 +120,13 @@ allReviews = lapply(links, function(x) {
   
   cambodianThaiHTML = read_html(cambodianThai)
   
-  cambodianThaiHTML %>% 
-    html_nodes(".arrange_unit.page-option")
-  
-  ctRatings = cambodianThaiHTML %>% 
-    html_nodes(".review-wrapper .review-content .i-stars") %>% 
-    html_attr("title") %>% 
+  ctRatings = cambodianThaiHTML %>%
+    html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__3UQrn") %>% 
+    html_attr("aria-label") %>% 
     stringr::str_extract("[0-5]")
   
   ctReviews = cambodianThaiHTML %>% 
-    html_nodes(".review-wrapper .review-content p") %>% 
+    html_nodes("p.lemon--p__373c0__3Qnnj.text__373c0__2pB8f.comment__373c0__3EKjH.text-color--normal__373c0__K_MKN.text-align--left__373c0__2pnx_ .lemon--span__373c0__3997G") %>% 
     html_text()
   
   ctData = data.frame(ratings = ctRatings, 
@@ -146,8 +152,7 @@ library(dplyr)
 
 library(tidytext)
 
-bigrams =  ctData %>% 
-  # mutate(lyrics = stringr::str_squish(tm::removeWords(tolower(lyrics), tm::stopwords("SMART")))) %>% 
+bigrams = ctData %>% 
   unnest_tokens(., ngrams, reviews, token = "ngrams", n = 2) %>% 
   tidyr::separate(ngrams, c("word1", "word2"), sep = "\\s") %>% 
   count(word1, word2, sort = TRUE)
@@ -173,4 +178,4 @@ ctData %>%
   theme_minimal()
 ```
 
-Can you remove the stopwords? If you create a data frame with multiple restaurants, reproduce that plot with 
+Can you remove the stopwords? If you create a data frame with multiple restaurants, reproduce that plot with multiple restaurants?

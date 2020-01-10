@@ -86,6 +86,11 @@ lyricGetter(monthlyTop10$artist[7], monthlyTop10$searchSong[7], monthlyTop10$dat
 
 tests <- monthlyTop10[1:20, ]
 
+library(parallel)
+
+allLyrics = mcmapply(lyricGetter, monthlyTop10$artist, monthlyTop10$searchSong, monthlyTop10$date, 
+                   SIMPLIFY = FALSE)
+
 allLyrics = mapply(lyricGetter, monthlyTop10$artist, monthlyTop10$searchSong, monthlyTop10$date, 
               SIMPLIFY = FALSE)
 

@@ -3,7 +3,7 @@ title: "Text Analysis"
 description: |
   Text Classification
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -49,6 +49,75 @@ If we have an odds of 1.75, we can find a probability of:
 ```
 
 With this information in hand, we can then compute the independent conditional probability distribution (conditioned on the outcome variable) for each and every predictor variable. From there, we are taking the product of those conditional probabilities.
+
+Let's see how it works with some text:
+
+```{r}
+data.frame(songID = 1:4, 
+           huntin = c(1, 1, 1, 1), 
+           fishing = c(0, 0, 1, 0), 
+           lovin = c(1, 0, 0, 0),
+           day = c(0, 1, 1, 1),
+           country = c(1, 0, 0, 0), 
+           boy = c(1, 0, 0, 0), 
+           street = c(0, 0, 0, 1), 
+           city = c(0, 1, 0, 0),
+           rapCountry = c(1, 1, 0, 0)
+)
+```
+
+We can find the probability for any given thing within this data. For example, there is a probability of .75 that "day" will occur -- P(day) = $3/4$ = .75. The probability that a song is rap is .5 -- P(rap) = $2/4$ = .5.  
+
+
+We could just compute the conditional probability for each song belonging to one of the two classes, but this becomes increasingly intensive as we add more variables. Instead, we can use the following equation to make things easier:
+
+$$P(C_k|x_1,x_2,..., x_n) = \frac{P(C_k)P(x_1|C_k)P(x_2|C_k)...P(X_n|C_k)}{P(x_1,x_2,...,x_n)}$$
+If we expand our data a bit:
+
+```{r, echo = FALSE}
+data.frame(class = rep(c("country", "rap"), each = 4), 
+           word = rep(c("country", "boy", "street", "city"), times = 2), 
+           Yes = c(10, 4, 10, 8, 15, 2, 25, 5), 
+           No = c(10, 16, 10, 12, 65, 78, 55, 75), 
+           grandTotal = c(20, "", "", "", 80, "", "", ""), stringsAsFactors = FALSE)
+```
+
+Given what we know about the totals and probabilities, we could look at new lyrics and figure out the probability that it is either rap or country.
+
+> I'm a country boy, won't see me in the city.
+
+We can see that we don't see "street" in this lyric, so we will need to account for that with our "No" column.
+
+This means that we have the following problem to solve:
+
+$$\frac{P(country)P(country|country)P(boy|country)P(\neg street|country)P(city|country)}{P(country, boy,\neg street, city)}$$
+
+We can compute the likelihood of this new lyric belonging to a country song by:
+
+$$(20⁄100)*(10⁄20)*(16⁄20)*(10⁄20)*(8⁄20)$$
+
+```{r}
+countryLikelihood <- (20⁄100)*(10⁄20)*(16⁄20)*(10⁄20)*(8⁄20)
+
+countryLikelihood
+```
+
+And the likelihood it is rap:
+
+$$(80⁄100)*(15⁄80)*(78⁄80)*(25⁄80)*(5⁄80)$$
+
+```{r}
+rapLikelihood <- (80⁄100)*(15⁄80)*(78⁄80)*(25⁄80)*(5⁄80)
+
+rapLikelihood
+```
+
+This gives us the probability of the song being country of:
+
+```{r}
+countryLikelihood / (countryLikelihood + rapLikelihood)
+```
+
 
 ## A Quick And Dirty Example
 
@@ -295,3 +364,24 @@ confusionMatrix(results1, trainingData$genre)
 ```
 
 This is a very basic neural network and much has occurred in the NN space. 
+
+```{r}
+y = trainingData$genre
+
+x = dplyr::select(trainingData, -genre)
+
+searchGrid = expand.grid(usekernel = TRUE, 
+                           fL = 0:1, adjust = seq(0, 2, by = 1))
+
+nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
+
+nbAttritionTunedPCA = train(x = x, y = y,
+  method = "nb", trControl = nbTrainControl,
+  tuneGrid = searchGrid, preProc = c("center", "scale", "pca"))
+
+nbAttritionTunedPCA
+
+# results
+confusionMatrix(nbAttritionTunedPCA)
+```
+

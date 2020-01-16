@@ -1,0 +1,380 @@
+---
+title: "Unstructured Data Analytics"
+description: |
+  Data Collection
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Scraping
+
+Scraping things from the web is the ultimate data collection method for the modern analyst. 
+
+We are not going to discuss APIs right now -- I would not really consider using APIs to be scraping, but we will be using them soon.
+
+## Easy Scraping
+
+Standard html tables are the easiest things to scrape from the web; they require very little thought and can usually be pulled in without much effort.
+
+For the largest part of our scraping, we are going to use the `rvest` package. It has a lot of really handy functions for getting data from the web and we will start exploring some of the easier ones first.
+
+```{r}
+library(rvest)
+
+films <- read_html("https://en.wikipedia.org/wiki/List_of_highest-grossing_films") %>% 
+  html_table(fill = TRUE)
+```
+
+You will see that the return from this is a list of all of the tables. Since we know that we are just wanting to grab the first one, we can use a really weird function:
+
+```{r}
+films <- films %>% 
+  `[[`(1)
+
+films
+```
+
+### Regular Expressions
+
+You likely noticed that our table has a nice colum for `Worldwide gross`, but it really is not in good shape (it is a character vector because of the dollar signs and commas). So we need to start doing some text cleaning.
+
+```{r}
+gsub(",|$", "", films$`Worldwide gross`)
+```
+
+What is going on? We put in a dollar sign, but nothing happened. When we use `gsub`, it is using <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expression</a>. Since that dollar sign means something in regular expressions, we have to escape it:
+
+```{r}
+gsub(",|\\$", "", films$`Worldwide gross`)
+```
+
+That would get us pretty close, but we have see that we have some characters before some dollar signs. This is where regular expressions can really come into play. I think of regular expressions a bit like hieroglyphs, but much more useful. Essentially, you are just building patterns that you might find in a text.
+
+```{r, echo = FALSE}
+commonRegex = data.frame(regex = c("[a-zA-Z]", "[0-9]", "+", "^", "$"), 
+                         use = c("Any letter", "Any number", "One or more", 
+                                 "Start of string", "End of string"))
+
+knitr::kable(commonRegex)
+```
+
+Some symbols mean certain things in regex.
+
+```{r}
+reservedChars = data.frame(meta = c('\\\\', "^", "$", 
+                                       "{}", "\\[\\]", "()", 
+                                       ".", "*", "+", "?", 
+                                       "|", "<>", "-"), 
+                           meaning = c("escape", "start", "end", "quantifier", 
+                                       "one of contents", "capturing group", 
+                                       "wildcard", "greedy zero or more", 
+                                       "greedy one or more", "lazy quantifier", 
+                                       "or", "start/end of word", "range"))
+
+knitr::kable(reservedChars)
+```
+
+They all need to be escaped with a <span class="func">\\</span>
+
+A great chunk of your regular expression work will be through `gsub` (global substitution) and `grep` (globally search a regular expression and print)
+
+Let's check out a <a href="https://www.regular-expressions.info/lookaround.html">lookaround</a>:
+
+```{r}
+gsub(".*(?=\\$)|", "", films$`Worldwide gross`, perl = TRUE)
+```
+
+This is specifically called a *positive lookahead*. We are specifying something to match -- `a dollar sign` -- and seeing what is in front of the dollar sign. The positive lookahead follows the `a(?=b)` construction. There are also negative lookaheads (`a(?!b)`):
+
+```{r}
+dollarsOthers <- c("I need about $3.50.", 
+                   "A loch ness monster might type it as 3.50$",
+                   "It can be YYZ", 
+                   "Or YYZed", 
+                   "But never XYZ")
+```
+
+This will find a dollar sign not followed by a number:
+
+```{r}
+grep("\\$(?![0-9])", dollarsOthers, perl = TRUE, value = TRUE)
+```
+
+positive lookbehinds (`(?<=a)b`) -- will find numbers after a dollar sign:
+
+```{r}
+grep("(?<=\\$)[0-9]", dollarsOthers, perl = TRUE, value = TRUE)
+```
+
+and negative lookbehinds (`(?<!a)b`) -- will find Y not preceded by an X.
+
+```{r}
+grep("(?<!X)Y", dollarsOthers, perl = TRUE, value = TRUE)
+```
+
+
+### Practice Time
+
+> My name is Seth Berry. Office phone number is (574) 631-0018, but my old number was 574 631 6767, and before that it was 574-631-5764. My goal was to have a $1000000.05 by the time I was 30, but here I am with barely $30 to may name. 
+
+Copy the text and go to <a href="https://regexr.com/">regexr</a>. Try to create a pattern that will match the phone numbers and any dollar value.
+
+Not only can you use regular expressions to make substitutions and to find strings within a text, you can also use them to extract information from text.
+
+```{r}
+testString <- "My name is Seth Berry. Office phone number is (574) 631-0018, but my old number was 574 631 6767, and before that it was 574-631-5764. My goal was to have a $1000000.05 by the time I was 30, but here I am with barely $30 to may name."
+```
+
+Let's say that we wanted to extract all of the dollar values from this text, but without bringing in the dollar sign. To do this, we will need to utilize another lookaround: a positive lookbehind.
+
+```{r}
+regmatches(testString, gregexpr("(?<=\\$)[0-9]+\\.*[0-9]*", testString, perl = TRUE))
+```
+
+Function-wise, there is a lot going on in there. To help streamline our code a little bit, we can use the `stringr` package:
+
+```{r}
+library(stringr)
+
+str_extract_all(testString, "(?<=\\$)[0-9]+\\.*[0-9]*")
+```
+
+The `stringr` package helps to make the base functions a bit more straightforward and consistent.
+
+## Real Scraping
+
+Tables are generally pretty easy, but you might find yourself interested in information not sitting within a table. 
+
+Since we have some high-grossing movies, it might be worth getting some information about a movie. Just to keep it light, let's look at *Joker*. If we want to get some information from *Rotten Tomatoes*, we can turn to our standard scraping:
+
+```{r}
+jokerHTML <- read_html("https://www.rottentomatoes.com/m/joker_2019") 
+
+jokerHTML %>% 
+  html_nodes("#movieSynopsis") %>% 
+  html_text()
+
+jokerHTML %>% 
+  html_nodes(".mop-ratings-wrap__percentage") %>% 
+  html_text()
+
+```
+
+We see that our `html_nodes` functions are taking some information, but what does that mean? To get the synopsis, we pass a CSS selector into the function. In the the html for that particular chunk of text, we saw that it had an id called "movieSynopsis". If something has an id, we prefix it with a "#". Conversely, the ratings belong to a class; we would use a "." to denote a class.
+
+If you check out the returned values from our second chunk (the ratings), you will see a nice place to use regular expressions.
+
+These nodes will take a lot of different information. For example, we might want to find all of the links on the page:
+
+```{r}
+jokerHTML %>% 
+  html_nodes("a")
+```
+
+This returns all of the requested nodes, but we might want to get the business part of the link: the `href`.
+
+```{r}
+jokerHTML %>% 
+  html_nodes("a") %>% 
+  html_attr("href") %>% 
+  head()
+```
+
+We are only seeing a few of the returned strings, but there is a lot of garbage and we might only be interested in reviews. If that is what we want, we could track them down after our pull (again, a great place to use regular expressions). Alternatively, we can use some extra information in our initial search:
+
+```{r}
+jokerHTML %>% 
+  html_nodes("a[href*='reviews']") %>% 
+  html_attr("href")
+```
+
+That is much easier to manage.
+
+Learning and using the CSS selectors is just a matter of practice; w3schools has a nice <a href="https://www.w3schools.com/cssref/css_selectors.asp">reference</a>. It will always be good to refer to it when you are starting to run into a wall with combining selectors.
+
+## A Weird Alternative
+
+There is another package that might prove useful to you: `httr`. Sometimes we need to pass special information into our requests. What information, you might ask? We need to pass headers, parameters, and/or authentication information. We can use the `GET` function to make requests from a server. When we work with APIs (more on those later), there is a good chance that we will need to use a GET request to pass along the appropriate headers.
+
+The <a href="https://cran.r-project.org/web/packages/httr/vignettes/quickstart.html">vignette</a> for httr is a great place to start seeing what you might need to do.
+
+Let's start by trying to scrape the reviews for <a href = "https://www.musiciansfriend.com/guitars/gl-limited-edition-tribute-asat-classic-ash-body-electric-guitar">this</a>. I can tell you now that we won't be able to scrape it right away. Instead, we will have to find the file storing the reviews in the network. In theory, we would be able to read that json file directly:
+
+```{r, eval = FALSE}
+library(jsonlite)
+fromJSON("https://display.powerreviews.com/m/815274/l/en_US/product/J41359/reviews?apikey=fee5c893-11c4-4cc8-b419-02f8d404de1")
+```
+
+And we get a 401 error -- this means that our request lacks the needed authentication. Even though the link contains the apikey, the server does not see the authentication information because it is in the wrong place. Let's go back to the inspector and poke around on the request headers. 
+
+We see a bunch of stuff -- while not all of it is helpful, let's bring it all in for our request. Why might we do this? It gives peace of mind to the server; if our request looks like it comes from a browser, it raises fewer red flags.
+
+```{r}
+library(httr)
+
+test <- GET("https://display.powerreviews.com/m/815274/l/en_US/product/J41359/reviews?apikey=fee5c893-11c4-4cc8-b419-02f8d404de1",
+            user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"),
+            add_headers("Host" = "display.powerreviews.com",
+                        "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0",
+                        "Accept" = "*/*",
+                        "Accept-Language" = "en-US,en;q=0.5",
+                        "Accept-Encoding" = "gzip, deflate, br",
+                        "Origin" = "https://www.musiciansfriend.com",
+                        "DNT" = "1",
+                        "Connection" = "keep-alive",
+                        "Referer" = "https://www.musiciansfriend.com/",
+                        "Pragma" = "no-cache",
+                        "Cache-Control" = "no-cache",
+                        "TE" = "Trailers"),
+            query = list(apikey = "fee5c893-11c4-4cc8-b419-02f8d404de16")
+)
+
+test$headers
+
+test$request
+
+parseTest <- content(test, as = "parsed")
+
+allLinks <- paste("https://display.powerreviews.com/", parseTest$paging$next_page_url,
+                  sep = "")
+
+outNext <- GET(allLinks,
+    user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0"),
+    add_headers("Host" = "display.powerreviews.com",
+                "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0",
+                "Accept" = "*/*",
+                "Accept-Language" = "en-US,en;q=0.5",
+                "Accept-Encoding" = "gzip, deflate, br",
+                "Origin" = "https://www.musiciansfriend.com",
+                "DNT" = "1",
+                "Connection" = "keep-alive",
+                "Referer" = "https://www.musiciansfriend.com/",
+                "Pragma" = "no-cache",
+                "Cache-Control" = "no-cache",
+                "TE" = "Trailers"),
+    query = list(apikey = "fee5c893-11c4-4cc8-b419-02f8d404de16")
+)
+
+t1 <- content(outNext, as = "parsed")
+
+t1$results[[1]]$reviews[[1]]$metrics$rating
+
+t1$results[[1]]$reviews[[1]]$details$comments
+```
+
+## The Dark Side
+
+When the website you are looking at is actually what is there, scraping can be easy. When what you see is actually being loaded through JavaScript, things will take a turn for the worse. When things load through JS, they aren't really there. Yes, you can see them; there is, however, something else putting that information into your eyeballs.
+
+You will be happily going along and this happens:
+
+```{r}
+read_html("https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=1") %>% 
+  html_nodes(".stars-icon")
+```
+
+So you think to yourself, "Maybe we can just grab some links?"
+
+```{r}
+read_html("https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=1") %>% 
+  html_nodes("a")
+```
+
+And still nothing to show for your efforts. Everything you see on that page is being loaded through different methods. When this is the case, you need to switch gears to some automated browsing. We are going to use `Selenium` to automate a user's behavior. While its intended use is to do automated browser testing, people quickly figured out that it can be used to load the browser's content and then pull the data. The whole enterprise takes considerably more effort, but we will be able to get the information. Let's try again, but this time we will do some work with the `RSelenium` package.
+
+```{r, eval = FALSE}
+library(purrr)
+
+library(RSelenium)
+
+## We need to make links to pass into our selenium driver.
+
+pages = paste("https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=", 
+              1:1, sep = "")
+
+## Getting the "Full Review" links ##
+
+rd <- rsDriver(browser = c("firefox"))
+
+driver = rd$client
+
+fullReviewLinks <- lapply(pages, function(x) {
+  
+  tryCatch({
+    
+  driver$navigate(x)  
+  
+  Sys.sleep(runif(1,8,16)) 
+  
+  elements <- driver$findElements(using = "link text", "READ FULL REVIEW")
+  
+  map(elements, ~ .x$getElementAttribute("href")[[1]])
+  
+}, error=function(e) data.frame())
+})
+
+fullReviewLinks <- unlist(fullReviewLinks)
+```
+
+
+```{r, eval = FALSE}
+## Getting Review Information ##
+
+x <- "https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana/review/view/676549"
+
+reviewsRating <- lapply(fullReviewLinks, function(x) {
+  
+  tryCatch({
+  
+  driver$navigate(x)  
+  
+  Sys.sleep(runif(1,8,16)) 
+
+  starsFinder <- driver$findElements(using = "css selector", ".stars-icon .stars-icon")
+  
+  starRating <- unlist(starsFinder[[1]]$getElementAttribute("style"))
+  
+  overallFinder <- driver$findElements(using = "class name", "small")
+  
+  textData <- map_dfc(overallFinder, ~.$getElementText())
+  
+  names(textData) <- unlist(map(overallFinder, ~.$getElementAttribute("data-key")))
+  
+  textData$star_rating <- stringr::str_extract(starRating, "[0-9]{2}%")
+  
+  evaluationFinder <- driver$findElements(using = "css selector", "a[href*='evaluation-contracting'] .dots .rating-dots-icon-rating-on")
+  
+  evaluationRating = unlist(evaluationFinder[[1]]$getElementAttribute("style"))
+  
+  textData$evaluationRating <- stringr::str_extract(evaluationRating, "[0-9]{2}%")
+  
+  evaluationTextFinder <- driver$findElements(using = "css selector", "p[data-key='evaluation-contracting-overall-comments'")
+  
+  evaluationText <- unlist(map(evaluationTextFinder, ~.$getElementText()))[1]
+  
+  textData$evaluationText <- evaluationText
+  
+  textData
+}, error=function(e)data.frame())
+})
+
+
+allReviews <- dplyr::bind_rows(reviewsRating)
+
+driver$close()
+
+rd$server$stop()
+```
+
+# Homework 0
+
+To start getting a little more regex practice, work through the exercises on <a href="https://regexone.com/">regexone</a>. Get through as much as you possibly can and put all of your solutions into a text file.
+
+Practicing css selectors will make scraping much easier. The <a href="https://flukeout.github.io/">CSS Diner</a> is a fun way to practice looking through an html structure and finding the appropriate elements. 

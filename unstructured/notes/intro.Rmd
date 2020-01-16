@@ -3,7 +3,7 @@ title: "Unstructured Data Analytics"
 description: |
   Introduction and Data
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -239,3 +239,100 @@ xml_find_all(facultyNodes, '//*[@class="faculty-areas"]/ul')
 ```
 
 While they still have a place in the world, that is all the further we will go on the xpath front. Most of what you will need to do can be handled by the CSS selectors.
+
+# Methods
+
+We are going to see several different methods during the next several weeks. We will go from dimension reduction (LSA, LDA, SVD) to Naive Bayes to Neural Networks, with stops in between. A great many of these techniques will focus on classification (e.g., what topic does a text belong to, is that an image or a person or a monster), but many have extensions to regression-focused problems. 
+
+With regard to depth, it will vary for each topic. We will have a pretty good idea about how we would do something like a Naive Bayes or PCA by hand, but will stay out of the weeds of Neural Networks. The biggest reason for this is due in large part to how you might actually engage with such models. If you are going to be working on an image classification problem, the routines are already pretty well established for reasonable image classification. Largely, the focus will be on application and interpretation.
+
+Let's work through an example. Let's define two objects:
+
+```{r}
+N <- 1000 # sample size
+k <- 1  # variables
+X <- matrix(rnorm(N*k), ncol=k)  
+Y <- -.5 + .2*X[,1] + rnorm(N, sd=.5)  
+
+head(X)
+
+head(Y)
+```
+
+Now we can do some matrix multiplication. Let's take the transpose of X, multiply it by the original X, and solve the resultant matrix:
+
+```{r}
+transposeX <- t(X)
+
+multiplyX <- transposeX %*% X
+
+solveX <- solve(multiplyX)
+
+solveX
+```
+
+Next, let's take that transposed X and multiply it by Y:
+
+```{r}
+multiplyY <- transposeX %*% Y
+
+multiplyY
+```
+
+Finally, we can take our solveX and multiply it by the multiplyY matrix:
+
+```{r}
+solveX %*% multiplyY
+```
+
+Let's do something else with our X and Y objects: do some linear algebra and perform a Gram–Schmidt orthogonalization of the X matrix (this is also called QR decomposition).
+
+Every single X matrix can be broken down to the QR matrices
+
+Q is going to be $N * p$ - the same dimension as the original.
+
+R is going to be $p * p$ - the number of columns by the number of columns with 0's below the diagonal.
+
+The Q matrix will be an orthogonal matrix (remember that orthogonal means that the components will not be correlated) and the R matrix is the upper triangle.
+
+```{r}
+QRX <- qr(X)
+Q <- qr.Q(QRX) # Orthogonal matrix
+R <- qr.R(QRX) # Upper triangle
+Bhat <- solve(R) %*% crossprod(Q, Y)
+Bhat
+```
+
+<a href="https://rpubs.com/aaronsc32/qr-decomposition-gram-schmidt">Here</a> is a nice demo of the process.
+
+Finally, let's try this:
+
+```{r}
+meanX <- mean(X)
+
+meanY <- mean(Y)
+
+sdX <- sd(X)
+
+sdY <- sd(Y)
+
+corXY <- cor(X, Y)
+
+corXY * (sdY / sdX)
+
+meanY - ((corXY * (sdY / sdX)) * meanX)
+```
+
+We could also just try this:
+
+```{r}
+lm(Y ~ X)
+```
+
+How comfortable do you feel using and interpreting a linear regression? At this point, you likely feel reasonably comfortable with it; you can use it and feel comfortable using even without knowing all of that stuff that is going on in the background. The background can come with time. 
+
+# Software
+
+We are going to be using a pretty fair chunk of R for work in the class. We will not, however, be using R when it comes time to get into the modern Deep Neural Network action; instead, we will be using the pytorch library in Python. While other options exist (e.g., TensorFlow), pytorch is a great library to get started with and you won't find it lacking any features that you might want to use.
+
+One issue with deep networks is the computational demand -- they are not for the weaker machines. If you have an Nvidia GPU, you can make good use of it; otherwise, you will be running these things on your CPU and waiting.

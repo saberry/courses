@@ -21,26 +21,26 @@
   <!--radix_placeholder_meta_tags-->
   <title>Unstructured Data Analytics</title>
   
-  <meta property="description" itemprop="description" content="Introduction and Data" />
+  <meta property="description" itemprop="description" content="Data Collection" />
   
   
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
   <meta property="og:title" content="Unstructured Data Analytics" />
   <meta property="og:type" content="article" />
-  <meta property="og:description" content="Introduction and Data" />
+  <meta property="og:description" content="Data Collection" />
   <meta property="og:locale" content="en_US" />
   
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary" />
   <meta property="twitter:title" content="Unstructured Data Analytics" />
-  <meta property="twitter:description" content="Introduction and Data" />
+  <meta property="twitter:description" content="Data Collection" />
   
   <!--/radix_placeholder_meta_tags-->
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","output"]}},"value":[{"type":"character","attributes":{},"value":["Unstructured Data Analytics"]},{"type":"character","attributes":{},"value":["Introduction and Data\n"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[2]}]}]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","output"]}},"value":[{"type":"character","attributes":{},"value":["Unstructured Data Analytics"]},{"type":"character","attributes":{},"value":["Data Collection\n"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[2]}]}]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -923,1277 +923,6 @@
   </script>
   
   <!--/radix_placeholder_distill-->
-  <style type="text/css">.pagedtable {
-overflow: auto;
-padding-left: 8px;
-padding-right: 8px;
-}
-.pagedtable-wrapper {
-border: 1px solid #ccc;
-border-radius: 4px;
-margin-bottom: 10px;
-}
-.pagedtable table {
-width: 100%;
-max-width: 100%;
-margin: 0;
-}
-.pagedtable th {
-padding: 0 5px 0 5px;
-border: none;
-border-bottom: 2px solid #dddddd;
-min-width: 45px;
-}
-.pagedtable-empty th {
-display: none;
-}
-.pagedtable td {
-padding: 0 4px 0 4px;
-}
-.pagedtable .even {
-background-color: rgba(140, 140, 140, 0.1);
-}
-.pagedtable-padding-col {
-display: none;
-}
-.pagedtable a {
--webkit-touch-callout: none;
--webkit-user-select: none;
--khtml-user-select: none;
--moz-user-select: none;
--ms-user-select: none;
-user-select: none;
-}
-.pagedtable-index-nav {
-cursor: pointer;
-padding: 0 5px 0 5px;
-float: right;
-border: 0;
-}
-.pagedtable-index-nav-disabled {
-cursor: default;
-text-decoration: none;
-color: #999;
-}
-a.pagedtable-index-nav-disabled:hover {
-text-decoration: none;
-color: #999;
-}
-.pagedtable-indexes {
-cursor: pointer;
-float: right;
-border: 0;
-}
-.pagedtable-index-current {
-cursor: default;
-text-decoration: none;
-font-weight: bold;
-color: #333;
-border: 0;
-}
-a.pagedtable-index-current:hover {
-text-decoration: none;
-font-weight: bold;
-color: #333;
-}
-.pagedtable-index {
-width: 30px;
-display: inline-block;
-text-align: center;
-border: 0;
-}
-.pagedtable-index-separator-left {
-display: inline-block;
-color: #333;
-font-size: 9px;
-padding: 0 0 0 0;
-cursor: default;
-}
-.pagedtable-index-separator-right {
-display: inline-block;
-color: #333;
-font-size: 9px;
-padding: 0 4px 0 0;
-cursor: default;
-}
-.pagedtable-footer {
-padding-top: 4px;
-padding-bottom: 5px;
-}
-.pagedtable-not-empty .pagedtable-footer {
-border-top: 2px solid #dddddd;
-}
-.pagedtable-info {
-overflow: hidden;
-color: #999;
-white-space: nowrap;
-text-overflow: ellipsis;
-}
-.pagedtable-header-name {
-overflow: hidden;
-text-overflow: ellipsis;
-}
-.pagedtable-header-type {
-color: #999;
-font-weight: 400;
-}
-.pagedtable-na-cell {
-font-style: italic;
-opacity: 0.3;
-}
-</style>
-  <script>// Production steps of ECMA-262, Edition 5, 15.4.4.18
-// Reference: http://es5.github.io/#x15.4.4.18
-if (!Array.prototype.forEach) {
-
-  Array.prototype.forEach = function(callback, thisArg) {
-
-    var T, k;
-
-    if (this === null) {
-      throw new TypeError(' this is null or not defined');
-    }
-
-    // 1. Let O be the result of calling toObject() passing the
-    // |this| value as the argument.
-    var O = Object(this);
-
-    // 2. Let lenValue be the result of calling the Get() internal
-    // method of O with the argument "length".
-    // 3. Let len be toUint32(lenValue).
-    var len = O.length >>> 0;
-
-    // 4. If isCallable(callback) is false, throw a TypeError exception.
-    // See: http://es5.github.com/#x9.11
-    if (typeof callback !== "function") {
-      throw new TypeError(callback + ' is not a function');
-    }
-
-    // 5. If thisArg was supplied, let T be thisArg; else let
-    // T be undefined.
-    if (arguments.length > 1) {
-      T = thisArg;
-    }
-
-    // 6. Let k be 0
-    k = 0;
-
-    // 7. Repeat, while k < len
-    while (k < len) {
-
-      var kValue;
-
-      // a. Let Pk be ToString(k).
-      //    This is implicit for LHS operands of the in operator
-      // b. Let kPresent be the result of calling the HasProperty
-      //    internal method of O with argument Pk.
-      //    This step can be combined with c
-      // c. If kPresent is true, then
-      if (k in O) {
-
-        // i. Let kValue be the result of calling the Get internal
-        // method of O with argument Pk.
-        kValue = O[k];
-
-        // ii. Call the Call internal method of callback with T as
-        // the this value and argument list containing kValue, k, and O.
-        callback.call(T, kValue, k, O);
-      }
-      // d. Increase k by 1.
-      k++;
-    }
-    // 8. return undefined
-  };
-}
-
-// Production steps of ECMA-262, Edition 5, 15.4.4.19
-// Reference: http://es5.github.io/#x15.4.4.19
-if (!Array.prototype.map) {
-
-  Array.prototype.map = function(callback, thisArg) {
-
-    var T, A, k;
-
-    if (this == null) {
-      throw new TypeError(' this is null or not defined');
-    }
-
-    // 1. Let O be the result of calling ToObject passing the |this|
-    //    value as the argument.
-    var O = Object(this);
-
-    // 2. Let lenValue be the result of calling the Get internal
-    //    method of O with the argument "length".
-    // 3. Let len be ToUint32(lenValue).
-    var len = O.length >>> 0;
-
-    // 4. If IsCallable(callback) is false, throw a TypeError exception.
-    // See: http://es5.github.com/#x9.11
-    if (typeof callback !== 'function') {
-      throw new TypeError(callback + ' is not a function');
-    }
-
-    // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
-    if (arguments.length > 1) {
-      T = thisArg;
-    }
-
-    // 6. Let A be a new array created as if by the expression new Array(len)
-    //    where Array is the standard built-in constructor with that name and
-    //    len is the value of len.
-    A = new Array(len);
-
-    // 7. Let k be 0
-    k = 0;
-
-    // 8. Repeat, while k < len
-    while (k < len) {
-
-      var kValue, mappedValue;
-
-      // a. Let Pk be ToString(k).
-      //   This is implicit for LHS operands of the in operator
-      // b. Let kPresent be the result of calling the HasProperty internal
-      //    method of O with argument Pk.
-      //   This step can be combined with c
-      // c. If kPresent is true, then
-      if (k in O) {
-
-        // i. Let kValue be the result of calling the Get internal
-        //    method of O with argument Pk.
-        kValue = O[k];
-
-        // ii. Let mappedValue be the result of calling the Call internal
-        //     method of callback with T as the this value and argument
-        //     list containing kValue, k, and O.
-        mappedValue = callback.call(T, kValue, k, O);
-
-        // iii. Call the DefineOwnProperty internal method of A with arguments
-        // Pk, Property Descriptor
-        // { Value: mappedValue,
-        //   Writable: true,
-        //   Enumerable: true,
-        //   Configurable: true },
-        // and false.
-
-        // In browsers that support Object.defineProperty, use the following:
-        // Object.defineProperty(A, k, {
-        //   value: mappedValue,
-        //   writable: true,
-        //   enumerable: true,
-        //   configurable: true
-        // });
-
-        // For best browser support, use the following:
-        A[k] = mappedValue;
-      }
-      // d. Increase k by 1.
-      k++;
-    }
-
-    // 9. return A
-    return A;
-  };
-}
-
-var PagedTable = function (pagedTable) {
-  var me = this;
-
-  var source = function(pagedTable) {
-    var sourceElems = [].slice.call(pagedTable.children).filter(function(e) {
-      return e.hasAttribute("data-pagedtable-source");
-    });
-
-    if (sourceElems === null || sourceElems.length !== 1) {
-      throw("A single data-pagedtable-source was not found");
-    }
-
-    return JSON.parse(sourceElems[0].innerHTML);
-  }(pagedTable);
-
-  var options = function(source) {
-    var options = typeof(source.options) !== "undefined" &&
-      source.options !== null ? source.options : {};
-
-    var columns = typeof(options.columns) !== "undefined" ? options.columns : {};
-    var rows = typeof(options.rows) !== "undefined" ? options.rows : {};
-
-    var positiveIntOrNull = function(value) {
-      return parseInt(value) >= 0 ? parseInt(value) : null;
-    };
-
-    return {
-      pages: positiveIntOrNull(options.pages),
-      rows: {
-        min: positiveIntOrNull(rows.min),
-        max: positiveIntOrNull(rows.max),
-        total: positiveIntOrNull(rows.total)
-      },
-      columns: {
-        min: positiveIntOrNull(columns.min),
-        max: positiveIntOrNull(columns.max),
-        total: positiveIntOrNull(columns.total)
-      }
-    };
-  }(source);
-
-  var Measurer = function() {
-
-    // set some default initial values that will get adjusted in runtime
-    me.measures = {
-      padding: 12,
-      character: 8,
-      height: 15,
-      defaults: true
-    };
-
-    me.calculate = function(measuresCell) {
-      if (!me.measures.defaults)
-        return;
-
-      var measuresCellStyle = window.getComputedStyle(measuresCell, null);
-
-      var newPadding = parsePadding(measuresCellStyle.paddingLeft) +
-            parsePadding(measuresCellStyle.paddingRight);
-
-      var sampleString = "ABCDEFGHIJ0123456789";
-      var newCharacter = Math.ceil(measuresCell.clientWidth / sampleString.length);
-
-      if (newPadding <= 0 || newCharacter <= 0)
-        return;
-
-      me.measures.padding = newPadding;
-      me.measures.character = newCharacter;
-      me.measures.height = measuresCell.clientHeight;
-      me.measures.defaults = false;
-    };
-
-    return me;
-  };
-
-  var Page = function(data, options) {
-    var me = this;
-
-    var defaults = {
-      max: 7,
-      rows: 10
-    };
-
-    var totalPages = function() {
-      return Math.ceil(data.length / me.rows);
-    };
-
-    me.number = 0;
-    me.max = options.pages !== null ? options.pages : defaults.max;
-    me.visible = me.max;
-    me.rows = options.rows.min !== null ? options.rows.min : defaults.rows;
-    me.total = totalPages();
-
-    me.setRows = function(newRows) {
-      me.rows = newRows;
-      me.total = totalPages();
-    };
-
-    me.setPageNumber = function(newPageNumber) {
-      if (newPageNumber < 0) newPageNumber = 0;
-      if (newPageNumber >= me.total) newPageNumber = me.total - 1;
-
-      me.number = newPageNumber;
-    };
-
-    me.setVisiblePages = function(visiblePages) {
-      me.visible = Math.min(me.max, visiblePages);
-      me.setPageNumber(me.number);
-    };
-
-    me.getVisiblePageRange = function() {
-      var start = me.number - Math.max(Math.floor((me.visible - 1) / 2), 0);
-      var end = me.number + Math.floor(me.visible / 2) + 1;
-      var pageCount = me.total;
-
-      if (start < 0) {
-        var diffToStart = 0 - start;
-        start += diffToStart;
-        end += diffToStart;
-      }
-
-      if (end > pageCount) {
-        var diffToEnd = end - pageCount;
-        start -= diffToEnd;
-        end -= diffToEnd;
-      }
-
-      start = start < 0 ? 0 : start;
-      end = end >= pageCount ? pageCount : end;
-
-      var first = false;
-      var last = false;
-
-      if (start > 0 && me.visible > 1) {
-        start = start + 1;
-        first = true;
-      }
-
-      if (end < pageCount && me.visible > 2) {
-        end = end - 1;
-        last = true;
-      }
-
-      return {
-        first: first,
-        start: start,
-        end: end,
-        last: last
-      };
-    };
-
-    me.getRowStart = function() {
-      var rowStart = page.number * page.rows;
-      if (rowStart < 0)
-        rowStart = 0;
-
-      return rowStart;
-    };
-
-    me.getRowEnd = function() {
-      var rowStart = me.getRowStart();
-      return Math.min(rowStart + me.rows, data.length);
-    };
-
-    me.getPaddingRows = function() {
-      var rowStart = me.getRowStart();
-      var rowEnd = me.getRowEnd();
-      return data.length > me.rows ? me.rows - (rowEnd - rowStart) : 0;
-    };
-  };
-
-  var Columns = function(data, columns, options) {
-    var me = this;
-
-    me.defaults = {
-      min: 5
-    };
-
-    me.number = 0;
-    me.visible = 0;
-    me.total = columns.length;
-    me.subset = [];
-    me.padding = 0;
-    me.min = options.columns.min !== null ? options.columns.min : me.defaults.min;
-    me.max = options.columns.max !== null ? options.columns.max : null;
-    me.widths = {};
-
-    var widthsLookAhead = Math.max(100, options.rows.min);
-    var paddingColChars = 10;
-
-    me.emptyNames = function() {
-      columns.forEach(function(column) {
-        if (columns.label !== null && columns.label !== "")
-          return false;
-      });
-
-      return true;
-    };
-
-    var parsePadding = function(value) {
-      return parseInt(value) >= 0 ? parseInt(value) : 0;
-    };
-
-    me.calculateWidths = function(measures) {
-      columns.forEach(function(column) {
-        var maxChars = Math.max(
-          column.label.toString().length,
-          column.type.toString().length
-        );
-
-        for (var idxRow = 0; idxRow < Math.min(widthsLookAhead, data.length); idxRow++) {
-          maxChars = Math.max(maxChars, data[idxRow][column.name.toString()].length);
-        }
-
-        me.widths[column.name] = {
-          // width in characters
-          chars: maxChars,
-          // width for the inner html columns
-          inner: maxChars * measures.character,
-          // width adding outer styles like padding
-          outer: maxChars * measures.character + measures.padding
-        };
-      });
-    };
-
-    me.getWidth = function() {
-      var widthOuter = 0;
-      for (var idxCol = 0; idxCol < me.subset.length; idxCol++) {
-        var columnName = me.subset[idxCol].name;
-        widthOuter = widthOuter + me.widths[columnName].outer;
-      }
-
-      widthOuter = widthOuter + me.padding * paddingColChars * measurer.measures.character;
-
-      if (me.hasMoreLeftColumns()) {
-        widthOuter = widthOuter + columnNavigationWidthPX + measurer.measures.padding;
-      }
-
-      if (me.hasMoreRightColumns()) {
-        widthOuter = widthOuter + columnNavigationWidthPX + measurer.measures.padding;
-      }
-
-      return widthOuter;
-    };
-
-    me.updateSlice = function() {
-      if (me.number + me.visible >= me.total)
-        me.number = me.total - me.visible;
-
-      if (me.number < 0) me.number = 0;
-
-      me.subset = columns.slice(me.number, Math.min(me.number + me.visible, me.total));
-
-      me.subset = me.subset.map(function(column) {
-        Object.keys(column).forEach(function(colKey) {
-          column[colKey] = column[colKey] === null ? "" : column[colKey].toString();
-        });
-
-        column.width = null;
-        return column;
-      });
-    };
-
-    me.setVisibleColumns = function(columnNumber, newVisibleColumns, paddingCount) {
-      me.number = columnNumber;
-      me.visible = newVisibleColumns;
-      me.padding = paddingCount;
-
-      me.updateSlice();
-    };
-
-    me.incColumnNumber = function(increment) {
-      me.number = me.number + increment;
-    };
-
-    me.setColumnNumber = function(newNumber) {
-      me.number = newNumber;
-    };
-
-    me.setPaddingCount = function(newPadding) {
-      me.padding = newPadding;
-    };
-
-    me.getPaddingCount = function() {
-      return me.padding;
-    };
-
-    me.hasMoreLeftColumns = function() {
-      return me.number > 0;
-    };
-
-    me.hasMoreRightColumns = function() {
-      return me.number + me.visible < me.total;
-    };
-
-    me.updateSlice(0);
-    return me;
-  };
-
-  var data = source.data;
-  var page = new Page(data, options);
-  var measurer = new Measurer(data, options);
-  var columns = new Columns(data, source.columns, options);
-
-  var table = null;
-  var tableDiv = null;
-  var header = null;
-  var footer = null;
-  var tbody = null;
-
-  // Caches pagedTable.clientWidth, specially for webkit
-  var cachedPagedTableClientWidth = null;
-
-  var onChangeCallbacks = [];
-
-  var clearSelection = function() {
-    if(document.selection && document.selection.empty) {
-      document.selection.empty();
-    } else if(window.getSelection) {
-      var sel = window.getSelection();
-      sel.removeAllRanges();
-    }
-  };
-
-  var columnNavigationWidthPX = 5;
-
-  var renderColumnNavigation = function(increment, backwards) {
-    var arrow = document.createElement("div");
-    arrow.setAttribute("style",
-      "border-top: " + columnNavigationWidthPX + "px solid transparent;" +
-      "border-bottom: " + columnNavigationWidthPX + "px solid transparent;" +
-      "border-" + (backwards ? "right" : "left") + ": " + columnNavigationWidthPX + "px solid;");
-
-    var header = document.createElement("th");
-    header.appendChild(arrow);
-    header.setAttribute("style",
-      "cursor: pointer;" +
-      "vertical-align: middle;" +
-      "min-width: " + columnNavigationWidthPX + "px;" +
-      "width: " + columnNavigationWidthPX + "px;");
-
-    header.onclick = function() {
-      columns.incColumnNumber(backwards ? -1 : increment);
-
-      me.animateColumns(backwards);
-      renderFooter();
-
-      clearSelection();
-      triggerOnChange();
-    };
-
-    return header;
-  };
-
-  var maxColumnWidth = function(width) {
-    var padding = 80;
-    var columnMax = Math.max(cachedPagedTableClientWidth - padding, 0);
-
-    return parseInt(width) > 0 ?
-      Math.min(columnMax, parseInt(width)) + "px" :
-      columnMax + "px";
-  };
-
-  var clearHeader = function() {
-    var thead = pagedTable.querySelectorAll("thead")[0];
-    thead.innerHTML = "";
-  };
-
-  var renderHeader = function(clear) {
-    cachedPagedTableClientWidth = pagedTable.clientWidth;
-
-    var fragment = document.createDocumentFragment();
-
-    header = document.createElement("tr");
-    fragment.appendChild(header);
-
-    if (columns.number > 0)
-      header.appendChild(renderColumnNavigation(-columns.visible, true));
-
-    columns.subset = columns.subset.map(function(columnData) {
-      var column = document.createElement("th");
-      column.setAttribute("align", columnData.align);
-      column.style.textAlign = columnData.align;
-
-      column.style.maxWidth = maxColumnWidth(null);
-      if (columnData.width) {
-        column.style.minWidth =
-          column.style.maxWidth = maxColumnWidth(columnData.width);
-      }
-
-      var columnName = document.createElement("div");
-      columnName.setAttribute("class", "pagedtable-header-name");
-      if (columnData.label === "") {
-        columnName.innerHTML = "&nbsp;";
-      }
-      else {
-        columnName.appendChild(document.createTextNode(columnData.label));
-      }
-      column.appendChild(columnName);
-
-      var columnType = document.createElement("div");
-      columnType.setAttribute("class", "pagedtable-header-type");
-      if (columnData.type === "") {
-        columnType.innerHTML = "&nbsp;";
-      }
-      else {
-        columnType.appendChild(document.createTextNode("<" + columnData.type + ">"));
-      }
-      column.appendChild(columnType);
-
-      header.appendChild(column);
-
-      columnData.element = column;
-
-      return columnData;
-    });
-
-    for (var idx = 0; idx < columns.getPaddingCount(); idx++) {
-      var paddingCol = document.createElement("th");
-      paddingCol.setAttribute("class", "pagedtable-padding-col");
-      header.appendChild(paddingCol);
-    }
-
-    if (columns.number + columns.visible < columns.total)
-      header.appendChild(renderColumnNavigation(columns.visible, false));
-
-    if (typeof(clear) == "undefined" || clear) clearHeader();
-    var thead = pagedTable.querySelectorAll("thead")[0];
-    thead.appendChild(fragment);
-  };
-
-  me.animateColumns = function(backwards) {
-    var thead = pagedTable.querySelectorAll("thead")[0];
-
-    var headerOld = thead.querySelectorAll("tr")[0];
-    var tbodyOld = table.querySelectorAll("tbody")[0];
-
-    me.fitColumns(backwards);
-
-    renderHeader(false);
-
-    header.style.opacity = "0";
-    header.style.transform = backwards ? "translateX(-30px)" : "translateX(30px)";
-    header.style.transition = "transform 200ms linear, opacity 200ms";
-    header.style.transitionDelay = "0";
-
-    renderBody(false);
-
-    if (headerOld) {
-      headerOld.style.position = "absolute";
-      headerOld.style.transform = "translateX(0px)";
-      headerOld.style.opacity = "1";
-      headerOld.style.transition = "transform 100ms linear, opacity 100ms";
-      headerOld.setAttribute("class", "pagedtable-remove-head");
-      if (headerOld.style.transitionEnd) {
-        headerOld.addEventListener("transitionend", function() {
-          var headerOldByClass = thead.querySelector(".pagedtable-remove-head");
-          if (headerOldByClass) thead.removeChild(headerOldByClass);
-        });
-      }
-      else {
-        thead.removeChild(headerOld);
-      }
-    }
-
-    if (tbodyOld) table.removeChild(tbodyOld);
-
-    tbody.style.opacity = "0";
-    tbody.style.transition = "transform 200ms linear, opacity 200ms";
-    tbody.style.transitionDelay = "0ms";
-
-    // force relayout
-    window.getComputedStyle(header).opacity;
-    window.getComputedStyle(tbody).opacity;
-
-    if (headerOld) {
-      headerOld.style.transform = backwards ? "translateX(20px)" : "translateX(-30px)";
-      headerOld.style.opacity = "0";
-    }
-
-    header.style.transform = "translateX(0px)";
-    header.style.opacity = "1";
-
-    tbody.style.opacity = "1";
-  }
-
-  me.onChange = function(callback) {
-    onChangeCallbacks.push(callback);
-  };
-
-  var triggerOnChange = function() {
-    onChangeCallbacks.forEach(function(onChange) {
-      onChange();
-    });
-  };
-
-  var clearBody = function() {
-    if (tbody) {
-      table.removeChild(tbody);
-      tbody = null;
-    }
-  };
-
-  var renderBody = function(clear) {
-    cachedPagedTableClientWidth = pagedTable.clientWidth
-
-    var fragment = document.createDocumentFragment();
-
-    var pageData = data.slice(page.getRowStart(), page.getRowEnd());
-
-    pageData.forEach(function(dataRow, idxRow) {
-      var htmlRow = document.createElement("tr");
-      htmlRow.setAttribute("class", (idxRow % 2 !==0) ? "even" : "odd");
-
-      if (columns.hasMoreLeftColumns())
-        htmlRow.appendChild(document.createElement("td"));
-
-      columns.subset.forEach(function(columnData) {
-        var cellName = columnData.name;
-        var dataCell = dataRow[cellName];
-        var htmlCell = document.createElement("td");
-
-        if (dataCell === "NA") htmlCell.setAttribute("class", "pagedtable-na-cell");
-        if (dataCell === "__NA__") dataCell = "NA";
-
-        var cellText = document.createTextNode(dataCell);
-        htmlCell.appendChild(cellText);
-        if (dataCell.length > 50) {
-          htmlCell.setAttribute("title", dataCell);
-        }
-        htmlCell.setAttribute("align", columnData.align);
-        htmlCell.style.textAlign = columnData.align;
-        htmlCell.style.maxWidth = maxColumnWidth(null);
-        if (columnData.width) {
-          htmlCell.style.minWidth = htmlCell.style.maxWidth = maxColumnWidth(columnData.width);
-        }
-        htmlRow.appendChild(htmlCell);
-      });
-
-      for (var idx = 0; idx < columns.getPaddingCount(); idx++) {
-        var paddingCol = document.createElement("td");
-        paddingCol.setAttribute("class", "pagedtable-padding-col");
-        htmlRow.appendChild(paddingCol);
-      }
-
-      if (columns.hasMoreRightColumns())
-        htmlRow.appendChild(document.createElement("td"));
-
-      fragment.appendChild(htmlRow);
-    });
-
-    for (var idxPadding = 0; idxPadding < page.getPaddingRows(); idxPadding++) {
-      var paddingRow = document.createElement("tr");
-
-      var paddingCellRow = document.createElement("td");
-      paddingCellRow.innerHTML = "&nbsp;";
-      paddingCellRow.setAttribute("colspan", "100%");
-      paddingRow.appendChild(paddingCellRow);
-
-      fragment.appendChild(paddingRow);
-    }
-
-    if (typeof(clear) == "undefined" || clear) clearBody();
-    tbody = document.createElement("tbody");
-    tbody.appendChild(fragment);
-
-    table.appendChild(tbody);
-  };
-
-  var getLabelInfo = function() {
-    var pageStart = page.getRowStart();
-    var pageEnd = page.getRowEnd();
-    var totalRows = data.length;
-
-    var totalRowsLabel = options.rows.total ? options.rows.total : totalRows;
-    var totalRowsLabelFormat = totalRowsLabel.toString().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
-
-    var infoText = (pageStart + 1) + "-" + pageEnd + " of " + totalRowsLabelFormat + " rows";
-    if (totalRows < page.rows) {
-      infoText = totalRowsLabel + " row" + (totalRows != 1 ? "s" : "");
-    }
-    if (columns.total > columns.visible) {
-      var totalColumnsLabel = options.columns.total ? options.columns.total : columns.total;
-
-      infoText = infoText + " | " + (columns.number + 1) + "-" +
-        (Math.min(columns.number + columns.visible, columns.total)) +
-        " of " + totalColumnsLabel + " columns";
-    }
-
-    return infoText;
-  };
-
-  var clearFooter = function() {
-    footer = pagedTable.querySelectorAll("div.pagedtable-footer")[0];
-    footer.innerHTML = "";
-
-    return footer;
-  };
-
-  var createPageLink = function(idxPage) {
-    var pageLink = document.createElement("a");
-    pageLinkClass = idxPage === page.number ? "pagedtable-index pagedtable-index-current" : "pagedtable-index";
-    pageLink.setAttribute("class", pageLinkClass);
-    pageLink.setAttribute("data-page-index", idxPage);
-    pageLink.onclick = function() {
-      page.setPageNumber(parseInt(this.getAttribute("data-page-index")));
-      renderBody();
-      renderFooter();
-
-      triggerOnChange();
-    };
-
-    pageLink.appendChild(document.createTextNode(idxPage + 1));
-
-    return pageLink;
-  }
-
-  var renderFooter = function() {
-    footer = clearFooter();
-
-    var next = document.createElement("a");
-    next.appendChild(document.createTextNode("Next"));
-    next.onclick = function() {
-      page.setPageNumber(page.number + 1);
-      renderBody();
-      renderFooter();
-
-      triggerOnChange();
-    };
-    if (data.length > page.rows) footer.appendChild(next);
-
-    var pageNumbers = document.createElement("div");
-    pageNumbers.setAttribute("class", "pagedtable-indexes");
-
-    var pageRange = page.getVisiblePageRange();
-
-    if (pageRange.first) {
-      var pageLink = createPageLink(0);
-      pageNumbers.appendChild(pageLink);
-
-      var pageSeparator = document.createElement("div");
-      pageSeparator.setAttribute("class", "pagedtable-index-separator-left");
-      pageSeparator.appendChild(document.createTextNode("..."))
-      pageNumbers.appendChild(pageSeparator);
-    }
-
-    for (var idxPage = pageRange.start; idxPage < pageRange.end; idxPage++) {
-      var pageLink = createPageLink(idxPage);
-
-      pageNumbers.appendChild(pageLink);
-    }
-
-    if (pageRange.last) {
-      var pageSeparator = document.createElement("div");
-      pageSeparator.setAttribute("class", "pagedtable-index-separator-right");
-      pageSeparator.appendChild(document.createTextNode("..."))
-      pageNumbers.appendChild(pageSeparator);
-
-      var pageLink = createPageLink(page.total - 1);
-      pageNumbers.appendChild(pageLink);
-    }
-
-    if (data.length > page.rows) footer.appendChild(pageNumbers);
-
-    var previous = document.createElement("a");
-    previous.appendChild(document.createTextNode("Previous"));
-    previous.onclick = function() {
-      page.setPageNumber(page.number - 1);
-      renderBody();
-      renderFooter();
-
-      triggerOnChange();
-    };
-    if (data.length > page.rows) footer.appendChild(previous);
-
-    var infoLabel = document.createElement("div");
-    infoLabel.setAttribute("class", "pagedtable-info");
-    infoLabel.setAttribute("title", getLabelInfo());
-    infoLabel.appendChild(document.createTextNode(getLabelInfo()));
-    footer.appendChild(infoLabel);
-
-    var enabledClass = "pagedtable-index-nav";
-    var disabledClass = "pagedtable-index-nav pagedtable-index-nav-disabled";
-    previous.setAttribute("class", page.number <= 0 ? disabledClass : enabledClass);
-    next.setAttribute("class", (page.number + 1) * page.rows >= data.length ? disabledClass : enabledClass);
-  };
-
-  var measuresCell = null;
-
-  var renderMeasures = function() {
-    var measuresTable = document.createElement("table");
-    measuresTable.style.visibility = "hidden";
-    measuresTable.style.position = "absolute";
-    measuresTable.style.whiteSpace = "nowrap";
-    measuresTable.style.height = "auto";
-    measuresTable.style.width = "auto";
-
-    var measuresRow = document.createElement("tr");
-    measuresTable.appendChild(measuresRow);
-
-    measuresCell = document.createElement("td");
-    var sampleString = "ABCDEFGHIJ0123456789";
-    measuresCell.appendChild(document.createTextNode(sampleString));
-
-    measuresRow.appendChild(measuresCell);
-
-    tableDiv.appendChild(measuresTable);
-  }
-
-  me.init = function() {
-    tableDiv = document.createElement("div");
-    pagedTable.appendChild(tableDiv);
-    var pagedTableClass = data.length > 0 ?
-      "pagedtable pagedtable-not-empty" :
-      "pagedtable pagedtable-empty";
-
-    if (columns.total == 0 || (columns.emptyNames() && data.length == 0)) {
-      pagedTableClass = pagedTableClass + " pagedtable-empty-columns";
-    }
-
-    tableDiv.setAttribute("class", pagedTableClass);
-
-    renderMeasures();
-    measurer.calculate(measuresCell);
-    columns.calculateWidths(measurer.measures);
-
-    table = document.createElement("table");
-    table.setAttribute("cellspacing", "0");
-    table.setAttribute("class", "table table-condensed");
-    tableDiv.appendChild(table);
-
-    table.appendChild(document.createElement("thead"));
-
-    var footerDiv = document.createElement("div");
-    footerDiv.setAttribute("class", "pagedtable-footer");
-    tableDiv.appendChild(footerDiv);
-
-    // if the host has not yet provided horizontal space, render hidden
-    if (tableDiv.clientWidth <= 0) {
-      tableDiv.style.opacity = "0";
-    }
-
-    me.render();
-
-    // retry seizing columns later if the host has not provided space
-    function retryFit() {
-      if (tableDiv.clientWidth <= 0) {
-        setTimeout(retryFit, 100);
-      } else {
-        me.render();
-        triggerOnChange();
-      }
-    }
-    if (tableDiv.clientWidth <= 0) {
-      retryFit();
-    }
-  };
-
-  var registerWidths = function() {
-    columns.subset = columns.subset.map(function(column) {
-      column.width = columns.widths[column.name].inner;
-      return column;
-    });
-  };
-
-  var parsePadding = function(value) {
-    return parseInt(value) >= 0 ? parseInt(value) : 0;
-  };
-
-  me.fixedHeight = function() {
-    return options.rows.max != null;
-  }
-
-  me.fitRows = function() {
-    if (me.fixedHeight())
-      return;
-
-    measurer.calculate(measuresCell);
-
-    var rows = options.rows.min !== null ? options.rows.min : 0;
-    var headerHeight = header !== null && header.offsetHeight > 0 ? header.offsetHeight : 0;
-    var footerHeight = footer !== null && footer.offsetHeight > 0 ? footer.offsetHeight : 0;
-
-    if (pagedTable.offsetHeight > 0) {
-      var availableHeight = pagedTable.offsetHeight - headerHeight - footerHeight;
-      rows = Math.floor((availableHeight) / measurer.measures.height);
-    }
-
-    rows = options.rows.min !== null ? Math.max(options.rows.min, rows) : rows;
-
-    page.setRows(rows);
-  }
-
-  // The goal of this function is to add as many columns as possible
-  // starting from left-to-right, when the right most limit is reached
-  // it tries to add columns from the left as well.
-  //
-  // When startBackwards is true columns are added from right-to-left
-  me.fitColumns = function(startBackwards) {
-    measurer.calculate(measuresCell);
-    columns.calculateWidths(measurer.measures);
-
-    if (tableDiv.clientWidth > 0) {
-      tableDiv.style.opacity = 1;
-    }
-
-    var visibleColumns = tableDiv.clientWidth <= 0 ? Math.max(columns.min, 1) : 1;
-    var columnNumber = columns.number;
-    var paddingCount = 0;
-
-    // track a list of added columns as we build the visible ones to allow us
-    // to remove columns when they don't fit anymore.
-    var columnHistory = [];
-
-    var lastTableHeight = 0;
-    var backwards = startBackwards;
-
-    var tableDivStyle = window.getComputedStyle(tableDiv, null);
-    var tableDivPadding = parsePadding(tableDivStyle.paddingLeft) +
-      parsePadding(tableDivStyle.paddingRight);
-
-    var addPaddingCol = false;
-    var currentWidth = 0;
-
-    while (true) {
-      columns.setVisibleColumns(columnNumber, visibleColumns, paddingCount);
-      currentWidth = columns.getWidth();
-
-      if (tableDiv.clientWidth - tableDivPadding < currentWidth) {
-        break;
-      }
-
-      columnHistory.push({
-        columnNumber: columnNumber,
-        visibleColumns: visibleColumns,
-        paddingCount: paddingCount
-      });
-
-      if (columnHistory.length > 100) {
-        console.error("More than 100 tries to fit columns, aborting");
-        break;
-      }
-
-      if (columns.max !== null &&
-        columns.visible + columns.getPaddingCount() >= columns.max) {
-        break;
-      }
-
-      // if we run out of right-columns
-      if (!backwards && columnNumber + columns.visible >= columns.total) {
-        // if we started adding right-columns, try adding left-columns
-        if (!startBackwards && columnNumber > 0) {
-          backwards = true;
-        }
-        else if (columns.min === null || visibleColumns + columns.getPaddingCount() >= columns.min) {
-          break;
-        }
-        else {
-          paddingCount = paddingCount + 1;
-        }
-      }
-
-      // if we run out of left-columns
-      if (backwards && columnNumber == 0) {
-        // if we started adding left-columns, try adding right-columns
-        if (startBackwards && columnNumber + columns.visible < columns.total) {
-          backwards = false;
-        }
-        else if (columns.min === null || visibleColumns + columns.getPaddingCount() >= columns.min) {
-          break;
-        }
-        else {
-          paddingCount = paddingCount + 1;
-        }
-      }
-
-      // when moving backwards try fitting left columns first
-      if (backwards && columnNumber > 0) {
-        columnNumber = columnNumber - 1;
-      }
-
-      if (columnNumber + visibleColumns < columns.total) {
-        visibleColumns = visibleColumns + 1;
-      }
-    }
-
-    var lastRenderableColumn = {
-        columnNumber: columnNumber,
-        visibleColumns: visibleColumns,
-        paddingCount: paddingCount
-    };
-
-    if (columnHistory.length > 0) {
-      lastRenderableColumn = columnHistory[columnHistory.length - 1];
-    }
-
-    columns.setVisibleColumns(
-      lastRenderableColumn.columnNumber,
-      lastRenderableColumn.visibleColumns,
-      lastRenderableColumn.paddingCount);
-
-    if (pagedTable.offsetWidth > 0) {
-      page.setVisiblePages(Math.max(Math.ceil(1.0 * (pagedTable.offsetWidth - 250) / 40), 2));
-    }
-
-    registerWidths();
-  };
-
-  me.fit = function(startBackwards) {
-    me.fitRows();
-    me.fitColumns(startBackwards);
-  }
-
-  me.render = function() {
-    me.fitColumns(false);
-
-    // render header/footer to measure height accurately
-    renderHeader();
-    renderFooter();
-
-    me.fitRows();
-    renderBody();
-
-    // re-render footer to match new rows
-    renderFooter();
-  }
-
-  var resizeLastWidth = -1;
-  var resizeLastHeight = -1;
-  var resizeNewWidth = -1;
-  var resizeNewHeight = -1;
-  var resizePending = false;
-
-  me.resize = function(newWidth, newHeight) {
-
-    function resizeDelayed() {
-      resizePending = false;
-
-      if (
-        (resizeNewWidth !== resizeLastWidth) ||
-        (!me.fixedHeight() && resizeNewHeight !== resizeLastHeight)
-      ) {
-        resizeLastWidth = resizeNewWidth;
-        resizeLastHeight = resizeNewHeight;
-
-        setTimeout(resizeDelayed, 200);
-        resizePending = true;
-      } else {
-        me.render();
-        triggerOnChange();
-
-        resizeLastWidth = -1;
-        resizeLastHeight = -1;
-      }
-    }
-
-    resizeNewWidth = newWidth;
-    resizeNewHeight = newHeight;
-
-    if (!resizePending) resizeDelayed();
-  };
-};
-
-var PagedTableDoc;
-(function (PagedTableDoc) {
-  var allPagedTables = [];
-
-  PagedTableDoc.initAll = function() {
-    allPagedTables = [];
-
-    var pagedTables = [].slice.call(document.querySelectorAll('[data-pagedtable="false"],[data-pagedtable=""]'));
-    pagedTables.forEach(function(pagedTable, idx) {
-      pagedTable.setAttribute("data-pagedtable", "true");
-      pagedTable.setAttribute("pagedtable-page", 0);
-      pagedTable.setAttribute("class", "pagedtable-wrapper");
-
-      var pagedTableInstance = new PagedTable(pagedTable);
-      pagedTableInstance.init();
-
-      allPagedTables.push(pagedTableInstance);
-    });
-  };
-
-  PagedTableDoc.resizeAll = function() {
-    allPagedTables.forEach(function(pagedTable) {
-      pagedTable.render();
-    });
-  };
-
-  window.addEventListener("resize", PagedTableDoc.resizeAll);
-
-  return PagedTableDoc;
-})(PagedTableDoc || (PagedTableDoc = {}));
-
-window.onload = function() {
-  PagedTableDoc.initAll();
-};
-</script>
   <script>/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
 !function(a,b){"object"==typeof module&&"object"==typeof module.exports?module.exports=a.document?b(a,!0):function(a){if(!a.document)throw new Error("jQuery requires a window with a document");return b(a)}:b(a)}("undefined"!=typeof window?window:this,function(a,b){var c=[],d=c.slice,e=c.concat,f=c.push,g=c.indexOf,h={},i=h.toString,j=h.hasOwnProperty,k={},l="1.11.3",m=function(a,b){return new m.fn.init(a,b)},n=/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,o=/^-ms-/,p=/-([\da-z])/gi,q=function(a,b){return b.toUpperCase()};m.fn=m.prototype={jquery:l,constructor:m,selector:"",length:0,toArray:function(){return d.call(this)},get:function(a){return null!=a?0>a?this[a+this.length]:this[a]:d.call(this)},pushStack:function(a){var b=m.merge(this.constructor(),a);return b.prevObject=this,b.context=this.context,b},each:function(a,b){return m.each(this,a,b)},map:function(a){return this.pushStack(m.map(this,function(b,c){return a.call(b,c,b)}))},slice:function(){return this.pushStack(d.apply(this,arguments))},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},eq:function(a){var b=this.length,c=+a+(0>a?b:0);return this.pushStack(c>=0&&b>c?[this[c]]:[])},end:function(){return this.prevObject||this.constructor(null)},push:f,sort:c.sort,splice:c.splice},m.extend=m.fn.extend=function(){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g},m.extend({expando:"jQuery"+(l+Math.random()).replace(/\D/g,""),isReady:!0,error:function(a){throw new Error(a)},noop:function(){},isFunction:function(a){return"function"===m.type(a)},isArray:Array.isArray||function(a){return"array"===m.type(a)},isWindow:function(a){return null!=a&&a==a.window},isNumeric:function(a){return!m.isArray(a)&&a-parseFloat(a)+1>=0},isEmptyObject:function(a){var b;for(b in a)return!1;return!0},isPlainObject:function(a){var b;if(!a||"object"!==m.type(a)||a.nodeType||m.isWindow(a))return!1;try{if(a.constructor&&!j.call(a,"constructor")&&!j.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(c){return!1}if(k.ownLast)for(b in a)return j.call(a,b);for(b in a);return void 0===b||j.call(a,b)},type:function(a){return null==a?a+"":"object"==typeof a||"function"==typeof a?h[i.call(a)]||"object":typeof a},globalEval:function(b){b&&m.trim(b)&&(a.execScript||function(b){a.eval.call(a,b)})(b)},camelCase:function(a){return a.replace(o,"ms-").replace(p,q)},nodeName:function(a,b){return a.nodeName&&a.nodeName.toLowerCase()===b.toLowerCase()},each:function(a,b,c){var d,e=0,f=a.length,g=r(a);if(c){if(g){for(;f>e;e++)if(d=b.apply(a[e],c),d===!1)break}else for(e in a)if(d=b.apply(a[e],c),d===!1)break}else if(g){for(;f>e;e++)if(d=b.call(a[e],e,a[e]),d===!1)break}else for(e in a)if(d=b.call(a[e],e,a[e]),d===!1)break;return a},trim:function(a){return null==a?"":(a+"").replace(n,"")},makeArray:function(a,b){var c=b||[];return null!=a&&(r(Object(a))?m.merge(c,"string"==typeof a?[a]:a):f.call(c,a)),c},inArray:function(a,b,c){var d;if(b){if(g)return g.call(b,a,c);for(d=b.length,c=c?0>c?Math.max(0,d+c):c:0;d>c;c++)if(c in b&&b[c]===a)return c}return-1},merge:function(a,b){var c=+b.length,d=0,e=a.length;while(c>d)a[e++]=b[d++];if(c!==c)while(void 0!==b[d])a[e++]=b[d++];return a.length=e,a},grep:function(a,b,c){for(var d,e=[],f=0,g=a.length,h=!c;g>f;f++)d=!b(a[f],f),d!==h&&e.push(a[f]);return e},map:function(a,b,c){var d,f=0,g=a.length,h=r(a),i=[];if(h)for(;g>f;f++)d=b(a[f],f,c),null!=d&&i.push(d);else for(f in a)d=b(a[f],f,c),null!=d&&i.push(d);return e.apply([],i)},guid:1,proxy:function(a,b){var c,e,f;return"string"==typeof b&&(f=a[b],b=a,a=f),m.isFunction(a)?(c=d.call(arguments,2),e=function(){return a.apply(b||this,c.concat(d.call(arguments)))},e.guid=a.guid=a.guid||m.guid++,e):void 0},now:function(){return+new Date},support:k}),m.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),function(a,b){h["[object "+b+"]"]=b.toLowerCase()});function r(a){var b="length"in a&&a.length,c=m.type(a);return"function"===c||m.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===c||0===b||"number"==typeof b&&b>0&&b-1 in a}var s=function(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u="sizzle"+1*new Date,v=a.document,w=0,x=0,y=ha(),z=ha(),A=ha(),B=function(a,b){return a===b&&(l=!0),0},C=1<<31,D={}.hasOwnProperty,E=[],F=E.pop,G=E.push,H=E.push,I=E.slice,J=function(a,b){for(var c=0,d=a.length;d>c;c++)if(a[c]===b)return c;return-1},K="checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",L="[\\x20\\t\\r\\n\\f]",M="(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",N=M.replace("w","w#"),O="\\["+L+"*("+M+")(?:"+L+"*([*^$|!~]?=)"+L+"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|("+N+"))|)"+L+"*\\]",P=":("+M+")(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|"+O+")*)|.*)\\)|)",Q=new RegExp(L+"+","g"),R=new RegExp("^"+L+"+|((?:^|[^\\\\])(?:\\\\.)*)"+L+"+$","g"),S=new RegExp("^"+L+"*,"+L+"*"),T=new RegExp("^"+L+"*([>+~]|"+L+")"+L+"*"),U=new RegExp("="+L+"*([^\\]'\"]*?)"+L+"*\\]","g"),V=new RegExp(P),W=new RegExp("^"+N+"$"),X={ID:new RegExp("^#("+M+")"),CLASS:new RegExp("^\\.("+M+")"),TAG:new RegExp("^("+M.replace("w","w*")+")"),ATTR:new RegExp("^"+O),PSEUDO:new RegExp("^"+P),CHILD:new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\("+L+"*(even|odd|(([+-]|)(\\d*)n|)"+L+"*(?:([+-]|)"+L+"*(\\d+)|))"+L+"*\\)|)","i"),bool:new RegExp("^(?:"+K+")$","i"),needsContext:new RegExp("^"+L+"*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\("+L+"*((?:-\\d)?\\d*)"+L+"*\\)|)(?=[^-]|$)","i")},Y=/^(?:input|select|textarea|button)$/i,Z=/^h\d$/i,$=/^[^{]+\{\s*\[native \w/,_=/^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,aa=/[+~]/,ba=/'|\\/g,ca=new RegExp("\\\\([\\da-f]{1,6}"+L+"?|("+L+")|.)","ig"),da=function(a,b,c){var d="0x"+b-65536;return d!==d||c?b:0>d?String.fromCharCode(d+65536):String.fromCharCode(d>>10|55296,1023&d|56320)},ea=function(){m()};try{H.apply(E=I.call(v.childNodes),v.childNodes),E[v.childNodes.length].nodeType}catch(fa){H={apply:E.length?function(a,b){G.apply(a,I.call(b))}:function(a,b){var c=a.length,d=0;while(a[c++]=b[d++]);a.length=c-1}}}function ga(a,b,d,e){var f,h,j,k,l,o,r,s,w,x;if((b?b.ownerDocument||b:v)!==n&&m(b),b=b||n,d=d||[],k=b.nodeType,"string"!=typeof a||!a||1!==k&&9!==k&&11!==k)return d;if(!e&&p){if(11!==k&&(f=_.exec(a)))if(j=f[1]){if(9===k){if(h=b.getElementById(j),!h||!h.parentNode)return d;if(h.id===j)return d.push(h),d}else if(b.ownerDocument&&(h=b.ownerDocument.getElementById(j))&&t(b,h)&&h.id===j)return d.push(h),d}else{if(f[2])return H.apply(d,b.getElementsByTagName(a)),d;if((j=f[3])&&c.getElementsByClassName)return H.apply(d,b.getElementsByClassName(j)),d}if(c.qsa&&(!q||!q.test(a))){if(s=r=u,w=b,x=1!==k&&a,1===k&&"object"!==b.nodeName.toLowerCase()){o=g(a),(r=b.getAttribute("id"))?s=r.replace(ba,"\\$&"):b.setAttribute("id",s),s="[id='"+s+"'] ",l=o.length;while(l--)o[l]=s+ra(o[l]);w=aa.test(a)&&pa(b.parentNode)||b,x=o.join(",")}if(x)try{return H.apply(d,w.querySelectorAll(x)),d}catch(y){}finally{r||b.removeAttribute("id")}}}return i(a.replace(R,"$1"),b,d,e)}function ha(){var a=[];function b(c,e){return a.push(c+" ")>d.cacheLength&&delete b[a.shift()],b[c+" "]=e}return b}function ia(a){return a[u]=!0,a}function ja(a){var b=n.createElement("div");try{return!!a(b)}catch(c){return!1}finally{b.parentNode&&b.parentNode.removeChild(b),b=null}}function ka(a,b){var c=a.split("|"),e=a.length;while(e--)d.attrHandle[c[e]]=b}function la(a,b){var c=b&&a,d=c&&1===a.nodeType&&1===b.nodeType&&(~b.sourceIndex||C)-(~a.sourceIndex||C);if(d)return d;if(c)while(c=c.nextSibling)if(c===b)return-1;return a?1:-1}function ma(a){return function(b){var c=b.nodeName.toLowerCase();return"input"===c&&b.type===a}}function na(a){return function(b){var c=b.nodeName.toLowerCase();return("input"===c||"button"===c)&&b.type===a}}function oa(a){return ia(function(b){return b=+b,ia(function(c,d){var e,f=a([],c.length,b),g=f.length;while(g--)c[e=f[g]]&&(c[e]=!(d[e]=c[e]))})})}function pa(a){return a&&"undefined"!=typeof a.getElementsByTagName&&a}c=ga.support={},f=ga.isXML=function(a){var b=a&&(a.ownerDocument||a).documentElement;return b?"HTML"!==b.nodeName:!1},m=ga.setDocument=function(a){var b,e,g=a?a.ownerDocument||a:v;return g!==n&&9===g.nodeType&&g.documentElement?(n=g,o=g.documentElement,e=g.defaultView,e&&e!==e.top&&(e.addEventListener?e.addEventListener("unload",ea,!1):e.attachEvent&&e.attachEvent("onunload",ea)),p=!f(g),c.attributes=ja(function(a){return a.className="i",!a.getAttribute("className")}),c.getElementsByTagName=ja(function(a){return a.appendChild(g.createComment("")),!a.getElementsByTagName("*").length}),c.getElementsByClassName=$.test(g.getElementsByClassName),c.getById=ja(function(a){return o.appendChild(a).id=u,!g.getElementsByName||!g.getElementsByName(u).length}),c.getById?(d.find.ID=function(a,b){if("undefined"!=typeof b.getElementById&&p){var c=b.getElementById(a);return c&&c.parentNode?[c]:[]}},d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){return a.getAttribute("id")===b}}):(delete d.find.ID,d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){var c="undefined"!=typeof a.getAttributeNode&&a.getAttributeNode("id");return c&&c.value===b}}),d.find.TAG=c.getElementsByTagName?function(a,b){return"undefined"!=typeof b.getElementsByTagName?b.getElementsByTagName(a):c.qsa?b.querySelectorAll(a):void 0}:function(a,b){var c,d=[],e=0,f=b.getElementsByTagName(a);if("*"===a){while(c=f[e++])1===c.nodeType&&d.push(c);return d}return f},d.find.CLASS=c.getElementsByClassName&&function(a,b){return p?b.getElementsByClassName(a):void 0},r=[],q=[],(c.qsa=$.test(g.querySelectorAll))&&(ja(function(a){o.appendChild(a).innerHTML="<a id='"+u+"'></a><select id='"+u+"-\f]' msallowcapture=''><option selected=''></option></select>",a.querySelectorAll("[msallowcapture^='']").length&&q.push("[*^$]="+L+"*(?:''|\"\")"),a.querySelectorAll("[selected]").length||q.push("\\["+L+"*(?:value|"+K+")"),a.querySelectorAll("[id~="+u+"-]").length||q.push("~="),a.querySelectorAll(":checked").length||q.push(":checked"),a.querySelectorAll("a#"+u+"+*").length||q.push(".#.+[+~]")}),ja(function(a){var b=g.createElement("input");b.setAttribute("type","hidden"),a.appendChild(b).setAttribute("name","D"),a.querySelectorAll("[name=d]").length&&q.push("name"+L+"*[*^$|!~]?="),a.querySelectorAll(":enabled").length||q.push(":enabled",":disabled"),a.querySelectorAll("*,:x"),q.push(",.*:")})),(c.matchesSelector=$.test(s=o.matches||o.webkitMatchesSelector||o.mozMatchesSelector||o.oMatchesSelector||o.msMatchesSelector))&&ja(function(a){c.disconnectedMatch=s.call(a,"div"),s.call(a,"[s!='']:x"),r.push("!=",P)}),q=q.length&&new RegExp(q.join("|")),r=r.length&&new RegExp(r.join("|")),b=$.test(o.compareDocumentPosition),t=b||$.test(o.contains)?function(a,b){var c=9===a.nodeType?a.documentElement:a,d=b&&b.parentNode;return a===d||!(!d||1!==d.nodeType||!(c.contains?c.contains(d):a.compareDocumentPosition&&16&a.compareDocumentPosition(d)))}:function(a,b){if(b)while(b=b.parentNode)if(b===a)return!0;return!1},B=b?function(a,b){if(a===b)return l=!0,0;var d=!a.compareDocumentPosition-!b.compareDocumentPosition;return d?d:(d=(a.ownerDocument||a)===(b.ownerDocument||b)?a.compareDocumentPosition(b):1,1&d||!c.sortDetached&&b.compareDocumentPosition(a)===d?a===g||a.ownerDocument===v&&t(v,a)?-1:b===g||b.ownerDocument===v&&t(v,b)?1:k?J(k,a)-J(k,b):0:4&d?-1:1)}:function(a,b){if(a===b)return l=!0,0;var c,d=0,e=a.parentNode,f=b.parentNode,h=[a],i=[b];if(!e||!f)return a===g?-1:b===g?1:e?-1:f?1:k?J(k,a)-J(k,b):0;if(e===f)return la(a,b);c=a;while(c=c.parentNode)h.unshift(c);c=b;while(c=c.parentNode)i.unshift(c);while(h[d]===i[d])d++;return d?la(h[d],i[d]):h[d]===v?-1:i[d]===v?1:0},g):n},ga.matches=function(a,b){return ga(a,null,null,b)},ga.matchesSelector=function(a,b){if((a.ownerDocument||a)!==n&&m(a),b=b.replace(U,"='$1']"),!(!c.matchesSelector||!p||r&&r.test(b)||q&&q.test(b)))try{var d=s.call(a,b);if(d||c.disconnectedMatch||a.document&&11!==a.document.nodeType)return d}catch(e){}return ga(b,n,null,[a]).length>0},ga.contains=function(a,b){return(a.ownerDocument||a)!==n&&m(a),t(a,b)},ga.attr=function(a,b){(a.ownerDocument||a)!==n&&m(a);var e=d.attrHandle[b.toLowerCase()],f=e&&D.call(d.attrHandle,b.toLowerCase())?e(a,b,!p):void 0;return void 0!==f?f:c.attributes||!p?a.getAttribute(b):(f=a.getAttributeNode(b))&&f.specified?f.value:null},ga.error=function(a){throw new Error("Syntax error, unrecognized expression: "+a)},ga.uniqueSort=function(a){var b,d=[],e=0,f=0;if(l=!c.detectDuplicates,k=!c.sortStable&&a.slice(0),a.sort(B),l){while(b=a[f++])b===a[f]&&(e=d.push(f));while(e--)a.splice(d[e],1)}return k=null,a},e=ga.getText=function(a){var b,c="",d=0,f=a.nodeType;if(f){if(1===f||9===f||11===f){if("string"==typeof a.textContent)return a.textContent;for(a=a.firstChild;a;a=a.nextSibling)c+=e(a)}else if(3===f||4===f)return a.nodeValue}else while(b=a[d++])c+=e(b);return c},d=ga.selectors={cacheLength:50,createPseudo:ia,match:X,attrHandle:{},find:{},relative:{">":{dir:"parentNode",first:!0}," ":{dir:"parentNode"},"+":{dir:"previousSibling",first:!0},"~":{dir:"previousSibling"}},preFilter:{ATTR:function(a){return a[1]=a[1].replace(ca,da),a[3]=(a[3]||a[4]||a[5]||"").replace(ca,da),"~="===a[2]&&(a[3]=" "+a[3]+" "),a.slice(0,4)},CHILD:function(a){return a[1]=a[1].toLowerCase(),"nth"===a[1].slice(0,3)?(a[3]||ga.error(a[0]),a[4]=+(a[4]?a[5]+(a[6]||1):2*("even"===a[3]||"odd"===a[3])),a[5]=+(a[7]+a[8]||"odd"===a[3])):a[3]&&ga.error(a[0]),a},PSEUDO:function(a){var b,c=!a[6]&&a[2];return X.CHILD.test(a[0])?null:(a[3]?a[2]=a[4]||a[5]||"":c&&V.test(c)&&(b=g(c,!0))&&(b=c.indexOf(")",c.length-b)-c.length)&&(a[0]=a[0].slice(0,b),a[2]=c.slice(0,b)),a.slice(0,3))}},filter:{TAG:function(a){var b=a.replace(ca,da).toLowerCase();return"*"===a?function(){return!0}:function(a){return a.nodeName&&a.nodeName.toLowerCase()===b}},CLASS:function(a){var b=y[a+" "];return b||(b=new RegExp("(^|"+L+")"+a+"("+L+"|$)"))&&y(a,function(a){return b.test("string"==typeof a.className&&a.className||"undefined"!=typeof a.getAttribute&&a.getAttribute("class")||"")})},ATTR:function(a,b,c){return function(d){var e=ga.attr(d,a);return null==e?"!="===b:b?(e+="","="===b?e===c:"!="===b?e!==c:"^="===b?c&&0===e.indexOf(c):"*="===b?c&&e.indexOf(c)>-1:"$="===b?c&&e.slice(-c.length)===c:"~="===b?(" "+e.replace(Q," ")+" ").indexOf(c)>-1:"|="===b?e===c||e.slice(0,c.length+1)===c+"-":!1):!0}},CHILD:function(a,b,c,d,e){var f="nth"!==a.slice(0,3),g="last"!==a.slice(-4),h="of-type"===b;return 1===d&&0===e?function(a){return!!a.parentNode}:function(b,c,i){var j,k,l,m,n,o,p=f!==g?"nextSibling":"previousSibling",q=b.parentNode,r=h&&b.nodeName.toLowerCase(),s=!i&&!h;if(q){if(f){while(p){l=b;while(l=l[p])if(h?l.nodeName.toLowerCase()===r:1===l.nodeType)return!1;o=p="only"===a&&!o&&"nextSibling"}return!0}if(o=[g?q.firstChild:q.lastChild],g&&s){k=q[u]||(q[u]={}),j=k[a]||[],n=j[0]===w&&j[1],m=j[0]===w&&j[2],l=n&&q.childNodes[n];while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if(1===l.nodeType&&++m&&l===b){k[a]=[w,n,m];break}}else if(s&&(j=(b[u]||(b[u]={}))[a])&&j[0]===w)m=j[1];else while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if((h?l.nodeName.toLowerCase()===r:1===l.nodeType)&&++m&&(s&&((l[u]||(l[u]={}))[a]=[w,m]),l===b))break;return m-=e,m===d||m%d===0&&m/d>=0}}},PSEUDO:function(a,b){var c,e=d.pseudos[a]||d.setFilters[a.toLowerCase()]||ga.error("unsupported pseudo: "+a);return e[u]?e(b):e.length>1?(c=[a,a,"",b],d.setFilters.hasOwnProperty(a.toLowerCase())?ia(function(a,c){var d,f=e(a,b),g=f.length;while(g--)d=J(a,f[g]),a[d]=!(c[d]=f[g])}):function(a){return e(a,0,c)}):e}},pseudos:{not:ia(function(a){var b=[],c=[],d=h(a.replace(R,"$1"));return d[u]?ia(function(a,b,c,e){var f,g=d(a,null,e,[]),h=a.length;while(h--)(f=g[h])&&(a[h]=!(b[h]=f))}):function(a,e,f){return b[0]=a,d(b,null,f,c),b[0]=null,!c.pop()}}),has:ia(function(a){return function(b){return ga(a,b).length>0}}),contains:ia(function(a){return a=a.replace(ca,da),function(b){return(b.textContent||b.innerText||e(b)).indexOf(a)>-1}}),lang:ia(function(a){return W.test(a||"")||ga.error("unsupported lang: "+a),a=a.replace(ca,da).toLowerCase(),function(b){var c;do if(c=p?b.lang:b.getAttribute("xml:lang")||b.getAttribute("lang"))return c=c.toLowerCase(),c===a||0===c.indexOf(a+"-");while((b=b.parentNode)&&1===b.nodeType);return!1}}),target:function(b){var c=a.location&&a.location.hash;return c&&c.slice(1)===b.id},root:function(a){return a===o},focus:function(a){return a===n.activeElement&&(!n.hasFocus||n.hasFocus())&&!!(a.type||a.href||~a.tabIndex)},enabled:function(a){return a.disabled===!1},disabled:function(a){return a.disabled===!0},checked:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&!!a.checked||"option"===b&&!!a.selected},selected:function(a){return a.parentNode&&a.parentNode.selectedIndex,a.selected===!0},empty:function(a){for(a=a.firstChild;a;a=a.nextSibling)if(a.nodeType<6)return!1;return!0},parent:function(a){return!d.pseudos.empty(a)},header:function(a){return Z.test(a.nodeName)},input:function(a){return Y.test(a.nodeName)},button:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&"button"===a.type||"button"===b},text:function(a){var b;return"input"===a.nodeName.toLowerCase()&&"text"===a.type&&(null==(b=a.getAttribute("type"))||"text"===b.toLowerCase())},first:oa(function(){return[0]}),last:oa(function(a,b){return[b-1]}),eq:oa(function(a,b,c){return[0>c?c+b:c]}),even:oa(function(a,b){for(var c=0;b>c;c+=2)a.push(c);return a}),odd:oa(function(a,b){for(var c=1;b>c;c+=2)a.push(c);return a}),lt:oa(function(a,b,c){for(var d=0>c?c+b:c;--d>=0;)a.push(d);return a}),gt:oa(function(a,b,c){for(var d=0>c?c+b:c;++d<b;)a.push(d);return a})}},d.pseudos.nth=d.pseudos.eq;for(b in{radio:!0,checkbox:!0,file:!0,password:!0,image:!0})d.pseudos[b]=ma(b);for(b in{submit:!0,reset:!0})d.pseudos[b]=na(b);function qa(){}qa.prototype=d.filters=d.pseudos,d.setFilters=new qa,g=ga.tokenize=function(a,b){var c,e,f,g,h,i,j,k=z[a+" "];if(k)return b?0:k.slice(0);h=a,i=[],j=d.preFilter;while(h){(!c||(e=S.exec(h)))&&(e&&(h=h.slice(e[0].length)||h),i.push(f=[])),c=!1,(e=T.exec(h))&&(c=e.shift(),f.push({value:c,type:e[0].replace(R," ")}),h=h.slice(c.length));for(g in d.filter)!(e=X[g].exec(h))||j[g]&&!(e=j[g](e))||(c=e.shift(),f.push({value:c,type:g,matches:e}),h=h.slice(c.length));if(!c)break}return b?h.length:h?ga.error(a):z(a,i).slice(0)};function ra(a){for(var b=0,c=a.length,d="";c>b;b++)d+=a[b].value;return d}function sa(a,b,c){var d=b.dir,e=c&&"parentNode"===d,f=x++;return b.first?function(b,c,f){while(b=b[d])if(1===b.nodeType||e)return a(b,c,f)}:function(b,c,g){var h,i,j=[w,f];if(g){while(b=b[d])if((1===b.nodeType||e)&&a(b,c,g))return!0}else while(b=b[d])if(1===b.nodeType||e){if(i=b[u]||(b[u]={}),(h=i[d])&&h[0]===w&&h[1]===f)return j[2]=h[2];if(i[d]=j,j[2]=a(b,c,g))return!0}}}function ta(a){return a.length>1?function(b,c,d){var e=a.length;while(e--)if(!a[e](b,c,d))return!1;return!0}:a[0]}function ua(a,b,c){for(var d=0,e=b.length;e>d;d++)ga(a,b[d],c);return c}function va(a,b,c,d,e){for(var f,g=[],h=0,i=a.length,j=null!=b;i>h;h++)(f=a[h])&&(!c||c(f,d,e))&&(g.push(f),j&&b.push(h));return g}function wa(a,b,c,d,e,f){return d&&!d[u]&&(d=wa(d)),e&&!e[u]&&(e=wa(e,f)),ia(function(f,g,h,i){var j,k,l,m=[],n=[],o=g.length,p=f||ua(b||"*",h.nodeType?[h]:h,[]),q=!a||!f&&b?p:va(p,m,a,h,i),r=c?e||(f?a:o||d)?[]:g:q;if(c&&c(q,r,h,i),d){j=va(r,n),d(j,[],h,i),k=j.length;while(k--)(l=j[k])&&(r[n[k]]=!(q[n[k]]=l))}if(f){if(e||a){if(e){j=[],k=r.length;while(k--)(l=r[k])&&j.push(q[k]=l);e(null,r=[],j,i)}k=r.length;while(k--)(l=r[k])&&(j=e?J(f,l):m[k])>-1&&(f[j]=!(g[j]=l))}}else r=va(r===g?r.splice(o,r.length):r),e?e(null,g,r,i):H.apply(g,r)})}function xa(a){for(var b,c,e,f=a.length,g=d.relative[a[0].type],h=g||d.relative[" "],i=g?1:0,k=sa(function(a){return a===b},h,!0),l=sa(function(a){return J(b,a)>-1},h,!0),m=[function(a,c,d){var e=!g&&(d||c!==j)||((b=c).nodeType?k(a,c,d):l(a,c,d));return b=null,e}];f>i;i++)if(c=d.relative[a[i].type])m=[sa(ta(m),c)];else{if(c=d.filter[a[i].type].apply(null,a[i].matches),c[u]){for(e=++i;f>e;e++)if(d.relative[a[e].type])break;return wa(i>1&&ta(m),i>1&&ra(a.slice(0,i-1).concat({value:" "===a[i-2].type?"*":""})).replace(R,"$1"),c,e>i&&xa(a.slice(i,e)),f>e&&xa(a=a.slice(e)),f>e&&ra(a))}m.push(c)}return ta(m)}function ya(a,b){var c=b.length>0,e=a.length>0,f=function(f,g,h,i,k){var l,m,o,p=0,q="0",r=f&&[],s=[],t=j,u=f||e&&d.find.TAG("*",k),v=w+=null==t?1:Math.random()||.1,x=u.length;for(k&&(j=g!==n&&g);q!==x&&null!=(l=u[q]);q++){if(e&&l){m=0;while(o=a[m++])if(o(l,g,h)){i.push(l);break}k&&(w=v)}c&&((l=!o&&l)&&p--,f&&r.push(l))}if(p+=q,c&&q!==p){m=0;while(o=b[m++])o(r,s,g,h);if(f){if(p>0)while(q--)r[q]||s[q]||(s[q]=F.call(i));s=va(s)}H.apply(i,s),k&&!f&&s.length>0&&p+b.length>1&&ga.uniqueSort(i)}return k&&(w=v,j=t),r};return c?ia(f):f}return h=ga.compile=function(a,b){var c,d=[],e=[],f=A[a+" "];if(!f){b||(b=g(a)),c=b.length;while(c--)f=xa(b[c]),f[u]?d.push(f):e.push(f);f=A(a,ya(e,d)),f.selector=a}return f},i=ga.select=function(a,b,e,f){var i,j,k,l,m,n="function"==typeof a&&a,o=!f&&g(a=n.selector||a);if(e=e||[],1===o.length){if(j=o[0]=o[0].slice(0),j.length>2&&"ID"===(k=j[0]).type&&c.getById&&9===b.nodeType&&p&&d.relative[j[1].type]){if(b=(d.find.ID(k.matches[0].replace(ca,da),b)||[])[0],!b)return e;n&&(b=b.parentNode),a=a.slice(j.shift().value.length)}i=X.needsContext.test(a)?0:j.length;while(i--){if(k=j[i],d.relative[l=k.type])break;if((m=d.find[l])&&(f=m(k.matches[0].replace(ca,da),aa.test(j[0].type)&&pa(b.parentNode)||b))){if(j.splice(i,1),a=f.length&&ra(j),!a)return H.apply(e,f),e;break}}}return(n||h(a,o))(f,b,!p,e,aa.test(a)&&pa(b.parentNode)||b),e},c.sortStable=u.split("").sort(B).join("")===u,c.detectDuplicates=!!l,m(),c.sortDetached=ja(function(a){return 1&a.compareDocumentPosition(n.createElement("div"))}),ja(function(a){return a.innerHTML="<a href='#'></a>","#"===a.firstChild.getAttribute("href")})||ka("type|href|height|width",function(a,b,c){return c?void 0:a.getAttribute(b,"type"===b.toLowerCase()?1:2)}),c.attributes&&ja(function(a){return a.innerHTML="<input/>",a.firstChild.setAttribute("value",""),""===a.firstChild.getAttribute("value")})||ka("value",function(a,b,c){return c||"input"!==a.nodeName.toLowerCase()?void 0:a.defaultValue}),ja(function(a){return null==a.getAttribute("disabled")})||ka(K,function(a,b,c){var d;return c?void 0:a[b]===!0?b.toLowerCase():(d=a.getAttributeNode(b))&&d.specified?d.value:null}),ga}(a);m.find=s,m.expr=s.selectors,m.expr[":"]=m.expr.pseudos,m.unique=s.uniqueSort,m.text=s.getText,m.isXMLDoc=s.isXML,m.contains=s.contains;var t=m.expr.match.needsContext,u=/^<(\w+)\s*\/?>(?:<\/\1>|)$/,v=/^.[^:#\[\.,]*$/;function w(a,b,c){if(m.isFunction(b))return m.grep(a,function(a,d){return!!b.call(a,d,a)!==c});if(b.nodeType)return m.grep(a,function(a){return a===b!==c});if("string"==typeof b){if(v.test(b))return m.filter(b,a,c);b=m.filter(b,a)}return m.grep(a,function(a){return m.inArray(a,b)>=0!==c})}m.filter=function(a,b,c){var d=b[0];return c&&(a=":not("+a+")"),1===b.length&&1===d.nodeType?m.find.matchesSelector(d,a)?[d]:[]:m.find.matches(a,m.grep(b,function(a){return 1===a.nodeType}))},m.fn.extend({find:function(a){var b,c=[],d=this,e=d.length;if("string"!=typeof a)return this.pushStack(m(a).filter(function(){for(b=0;e>b;b++)if(m.contains(d[b],this))return!0}));for(b=0;e>b;b++)m.find(a,d[b],c);return c=this.pushStack(e>1?m.unique(c):c),c.selector=this.selector?this.selector+" "+a:a,c},filter:function(a){return this.pushStack(w(this,a||[],!1))},not:function(a){return this.pushStack(w(this,a||[],!0))},is:function(a){return!!w(this,"string"==typeof a&&t.test(a)?m(a):a||[],!1).length}});var x,y=a.document,z=/^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,A=m.fn.init=function(a,b){var c,d;if(!a)return this;if("string"==typeof a){if(c="<"===a.charAt(0)&&">"===a.charAt(a.length-1)&&a.length>=3?[null,a,null]:z.exec(a),!c||!c[1]&&b)return!b||b.jquery?(b||x).find(a):this.constructor(b).find(a);if(c[1]){if(b=b instanceof m?b[0]:b,m.merge(this,m.parseHTML(c[1],b&&b.nodeType?b.ownerDocument||b:y,!0)),u.test(c[1])&&m.isPlainObject(b))for(c in b)m.isFunction(this[c])?this[c](b[c]):this.attr(c,b[c]);return this}if(d=y.getElementById(c[2]),d&&d.parentNode){if(d.id!==c[2])return x.find(a);this.length=1,this[0]=d}return this.context=y,this.selector=a,this}return a.nodeType?(this.context=this[0]=a,this.length=1,this):m.isFunction(a)?"undefined"!=typeof x.ready?x.ready(a):a(m):(void 0!==a.selector&&(this.selector=a.selector,this.context=a.context),m.makeArray(a,this))};A.prototype=m.fn,x=m(y);var B=/^(?:parents|prev(?:Until|All))/,C={children:!0,contents:!0,next:!0,prev:!0};m.extend({dir:function(a,b,c){var d=[],e=a[b];while(e&&9!==e.nodeType&&(void 0===c||1!==e.nodeType||!m(e).is(c)))1===e.nodeType&&d.push(e),e=e[b];return d},sibling:function(a,b){for(var c=[];a;a=a.nextSibling)1===a.nodeType&&a!==b&&c.push(a);return c}}),m.fn.extend({has:function(a){var b,c=m(a,this),d=c.length;return this.filter(function(){for(b=0;d>b;b++)if(m.contains(this,c[b]))return!0})},closest:function(a,b){for(var c,d=0,e=this.length,f=[],g=t.test(a)||"string"!=typeof a?m(a,b||this.context):0;e>d;d++)for(c=this[d];c&&c!==b;c=c.parentNode)if(c.nodeType<11&&(g?g.index(c)>-1:1===c.nodeType&&m.find.matchesSelector(c,a))){f.push(c);break}return this.pushStack(f.length>1?m.unique(f):f)},index:function(a){return a?"string"==typeof a?m.inArray(this[0],m(a)):m.inArray(a.jquery?a[0]:a,this):this[0]&&this[0].parentNode?this.first().prevAll().length:-1},add:function(a,b){return this.pushStack(m.unique(m.merge(this.get(),m(a,b))))},addBack:function(a){return this.add(null==a?this.prevObject:this.prevObject.filter(a))}});function D(a,b){do a=a[b];while(a&&1!==a.nodeType);return a}m.each({parent:function(a){var b=a.parentNode;return b&&11!==b.nodeType?b:null},parents:function(a){return m.dir(a,"parentNode")},parentsUntil:function(a,b,c){return m.dir(a,"parentNode",c)},next:function(a){return D(a,"nextSibling")},prev:function(a){return D(a,"previousSibling")},nextAll:function(a){return m.dir(a,"nextSibling")},prevAll:function(a){return m.dir(a,"previousSibling")},nextUntil:function(a,b,c){return m.dir(a,"nextSibling",c)},prevUntil:function(a,b,c){return m.dir(a,"previousSibling",c)},siblings:function(a){return m.sibling((a.parentNode||{}).firstChild,a)},children:function(a){return m.sibling(a.firstChild)},contents:function(a){return m.nodeName(a,"iframe")?a.contentDocument||a.contentWindow.document:m.merge([],a.childNodes)}},function(a,b){m.fn[a]=function(c,d){var e=m.map(this,b,c);return"Until"!==a.slice(-5)&&(d=c),d&&"string"==typeof d&&(e=m.filter(d,e)),this.length>1&&(C[a]||(e=m.unique(e)),B.test(a)&&(e=e.reverse())),this.pushStack(e)}});var E=/\S+/g,F={};function G(a){var b=F[a]={};return m.each(a.match(E)||[],function(a,c){b[c]=!0}),b}m.Callbacks=function(a){a="string"==typeof a?F[a]||G(a):m.extend({},a);var b,c,d,e,f,g,h=[],i=!a.once&&[],j=function(l){for(c=a.memory&&l,d=!0,f=g||0,g=0,e=h.length,b=!0;h&&e>f;f++)if(h[f].apply(l[0],l[1])===!1&&a.stopOnFalse){c=!1;break}b=!1,h&&(i?i.length&&j(i.shift()):c?h=[]:k.disable())},k={add:function(){if(h){var d=h.length;!function f(b){m.each(b,function(b,c){var d=m.type(c);"function"===d?a.unique&&k.has(c)||h.push(c):c&&c.length&&"string"!==d&&f(c)})}(arguments),b?e=h.length:c&&(g=d,j(c))}return this},remove:function(){return h&&m.each(arguments,function(a,c){var d;while((d=m.inArray(c,h,d))>-1)h.splice(d,1),b&&(e>=d&&e--,f>=d&&f--)}),this},has:function(a){return a?m.inArray(a,h)>-1:!(!h||!h.length)},empty:function(){return h=[],e=0,this},disable:function(){return h=i=c=void 0,this},disabled:function(){return!h},lock:function(){return i=void 0,c||k.disable(),this},locked:function(){return!i},fireWith:function(a,c){return!h||d&&!i||(c=c||[],c=[a,c.slice?c.slice():c],b?i.push(c):j(c)),this},fire:function(){return k.fireWith(this,arguments),this},fired:function(){return!!d}};return k},m.extend({Deferred:function(a){var b=[["resolve","done",m.Callbacks("once memory"),"resolved"],["reject","fail",m.Callbacks("once memory"),"rejected"],["notify","progress",m.Callbacks("memory")]],c="pending",d={state:function(){return c},always:function(){return e.done(arguments).fail(arguments),this},then:function(){var a=arguments;return m.Deferred(function(c){m.each(b,function(b,f){var g=m.isFunction(a[b])&&a[b];e[f[1]](function(){var a=g&&g.apply(this,arguments);a&&m.isFunction(a.promise)?a.promise().done(c.resolve).fail(c.reject).progress(c.notify):c[f[0]+"With"](this===d?c.promise():this,g?[a]:arguments)})}),a=null}).promise()},promise:function(a){return null!=a?m.extend(a,d):d}},e={};return d.pipe=d.then,m.each(b,function(a,f){var g=f[2],h=f[3];d[f[1]]=g.add,h&&g.add(function(){c=h},b[1^a][2].disable,b[2][2].lock),e[f[0]]=function(){return e[f[0]+"With"](this===e?d:this,arguments),this},e[f[0]+"With"]=g.fireWith}),d.promise(e),a&&a.call(e,e),e},when:function(a){var b=0,c=d.call(arguments),e=c.length,f=1!==e||a&&m.isFunction(a.promise)?e:0,g=1===f?a:m.Deferred(),h=function(a,b,c){return function(e){b[a]=this,c[a]=arguments.length>1?d.call(arguments):e,c===i?g.notifyWith(b,c):--f||g.resolveWith(b,c)}},i,j,k;if(e>1)for(i=new Array(e),j=new Array(e),k=new Array(e);e>b;b++)c[b]&&m.isFunction(c[b].promise)?c[b].promise().done(h(b,k,c)).fail(g.reject).progress(h(b,j,i)):--f;return f||g.resolveWith(k,c),g.promise()}});var H;m.fn.ready=function(a){return m.ready.promise().done(a),this},m.extend({isReady:!1,readyWait:1,holdReady:function(a){a?m.readyWait++:m.ready(!0)},ready:function(a){if(a===!0?!--m.readyWait:!m.isReady){if(!y.body)return setTimeout(m.ready);m.isReady=!0,a!==!0&&--m.readyWait>0||(H.resolveWith(y,[m]),m.fn.triggerHandler&&(m(y).triggerHandler("ready"),m(y).off("ready")))}}});function I(){y.addEventListener?(y.removeEventListener("DOMContentLoaded",J,!1),a.removeEventListener("load",J,!1)):(y.detachEvent("onreadystatechange",J),a.detachEvent("onload",J))}function J(){(y.addEventListener||"load"===event.type||"complete"===y.readyState)&&(I(),m.ready())}m.ready.promise=function(b){if(!H)if(H=m.Deferred(),"complete"===y.readyState)setTimeout(m.ready);else if(y.addEventListener)y.addEventListener("DOMContentLoaded",J,!1),a.addEventListener("load",J,!1);else{y.attachEvent("onreadystatechange",J),a.attachEvent("onload",J);var c=!1;try{c=null==a.frameElement&&y.documentElement}catch(d){}c&&c.doScroll&&!function e(){if(!m.isReady){try{c.doScroll("left")}catch(a){return setTimeout(e,50)}I(),m.ready()}}()}return H.promise(b)};var K="undefined",L;for(L in m(k))break;k.ownLast="0"!==L,k.inlineBlockNeedsLayout=!1,m(function(){var a,b,c,d;c=y.getElementsByTagName("body")[0],c&&c.style&&(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),typeof b.style.zoom!==K&&(b.style.cssText="display:inline;margin:0;border:0;padding:1px;width:1px;zoom:1",k.inlineBlockNeedsLayout=a=3===b.offsetWidth,a&&(c.style.zoom=1)),c.removeChild(d))}),function(){var a=y.createElement("div");if(null==k.deleteExpando){k.deleteExpando=!0;try{delete a.test}catch(b){k.deleteExpando=!1}}a=null}(),m.acceptData=function(a){var b=m.noData[(a.nodeName+" ").toLowerCase()],c=+a.nodeType||1;return 1!==c&&9!==c?!1:!b||b!==!0&&a.getAttribute("classid")===b};var M=/^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,N=/([A-Z])/g;function O(a,b,c){if(void 0===c&&1===a.nodeType){var d="data-"+b.replace(N,"-$1").toLowerCase();if(c=a.getAttribute(d),"string"==typeof c){try{c="true"===c?!0:"false"===c?!1:"null"===c?null:+c+""===c?+c:M.test(c)?m.parseJSON(c):c}catch(e){}m.data(a,b,c)}else c=void 0}return c}function P(a){var b;for(b in a)if(("data"!==b||!m.isEmptyObject(a[b]))&&"toJSON"!==b)return!1;
 
@@ -3199,7 +1928,7 @@ distill-header .nav a {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Unstructured Data Analytics","description":"Introduction and Data","authors":[]}
+{"title":"Unstructured Data Analytics","description":"Data Collection","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -3210,7 +1939,7 @@ distill-header .nav a {
 
 <div class="d-title">
 <h1>Unstructured Data Analytics</h1>
-<p>Introduction and Data</p>
+<p>Data Collection</p>
 </div>
 
 
@@ -3218,347 +1947,711 @@ distill-header .nav a {
 <h3 class="d-toc-header">Table of Contents</h3>
 <nav class="d-toc" id="TOC">
 <ul>
-<li><a href="#what-is-unstructured-data">What Is Unstructured Data?</a></li>
-<li><a href="#data-types">Data Types</a><ul>
-<li><a href="#text">Text</a></li>
-<li><a href="#images">Images</a></li>
-<li><a href="#audio">Audio</a></li>
+<li><a href="#scraping">Scraping</a><ul>
+<li><a href="#easy-scraping">Easy Scraping</a></li>
+<li><a href="#real-scraping">Real Scraping</a></li>
+<li><a href="#a-weird-alternative">A Weird Alternative</a></li>
+<li><a href="#the-dark-side">The Dark Side</a></li>
 </ul></li>
-<li><a href="#acquisition-types">Acquisition &amp; Types</a><ul>
-<li><a href="#hypertext-markup-language">Hypertext Markup Language</a></li>
-<li><a href="#javascript-object-notation">JavaScript Object Notation</a></li>
-<li><a href="#extensible-markup-language">Extensible Markup Language</a></li>
-</ul></li>
-<li><a href="#methods">Methods</a></li>
-<li><a href="#software">Software</a></li>
+<li><a href="#homework-0">Homework 0</a></li>
 </ul>
 </nav>
 <hr class="d-toc-separator" />
-<h1 id="what-is-unstructured-data">What Is Unstructured Data?</h1>
-<p>The term <em>unstructured data</em> is rife with wackiness and will certainly shift with time. We can, however, work from a place where we just consider unstructured data to be data that does not nicely fit into a pre-defined tabular manner. If we take this consideration to a logical end, then we can see that many forms of data might come to us as unstructured. However, we need to impose structure on our data so that we can achieve our goals (whatever they might be).</p>
-<aside>
-Once we get rolling, it will become clear that most data is unstructured to various degrees.
-</aside>
-<p>And this is where the challenge of unstructured data rests – getting that data into a usable form. Some data that we consider to be unstructured is structured (JSON, XML, etc.), but not in an immediately useful manner.</p>
-<p>When thinking about unstrucutred data, it also helps to put ourselves into a creative frame of mind. In no other part of the analytics world will you have to think through puzzle-like solutions like you will with unstructured data. The reward, however, is that you walk away with a skill set that will allow you to create insights from situations/organizations that are otherwise “data rich, but information poor”.</p>
-<h1 id="data-types">Data Types</h1>
-<p>Throughout our time together, we will be messing around with a few different types of data. Often, that data will be converted into some numeric format for actual computation to occur. In other instances, we will be able to use the data directly.</p>
-<h2 id="text">Text</h2>
-<p>Text is likely to be what you will find the most (and will be our biggest focus). The reason for the focus is simply what can be done with it and the vastness of what is available. Even in the day where we are thinking towards massive amounts of audio being recorded, we are still converting that to text most of the time.</p>
-<p>A great deal of insight can be gathered from text: what are people talking about, how do those people feel about the stuff they are talking about, are multiple texts generated by different people or the same people. Natural Language Processing (NLP) is all the rage, but even more simple approaches can be immensely helpful for organizations.</p>
-<p>The great thing about text is that we can treat it like we would most any other variable in R; aside from any cleaning, we can just treat it like a string.</p>
-<h2 id="images">Images</h2>
-<p>You may not believe this, but we are at the point now where there are tons of images floating around online. Not only do people put an obscene number of pictures of themselves online, but we also have an incredible number of images from computers (drones, satelittes etc.).</p>
-<p>Images, however, will prove to be a little bit more difficult to work on. This difficulty rests mostly with what an image actually is – a collection of pixels in various combinations of RGB space. Before we do anything with actual analyses, we will need to do a fair amount of preprocessing for any image that we will want to use.</p>
-<h2 id="audio">Audio</h2>
-<p>Alexa, Google, and any other machine that you talk to has recorded that data for analysis. Can we find the point when a voice changes?</p>
-<h1 id="acquisition-types">Acquisition &amp; Types</h1>
-<p>Where exactly do we find these data types? All over the place. The location of the data does not (generally) pose an issue for us; instead, we primarily need to be concerned about what form the data takes.</p>
-<h2 id="hypertext-markup-language">Hypertext Markup Language</h2>
-<p>Where would the web be without HTML? Probably a much different place. For us, though, html is a great place to find data. Life is easy when we are pulling data out of html tables:</p>
+<h1 id="scraping">Scraping</h1>
+<p>Scraping things from the web is the ultimate data collection method for the modern analyst.</p>
+<p>We are not going to discuss APIs right now – I would not really consider using APIs to be scraping, but we will be using them soon.</p>
+<h2 id="easy-scraping">Easy Scraping</h2>
+<p>Standard html tables are the easiest things to scrape from the web; they require very little thought and can usually be pulled in without much effort.</p>
+<p>For the largest part of our scraping, we are going to use the <code>rvest</code> package. It has a lot of really handy functions for getting data from the web and we will start exploring some of the easier ones first.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
 library(rvest)
 
-songs = read_html(&quot;https://en.wikipedia.org/wiki/List_of_Hot_Country_Songs_number_ones_of_2005&quot;) %&gt;% 
-  html_table() %&gt;% 
-  `[[`(1) %&gt;% 
-  rmarkdown::paged_table()
-
-songs</code></pre>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Issue date"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Title"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Artist(s)"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Ref."],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"January 1","2":"\"Some Beach\"","3":"Blake Shelton","4":"[9]"},{"1":"January 8","2":"\"Some Beach\"","3":"Blake Shelton","4":"[10]"},{"1":"January 15","2":"\"Some Beach\"","3":"Blake Shelton","4":"[11]"},{"1":"January 22","2":"\"Awful, Beautiful Life\"","3":"Darryl Worley","4":"[12]"},{"1":"January 29","2":"\"Awful, Beautiful Life\"","3":"Darryl Worley","4":"[13]"},{"1":"February 5","2":"\"Mud on the Tires\"","3":"Brad Paisley","4":"[14]"},{"1":"February 12","2":"\"Bless the Broken Road\"","3":"Rascal Flatts","4":"[15]"},{"1":"February 19","2":"\"Bless the Broken Road\"","3":"Rascal Flatts","4":"[16]"},{"1":"February 26","2":"\"Bless the Broken Road\"","3":"Rascal Flatts","4":"[17]"},{"1":"March 5","2":"\"Bless the Broken Road\"","3":"Rascal Flatts","4":"[18]"},{"1":"March 12","2":"\"Bless the Broken Road\"","3":"Rascal Flatts","4":"[19]"},{"1":"March 19","2":"\"Nothin' to Lose\"","3":"Josh Gracin","4":"[20]"},{"1":"March 26","2":"\"That's What I Love About Sunday\"","3":"Craig Morgan","4":"[21]"},{"1":"April 2","2":"\"That's What I Love About Sunday\"","3":"Craig Morgan","4":"[22]"},{"1":"April 9","2":"\"That's What I Love About Sunday\"","3":"Craig Morgan","4":"[23]"},{"1":"April 16","2":"\"That's What I Love About Sunday\"","3":"Craig Morgan","4":"[24]"},{"1":"April 23","2":"\"Anything but Mine\"","3":"Kenny Chesney","4":"[25]"},{"1":"April 30","2":"\"Anything but Mine\"","3":"Kenny Chesney","4":"[26]"},{"1":"May 7","2":"\"It's Getting Better All the Time\"","3":"Brooks & Dunn","4":"[27]"},{"1":"May 14","2":"\"My Give a Damn's Busted\"","3":"Jo Dee Messina","4":"[28]"},{"1":"May 21","2":"\"My Give a Damn's Busted\"","3":"Jo Dee Messina","4":"[29]"},{"1":"May 28","2":"\"Making Memories of Us\"","3":"Keith Urban","4":"[30]"},{"1":"June 4","2":"\"Making Memories of Us\"","3":"Keith Urban","4":"[31]"},{"1":"June 11","2":"\"Making Memories of Us\"","3":"Keith Urban","4":"[32]"},{"1":"June 18","2":"\"Making Memories of Us\"","3":"Keith Urban","4":"[33]"},{"1":"June 25","2":"\"Making Memories of Us\"","3":"Keith Urban","4":"[34]"},{"1":"July 2","2":"\"Fast Cars and Freedom\"","3":"Rascal Flatts","4":"[35]"},{"1":"July 9","2":"\"Fast Cars and Freedom\"","3":"Rascal Flatts","4":"[36]"},{"1":"July 16","2":"\"Fast Cars and Freedom\"","3":"Rascal Flatts","4":"[37]"},{"1":"July 23","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[38]"},{"1":"July 30","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[39]"},{"1":"August 6","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[40]"},{"1":"August 13","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[41]"},{"1":"August 20","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[42]"},{"1":"August 27","2":"\"As Good as I Once Was\"","3":"Toby Keith","4":"[43]"},{"1":"September 3","2":"\"Mississippi Girl\"","3":"Faith Hill","4":"[44]"},{"1":"September 10","2":"\"Mississippi Girl\"","3":"Faith Hill","4":"[45]"},{"1":"September 17","2":"\"Play Something Country\"","3":"Brooks & Dunn","4":"[46]"},{"1":"September 24","2":"\"A Real Fine Place to Start\"","3":"Sara Evans","4":"[47]"},{"1":"October 1","2":"\"A Real Fine Place to Start\"","3":"Sara Evans","4":"[48]"},{"1":"October 8","2":"\"Something to Be Proud Of\"","3":"Montgomery Gentry","4":"[49]"},{"1":"October 15","2":"\"Something to Be Proud Of\"","3":"Montgomery Gentry","4":"[50]"},{"1":"October 22","2":"\"Better Life\"","3":"Keith Urban","4":"[51]"},{"1":"October 29","2":"\"Better Life\"","3":"Keith Urban","4":"[52]"},{"1":"November 5","2":"\"Better Life\"","3":"Keith Urban","4":"[53]"},{"1":"November 12","2":"\"Better Life\"","3":"Keith Urban","4":"[54]"},{"1":"November 19","2":"\"Better Life\"","3":"Keith Urban","4":"[55]"},{"1":"November 26","2":"\"Better Life\"","3":"Keith Urban","4":"[56]"},{"1":"December 3","2":"\"Come a Little Closer\"","3":"Dierks Bentley","4":"[57]"},{"1":"December 10","2":"\"Come a Little Closer\"","3":"Dierks Bentley","4":"[58]"},{"1":"December 17","2":"\"Tequila Makes Her Clothes Fall Off\"","3":"Joe Nichols","4":"[59]"},{"1":"December 24","2":"\"Come a Little Closer\"","3":"Dierks Bentley","4":"[60]"},{"1":"December 31","2":"\"Must Be Doin' Somethin' Right\"","3":"Billy Currington","4":"[61]"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
+films &lt;- read_html(&quot;https://en.wikipedia.org/wiki/List_of_highest-grossing_films&quot;) %&gt;% 
+  html_table(fill = TRUE)</code></pre>
 </div>
-</div>
-<p>What about this <a href="https://www.billboard.com/charts/country-songs">page</a>? How would we go about getting that data? We are going to need to do some digging to find what we need here:</p>
+<p>You will see that the return from this is a list of all of the tables. Since we know that we are just wanting to grab the first one, we can use a really weird function:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-test = read_html(&quot;https://www.billboard.com/charts/country-songs&quot;) %&gt;% 
-  html_nodes(&quot;.chart-list-item__text-wrapper&quot;) %&gt;% 
-  html_text() %&gt;% 
-  gsub(&quot;\n*Song Lyrics\n*|^\n+|\n+\\s*$&quot;, &quot;&quot;, .) %&gt;% 
-  data.frame(title = regmatches(., regexpr(&quot;.*[?=\n]&quot;, .)), 
-             artists = regmatches(., regexpr(&quot;&quot;, .)))</code></pre>
-</div>
-<h3 id="cascading-style-sheets">Cascading Style Sheets</h3>
-<p>Before CSS, the web was styled purely with HTML – and what a style it was! While we might not really care about style for our purpose, CSS can help find stuff within a webpage. CSS has a wide variety of selectors, combinators, pseudo-classes, and pseudo-elements that we can use to pull data off of webpages.</p>
-<p>Whenever you are trying to pull data off of a page, it is always a good idea to inspect the source for any hints offered. Let’s say that I want to do some headhunting for an analytics department and we want to find some <a href="https://psychology.nd.edu/graduate-programs/areas-of-study/quantitative/area-faculty/">Quant Psych faculty</a> who might be worth a visit. We also want to know where those people went to school. We might also want to grab everyone else, but we don’t need to know their educational background.</p>
-<div class="layout-chunk" data-layout="l-body">
-<pre class="r"><code>
-facultyData = read_html(&quot;https://psychology.nd.edu/faculty/faculty-by-alpha/&quot;) %&gt;% 
-  html_nodes(&quot;.columns.medium-9.large-10&quot;)
+films &lt;- films %&gt;% 
+  `[[`(1)
 
-faculty = lapply(1:length(facultyData), function(x) {
-  
-  out = tryCatch({
-    name = facultyData[x] %&gt;% 
-      html_nodes(&quot;h3&quot;) %&gt;% 
-      html_text()
-    
-    area = facultyData[x] %&gt;% 
-      html_nodes(&quot;.faculty-areas ul li&quot;) %&gt;% 
-      html_text()
-    
-    email = facultyData[x] %&gt;% 
-      html_nodes(&quot;.faculty-email&quot;) %&gt;% 
-      html_text()
-    
-    webpage = facultyData[x] %&gt;% 
-      html_nodes(&quot;h3 a&quot;) %&gt;% 
-      html_attr(&quot;href&quot;) %&gt;% 
-      paste(&quot;https://psychology.nd.edu/&quot;, ., sep = &quot;&quot;)
-    
-    if(area == &quot;Quantitative&quot;) {
-      
-      education = read_html(webpage) %&gt;% 
-        html_nodes(&quot;.faculty-education p&quot;) %&gt;% 
-        html_text()
-      
-      allFaculty = data.frame(name = name, 
-                              area = area, 
-                              education = education,
-                              email = email,
-                              webpage = webpage,
-                              stringsAsFactors = FALSE)
-    } else {
-      allFaculty = data.frame(name = name, 
-                              area = area, 
-                              education = NA,
-                              email = email,
-                              webpage = webpage,
-                              stringsAsFactors = FALSE)
-    }
-  }, error = function(e) {
-    return(NA)
-  })
-  
-  return(out)
-})</code></pre>
-</div>
-<h2 id="javascript-object-notation">JavaScript Object Notation</h2>
-<p>More and more, we are seeing JavaScript Object Notation (JSON) creep up everywhere on the web, because it is designed to facilitate smooth information transfer between a server and an individual’s browser. When nice data gets served up to a fancy table or visualization on the web, it is probably coming through in JSON. An added benefit (not for us), but this data cannot really be scraped anymore; instead, we often need to look through the network structure find where it is located and then read it in directly (note – it cannot always be found).</p>
+films</code></pre>
 <pre><code>
-'[
-  &quot;firstName&quot;: &quot;Seth&quot;,
-  &quot;lastName&quot;: &quot;Berry&quot;,
-  &quot;isAlive&quot;: true,
-  &quot;age&quot;: 33,
-  &quot;address&quot;: {
-    &quot;streetAddress&quot;: &quot;337 Mendoza&quot;,
-    &quot;city&quot;: &quot;Notre Dame&quot;,
-    &quot;state&quot;: &quot;IN&quot;,
-    &quot;postalCode&quot;: &quot;46566&quot;
-  },
-  &quot;phoneNumbers&quot;: [
-    {
-      &quot;type&quot;: &quot;home&quot;,
-      &quot;number&quot;: &quot;217 884-2303&quot;
-    },
-    {
-      &quot;type&quot;: &quot;office&quot;,
-      &quot;number&quot;: &quot;574 631-0018&quot;
-    },
-    {
-      &quot;type&quot;: &quot;mobile&quot;,
-      &quot;number&quot;: &quot;217 822-0018&quot;
-    }
-  ],
-  &quot;children&quot;: [],
-  &quot;spouse&quot;: null
-]'</code></pre>
-<p>Here is how we can read json right into R:</p>
-<div class="layout-chunk" data-layout="l-body">
-<pre class="r"><code>
-jsonlite::fromJSON(&quot;https://api.dibitnow.com/api/v1/eventPerformers/getEventPerformers?eventId=1&quot;)</code></pre>
+   Rank  Peak                                         Title
+1     1     1                             Avengers: Endgame
+2     2     1                                        Avatar
+3     3     1                                       Titanic
+4     4     3                  Star Wars: The Force Awakens
+5     5     4                        Avengers: Infinity War
+6     6     3                                Jurassic World
+7     7     7                                 The Lion King
+8     8     3                                  The Avengers
+9     9     4                                     Furious 7
+10   10     5                       Avengers: Age of Ultron
+11   11    11                                     Frozen II
+12   12     9                                 Black Panther
+13   13     3 Harry Potter and the Deathly Hallows – Part 2
+14   14     9                      Star Wars: The Last Jedi
+15   15    12                Jurassic World: Fallen Kingdom
+16   16     5                                        Frozen
+17   17    10                          Beauty and the Beast
+18   18    15                                 Incredibles 2
+19   19    11                       The Fate of the Furious
+20   20     5                                    Iron Man 3
+21   21    10                                       Minions
+22   22    12                    Captain America: Civil War
+23   23    20                                       Aquaman
+24   24    23                     Spider-Man: Far From Home
+25   25    22                                Captain Marvel
+26   26     4                Transformers: Dark of the Moon
+27   27     2 The Lord of the Rings: The Return of the King
+28   28     7                                       Skyfall
+29   29    10               Transformers: Age of Extinction
+30   30     7                         The Dark Knight Rises
+31   31    30                                   Toy Story 4
+32   32    32                                         Joker
+33   33  4TS3                                   Toy Story 3
+34   34     3    Pirates of the Caribbean: Dead Man's Chest
+35   35    20                  Rogue One: A Star Wars Story
+36   36    34                                       Aladdin
+37   37     6   Pirates of the Caribbean: On Stranger Tides
+38   38    24                               Despicable Me 3
+39   39     1                                 Jurassic Park
+40   40    22                                  Finding Dory
+41   41     2     Star Wars: Episode I – The Phantom Menace
+42   42     5                           Alice in Wonderland
+43   43    24                                      Zootopia
+44   44    14             The Hobbit: An Unexpected Journey
+45   45     4                               The Dark Knight
+46   46    46              Star Wars: The Rise of Skywalker
+47   47   2PS      Harry Potter and the Philosopher's Stone
+48   48 19DM2                               Despicable Me 2
+49   49     2                                 The Lion King
+50   50    30                               The Jungle Book
+    Worldwide gross Year Reference(s)
+1    $2,797,800,564 2019   [# 1][# 2]
+2    $2,789,679,794 2009   [# 3][# 4]
+3    $2,187,463,944 1997   [# 5][# 6]
+4    $2,068,223,624 2015   [# 7][# 8]
+5    $2,048,359,754 2018  [# 9][# 10]
+6    $1,671,713,208 2015 [# 11][# 12]
+7    $1,656,943,394 2019  [# 13][# 2]
+8    $1,518,812,988 2012 [# 14][# 15]
+9    $1,516,045,911 2015 [# 16][# 17]
+10   $1,405,403,694 2015 [# 18][# 17]
+11   $1,373,714,463 2019       [# 19]
+12   $1,346,913,161 2018 [# 20][# 21]
+13   $1,341,693,157 2011 [# 22][# 23]
+14   $1,332,539,889 2017 [# 24][# 25]
+15   $1,309,484,461 2018 [# 26][# 10]
+16  F$1,290,000,000 2013 [# 27][# 28]
+17   $1,263,521,126 2017 [# 29][# 30]
+18   $1,242,805,359 2018 [# 31][# 10]
+19 F8$1,238,764,765 2017 [# 32][# 30]
+20   $1,214,811,252 2013 [# 33][# 34]
+21   $1,159,398,397 2015 [# 35][# 12]
+22   $1,153,304,495 2016 [# 36][# 37]
+23   $1,148,161,807 2018 [# 38][# 10]
+24   $1,131,927,996 2019  [# 39][# 2]
+25   $1,128,274,794 2019 [# 40][# 41]
+26   $1,123,794,079 2011 [# 42][# 23]
+27   $1,120,237,002 2003 [# 43][# 44]
+28   $1,108,561,013 2012 [# 45][# 46]
+29   $1,104,054,072 2014 [# 47][# 48]
+30   $1,084,939,099 2012 [# 49][# 50]
+31   $1,073,394,593 2019  [# 51][# 2]
+32   $1,068,927,373 2019 [# 52][# 53]
+33   $1,066,969,703 2010 [# 54][# 55]
+34   $1,066,179,725 2006 [# 56][# 57]
+35   $1,056,057,273 2016   [14][# 58]
+36   $1,050,693,953 2019  [# 59][# 2]
+37   $1,045,713,802 2011 [# 60][# 55]
+38   $1,034,799,409 2017 [# 61][# 30]
+39   $1,029,939,903 1993 [# 62][# 63]
+40   $1,028,570,889 2016 [# 64][# 65]
+41   $1,027,044,677 1999  [# 66][# 6]
+42   $1,025,467,110 2010 [# 67][# 68]
+43   $1,023,784,195 2016 [# 69][# 37]
+44   $1,021,103,568 2012 [# 70][# 71]
+45   $1,004,934,033 2008 [# 72][# 73]
+46   $1,001,007,423 2019       [# 74]
+47     $975,051,288 2001 [# 75][# 76]
+48     $970,761,885 2013 [# 77][# 34]
+49     $968,483,777 1994 [# 78][# 63]
+50     $966,550,600 2016 [# 79][# 80]</code></pre>
 </div>
-<p>Simple json is not really very difficult to parse; however, json can be incredibly nested, so you need to do a lot of flattening and joining.</p>
-<h2 id="extensible-markup-language">Extensible Markup Language</h2>
-<p>Extensible markup language (XML) was created with the intention of being both human and machine readable – and it generally fits that bill. Querying XML, however, tends to require the use of XPaths. XPaths are situated somewhere along the lesser circles of Hell, but can be used to great effectiveness when trying to pull stuff out of XML.</p>
-<pre><code>
-&lt;nutrition&gt;
-  &lt;daily-values&gt;
-    &lt;total-fat units=&quot;g&quot;&gt;65&lt;/total-fat&gt;
-    &lt;saturated-fat units=&quot;g&quot;&gt;20&lt;/saturated-fat&gt;
-    &lt;cholesterol units=&quot;mg&quot;&gt;300&lt;/cholesterol&gt;
-    &lt;sodium units=&quot;mg&quot;&gt;2400&lt;/sodium&gt;
-    &lt;carb units=&quot;g&quot;&gt;300&lt;/carb&gt;
-    &lt;fiber units=&quot;g&quot;&gt;25&lt;/fiber&gt;
-    &lt;protein units=&quot;g&quot;&gt;50&lt;/protein&gt;
-  &lt;/daily-values&gt;
-  &lt;food&gt;
-    &lt;name&gt;Avocado Dip&lt;/name&gt;
-    &lt;mfr&gt;Sunnydale&lt;/mfr&gt;
-    &lt;serving units=&quot;g&quot;&gt;29&lt;/serving&gt;
-    &lt;calories total=&quot;110&quot; fat=&quot;100&quot;/&gt;
-    &lt;total-fat&gt;11&lt;/total-fat&gt;
-    &lt;saturated-fat&gt;3&lt;/saturated-fat&gt;
-    &lt;cholesterol&gt;5&lt;/cholesterol&gt;
-    &lt;sodium&gt;210&lt;/sodium&gt;
-    &lt;carb&gt;2&lt;/carb&gt;
-    &lt;fiber&gt;0&lt;/fiber&gt;
-    &lt;protein&gt;1&lt;/protein&gt;
-    &lt;vitamins&gt;
-      &lt;a&gt;0&lt;/a&gt;
-      &lt;c&gt;0&lt;/c&gt;
-    &lt;/vitamins&gt;
-    &lt;minerals&gt;
-      &lt;ca&gt;0&lt;/ca&gt;
-      &lt;fe&gt;0&lt;/fe&gt;
-    &lt;/minerals&gt;
-  &lt;/food&gt;
-&lt;/nutrition&gt;</code></pre>
+<h3 id="regular-expressions">Regular Expressions</h3>
+<p>You likely noticed that our table has a nice colum for <code>Worldwide gross</code>, but it really is not in good shape (it is a character vector because of the dollar signs and commas). So we need to start doing some text cleaning.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-library(xml2)
-
-mainPage = xml2::read_html(&quot;https://psychology.nd.edu/faculty/faculty-by-alpha/&quot;)
-
-facultyNodes = xml_find_all(mainPage, '//*[@class=&quot;faculty-item&quot;]/*[@class=&quot;columns medium-9 large-10&quot;]')
-
-nameNode = xml_find_all(facultyNodes, '//h3/a/text()')
-
-xml_find_all(facultyNodes, '//*[@class=&quot;faculty-areas&quot;]/ul')</code></pre>
+gsub(&quot;,|$&quot;, &quot;&quot;, films$`Worldwide gross`)</code></pre>
 <pre><code>
-{xml_nodeset (53)}
- [1] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
- [2] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
- [3] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
- [4] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
- [5] &lt;ul&gt;\n&lt;li&gt;Cognition, Brain, and Behavior&lt;/li&gt;\r\n              ...
- [6] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
- [7] &lt;ul&gt;\n&lt;li&gt;Cognition, Brain, and Behavior&lt;/li&gt;\r\n              ...
- [8] &lt;ul&gt;\n&lt;li&gt;Quantitative&lt;/li&gt;\r\n              \r\n            \ ...
- [9] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
-[10] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
-[11] &lt;ul&gt;\n&lt;li&gt;Cognition, Brain, and Behavior&lt;/li&gt;\r\n              ...
-[12] &lt;ul&gt;\n&lt;li&gt;Cognition, Brain, and Behavior&lt;/li&gt;\r\n              ...
-[13] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
-[14] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
-[15] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
-[16] &lt;ul&gt;\n&lt;li&gt;Quantitative&lt;/li&gt;\r\n              \r\n            \ ...
-[17] &lt;ul&gt;\n&lt;li&gt;Clinical&lt;/li&gt;\r\n              \r\n            \r\n  ...
-[18] &lt;ul&gt;\n&lt;li&gt;Cognition, Brain, and Behavior&lt;/li&gt;\r\n              ...
-[19] &lt;ul&gt;\n&lt;li&gt;Developmental&lt;/li&gt;\r\n              \r\n             ...
-[20] &lt;ul&gt;&lt;/ul&gt;
+ [1] &quot;$2797800564&quot;   &quot;$2789679794&quot;   &quot;$2187463944&quot;   &quot;$2068223624&quot;  
+ [5] &quot;$2048359754&quot;   &quot;$1671713208&quot;   &quot;$1656943394&quot;   &quot;$1518812988&quot;  
+ [9] &quot;$1516045911&quot;   &quot;$1405403694&quot;   &quot;$1373714463&quot;   &quot;$1346913161&quot;  
+[13] &quot;$1341693157&quot;   &quot;$1332539889&quot;   &quot;$1309484461&quot;   &quot;F$1290000000&quot; 
+[17] &quot;$1263521126&quot;   &quot;$1242805359&quot;   &quot;F8$1238764765&quot; &quot;$1214811252&quot;  
+[21] &quot;$1159398397&quot;   &quot;$1153304495&quot;   &quot;$1148161807&quot;   &quot;$1131927996&quot;  
+[25] &quot;$1128274794&quot;   &quot;$1123794079&quot;   &quot;$1120237002&quot;   &quot;$1108561013&quot;  
+[29] &quot;$1104054072&quot;   &quot;$1084939099&quot;   &quot;$1073394593&quot;   &quot;$1068927373&quot;  
+[33] &quot;$1066969703&quot;   &quot;$1066179725&quot;   &quot;$1056057273&quot;   &quot;$1050693953&quot;  
+[37] &quot;$1045713802&quot;   &quot;$1034799409&quot;   &quot;$1029939903&quot;   &quot;$1028570889&quot;  
+[41] &quot;$1027044677&quot;   &quot;$1025467110&quot;   &quot;$1023784195&quot;   &quot;$1021103568&quot;  
+[45] &quot;$1004934033&quot;   &quot;$1001007423&quot;   &quot;$975051288&quot;    &quot;$970761885&quot;   
+[49] &quot;$968483777&quot;    &quot;$966550600&quot;   </code></pre>
+</div>
+<p>What is going on? We put in a dollar sign, but nothing happened. When we use <code>gsub</code>, it is using <a href="https://en.wikipedia.org/wiki/Regular_expression">regular expression</a>. Since that dollar sign means something in regular expressions, we have to escape it:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+gsub(&quot;,|\\$&quot;, &quot;&quot;, films$`Worldwide gross`)</code></pre>
+<pre><code>
+ [1] &quot;2797800564&quot;   &quot;2789679794&quot;   &quot;2187463944&quot;   &quot;2068223624&quot;  
+ [5] &quot;2048359754&quot;   &quot;1671713208&quot;   &quot;1656943394&quot;   &quot;1518812988&quot;  
+ [9] &quot;1516045911&quot;   &quot;1405403694&quot;   &quot;1373714463&quot;   &quot;1346913161&quot;  
+[13] &quot;1341693157&quot;   &quot;1332539889&quot;   &quot;1309484461&quot;   &quot;F1290000000&quot; 
+[17] &quot;1263521126&quot;   &quot;1242805359&quot;   &quot;F81238764765&quot; &quot;1214811252&quot;  
+[21] &quot;1159398397&quot;   &quot;1153304495&quot;   &quot;1148161807&quot;   &quot;1131927996&quot;  
+[25] &quot;1128274794&quot;   &quot;1123794079&quot;   &quot;1120237002&quot;   &quot;1108561013&quot;  
+[29] &quot;1104054072&quot;   &quot;1084939099&quot;   &quot;1073394593&quot;   &quot;1068927373&quot;  
+[33] &quot;1066969703&quot;   &quot;1066179725&quot;   &quot;1056057273&quot;   &quot;1050693953&quot;  
+[37] &quot;1045713802&quot;   &quot;1034799409&quot;   &quot;1029939903&quot;   &quot;1028570889&quot;  
+[41] &quot;1027044677&quot;   &quot;1025467110&quot;   &quot;1023784195&quot;   &quot;1021103568&quot;  
+[45] &quot;1004934033&quot;   &quot;1001007423&quot;   &quot;975051288&quot;    &quot;970761885&quot;   
+[49] &quot;968483777&quot;    &quot;966550600&quot;   </code></pre>
+</div>
+<p>That would get us pretty close, but we have see that we have some characters before some dollar signs. This is where regular expressions can really come into play. I think of regular expressions a bit like hieroglyphs, but much more useful. Essentially, you are just building patterns that you might find in a text.</p>
+<div class="layout-chunk" data-layout="l-body">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">regex</th>
+<th style="text-align: left;">use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">[a-zA-Z]</td>
+<td style="text-align: left;">Any letter</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">[0-9]</td>
+<td style="text-align: left;">Any number</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">+</td>
+<td style="text-align: left;">One or more</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">^</td>
+<td style="text-align: left;">Start of string</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">$</td>
+<td style="text-align: left;">End of string</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Some symbols mean certain things in regex.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+reservedChars = data.frame(meta = c('\\\\', &quot;^&quot;, &quot;$&quot;, 
+                                       &quot;{}&quot;, &quot;\\[\\]&quot;, &quot;()&quot;, 
+                                       &quot;.&quot;, &quot;*&quot;, &quot;+&quot;, &quot;?&quot;, 
+                                       &quot;|&quot;, &quot;&lt;&gt;&quot;, &quot;-&quot;), 
+                           meaning = c(&quot;escape&quot;, &quot;start&quot;, &quot;end&quot;, &quot;quantifier&quot;, 
+                                       &quot;one of contents&quot;, &quot;capturing group&quot;, 
+                                       &quot;wildcard&quot;, &quot;greedy zero or more&quot;, 
+                                       &quot;greedy one or more&quot;, &quot;lazy quantifier&quot;, 
+                                       &quot;or&quot;, &quot;start/end of word&quot;, &quot;range&quot;))
+
+knitr::kable(reservedChars)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">meta</th>
+<th style="text-align: left;">meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">\</td>
+<td style="text-align: left;">escape</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">^</td>
+<td style="text-align: left;">start</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">$</td>
+<td style="text-align: left;">end</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">{}</td>
+<td style="text-align: left;">quantifier</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">[]</td>
+<td style="text-align: left;">one of contents</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">()</td>
+<td style="text-align: left;">capturing group</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">.</td>
+<td style="text-align: left;">wildcard</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">greedy zero or more</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">+</td>
+<td style="text-align: left;">greedy one or more</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">?</td>
+<td style="text-align: left;">lazy quantifier</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">|</td>
+<td style="text-align: left;">or</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">&lt;&gt;</td>
+<td style="text-align: left;">start/end of word</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">-</td>
+<td style="text-align: left;">range</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>They all need to be escaped with a <span class="func">\</span></p>
+<p>A great chunk of your regular expression work will be through <code>gsub</code> (global substitution) and <code>grep</code> (globally search a regular expression and print)</p>
+<p>Let’s check out a <a href="https://www.regular-expressions.info/lookaround.html">lookaround</a>:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+gsub(&quot;.*(?=\\$)|&quot;, &quot;&quot;, films$`Worldwide gross`, perl = TRUE)</code></pre>
+<pre><code>
+ [1] &quot;$2,797,800,564&quot; &quot;$2,789,679,794&quot; &quot;$2,187,463,944&quot;
+ [4] &quot;$2,068,223,624&quot; &quot;$2,048,359,754&quot; &quot;$1,671,713,208&quot;
+ [7] &quot;$1,656,943,394&quot; &quot;$1,518,812,988&quot; &quot;$1,516,045,911&quot;
+[10] &quot;$1,405,403,694&quot; &quot;$1,373,714,463&quot; &quot;$1,346,913,161&quot;
+[13] &quot;$1,341,693,157&quot; &quot;$1,332,539,889&quot; &quot;$1,309,484,461&quot;
+[16] &quot;$1,290,000,000&quot; &quot;$1,263,521,126&quot; &quot;$1,242,805,359&quot;
+[19] &quot;$1,238,764,765&quot; &quot;$1,214,811,252&quot; &quot;$1,159,398,397&quot;
+[22] &quot;$1,153,304,495&quot; &quot;$1,148,161,807&quot; &quot;$1,131,927,996&quot;
+[25] &quot;$1,128,274,794&quot; &quot;$1,123,794,079&quot; &quot;$1,120,237,002&quot;
+[28] &quot;$1,108,561,013&quot; &quot;$1,104,054,072&quot; &quot;$1,084,939,099&quot;
+[31] &quot;$1,073,394,593&quot; &quot;$1,068,927,373&quot; &quot;$1,066,969,703&quot;
+[34] &quot;$1,066,179,725&quot; &quot;$1,056,057,273&quot; &quot;$1,050,693,953&quot;
+[37] &quot;$1,045,713,802&quot; &quot;$1,034,799,409&quot; &quot;$1,029,939,903&quot;
+[40] &quot;$1,028,570,889&quot; &quot;$1,027,044,677&quot; &quot;$1,025,467,110&quot;
+[43] &quot;$1,023,784,195&quot; &quot;$1,021,103,568&quot; &quot;$1,004,934,033&quot;
+[46] &quot;$1,001,007,423&quot; &quot;$975,051,288&quot;   &quot;$970,761,885&quot;  
+[49] &quot;$968,483,777&quot;   &quot;$966,550,600&quot;  </code></pre>
+</div>
+<p>This is specifically called a <em>positive lookahead</em>. We are specifying something to match – <code>a dollar sign</code> – and seeing what is in front of the dollar sign. The positive lookahead follows the <code>a(?=b)</code> construction. There are also negative lookaheads (<code>a(?!b)</code>):</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+dollarsOthers &lt;- c(&quot;I need about $3.50.&quot;, 
+                   &quot;A loch ness monster might type it as 3.50$&quot;,
+                   &quot;It can be YYZ&quot;, 
+                   &quot;Or YYZed&quot;, 
+                   &quot;But never XYZ&quot;)</code></pre>
+</div>
+<p>This will find a dollar sign not followed by a number:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+grep(&quot;\\$(?![0-9])&quot;, dollarsOthers, perl = TRUE, value = TRUE)</code></pre>
+<pre><code>
+[1] &quot;A loch ness monster might type it as 3.50$&quot;</code></pre>
+</div>
+<p>positive lookbehinds (<code>(?&lt;=a)b</code>) – will find numbers after a dollar sign:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+grep(&quot;(?&lt;=\\$)[0-9]&quot;, dollarsOthers, perl = TRUE, value = TRUE)</code></pre>
+<pre><code>
+[1] &quot;I need about $3.50.&quot;</code></pre>
+</div>
+<p>and negative lookbehinds (<code>(?&lt;!a)b</code>) – will find Y not preceded by an X.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+grep(&quot;(?&lt;!X)Y&quot;, dollarsOthers, perl = TRUE, value = TRUE)</code></pre>
+<pre><code>
+[1] &quot;It can be YYZ&quot; &quot;Or YYZed&quot;     </code></pre>
+</div>
+<h3 id="practice-time">Practice Time</h3>
+<blockquote>
+<p>My name is Seth Berry. Office phone number is (574) 631-0018, but my old number was 574 631 6767, and before that it was 574-631-5764. My goal was to have a $1000000.05 by the time I was 30, but here I am with barely $30 to may name.</p>
+</blockquote>
+<p>Copy the text and go to <a href="https://regexr.com/">regexr</a>. Try to create a pattern that will match the phone numbers and any dollar value.</p>
+<p>Not only can you use regular expressions to make substitutions and to find strings within a text, you can also use them to extract information from text.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+testString &lt;- &quot;My name is Seth Berry. Office phone number is (574) 631-0018, but my old number was 574 631 6767, and before that it was 574-631-5764. My goal was to have a $1000000.05 by the time I was 30, but here I am with barely $30 to may name.&quot;</code></pre>
+</div>
+<p>Let’s say that we wanted to extract all of the dollar values from this text, but without bringing in the dollar sign. To do this, we will need to utilize another lookaround: a positive lookbehind.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+regmatches(testString, gregexpr(&quot;(?&lt;=\\$)[0-9]+\\.*[0-9]*&quot;, testString, perl = TRUE))</code></pre>
+<pre><code>
+[[1]]
+[1] &quot;1000000.05&quot; &quot;30&quot;        </code></pre>
+</div>
+<p>Function-wise, there is a lot going on in there. To help streamline our code a little bit, we can use the <code>stringr</code> package:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+library(stringr)
+
+str_extract_all(testString, &quot;(?&lt;=\\$)[0-9]+\\.*[0-9]*&quot;)</code></pre>
+<pre><code>
+[[1]]
+[1] &quot;1000000.05&quot; &quot;30&quot;        </code></pre>
+</div>
+<p>The <code>stringr</code> package helps to make the base functions a bit more straightforward and consistent.</p>
+<h2 id="real-scraping">Real Scraping</h2>
+<p>Tables are generally pretty easy, but you might find yourself interested in information not sitting within a table.</p>
+<p>Since we have some high-grossing movies, it might be worth getting some information about a movie. Just to keep it light, let’s look at <em>Joker</em>. If we want to get some information from <em>Rotten Tomatoes</em>, we can turn to our standard scraping:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+jokerHTML &lt;- read_html(&quot;https://www.rottentomatoes.com/m/joker_2019&quot;) 
+
+jokerHTML %&gt;% 
+  html_nodes(&quot;#movieSynopsis&quot;) %&gt;% 
+  html_text()</code></pre>
+<pre><code>
+[1] &quot;\n                \&quot;Joker\&quot; centers around the iconic arch nemesis and is an original, standalone fictional story not seen before on the big screen. Phillips' exploration of Arthur Fleck, who is indelibly portrayed by Joaquin Phoenix, is of a man struggling to find his way in Gotham's fracturedsociety. A clown-for-hire by day, he aspires to be a stand-up comic at night...but finds the joke always seems to be on him. Caught in a cyclical existence between apathy and cruelty, Arthur makes one bad decision that brings about a chain reaction of escalating events in this gritty character study.\n            &quot;</code></pre>
+<pre class="r"><code>
+jokerHTML %&gt;% 
+  html_nodes(&quot;.mop-ratings-wrap__percentage&quot;) %&gt;% 
+  html_text()</code></pre>
+<pre><code>
+[1] &quot;\n                    69%\n                &quot;
+[2] &quot;\n                    88%\n                &quot;</code></pre>
+</div>
+<p>We see that our <code>html_nodes</code> functions are taking some information, but what does that mean? To get the synopsis, we pass a CSS selector into the function. In the the html for that particular chunk of text, we saw that it had an id called “movieSynopsis”. If something has an id, we prefix it with a “#”. Conversely, the ratings belong to a class; we would use a “.” to denote a class.</p>
+<p>If you check out the returned values from our second chunk (the ratings), you will see a nice place to use regular expressions.</p>
+<p>These nodes will take a lot of different information. For example, we might want to find all of the links on the page:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+jokerHTML %&gt;% 
+  html_nodes(&quot;a&quot;)</code></pre>
+<pre><code>
+{xml_nodeset (476)}
+ [1] &lt;a class=&quot;header-facebook-social-link&quot; href=&quot;//www.facebook.co ...
+ [2] &lt;a class=&quot;header-twitter-social-link&quot; href=&quot;//twitter.com/rott ...
+ [3] &lt;a class=&quot;homeTab unstyled navLink fullLink&quot; href=&quot;/&quot;&gt;\n       ...
+ [4] &lt;a class=&quot;boxofficeTab unstyled navLink fullLink&quot; href=&quot;/lists ...
+ [5] &lt;a class=&quot;theatersTab unstyled navLink fullLink&quot; href=&quot;/theate ...
+ [6] &lt;a class=&quot;dvdTab unstyled navLink fullLink&quot; href=&quot;/lists/dvd/&quot; ...
+ [7] &lt;a class=&quot;tvTab unstyled navLink fullLink&quot; href=&quot;/lists/tv/&quot;&gt;\ ...
+ [8] &lt;a class=&quot;newsTab unstyled navLink fullLink&quot; href=&quot;https://edi ...
+ [9] &lt;a id=&quot;header-whats-the-tomatometer&quot; href=&quot;/about#whatisthetom ...
+[10] &lt;a id=&quot;header-top-bar-critics&quot; href=&quot;/critics/&quot;&gt;Critics&lt;/a&gt;
+[11] &lt;a id=&quot;header-top-bar-signup&quot; data-toggle=&quot;modal&quot; data-target= ...
+[12] &lt;a id=&quot;header-top-bar-login&quot; data-toggle=&quot;modal&quot; data-target=&quot; ...
+[13] &lt;a class=&quot;header-rt-logo&quot; aria-label=&quot;header logo&quot; href=&quot;/&quot;&gt;&lt;i ...
+[14] &lt;a&gt;\n                        &lt;button id=&quot;fullscreen-search-sho ...
+[15] &lt;a class=&quot;header-rt-logo&quot; aria-label=&quot;header logo&quot; href=&quot;/&quot;&gt; &lt; ...
+[16] &lt;a href=&quot;/&quot;&gt;&lt;i class=&quot; fontelloIcon icon-home&quot;&gt;&lt;/i&gt;Home&lt;/a&gt;
+[17] &lt;a href=&quot;/lists/theater/&quot;&gt;&lt;i class=&quot; fontelloIcon icon-boxoffi ...
+[18] &lt;a href=&quot;/lists/tv/&quot;&gt;&lt;i class=&quot; fontelloIcon icon-tv2&quot;&gt;&lt;/i&gt;TV&lt;/a&gt;
+[19] &lt;a href=&quot;/lists/dvd/&quot;&gt;&lt;i class=&quot; fontelloIcon icon-redeem&quot;&gt;&lt;/i ...
+[20] &lt;a id=&quot;menu-btn&quot; class=&quot;menu-btn js-mobile-nav__more-btn&quot;&gt;\n   ...
 ...</code></pre>
 </div>
-<p>While they still have a place in the world, that is all the further we will go on the xpath front. Most of what you will need to do can be handled by the CSS selectors.</p>
-<h1 id="methods">Methods</h1>
-<p>We are going to see several different methods during the next several weeks. We will go from dimension reduction (LSA, LDA, SVD) to Naive Bayes to Neural Networks, with stops in between. A great many of these techniques will focus on classification (e.g., what topic does a text belong to, is that an image or a person or a monster), but many have extensions to regression-focused problems.</p>
-<p>With regard to depth, it will vary for each topic. We will have a pretty good idea about how we would do something like a Naive Bayes or PCA by hand, but will stay out of the weeds of Neural Networks. The biggest reason for this is due in large part to how you might actually engage with such models. If you are going to be working on an image classification problem, the routines are already pretty well established for reasonable image classification. Largely, the focus will be on application and interpretation.</p>
-<p>Let’s work through an example. Let’s define two objects:</p>
+<p>This returns all of the requested nodes, but we might want to get the business part of the link: the <code>href</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-N &lt;- 1000 # sample size
-k &lt;- 1  # variables
-X &lt;- matrix(rnorm(N*k), ncol=k)  
-Y &lt;- -.5 + .2*X[,1] + rnorm(N, sd=.5)  
-
-head(X)</code></pre>
+jokerHTML %&gt;% 
+  html_nodes(&quot;a&quot;) %&gt;% 
+  html_attr(&quot;href&quot;) %&gt;% 
+  head()</code></pre>
 <pre><code>
-           [,1]
-[1,]  0.6945761
-[2,]  0.9952735
-[3,]  1.5045926
-[4,] -0.7316423
-[5,] -0.1622462
-[6,] -0.1391221</code></pre>
-<pre class="r"><code>
-head(Y)</code></pre>
-<pre><code>
-[1]  0.47109563 -0.49593721  0.43724519 -1.10564366  0.01961593
-[6] -0.09969603</code></pre>
+[1] &quot;//www.facebook.com/rottentomatoes&quot;
+[2] &quot;//twitter.com/rottentomatoes&quot;     
+[3] &quot;/&quot;                                
+[4] &quot;/lists/theater/&quot;                  
+[5] &quot;/theaters/&quot;                       
+[6] &quot;/lists/dvd/&quot;                      </code></pre>
 </div>
-<p>Now we can do some matrix multiplication. Let’s take the transpose of X, multiply it by the original X, and solve the resultant matrix:</p>
+<p>We are only seeing a few of the returned strings, but there is a lot of garbage and we might only be interested in reviews. If that is what we want, we could track them down after our pull (again, a great place to use regular expressions). Alternatively, we can use some extra information in our initial search:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-transposeX &lt;- t(X)
-
-multiplyX &lt;- transposeX %*% X
-
-solveX &lt;- solve(multiplyX)
-
-solveX</code></pre>
+jokerHTML %&gt;% 
+  html_nodes(&quot;a[href*='reviews']&quot;) %&gt;% 
+  html_attr(&quot;href&quot;)</code></pre>
 <pre><code>
-            [,1]
-[1,] 0.001041788</code></pre>
+ [1] &quot;#audience_reviews&quot;                                                                       
+ [2] &quot;/m/joker_2019/reviews&quot;                                                                   
+ [3] &quot;/m/joker_2019/reviews?type=top_critics&quot;                                                  
+ [4] &quot;/m/joker_2019/reviews?sort=fresh&quot;                                                        
+ [5] &quot;/m/joker_2019/reviews?sort=rotten&quot;                                                       
+ [6] &quot;https://www.edgemedianetwork.com/entertainment/movies/reviews//285200&quot;                   
+ [7] &quot;https://www.killermoviereviews.com/movie/joker/&quot;                                         
+ [8] &quot;https://www.wbaltv.com/article/dcfilmgirl-reviews-dolemite-is-my-name-and-joker/29385061&quot;
+ [9] &quot;/m/joker_2019/reviews/&quot;                                                                  
+[10] &quot;/m/joker_2019/reviews?type=user&quot;                                                         
+[11] &quot;/m/joker_2019/reviews?type=verified_audience&quot;                                            
+[12] &quot;/m/joker_2019/reviews?type=user&quot;                                                         </code></pre>
 </div>
-<p>Next, let’s take that transposed X and multiply it by Y:</p>
+<p>That is much easier to manage.</p>
+<p>Learning and using the CSS selectors is just a matter of practice; w3schools has a nice <a href="https://www.w3schools.com/cssref/css_selectors.asp">reference</a>. It will always be good to refer to it when you are starting to run into a wall with combining selectors.</p>
+<h2 id="a-weird-alternative">A Weird Alternative</h2>
+<p>There is another package that might prove useful to you: <code>httr</code>. Sometimes we need to pass special information into our requests. What information, you might ask? We need to pass headers, parameters, and/or authentication information. We can use the <code>GET</code> function to make requests from a server. When we work with APIs (more on those later), there is a good chance that we will need to use a GET request to pass along the appropriate headers.</p>
+<p>The <a href="https://cran.r-project.org/web/packages/httr/vignettes/quickstart.html">vignette</a> for httr is a great place to start seeing what you might need to do.</p>
+<p>Let’s start by trying to scrape the reviews for <a href="https://www.musiciansfriend.com/guitars/gl-limited-edition-tribute-asat-classic-ash-body-electric-guitar">this</a>. I can tell you now that we won’t be able to scrape it right away. Instead, we will have to find the file storing the reviews in the network. In theory, we would be able to read that json file directly:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-multiplyY &lt;- transposeX %*% Y
-
-multiplyY</code></pre>
-<pre><code>
-         [,1]
-[1,] 149.9211</code></pre>
+library(jsonlite)
+fromJSON(&quot;https://display.powerreviews.com/m/815274/l/en_US/product/J41359/reviews?apikey=fee5c893-11c4-4cc8-b419-02f8d404de1&quot;)</code></pre>
 </div>
-<p>Finally, we can take our solveX and multiply it by the multiplyY matrix:</p>
+<p>And we get a 401 error – this means that our request lacks the needed authentication. Even though the link contains the apikey, the server does not see the authentication information because it is in the wrong place. Let’s go back to the inspector and poke around on the request headers.</p>
+<p>We see a bunch of stuff – while not all of it is helpful, let’s bring it all in for our request. Why might we do this? It gives peace of mind to the server; if our request looks like it comes from a browser, it raises fewer red flags.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-solveX %*% multiplyY</code></pre>
+library(httr)
+
+test &lt;- GET(&quot;https://display.powerreviews.com/m/815274/l/en_US/product/J41359/reviews?apikey=fee5c893-11c4-4cc8-b419-02f8d404de1&quot;,
+            user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0&quot;),
+            add_headers(&quot;Host&quot; = &quot;display.powerreviews.com&quot;,
+                        &quot;User-Agent&quot; = &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0&quot;,
+                        &quot;Accept&quot; = &quot;*/*&quot;,
+                        &quot;Accept-Language&quot; = &quot;en-US,en;q=0.5&quot;,
+                        &quot;Accept-Encoding&quot; = &quot;gzip, deflate, br&quot;,
+                        &quot;Origin&quot; = &quot;https://www.musiciansfriend.com&quot;,
+                        &quot;DNT&quot; = &quot;1&quot;,
+                        &quot;Connection&quot; = &quot;keep-alive&quot;,
+                        &quot;Referer&quot; = &quot;https://www.musiciansfriend.com/&quot;,
+                        &quot;Pragma&quot; = &quot;no-cache&quot;,
+                        &quot;Cache-Control&quot; = &quot;no-cache&quot;,
+                        &quot;TE&quot; = &quot;Trailers&quot;),
+            query = list(apikey = &quot;fee5c893-11c4-4cc8-b419-02f8d404de16&quot;)
+)
+
+test$headers</code></pre>
 <pre><code>
-          [,1]
-[1,] 0.1561861</code></pre>
+$`content-type`
+[1] &quot;application/json;charset=UTF-8&quot;
+
+$`transfer-encoding`
+[1] &quot;chunked&quot;
+
+$connection
+[1] &quot;keep-alive&quot;
+
+$date
+[1] &quot;Thu, 16 Jan 2020 12:58:16 GMT&quot;
+
+$`access-control-allow-origin`
+[1] &quot;https://www.musiciansfriend.com&quot;
+
+$`access-control-allow-credentials`
+[1] &quot;true&quot;
+
+$`cache-control`
+[1] &quot;max-age=21600, s-max-age=21600&quot;
+
+$`x-application-context`
+[1] &quot;readservices-b2c-api-prod:prod:8080&quot;
+
+$`x-content-type-options`
+[1] &quot;nosniff&quot;
+
+$`x-xss-protection`
+[1] &quot;1; mode=block&quot;
+
+$`x-frame-options`
+[1] &quot;DENY&quot;
+
+$`content-encoding`
+[1] &quot;gzip&quot;
+
+$vary
+[1] &quot;Accept-Encoding,Accept-Encoding&quot;
+
+$`x-cache`
+[1] &quot;Hit from cloudfront&quot;
+
+$via
+[1] &quot;1.1 c24d5fc9dbb61a904d0616082cb333f5.cloudfront.net (CloudFront)&quot;
+
+$`x-amz-cf-pop`
+[1] &quot;ORD51-C3&quot;
+
+$`x-amz-cf-id`
+[1] &quot;XKwOsA5oPuW5Duz9gffQR4kGUW0vAiRB9L88DC7VhYlZPimxdGZvfQ==&quot;
+
+$age
+[1] &quot;6840&quot;
+
+attr(,&quot;class&quot;)
+[1] &quot;insensitive&quot; &quot;list&quot;       </code></pre>
+<pre class="r"><code>
+test$request</code></pre>
+<pre><code>
+&lt;request&gt;
+GET https://display.powerreviews.com/m/815274/l/en_US/product/J41359/reviews?apikey=fee5c893-11c4-4cc8-b419-02f8d404de16
+Output: write_memory
+Options:
+* useragent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0
+* httpget: TRUE
+Headers:
+* Host: display.powerreviews.com
+* User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0
+* Accept: */*
+* Accept-Language: en-US,en;q=0.5
+* Accept-Encoding: gzip, deflate, br
+* Origin: https://www.musiciansfriend.com
+* DNT: 1
+* Connection: keep-alive
+* Referer: https://www.musiciansfriend.com/
+* Pragma: no-cache
+* Cache-Control: no-cache
+* TE: Trailers</code></pre>
+<pre class="r"><code>
+parseTest &lt;- content(test, as = &quot;parsed&quot;)
+
+allLinks &lt;- paste(&quot;https://display.powerreviews.com/&quot;, parseTest$paging$next_page_url,
+                  sep = &quot;&quot;)
+
+outNext &lt;- GET(allLinks,
+    user_agent(&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0&quot;),
+    add_headers(&quot;Host&quot; = &quot;display.powerreviews.com&quot;,
+                &quot;User-Agent&quot; = &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0&quot;,
+                &quot;Accept&quot; = &quot;*/*&quot;,
+                &quot;Accept-Language&quot; = &quot;en-US,en;q=0.5&quot;,
+                &quot;Accept-Encoding&quot; = &quot;gzip, deflate, br&quot;,
+                &quot;Origin&quot; = &quot;https://www.musiciansfriend.com&quot;,
+                &quot;DNT&quot; = &quot;1&quot;,
+                &quot;Connection&quot; = &quot;keep-alive&quot;,
+                &quot;Referer&quot; = &quot;https://www.musiciansfriend.com/&quot;,
+                &quot;Pragma&quot; = &quot;no-cache&quot;,
+                &quot;Cache-Control&quot; = &quot;no-cache&quot;,
+                &quot;TE&quot; = &quot;Trailers&quot;),
+    query = list(apikey = &quot;fee5c893-11c4-4cc8-b419-02f8d404de16&quot;)
+)
+
+t1 &lt;- content(outNext, as = &quot;parsed&quot;)
+
+t1$results[[1]]$reviews[[1]]$metrics$rating</code></pre>
+<pre><code>
+[1] 5</code></pre>
+<pre class="r"><code>
+t1$results[[1]]$reviews[[1]]$details$comments</code></pre>
+<pre><code>
+[1] &quot;Love it, fantastic product for money. Has the feel of my fender telecaster. Recommend!!!&quot;</code></pre>
 </div>
-<p>Let’s do something else with our X and Y objects: do some linear algebra and perform a Gram–Schmidt orthogonalization of the X matrix (this is also called QR decomposition).</p>
-<p>Every single X matrix can be broken down to the QR matrices</p>
-<p>Q is going to be <span class="math inline">\(N * p\)</span> - the same dimension as the original.</p>
-<p>R is going to be <span class="math inline">\(p * p\)</span> - the number of columns by the number of columns with 0’s below the diagonal.</p>
-<p>The Q matrix will be an orthogonal matrix (remember that orthogonal means that the components will not be correlated) and the R matrix is the upper triangle.</p>
+<h2 id="the-dark-side">The Dark Side</h2>
+<p>When the website you are looking at is actually what is there, scraping can be easy. When what you see is actually being loaded through JavaScript, things will take a turn for the worse. When things load through JS, they aren’t really there. Yes, you can see them; there is, however, something else putting that information into your eyeballs.</p>
+<p>You will be happily going along and this happens:</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-QRX &lt;- qr(X)
-Q &lt;- qr.Q(QRX) # Orthogonal matrix
-R &lt;- qr.R(QRX) # Upper triangle
-Bhat &lt;- solve(R) %*% crossprod(Q, Y)
-Bhat</code></pre>
+read_html(&quot;https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=1&quot;) %&gt;% 
+  html_nodes(&quot;.stars-icon&quot;)</code></pre>
 <pre><code>
-          [,1]
-[1,] 0.1561861</code></pre>
+{xml_nodeset (0)}</code></pre>
 </div>
-<p><a href="https://rpubs.com/aaronsc32/qr-decomposition-gram-schmidt">Here</a> is a nice demo of the process.</p>
-<p>Finally, let’s try this:</p>
+<p>So you think to yourself, “Maybe we can just grab some links?”</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-meanX &lt;- mean(X)
-
-meanY &lt;- mean(Y)
-
-sdX &lt;- sd(X)
-
-sdY &lt;- sd(Y)
-
-corXY &lt;- cor(X, Y)
-
-corXY * (sdY / sdX)</code></pre>
+read_html(&quot;https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=1&quot;) %&gt;% 
+  html_nodes(&quot;a&quot;)</code></pre>
 <pre><code>
-          [,1]
-[1,] 0.1879194</code></pre>
-<pre class="r"><code>
-meanY - ((corXY * (sdY / sdX)) * meanX)</code></pre>
-<pre><code>
-           [,1]
-[1,] -0.4993244</code></pre>
+{xml_nodeset (0)}</code></pre>
 </div>
-<p>We could also just try this:</p>
+<p>And still nothing to show for your efforts. Everything you see on that page is being loaded through different methods. When this is the case, you need to switch gears to some automated browsing. We are going to use <code>Selenium</code> to automate a user’s behavior. While its intended use is to do automated browser testing, people quickly figured out that it can be used to load the browser’s content and then pull the data. The whole enterprise takes considerably more effort, but we will be able to get the information. Let’s try again, but this time we will do some work with the <code>RSelenium</code> package.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="r"><code>
-lm(Y ~ X)</code></pre>
-<pre><code>
-Call:
-lm(formula = Y ~ X)
+library(purrr)
 
-Coefficients:
-(Intercept)            X  
-    -0.4993       0.1879  </code></pre>
+library(RSelenium)
+
+## We need to make links to pass into our selenium driver.
+
+pages = paste(&quot;https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana?pageNum=&quot;, 
+              1:1, sep = &quot;&quot;)
+
+## Getting the &quot;Full Review&quot; links ##
+
+rd &lt;- rsDriver(browser = c(&quot;firefox&quot;))
+
+driver = rd$client
+
+fullReviewLinks &lt;- lapply(pages, function(x) {
+  
+  tryCatch({
+    
+  driver$navigate(x)  
+  
+  Sys.sleep(runif(1,8,16)) 
+  
+  elements &lt;- driver$findElements(using = &quot;link text&quot;, &quot;READ FULL REVIEW&quot;)
+  
+  map(elements, ~ .x$getElementAttribute(&quot;href&quot;)[[1]])
+  
+}, error=function(e) data.frame())
+})
+
+fullReviewLinks &lt;- unlist(fullReviewLinks)</code></pre>
 </div>
-<p>How comfortable do you feel using and interpreting a linear regression? At this point, you likely feel reasonably comfortable with it; you can use it and feel comfortable using even without knowing all of that stuff that is going on in the background. The background can come with time.</p>
-<h1 id="software">Software</h1>
-<p>We are going to be using a pretty fair chunk of R for work in the class. We will not, however, be using R when it comes time to get into the modern Deep Neural Network action; instead, we will be using the pytorch library in Python. While other options exist (e.g., TensorFlow), pytorch is a great library to get started with and you won’t find it lacking any features that you might want to use.</p>
-<p>One issue with deep networks is the computational demand – they are not for the weaker machines. If you have an Nvidia GPU, you can make good use of it; otherwise, you will be running these things on your CPU and waiting.</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+## Getting Review Information ##
+
+x &lt;- &quot;https://www.gartner.com/reviews/market/operational-dbms/vendor/sap/product/sap-hana/review/view/676549&quot;
+
+reviewsRating &lt;- lapply(fullReviewLinks, function(x) {
+  
+  tryCatch({
+  
+  driver$navigate(x)  
+  
+  Sys.sleep(runif(1,8,16)) 
+
+  starsFinder &lt;- driver$findElements(using = &quot;css selector&quot;, &quot;.stars-icon .stars-icon&quot;)
+  
+  starRating &lt;- unlist(starsFinder[[1]]$getElementAttribute(&quot;style&quot;))
+  
+  overallFinder &lt;- driver$findElements(using = &quot;class name&quot;, &quot;small&quot;)
+  
+  textData &lt;- map_dfc(overallFinder, ~.$getElementText())
+  
+  names(textData) &lt;- unlist(map(overallFinder, ~.$getElementAttribute(&quot;data-key&quot;)))
+  
+  textData$star_rating &lt;- stringr::str_extract(starRating, &quot;[0-9]{2}%&quot;)
+  
+  evaluationFinder &lt;- driver$findElements(using = &quot;css selector&quot;, &quot;a[href*='evaluation-contracting'] .dots .rating-dots-icon-rating-on&quot;)
+  
+  evaluationRating = unlist(evaluationFinder[[1]]$getElementAttribute(&quot;style&quot;))
+  
+  textData$evaluationRating &lt;- stringr::str_extract(evaluationRating, &quot;[0-9]{2}%&quot;)
+  
+  evaluationTextFinder &lt;- driver$findElements(using = &quot;css selector&quot;, &quot;p[data-key='evaluation-contracting-overall-comments'&quot;)
+  
+  evaluationText &lt;- unlist(map(evaluationTextFinder, ~.$getElementText()))[1]
+  
+  textData$evaluationText &lt;- evaluationText
+  
+  textData
+}, error=function(e)data.frame())
+})
+
+
+allReviews &lt;- dplyr::bind_rows(reviewsRating)
+
+driver$close()
+
+rd$server$stop()</code></pre>
+</div>
+<h1 id="homework-0">Homework 0</h1>
+<p>To start getting a little more regex practice, work through the exercises on <a href="https://regexone.com/">regexone</a>. Get through as much as you possibly can and put all of your solutions into a text file.</p>
+<p>Practicing css selectors will make scraping much easier. The <a href="https://flukeout.github.io/">CSS Diner</a> is a fun way to practice looking through an html structure and finding the appropriate elements.</p>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
@@ -3566,15 +2659,6 @@ Coefficients:
 <div class="d-appendix">
 </div>
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 
 <!--radix_placeholder_site_after_body-->
 <!--/radix_placeholder_site_after_body-->

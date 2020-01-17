@@ -13,7 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Using APIs is an important part of modern data acquisition tasks. Fortunately, they are pretty easy to put together (so long as you can follow some instructions). We are going to be working with REST APIs, so we can essentially just pass a URL request to a server -- the words make it sound more complicated than it actually is. 
 
-Let's start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a *token* (or *key*, or *secret*) -- mine is given below if you don't want to mess with getting your own. 
+Let's start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a *token* (or *key*, or *secret*) -- mine is given below if you don't want to mess with getting your own. While I have provided mine for your temporary convenience, you should really mess with getting your own sooner rather than later. All you need to do is register for an account and create a new app.
+
+<aside>
+You will see many service will ask you to create an app and it is never complicated. They really just want a name and sometimes and page (I direct them to the Mendoza page).
+</aside>
 
 When creating these URLs, we are given a base url, usually something like `https://api.yelp.com/v3/` and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the *business* directory, so we can add that to the link -- `https://api.yelp.com/v3/businesses/`. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing -- `https://api.yelp.com/v3/businesses/search`. 
 
@@ -21,19 +25,24 @@ The API now knows that we will be utilizing the search service. If you have ever
 
 That is the first, and most difficult, step in getting an API call ready. The next part is pretty easy -- we just need to pass our authentication key into the request. Again, this is something that sounds tricky, but really is pretty easy. 
 
-If you have ever explored the network structure of a page, you will see a section called headers. These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. This information takes the form of the authentication aspect of the request.
-
+Remember how we explored the headers within a request? These headers are where we will pass information along to the server. Most APIs only require a little bit of information to be passed into the header. This information takes the form of the authentication aspect of the request.
 
 ```{r}
 library(httr)
 
 library(jsonlite)
 
+library(rvest)
+
 apiKey = "8my5DQcAI1nxMW7oMTyZd-NIFHFQElynCZ35OWJSBMihg0YPJQfYxDUrK_2kx1qxdTWMneXwLOvYgkAbHpzIVXRsxXyLlnFA2gLACOBz9BsdCdowYo5rnZVp3khHXHYx"
 
 thaiSearch = GET("https://api.yelp.com/v3/businesses/search?term=cambodian+thai&location=south+bend&limit=2",
                  add_headers(Authorization = paste("Bearer", apiKey, sep = " ")))
 ```
+
+<aside>
+The `Authorization: Bearer key` construction is common.
+</aside>
 
 ## Step 2 -- Parsing The Return
 
@@ -80,7 +89,11 @@ content(cambodianThai, as = "text") %>%
 
 ## Step 4 -- Scraping Some Text
 
-Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our `rvest` code:
+Now we want to scrape some text about Cambodian Thai. We can do this in the standard way with our `rvest` code.
+
+### IMPORTANT NOTE
+
+What you see that follows worked one day, but it is no promise that it will work today. If it has changed, you might need to look through the source to reformulate the selectors.
 
 ```{r}
 library(rvest)
@@ -90,7 +103,7 @@ cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
 cambodianThaiHTML = read_html(cambodianThai)
 
 ctRatings = cambodianThaiHTML %>%
-  html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__3UQrn") %>% 
+  html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.arrange-unit-fill__373c0__17z0h.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__Y2F3O") %>%
   html_attr("aria-label") %>% 
   stringr::str_extract("[0-5]")
 
@@ -102,12 +115,31 @@ ctData = data.frame(ratings = ctRatings,
                     reviews = ctReviews, 
                     restaurant = "cambodian thai", 
                     stringsAsFactors = FALSE)
+
+DT::datatable(ctData)
 ```
 
 
+### An Aside
+
+I have mentioned that website will change and they are not concerned with telling you about it. This is how the same code looked just a year ago:
+
+```{r, eval = FALSE}
+ctRatings = cambodianThaiHTML %>%
+  html_nodes(".ratings-stars .i-stars") %>% 
+  html_attr("aria-label") %>% 
+  stringr::str_extract("[0-5]")
+
+ctReviews = cambodianThaiHTML %>% 
+  html_nodes(".ratings-reviews") %>% 
+  html_text()
+```
+
+Definitely an easier scrape!
+
 ## Step 4b
 
-You should notice that we only pulled in 20 reviews, while we know that we have around `r thaiParsed$review_count`reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at `(ceiling(thaiParsed$review_count / 20)` pages worth of reviews. And since we know how the links are constructed, we can just create them:
+You should notice that we only pulled in 20 reviews, while we know that we have around `r thaiParsed$review_count` reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at `r ceiling(thaiParsed$review_count) / 20` pages worth of reviews. And since we know how the links are constructed, we can just create them:
 
 ```{r, eval = FALSE}
 linkNumbers = seq(from = 0, to = (floor(thaiParsed$review_count / 20) * 20), by = 20)
@@ -121,9 +153,9 @@ allReviews = lapply(links, function(x) {
   cambodianThaiHTML = read_html(cambodianThai)
   
   ctRatings = cambodianThaiHTML %>%
-    html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__3UQrn") %>% 
-    html_attr("aria-label") %>% 
-    stringr::str_extract("[0-5]")
+  html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.arrange-unit-fill__373c0__17z0h.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__Y2F3O") %>%
+  html_attr("aria-label") %>% 
+  stringr::str_extract("[0-5]")
   
   ctReviews = cambodianThaiHTML %>% 
     html_nodes("p.lemon--p__373c0__3Qnnj.text__373c0__2pB8f.comment__373c0__3EKjH.text-color--normal__373c0__K_MKN.text-align--left__373c0__2pnx_ .lemon--span__373c0__3997G") %>% 
@@ -178,4 +210,8 @@ ctData %>%
   theme_minimal()
 ```
 
-Can you remove the stopwords? If you create a data frame with multiple restaurants, reproduce that plot with multiple restaurants?
+Can you remove the stopwords? If you create a data frame with multiple restaurants, can you reproduce that plot with multiple restaurants?
+
+# Your Deliverable
+
+No matter how much work you get done, your goal is to produce a "three slide story".

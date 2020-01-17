@@ -289,11 +289,11 @@ Let's do something else with our X and Y objects: do some linear algebra and per
 
 Every single X matrix can be broken down to the QR matrices
 
-Q is going to be $N * p$ - the same dimension as the original.
+Q is going to be $N * p$ - the same dimension as the original. 
 
 R is going to be $p * p$ - the number of columns by the number of columns with 0's below the diagonal.
 
-The Q matrix will be an orthogonal matrix (remember that orthogonal means that the components will not be correlated) and the R matrix is the upper triangle.
+The Q matrix will be an orthogonal matrix (remember that orthogonal means that the components will not be correlated -- $Q^T * Q = I$) and the R matrix is the upper triangle.
 
 ```{r}
 QRX <- qr(X)

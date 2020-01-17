@@ -118,6 +118,18 @@ If we just look at the information, though, we can see that we are dealing in ve
 
 How does this dimension reduction happen in LSA? It happens with singular value decomposition (SVD). SVD is but one of many forms of matrix factorization (we will see another soon) that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
 
+For a great run down of SVD (and the steps that come before), here is a great <a href="https://davetang.org/file/Singular_Value_Decomposition_Tutorial.pdf">demonstration</a>.
+
+```{r}
+aMatrix <- matrix(c(3, 2, 2, 2, 3, -2), ncol = 3, nrow = 2)
+
+aMatrix
+```
+
+```{r}
+aaT <- aMatrix %*% t(aMatrix)
+```
+
 
 <aside>
 Diving into SVD isn't beyond us, we just need to keep moving along. It is definitely worth looking at a little more if you ever need to perform rank reduction on a matrix.

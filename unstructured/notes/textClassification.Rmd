@@ -189,6 +189,12 @@ confusionMatrix(nbAttritionSmoothed)
 By adding a smoothing parameter alone, we actually did worse on average. Let's try adding a non-parametric kernel to tweak our continuous variables (in theory they should be normally distributed, so the kernel will help to take care of any non-normal variables).
 
 ```{r}
+library(doParallel)
+
+cl <- makePSOCKcluster(parallel::detectCores() - 1)
+
+registerDoParallel(cl)
+
 searchGrid = expand.grid(usekernel = c(TRUE, FALSE), 
                            fL = 0:5, adjust = seq(0, 5, by = 1))
 
@@ -199,6 +205,8 @@ nbAttritionTuned = train(x = x, y = y,
 nbAttritionTuned
 
 confusionMatrix(nbAttritionTuned)
+
+stopCluster(cl)
 ```
 
 Now we are getting somewhere. Let's add one more feature to our model to reduce down our feature space:
@@ -365,19 +373,21 @@ confusionMatrix(results1, trainingData$genre)
 
 This is a very basic neural network and much has occurred in the NN space. 
 
+For the sake of it, let's see how a Naive Bayes would have done...
+
 ```{r}
 y = trainingData$genre
 
 x = dplyr::select(trainingData, -genre)
 
 searchGrid = expand.grid(usekernel = TRUE, 
-                           fL = 0:1, adjust = seq(0, 2, by = 1))
+                           fL = 1:2, adjust = seq(1, 3, by = 1))
 
 nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
 
 nbAttritionTunedPCA = train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
-  tuneGrid = searchGrid, preProc = c("center", "scale", "pca"))
+  tuneGrid = searchGrid, preProc = c("center", "scale"))
 
 nbAttritionTunedPCA
 
@@ -385,3 +395,4 @@ nbAttritionTunedPCA
 confusionMatrix(nbAttritionTunedPCA)
 ```
 
+Not so good!

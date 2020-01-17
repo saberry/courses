@@ -39,8 +39,15 @@ library(stringr)
 
 hflLyrics = read_html("https://genius.com/Luke-bryan-huntin-fishin-and-lovin-every-day-lyrics") %>% 
   html_nodes(".lyrics") %>% 
-  html_text() %>% 
-  str_replace_all(., "\n", " ") %>% 
+  html_text()
+
+hflLyrics
+```
+
+We can see that we have the data, but we are left with a complete mess.
+
+```{r}
+hflLyrics <- str_replace_all(., "\n", " ") %>% 
   str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>%
   str_squish(.) %>% 
   gsub("([a-z])([A-Z])", "\\1 \\2", .)
@@ -79,7 +86,7 @@ choctawBingoLyrics
 ```
 
 <aside>
-You will notice that we pretty much ran the same code three times -- probably time to create a function.
+You will notice that we ran the same code three times -- probably time to create a function.
 </aside>
 
 We clearly have very different songs: one about living the outlaw life, one about living the "country-boy" life, and one about your typical American family reunion. From here on, it might be worth exploring more about these three types of songs.
@@ -113,7 +120,7 @@ bingoTags = tag_pos(choctawBingoLyrics)
 plot(bingoTags)
 ```
 
-Part of speech tagging is great if you want to know how people are using the language, not necessarily what they are using.
+Part of speech tagging is great if you want to know how people are using the language, not necessarily what they are using or what they are saying.
 
 ### On Tagger and Macs
 
@@ -125,9 +132,21 @@ https://zhiyzuo.github.io/installation-rJava/
 
 ## Term Frequency
 
-Just like any other data, text has some basic descriptives, with term frequency (tf) being incredibly useful. When we are looking at term frequency, we are looking for a few different words: high and low frequency. If a word is high frequency (think: "the"), then it might not really be offering us much in the way of anything informative. Likewise, a word that only occurs once or twice might not be terribly important either. 
+Just like any other data, text has some basic descriptives, with term frequency (tf -- $f_{t,d}$) being incredibly useful. When we are looking at term frequency, we are looking for a few different words: high and low frequency. If a word is high frequency (think: "the"), then it might not really be offering us much in the way of anything informative. Likewise, a word that only occurs once or twice might not be terribly important either. 
+
+We can calculate term frequency (adjusted for for document length) as the following:
+
+$$tf=\frac{N_{term}}{Total_{terms}}$$
 
 When looking a corpus, it is important to adjust for the length of the text when calculating term frequency (naturally, longer texts will have words occuring more frequently). 
+
+There are a few other ways of calculating term frequency:
+
+A raw weight is depicted as $f_{t,d}$ -- the frequency with which *t* (the term) is found in *d* (the document)
+
+If you want to effectively normalize huge numbers and minimize the differences between huge numbers, $log(1+f_{t,d})$
+
+If you have huge differences in document length, you might use augmented term frequency: $k + (1-k)\frac{tf}{max(t,f)}$, where *k* helps to mitigate the effects of document length (it essentially removes the bias towards longer documents).
 
 Let's see what we have in the way of term frequency in our two songs:
 

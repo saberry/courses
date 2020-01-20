@@ -466,3 +466,54 @@ Sentiment analysis is always a handy tool to have around. You might also want to
 The koRpus package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
 
 We need to tokenize our text in a manner that will please koRpus.
+
+### Embeddings
+
+English is hard and seeing how words relate to other words can be tricky. Let's think through something weird:
+
+$$\text{church} - \text{jesus} + \text{muhammad} = \text{mosque}$$
+
+Or how about:
+
+$$\text{Washing D.C.} - \text{America} + \text{Mexico} = \text{Mexico City}$$
+
+What is the purpose here? Word embeddings start to break down how words can be different, but still deal in the same contextual space. Whether we are talking about a church or a mosque, we are just dealing with a place of worship. If we have two different text documents (one talking about mosques and one talking about churches), it would be nice to be able to recognize that they are largely talking about the same idea.
+
+```{r}
+library(text2vec)
+
+horrorTxt <- rbind(f13, halloween, evilDead)
+
+tokens <- space_tokenizer(horrorTxt)
+# Create vocabulary. Terms will be unigrams (simple words).
+
+it <- itoken(tokens, progressbar = FALSE)
+
+vocab <- create_vocabulary(it)
+
+vocab <- prune_vocabulary(vocab, term_count_min = 5L)
+
+vectorizer <- vocab_vectorizer(vocab)
+
+tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L)
+
+glove <- GlobalVectors$new(word_vectors_size = 50, vocabulary = vocab, x_max = 10)
+
+glove_main <- glove$fit_transform(tcm, n_iter = 20)
+
+glove_context <- glove$components
+
+word_vectors <- glove_main + t(glove_context)
+
+f13Vec <- word_vectors["halloween", , drop = FALSE] - 
+  word_vectors["myers", , drop = FALSE] + 
+  word_vectors["voorhees", , drop = FALSE]
+
+cos_sim = sim2(x = word_vectors, y = f13Vec, method = "cosine", norm = "l2")
+
+head(sort(cos_sim[,1], decreasing = TRUE), 5)
+```
+
+<aside>
+If you looked at the Selenium code and noticed some of the code above, you might have seen some code behaving in a way that seems very similar to Python. Code like `glove$fit_transform()` is using the `R6` class. It is not a base R class, but is a package.
+</aside>

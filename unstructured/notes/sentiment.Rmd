@@ -194,6 +194,29 @@ library(stopwords)
 ```
 
 
+Applied to our previous song, here is what we would get:
+
+```{r}
+tm::removeWords(cleanLyrics, words = stopwords("en"))
+```
+
+Now, let's use the `textclean` package to handle contraction replacement:
+
+```{r}
+replacedText <- textclean::replace_contraction(cleanLyrics)
+
+tm::removeWords(replacedText, words = stopwords("en"))
+```
+
+There are several great functions in `textclean` -- I highly suggest you check it out.
+
+And one final point to make:
+
+```{r}
+gsub('"', "", replacedText)
+```
+
+
 ## Text Processing Tools
 
 There are several R packages that will help us process text. The tm package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
@@ -232,7 +255,7 @@ library(tidytext)
 library(wordcloud2)
 
 allLyricsDF %>%
-  filter(warningIndicator == 0) %>% 
+  dplyr::filter(stringDistance < .2) %>% 
   dplyr::select(lyrics, returnedArtistName) %>%
   mutate(lyrics = as.character(lyrics), 
          lyrics = str_replace_all(lyrics, "\n", " "),   
@@ -344,11 +367,23 @@ library(magrittr)
 statement = "I dislike beer, but I really love the shine."
 
 sentiment(statement, polarity_dt = lexicon::hash_sentiment_jockers)
+
 ```
 
-We can see that we get a much stronger sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really") sentiment of "love" (with a weight of .75 in our dictionary).
+We can see that we get a much stronger sentiment score when we include more information within the sentence. While the first part of our sentence starts out with a negative word (dislike has a sentiment value of -1), we have an adversarial "but" that will downweight whatever is in the initial phrase and then we will have the amplified (from "really", with a default weight of .8) sentiment of "love" (with a weight of .75 in our dictionary).
 
 With all of this together, we get a much better idea about the sentiment of our text.
+
+There are also some handy functions within `sentimentr`:
+
+```{r}
+extractedTerms <- extract_sentiment_terms(statement, polarity_dt = lexicon::hash_sentiment_jockers)
+
+attributes(extractedTerms)$counts
+
+attributes(extractedTerms)$elements
+```
+
 
 ### Back To The Music
 
@@ -358,7 +393,7 @@ While the text that we have used so far serves its purpose as an example quite w
 load(url("https://raw.githubusercontent.com/saberry/courses/master/hash_sentiment_vadar.RData"))
 
 cleanLyrics = allLyricsDF %>%
-  filter(warningIndicator == 0) %>% 
+  filter(stringDistance < .2) %>% 
   dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
   mutate(lyrics = as.character(lyrics), 
          lyrics = str_replace_all(lyrics, "\n", " "),   
@@ -423,7 +458,7 @@ That is pretty messy (but I am curious about that really happy month), so let's 
 ```{r}
 library(gganimate)
 
-cleanLyrics %>% 
+animatedYears <- cleanLyrics %>% 
   mutate(year = lubridate::year(date), 
          month = lubridate::month(date)) %>% 
   group_by(year, month, date) %>% 
@@ -434,9 +469,11 @@ cleanLyrics %>%
   scale_color_distiller(type = "div") +
   theme_minimal() +
   transition_states(year,
-                    transition_length = length(1975:2018),
+                    transition_length = length(1975:2019),
                     state_length = 3) +
   ggtitle('Year: {closest_state}')
+
+animate(animatedYears, fps = 5)
 ```
 
 
@@ -449,6 +486,7 @@ cleanLyrics %>%
   summarize(meanSentiment = mean(meanSentiment)) %>% 
   ggplot(., aes(year, meanSentiment, color = meanSentiment)) + 
   geom_point() +
+  geom_line() +
   theme_minimal()
 ```
 
@@ -457,7 +495,7 @@ cleanLyrics %>%
 
 Sentiment analysis is always a handy tool to have around. You might also want to explore other descriptive aspects of your text.
 
-The koRpus package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
+The `koRpus` package allows for all types of interesting types descriptives. There are a great number of readability and lexical diversity statistics (Fucks is likely my favorite).
 
 We need to tokenize our text in a manner that will please koRpus.
 

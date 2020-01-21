@@ -16,8 +16,7 @@ videoLink <- read_html(songConstructor) %>%
   html_attr('href') %>% 
   paste("https://www.youtube.com", ., sep = "")
 
-commandLineOpen <- if(Sys.info()[["sysname"]] != "Windows") {
-  paste("open", videoLink, sep = " ")
-} else paste("start chrome", videoLink, sep = " ")
-
-system(commandLineOpen)
+if(Sys.info()[["sysname"]] != "Windows") {
+  system(paste("open", videoLink, sep = " "))
+} else system(paste('C:/"Program Files (x86)"/Google/Chrome/Application/chrome.exe',
+                    '-url ', videoLink), wait = FALSE)

@@ -499,53 +499,68 @@ The `koRpus` package allows for all types of interesting types descriptives. The
 
 We need to tokenize our text in a manner that will please koRpus.
 
-### Embeddings
+<!-- ### Embeddings -->
 
-English is hard and seeing how words relate to other words can be tricky. Let's think through something weird:
+<!-- English is hard and seeing how words relate to other words can be tricky. Let's think through something weird: -->
 
-$$\text{church} - \text{jesus} + \text{muhammad} = \text{mosque}$$
+<!-- $$\text{church} - \text{jesus} + \text{muhammad} = \text{mosque}$$ -->
 
-Or how about:
+<!-- Or how about: -->
 
-$$\text{Washing D.C.} - \text{America} + \text{Mexico} = \text{Mexico City}$$
+<!-- $$\text{Washing D.C.} - \text{America} + \text{Mexico} = \text{Mexico City}$$ -->
 
-What is the purpose here? Word embeddings start to break down how words can be different, but still deal in the same contextual space. Whether we are talking about a church or a mosque, we are just dealing with a place of worship. If we have two different text documents (one talking about mosques and one talking about churches), it would be nice to be able to recognize that they are largely talking about the same idea.
+<!-- What is the purpose here? Word embeddings start to break down how words can be different, but still deal in the same contextual space. Whether we are talking about a church or a mosque, we are just dealing with a place of worship. If we have two different text documents (one talking about mosques and one talking about churches), it would be nice to be able to recognize that they are largely talking about the same idea. -->
 
-```{r}
-library(text2vec)
+<!-- ```{r} -->
+<!-- library(text2vec) -->
 
-horrorTxt <- rbind(f13, halloween, evilDead)
+<!-- links <- c("https://en.wikipedia.org/wiki/Christianity",  -->
+<!--            "https://en.wikipedia.org/wiki/Islam",  -->
+<!--            "https://en.wikipedia.org/wiki/Muslims",  -->
+<!--            "https://en.wikipedia.org/wiki/Jesus",  -->
+<!--            "https://en.wikipedia.org/wiki/Muhammad",  -->
+<!--            "https://en.wikipedia.org/wiki/Quran",  -->
+<!--            "https://en.wikipedia.org/wiki/Bible") -->
 
-tokens <- space_tokenizer(horrorTxt)
-# Create vocabulary. Terms will be unigrams (simple words).
+<!-- allText <- lapply(links, function(x) { -->
+<!--   read_html(x) %>%  -->
+<!--   html_nodes("p") %>%  -->
+<!--   html_text() %>%  -->
+<!--   gsub("\\[[0-9]*\\]|[[:punct:]]", " ", .) %>%  -->
+<!--   stringr::str_squish(.) %>%  -->
+<!--   tolower(.) %>%  -->
+<!--   tm::removeWords(., tm::stopwords("en")) -->
+<!-- }) -->
 
-it <- itoken(tokens, progressbar = FALSE)
+<!-- tokens <- space_tokenizer(unlist(allText)) -->
 
-vocab <- create_vocabulary(it)
+<!-- it <- itoken(tokens, progressbar = FALSE) -->
 
-vocab <- prune_vocabulary(vocab, term_count_min = 5L)
+<!-- vocab <- create_vocabulary(it) -->
 
-vectorizer <- vocab_vectorizer(vocab)
+<!-- vocab <- prune_vocabulary(vocab, term_count_min = 20L) -->
 
-tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L)
+<!-- vectorizer <- vocab_vectorizer(vocab) -->
 
-glove <- GlobalVectors$new(word_vectors_size = 50, vocabulary = vocab, x_max = 10)
+<!-- tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L) -->
 
-glove_main <- glove$fit_transform(tcm, n_iter = 20)
+<!-- glove <- GlobalVectors$new(word_vectors_size = 350, vocabulary = vocab, x_max = 10) -->
 
-glove_context <- glove$components
+<!-- glove_main <- glove$fit_transform(tcm, n_iter = 100) -->
 
-word_vectors <- glove_main + t(glove_context)
+<!-- glove_context <- glove$components -->
 
-f13Vec <- word_vectors["halloween", , drop = FALSE] - 
-  word_vectors["myers", , drop = FALSE] + 
-  word_vectors["voorhees", , drop = FALSE]
+<!-- word_vectors <- glove_main + t(glove_context) -->
 
-cos_sim = sim2(x = word_vectors, y = f13Vec, method = "cosine", norm = "l2")
+<!-- churchVec <- word_vectors["christian", , drop = FALSE] -  -->
+<!--   word_vectors["jesus", , drop = FALSE] +  -->
+<!--   word_vectors["muhammad", , drop = FALSE] -->
 
-head(sort(cos_sim[,1], decreasing = TRUE), 5)
-```
+<!-- cos_sim = sim2(x = word_vectors, y = churchVec, method = "cosine", norm = "l2") -->
 
-<aside>
-If you looked at the Selenium code and noticed some of the code above, you might have seen some code behaving in a way that seems very similar to Python. Code like `glove$fit_transform()` is using the `R6` class. It is not a base R class, but is a package.
-</aside>
+<!-- head(sort(cos_sim[, 1], decreasing = TRUE), 10) -->
+<!-- ``` -->
+
+<!-- <aside> -->
+<!-- If you looked at the Selenium code and noticed some of the code above, you might have seen some code behaving in a way that seems very similar to Python. Code like `glove$fit_transform()` is using the `R6` class. It is not a base R class, but is a package. -->
+<!-- </aside> -->

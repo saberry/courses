@@ -16,7 +16,7 @@ Using APIs is an important part of modern data acquisition tasks. Fortunately, t
 Let's start by playing with the <a href="https://www.yelp.com/developers/documentation/v3">Yelp Fusion API</a>. If you were doing this on your own, you would need to register an app so that you could get a *token* (or *key*, or *secret*) -- mine is given below if you don't want to mess with getting your own. While I have provided mine for your temporary convenience, you should really mess with getting your own sooner rather than later. All you need to do is register for an account and create a new app.
 
 <aside>
-You will see many service will ask you to create an app and it is never complicated. They really just want a name and sometimes and page (I direct them to the Mendoza page).
+You will see many services will ask you to create an app and it is never complicated. They really just want a name and sometimes and page (I direct them to the Mendoza page).
 </aside>
 
 When creating these URLs, we are given a base url, usually something like `https://api.yelp.com/v3/` and then we start adding stuff to it. Most of the stuff that we would want from Yelp is on the *business* directory, so we can add that to the link -- `https://api.yelp.com/v3/businesses/`. Next, we might want to do something very simple, like search for a restaurant. We will need to tell the API what we are doing -- `https://api.yelp.com/v3/businesses/search`. 
@@ -93,7 +93,7 @@ Now we want to scrape some text about Cambodian Thai. We can do this in the stan
 
 ### IMPORTANT NOTE
 
-What you see that follows worked one day, but it is no promise that it will work today. If it has changed, you might need to look through the source to reformulate the selectors.
+The following code for `ctRatings` will not likely work. While the order of the selectors is correct, the characters (e.g., 373c0) seem to change almost daily.
 
 ```{r}
 library(rvest)
@@ -210,8 +210,8 @@ ctData %>%
   theme_minimal()
 ```
 
-Can you remove the stopwords? If you create a data frame with multiple restaurants, can you reproduce that plot with multiple restaurants?
+Can you remove the stopwords? If you create a data frame with multiple restaurants, can you reproduce that plot with multiple restaurants? Do any text features influence ratings? These are just a few of the things that you might want to explore.
 
 # Your Deliverable
 
-No matter how much work you get done, your goal is to produce a "three slide story".
+No matter how much work you get done, your goal is to produce a "three slide story". There should be a problem statement, what you found, and what that means for solving the problem. You can have visualizations, but no code needs to be printed within the slides.

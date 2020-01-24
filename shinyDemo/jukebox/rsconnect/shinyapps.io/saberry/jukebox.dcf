@@ -1,0 +1,10 @@
+name: jukebox
+title:
+username:
+account: saberry
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1700005
+bundleId: 2751158
+url: https://saberry.shinyapps.io/jukebox/
+when: 1579878116.10439

@@ -3,7 +3,7 @@ title: "Text Analysis"
 description: |
   Topic Models
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -50,31 +50,31 @@ load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.
 
 # load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
 
-hardRemove = c(34, 78, 91, 94, 107, 136, 150, 202, 210, 213, 222, 229, 232, 
-               239, 245, 248, 268, 276, 277, 284, 285, 291, 309, 310, 356, 
-               403, 419, 424, 425, 460, 467, 482, 490, 497, 519, 532, 545, 
-               555, 585, 586, 616, 639, 642, 648, 653, 654, 658, 682, 704, 
-               705, 719, 722, 760, 780, 794, 795, 802, 832, 836, 851, 867, 
-               872, 878, 891, 921, 924, 931, 944, 972, 985, 995, 1026, 1029, 
-               1032, 1041, 1042, 1063, 1101, 1102, 1111, 1115, 1121, 1124,
-               1126, 1128, 1144, 1145, 1158, 1166, 1172, 1175, 1186, 1202, 
-               1204, 1209, 1211, 1215, 1218, 1225, 1240, 1251, 1256, 1257, 
-               1272, 1287, 1311, 1316, 1326, 1327, 1342, 1361, 1421, 1462, 
-               1493, 1534, 1584, 1609, 1627, 1629, 1635, 1638, 1649, 1667, 
-               1676, 1679, 1690, 1696, 1707, 1710, 1717, 1720, 1755, 1758, 
-               1760, 1780, 1786, 1788, 1798, 1805, 1847, 1855, 1858, 1861, 
-               1866, 1882, 1895, 1918, 1929, 1946, 1952, 1994, 2000, 2011, 
-               2017, 2018, 2019, 2027, 2032, 2039, 2055, 2069, 2143, 2164, 
-               2193, 2200, 2201, 2204, 2246, 2254, 2285, 2303, 2318, 2334,
-               2347, 2373, 2383, 2395, 2397, 2401, 2402, 2406, 2434, 2443,
-               2459, 2469, 2472, 2475, 2499, 2507, 2527, 2534, 2540, 2563,
-               2564, 2566, 2570, 2572, 2597, 2604, 2632, 2638, 2655, 2661,
-               2666, 2685, 2696, 2719, 2721, 2724, 2729, 2736, 2740, 2754,
-               2764, 2767, 2768, 2771, 2803, 2843, 2877, 2903, 2905, 2913, 
-               2944, 2951, 2969, 2972, 2978, 2995, 3016, 3041, 3043, 3048, 3092)
+# hardRemove = c(34, 78, 91, 94, 107, 136, 150, 202, 210, 213, 222, 229, 232, 
+#                239, 245, 248, 268, 276, 277, 284, 285, 291, 309, 310, 356, 
+#                403, 419, 424, 425, 460, 467, 482, 490, 497, 519, 532, 545, 
+#                555, 585, 586, 616, 639, 642, 648, 653, 654, 658, 682, 704, 
+#                705, 719, 722, 760, 780, 794, 795, 802, 832, 836, 851, 867, 
+#                872, 878, 891, 921, 924, 931, 944, 972, 985, 995, 1026, 1029, 
+#                1032, 1041, 1042, 1063, 1101, 1102, 1111, 1115, 1121, 1124,
+#                1126, 1128, 1144, 1145, 1158, 1166, 1172, 1175, 1186, 1202, 
+#                1204, 1209, 1211, 1215, 1218, 1225, 1240, 1251, 1256, 1257, 
+#                1272, 1287, 1311, 1316, 1326, 1327, 1342, 1361, 1421, 1462, 
+#                1493, 1534, 1584, 1609, 1627, 1629, 1635, 1638, 1649, 1667, 
+#                1676, 1679, 1690, 1696, 1707, 1710, 1717, 1720, 1755, 1758, 
+#                1760, 1780, 1786, 1788, 1798, 1805, 1847, 1855, 1858, 1861, 
+#                1866, 1882, 1895, 1918, 1929, 1946, 1952, 1994, 2000, 2011, 
+#                2017, 2018, 2019, 2027, 2032, 2039, 2055, 2069, 2143, 2164, 
+#                2193, 2200, 2201, 2204, 2246, 2254, 2285, 2303, 2318, 2334,
+#                2347, 2373, 2383, 2395, 2397, 2401, 2402, 2406, 2434, 2443,
+#                2459, 2469, 2472, 2475, 2499, 2507, 2527, 2534, 2540, 2563,
+#                2564, 2566, 2570, 2572, 2597, 2604, 2632, 2638, 2655, 2661,
+#                2666, 2685, 2696, 2719, 2721, 2724, 2729, 2736, 2740, 2754,
+#                2764, 2767, 2768, 2771, 2803, 2843, 2877, 2903, 2905, 2913, 
+#                2944, 2951, 2969, 2972, 2978, 2995, 3016, 3041, 3043, 3048, 3092)
 
-cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
-  filter(warningIndicator == 0) %>% 
+cleanLyrics = allLyricsDF %>%
+  filter(stringDistance < .1) %>% 
   dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
   mutate(text = as.character(lyrics), 
          text = str_replace_all(text, "\n", " "),   
@@ -85,10 +85,11 @@ cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
          text = removeWords(text, c("’", stopwords(kind = "en"))), 
          text = removePunctuation(text), 
          text = removeNumbers(text),
-         text = lemmatize_strings(text), 
+         text = textstem::lemmatize_strings(text), 
          doc_id = returnedSong, 
          author = returnedArtistName) %>% 
-  select(doc_id, text, author)
+  select(doc_id, text, author) %>% 
+  as.data.frame()
 
 lyricsCorpus = Corpus(DataframeSource(cleanLyrics))
 
@@ -165,13 +166,13 @@ lyricDistance = dist(t(lyricsSpace))
 Now we can do some exploration, like which words are associated with the word "dance"?
 
 ```{r}
-associate(lyricsSpace, "dance")
+associate(lyricsSpace, "drink")
 ```
 
 We can lower our threshold to get more terms:
 
 ```{r}
-associate(lyricsSpace, "dance", threshold = .3)
+associate(lyricsSpace, "drink", threshold = .3)
 ```
 
 ## Non-negative Matrix Factorization
@@ -400,10 +401,19 @@ lyricPrep = prepDocuments(documents = lyricText$documents,
 
 The stm package has some pretty nice facilities for determining a number of topics:
 
-```{r}
+
+
+
+```{r, eval=FALSE}
 kTest = searchK(documents = lyricPrep$documents, 
              vocab = lyricPrep$vocab, 
              K = c(3, 4, 5, 10, 20), verbose = FALSE)
+
+plot(kTest)
+```
+
+```{r, echo = FALSE}
+load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/kTest.RData")
 
 plot(kTest)
 ```
@@ -492,36 +502,62 @@ newLyricsFitted = fitNewDocuments(model = topics5, documents = newLyricCorp$docu
                 newData = newLyricCorp$meta, origData = lyricPrep$meta)
 ```
 
+This will return each documents theta values.
+
 
 Topic models can be extended to include covariates, where we are examining how much each topic contributes to a document given some other data.
 
-We can also add additional information to our models: content. What we get here is a better understanding about how people use language within a topic differently.
+This is where some real explanatory power comes into play!
 
-<!-- ```{r} -->
-<!-- set.seed(1001) -->
+```{r}
+cleanLyrics = allLyricsDF %>%
+  filter(stringDistance < .1) %>% 
+  dplyr::select(lyrics, returnedArtistName, returnedSong, date) %>%
+  mutate(text = as.character(lyrics), 
+         text = str_replace_all(text, "\n", " "),   
+         text = str_replace_all(text, "(\\[.*?\\])", ""),
+         text = str_squish(text), 
+         text = gsub("([a-z])([A-Z])", "\\1 \\2", text), 
+         text = tolower(text), 
+         text = removeWords(text, c("’", stopwords(kind = "en"))), 
+         text = removePunctuation(text), 
+         text = removeNumbers(text),
+         text = textstem::lemmatize_strings(text), 
+         year = lubridate::year(date))
 
-<!-- topicPredictor = stm(documents = executionsPrep$documents,  -->
-<!--              vocab = executionsPrep$vocab, prevalence = ~ totalVictims, -->
-<!--              data = executionsPrep$meta, K = 5, verbose = FALSE) -->
+predictorText <- textProcessor(documents = cleanLyrics$text, 
+                          metadata = cleanLyrics, 
+                          stem = FALSE)
 
-<!-- labelTopics(topicPredictor) -->
-<!-- ``` -->
+lyricPrep = prepDocuments(documents = predictorText$documents, 
+                               vocab = predictorText$vocab,
+                               meta = predictorText$meta)
 
-<!-- ```{r} -->
-<!-- victimEffect = estimateEffect(1:5 ~ totalVictims, stmobj = topicPredictor,  -->
-<!--                metadata = executionsPrep$meta) -->
+topicPredictor = stm(documents = lyricPrep$documents,
+             vocab = lyricPrep$vocab, prevalence = ~ year,
+             data = lyricPrep$meta, K = 5, verbose = FALSE)
 
-<!-- summary(victimEffect, topics = c(1:5)) -->
+yearEffect = estimateEffect(1:5 ~ year, stmobj = topicPredictor,
+               metadata = lyricPrep$meta)
 
-<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
-<!--                     model = topicPredictor, topics = 1, labeltype = "frex") -->
+summary(yearEffect, topics = c(1:5))
 
-<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
-<!--                     model = topicPredictor, topics = 2, labeltype = "frex") -->
+plot.estimateEffect(yearEffect, "year", method = "continuous",
+                    model = topicPredictor, topics = 1, labeltype = "frex")
 
-<!-- plot.estimateEffect(victimEffect, "totalVictims", method = "continuous",  -->
-<!--                     model = topicPredictor, topics = 3, labeltype = "frex") -->
-<!-- ``` -->
+plot.estimateEffect(yearEffect, "year", method = "continuous",
+                    model = topicPredictor, topics = 2, labeltype = "frex")
+
+plot.estimateEffect(yearEffect, "year", method = "continuous",
+                    model = topicPredictor, topics = 3, labeltype = "frex")
+
+plot.estimateEffect(yearEffect, "year", method = "continuous",
+                    model = topicPredictor, topics = 4, labeltype = "frex")
+
+plot.estimateEffect(yearEffect, "year", method = "continuous",
+                    model = topicPredictor, topics = 5, labeltype = "frex")
+```
+
 
 <!-- ```{r} -->
 <!-- set.seed(1001) -->

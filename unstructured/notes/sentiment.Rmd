@@ -23,7 +23,7 @@ Tense aside, are chewed, chew, and chewing the same thing? Yes, but what if we c
 
 What if we remove the suffixes, "ed" and "ing" -- we are left with three instances of "chew"? Now we have something that is equivalent in meaning and in a string sense. This is the goal of stemming.  
 
-Let's take a look to see how this works (you will need to install tm and SnowballC first):
+Let's take a look to see how this works (you will need to install `tm` and `SnowballC` first):
 
 ```{r}
 chewStrings = c("chew", "chewing", "chewed", "chewer")
@@ -32,9 +32,9 @@ tm::stemDocument(chewStrings)
 ```
 
 
-We got exactly what we expected, right? You might have noticed that "chewer" did not get stemmed. Do you have any idea why? Let's think through it together. "Chew", "chewing", and "chewed" are all verbs related to the act of chewinging. "Chewer", on the other hand, is a person who chews -- it is a noun. Martin Porter's stemming algorithm works incredibly well!
+We got exactly what we expected, right? You might have noticed that "chewer" did not get stemmed. Do you have any idea why? Let's think through it together. "Chew", "chewing", and "chewed" are all verbs related to the act of chewinging. "Chewer", on the other hand, is a person who chews -- it is a noun. Martin Porter's stemming <a href="http://cs.indstate.edu/~skatam/paper.pdf">algorithm</a> works incredibly well!
 
-Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document -- this is know as a document-term matrix. If we know that "chew", "chewing", and "chewed" all refer to the same thing, we want it just represented once within our document-term matrix.
+Hopefully, this makes conceptual sense; however, we also need to understand why we need to do it. In a great many text-based methods, we are going to create a matrix that keeps track of every term (i.e., word) in every document -- this is known as a document-term matrix. If we know that "chew", "chewing", and "chewed" all refer to the same thing, we want it just represented once within our document-term matrix.
 
 Shall we take a look?
 
@@ -75,7 +75,7 @@ If we are trying to find documents that are covering similar content or talking 
 
 ### Lemmatization
 
-Stemming is often enough (and most modern stemmers work pretty well on their own). Still, stemming is slightly more akin to amputating an arm with a battle ax -- it works, but it is brute force. Lemmatization is a more sophisticated approach. You might have already guessed that lemmatization will find the *lemma* of a word and since you likely know about morphology, you already know that the lemma of a word is its canonical form. A group of words that form the same idea are called a lexeme (am, be, are are all within the same lexeme). Generally, the smallest form of the word is chosen as the lemma. This is a really interesting area of linguistics, but we don't need to dive fully in.  
+Stemming is often sufficient (and most modern stemmers work pretty well on their own). Still, stemming is slightly more akin to amputating an arm with a battle ax -- it works, but it is brute force. Lemmatization is a more sophisticated approach. You might have already guessed that lemmatization will find the *lemma* of a word and since you likely know about morphology, you already know that the lemma of a word is its canonical form. A group of words that form the same idea are called a lexeme (am, be, are are all within the same lexeme). Generally, the smallest form of the word is chosen as the lemma. This is a really interesting area of linguistics, but we don't need to dive fully in.  
 
 Instead, let's see it in action.
 
@@ -192,7 +192,6 @@ There are many different stopword lists out there, so you might want to poke aro
 ```{r}
 library(stopwords)
 ```
-
 
 Applied to our previous song, here is what we would get:
 
@@ -484,9 +483,8 @@ cleanLyrics %>%
   group_by(year) %>% 
   na.omit() %>% 
   summarize(meanSentiment = mean(meanSentiment)) %>% 
-  ggplot(., aes(year, meanSentiment, color = meanSentiment)) + 
-  geom_point() +
-  geom_line() +
+  ggplot(., aes(year, meanSentiment)) + 
+  geom_col() +
   theme_minimal()
 ```
 

@@ -1,0 +1,55 @@
+---
+title: "Unstructured"
+author: "Homework 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# The Data
+
+The data is on Sakai in the `data` folder. You will be working with the data in the file called *wweCalls*. You should use functions within R (e.g., `unzip` or `unz`) to unzip it.
+
+# Bronze
+
+## Step 1
+
+Read all of the parsed transcripts into R. You can do them individually, but that is a horrible idea and I don't recommend it. Instead, use the `list.files()` function and read files from the resultant object.
+
+Perform some initial exploration of the text and perform any initial cleaning. This is entirely up to you to do whatever you consider necessary.
+
+## Step 2
+
+Perform sentiment analyses on the texts. Given that these are earnings calls, you will likely want to use Loughran and McDonald's lexicon. This lexicon can be found in the `lexicon` package and in the `textdata` package. You should also explore the various `nrc` lexicons. Exploring the versions offered in `textdata` is a good start. Select any of the emotions from the various `nrc` lexicons (found within `textdata`) and perform sentiment analyses using that particular emotion. A good approach would be to use the words found within `textdata` and find them within `lexicon`.
+
+Below is an example of how you might get data from `textdata`. 
+
+```{r, eval = FALSE}
+library(textdata)
+
+get_sentiments("nrc")
+
+nrcWord <- textdata::lexicon_nrc()
+
+nrcValues <- lexicon::hash_sentiment_nrc
+
+nrcDominance <- textdata::lexicon_nrc_vad()
+
+# You will likely want to make good use of %in% or filter.
+```
+
+How you choose to aggregate sentiment is entirely up to you, but some reasonable ideas would be to aggregate them by indiviual, by role within the call, or the call as a whole. What can be learned about the sentiment from call to call?
+
+# Silver
+
+## Step 3
+
+Register for a free API key from <a href"https://www.alphavantage.co/documentation/">alphavantage</a>. Using your API key, get the daily time series for the given ticker and explore the 10 trading days around each call's date (i.e., the closing price for 5 days before the call, the closing price for the day of the call, and the closing price for the 5 days after the call). Do any visible patterns emerge when exploring the closing prices and the sentiment scores you created? Explain what this might mean for people wanting to make decisions based upon a call.
+
+# Platinum
+
+## Step 4
+
+There are two calls within the zip file that you did not use for the previous steps -- they are not already parsed. If you are able to parse them, incorporate them into the rest of your data and determine if any new information comes to light.

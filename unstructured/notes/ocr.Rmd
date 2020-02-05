@@ -3,7 +3,7 @@ title: "Optical Character Recognition"
 description: |
   Theory and Practice
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -32,7 +32,7 @@ So far, we have been in the world of text made with the sole intention of displa
 
 # Support Vector Machines
 
-Just like our old friends decision trees and random forest, SVM is a technique that can prove to be useful for both regression and classification. In the context of text, we will use SVM's classification abiliities.
+Just like our old friends decision trees and random forest, <a href="http://web.mit.edu/6.034/wwwbob/svm.pdf">SVM</a> is a technique that can prove to be useful for both regression and classification. In the context of text, we will use SVM's classification abiliities. One really great thing about a standard SVM is that it will likely outperform a standard neural network for most tasks.
 
 ## Conceptual Background
 
@@ -153,7 +153,38 @@ svmAttritionTest = predict(svmAttritionTuned, attritionTest)
 confusionMatrix(svmAttritionTest, attritionTest$Attrition)
 ```
 
-I think it is fair to say that this model performed better than our simple neural network and our Naive Bayes. While we could take it and apply it back to the lyrics stuff, we are going to do something a little bit different on the text front.
+I think it is fair to say that this model performed better than our simple neural network and our Naive Bayes. 
+
+What about the lyrics?
+
+```{r}
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/textFeatures.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+
+textFeatures$genre = ifelse(textFeatures$genre == "zappa", 1, 0)
+
+textFeatures$genre = as.factor(make.names(textFeatures$genre))
+
+set.seed(1001)
+
+trainRows <- rsample::initial_split(textFeatures, prop = .7, strata = "genre")
+
+testingData = rsample::testing(trainRows)
+
+trainingData = rsample::training(trainRows)
+
+svmGenreTuned = train(genre ~ ., data = trainingData,
+  method = "svmLinear", trControl = svmTrainControl, 
+  tuneGrid = data.frame(C = c(.001, .1, .5, 1, 5, 10, 100)), 
+  metric = "Accuracy", preProc = c("center", "scale"))
+
+svmGenreTest = predict(svmGenreTuned, testingData)
+
+confusionMatrix(svmGenreTest, testingData$genre)
+```
+
+Nothing happening there...
 
 Instead of looking at text as a collection of words that might have some meaning, we are going to look at the shape of text -- in other words, the letters. Why might we do this? For starters, we can think again about an aforementioned PDF or other written text.
 
@@ -215,7 +246,7 @@ plot_ly(letterData, x = ~`x-box`, y = ~`y-box`, z = ~onpix, color = ~lettr,
 
 That is going to be a nope for me. We are dealing with only 3 dimensions (out of several more) and I am not entirely convinced that we could find linear lines to do that splitting for us (eyes cannot, but a machine might be able to).
 
-Instead, we can do some kernel transformations for the SVD. This kernel transformation can take our non-separable linear space, transform it to even higher dimensional space, and then achieve linear separation. This improved separation in data might lead to better predictions. The particular type of kernel we will use for our SVM is a radial basis function.
+Instead, we can do some kernel transformations for the SVD -- this is often referred to as the *kernel trick*. This kernel transformation can take our non-separable linear space, transform it to even higher dimensional space, and then achieve linear separation. It does this in a way that is computationally easier than engaging in higher dimensional dot products just to achieve a single value. This improved separation in data might lead to better predictions. The particular type of kernel we will use for our SVM is a <a href="https://num.math.uni-goettingen.de/schaback/teaching/sc.pdf">radial basis function</a>.
 
 We will also add in a new tuning parameter: sigma. Sigma is going to control the smoothness of the decision boundary. Since we are dealing in nonlinear space, the decision boundary can be very choppy (low values of sigma and likely to overfit -- essentially a local classifier) or very smooth (higher values of sigma and more likely to produce training errors -- a global classifier).
 
@@ -240,15 +271,18 @@ It appears that a higher Cost, coupled with a lower sigma, leads to the best pre
 ```{r}
 svmLetterRBFTest = predict(svmLetterRBF, letterTest)
 
-confusionMatrix(svmLetterLinear, letterTest$lttr)
+confusionMatrix(svmLetterRBFTest, as.factor(letterTest$lettr))
 
-prop.table(table(svmLetterTest == letterTest$lettr))
+prop.table(table(svmLetterRBFTest == letterTest$lettr))
 ```
 
+I would say that we have achieved reasonable prediction.
 
 # Production OCR
 
-Knowing how one might perform OCR with SVM is important, but you probably won't ever need to go down that road. Why? There are already great tools that will do the work for you. Probably the easiest one to work with is `Tesseract`. Tesseract has been supported by Google for several years now and continues to make great leaps. A combination of `ImageMagick`, `Tesseract`, and `pdftools` will handle just about any image-based data extraction needs that you might have.
+Knowing how one might perform OCR with SVM is important, but you probably won't ever need to go down that road. Why? There are already great tools that will do the work for you (it should not come as a surprise, but deep neural networks are being used for intelligent character recognition). Probably the easiest one to work with is `Tesseract`. Tesseract has been supported by Google for several years now and continues to make great leaps. A combination of `ImageMagick`, `Tesseract`, and `pdftools` will handle just about any image-based data extraction needs that you might have.
+
+If you are interested in the implementations and what else they can do, check out the pages for <a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html">magick</a> and <a href="https://cran.r-project.org/web/packages/tesseract/vignettes/intro.html">tesseract</a>.
 
 ```{r}
 library(magick)

@@ -12,24 +12,31 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+Classificiation is nothing new at this point -- you have seen methods ranging from simple logistic regression to random forest. We are going to see two alternative methods for classification: Naive Bayes and neural networks. Both of these techniques can offer reasonable prediction, without too much complexity. 
+
+A few things to remember:
+
+1.  Naive Bayes just works. It won't get too bogged down by high dimensionality and you won't need a fancy machine to run your models.
+
+2.  Neural networks are not only the past, but are the future. The strongest predictions will almost uniformly come from some type of neural network.
 
 # Naive Bayes
 
 With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central assumptions violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods with often similar performance. 
 
-With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific classes of customers cancelling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
+With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific class of customers cancelling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
 
 With "Bayesian" in the name, you would probably guess that we are going to be dealing with probabilities and we certainly are. Not that you need it, but let's do a really quick refresher on probability, odds, and likelihoods.
 
 *Probability* is bound between 0 and 1, and indicates the chance of an event occuring. 
 
-*Odds* are scaled from 0 to $\infty$ and are the ratio of the probability of a particular event occurring to the probability of it not occurring. With a probability of occurrance at .2, we would have an odds of 1 to 4 of the event occurring.
+*Odds* are scaled from 0 to $\infty$ and are the ratio of the probability of a particular event occurring to the probability of it not occurring. With a probability of occurrance at .25, we would have an odds of 1 to 4 of the event occurring.
 
 *Likelihood* is the ratio of two related conditional probabilites and can be expressed in two different forms:
 
-- The probability of outcome *A*, given *B*, and the probability of *A*, given not *B* (*A* is conditional on *B*)
+- The probability of outcome *A* given *B*, and the probability of *A* given not *B* (*A* is conditional on *B*)
 
-- The odds of *A*, given *B*, and the overall odds of *A*
+- The odds of *A* given *B*, and the overall odds of *A*
 
 Conversion between probability and odds is as follows:
 
@@ -52,7 +59,8 @@ With this information in hand, we can then compute the independent conditional p
 
 Let's see how it works with some text:
 
-```{r}
+```{r, echo = FALSE}
+library(dplyr)
 data.frame(songID = 1:4, 
            huntin = c(1, 1, 1, 1), 
            fishing = c(0, 0, 1, 0), 
@@ -63,15 +71,26 @@ data.frame(songID = 1:4,
            street = c(0, 0, 0, 1), 
            city = c(0, 1, 0, 0),
            rapCountry = c(1, 1, 0, 0)
-)
+) %>% 
+  knitr::kable()
 ```
 
 We can find the probability for any given thing within this data. For example, there is a probability of .75 that "day" will occur -- P(day) = $3/4$ = .75. The probability that a song is rap is .5 -- P(rap) = $2/4$ = .5.  
 
-
 We could just compute the conditional probability for each song belonging to one of the two classes, but this becomes increasingly intensive as we add more variables. Instead, we can use the following equation to make things easier:
 
 $$P(C_k|x_1,x_2,..., x_n) = \frac{P(C_k)P(x_1|C_k)P(x_2|C_k)...P(X_n|C_k)}{P(x_1,x_2,...,x_n)}$$
+
+We can break down those components just a bit more:
+
+Posterior probability = $P(C_k|x_1,x_2,..., x_n)$
+
+Likelihood = $P(X_n|C_k)$
+
+Class prior probability = $P(C_k)$
+
+Predictor prior probability = $P(x_1,x_2,...,x_n)$
+
 If we expand our data a bit:
 
 ```{r, echo = FALSE}
@@ -94,20 +113,20 @@ $$\frac{P(country)P(country|country)P(boy|country)P(\neg street|country)P(city|c
 
 We can compute the likelihood of this new lyric belonging to a country song by:
 
-$$(20⁄100)*(10⁄20)*(16⁄20)*(10⁄20)*(8⁄20)$$
+$$(20⁄100)*(10⁄20)*(4⁄20)*(10⁄20)*(8⁄20)$$
 
 ```{r}
-countryLikelihood <- (20⁄100)*(10⁄20)*(16⁄20)*(10⁄20)*(8⁄20)
+countryLikelihood <- (20/100)*(10/20)*(4/20)*(10/20)*(8/20)
 
 countryLikelihood
 ```
 
 And the likelihood it is rap:
 
-$$(80⁄100)*(15⁄80)*(78⁄80)*(25⁄80)*(5⁄80)$$
+$$(80⁄100)*(15⁄80)*(2⁄80)*(55⁄80)*(5⁄80)$$
 
 ```{r}
-rapLikelihood <- (80⁄100)*(15⁄80)*(78⁄80)*(25⁄80)*(5⁄80)
+rapLikelihood <- (80/100)*(15/80)*(2/80)*(55/80)*(5/80)
 
 rapLikelihood
 ```
@@ -117,6 +136,8 @@ This gives us the probability of the song being country of:
 ```{r}
 countryLikelihood / (countryLikelihood + rapLikelihood)
 ```
+
+
 
 
 ## A Quick And Dirty Example
@@ -186,6 +207,8 @@ nbAttritionSmoothed
 confusionMatrix(nbAttritionSmoothed)
 ```
 
+What is a Laplacian smooth? It is just a value added to 0 probability values. Since we are rolling through with multiplication, any 0 is going to wreck everything.
+
 By adding a smoothing parameter alone, we actually did worse on average. Let's try adding a non-parametric kernel to tweak our continuous variables (in theory they should be normally distributed, so the kernel will help to take care of any non-normal variables).
 
 ```{r}
@@ -205,8 +228,6 @@ nbAttritionTuned = train(x = x, y = y,
 nbAttritionTuned
 
 confusionMatrix(nbAttritionTuned)
-
-stopCluster(cl)
 ```
 
 Now we are getting somewhere. Let's add one more feature to our model to reduce down our feature space:
@@ -235,21 +256,21 @@ confusionMatrix(pred, attritionTest$Attrition, positive = "Yes")
 
 A few key pieces of information for us beyond the confusion matrix:
 
-We should hope to find that our Accuracy rate is significantly higher than our *No Information Rate*.
+We should hope to find that our Accuracy rate is significantly higher than our *No Information Rate* (basically what would be guessed by the distribution of the outcome alone). Here, we can see that our model is hovering around what is "significant".
 
-*Kappa* is an agreement statistic. Here it is the agreement between our observed accuracy rate and an expected accuracy rate. Anything over .4 is deemed by most sources as adequate, but it gets better as we approach 1.
+*Kappa* is an agreement statistic (it is Cohen's kappa). Here it is the agreement between our observed accuracy rate and an expected accuracy rate. Anything over .4 is deemed by most sources as adequate, but it gets better as we approach 1. 
 
-*Mcnemar's test* is looking at the marginal values of the confusion matrix to see if they are significantly different. 
+*Mcnemar's test* is looking at the marginal values of the confusion matrix to see if they are significantly different (it is looking for associations, very much like a $\chi2$). 
 
 *Sensitivity* is the true positive rate.  We did not do too well. 
 
 *Specificity* is the true negative rate. We did a fine job here.
 
-Look at the help file for `confusionMatrix` for the calculations of everything.
+Look at the help file for `confusionMatrix` for the calculations of everything (or in the caret <a href="https://topepo.github.io/caret/measuring-performance.html#measures-for-predicted-classes">documentation</a>).
 
 # Artificial Neural Networks
 
-Artificial Neural Networks (ANN) are a major part of the artificial intelligence toolkit and for many good reasons.
+<a href="https://towardsdatascience.com/everything-you-need-to-know-about-neural-networks-and-backpropagation-machine-learning-made-easy-e5285bc2be3a">Artificial Neural Networks</a> (ANN) are a major part of the artificial intelligence toolkit and for many good reasons.
 
 ## Necessary Elements
 
@@ -264,9 +285,8 @@ There are 4 major necessary elements needed for an ANN:
 4.  It is a black box.
 
 <aside>
-The "articifical" is usually dropped, but it does help to distinguish it from the a biological perspective.
+The "articifical" is usually dropped, but it does help to distinguish it from the biological perspective.
 </aside>
-
 
 ## The Basics 
 
@@ -276,15 +296,75 @@ The set-up is the same as our typically classification problem: we have predicto
 
 This is what is known as a multilayer perceptron (MLP).
 
-In this MLP, an input vector will travel to the first hidden layer (i.e., the neuron), in which some calculation will be performed on that input -- this is known as the *activation function*. The activation function is split into two parts: a *combination function* and a *transfer function*. The combination function will combine the inputs into a single weighted input and the transfer function will transform the weighted values before outputting the variable into the next node. Each node is also going to receive a *bias* weight -- this is a constant weight applied to the all units in the layer, much in the way of a regression intercept beta. This process will continue until the values reach the output layer.
+In this MLP, an inputs (marked by yellow in the previous figure -- typically noted as *X*) will travel to the first hidden layer (i.e., the neuron -- marked in blue and is denoted as *W* or $\theta$), in which some calculation will be performed on that input -- this is known as the *activation function*. The activation function is split into two parts: a *combination function* and a *transfer function*. The combination function will combine (usually through a sum) the inputs into a single weighted input and the transfer function will transform the weighted values before outputting the variable into the next node. Each node is also going to receive a *bias* weight -- this is a constant weight applied to the all units in the layer, much in the way of a regression intercept beta. This process will continue until the values reach the output layer.
 
 It is worth paying some attention to the transfer function, as it can take many different forms. Some more common forms include step, linear, logistic, and hyperbolic functions. In any of these function, weighting is going to occur -- with the weighting, we should be sure to standardize our values or the largest values will dominate for many runs of the model. This notion of weighting goes hand in hand with the number of hidden layers. If our hidden layer becomes too wide, we will run the risk of overfitting the model (it will essentially learn the exact patterns found within the training data). In many cases, a single hidden layer with a hyperbolic transfer function can be enough to get reasonable results.
 
-ANNs have another interesting feature in that they learn from their mistakes (and they indeed know that they have made mistakes). When we reach the output from our first iteration, the model will examine the errors. our ANN does not really want errors beyond a certain magnitude, so it will take those errors and run them back through the layers to try to re-tune them; this is a process called backpropagation (the backward propagation of errors). It does this by adjusting the weights applied throughout the nodes. As our errors are backpropogated, the ANN will change a weight and see whether it increases or reduces the error -- it will seek to reduce the error, but not to eliminate the error (this would lead to overfitting!).
+### Typical Functions
+
+We are not lacking for activation functions, with many popular ones being easy defaults. No matter the function, the goal is always going to be deciding whether or not the node becomes activated or not (i.e., does the neuron fire or not). Step functions and linear functions work, but would cause some limitations. Instead, we should opt for some type of non-linear function. Furthermore, linear functions do not allow for learning to occur (since the weight values are a constant, there can be nothing to feed back to the optimization).
+
+#### Sigmoid
+
+A sigmoid function looks pretty familiar (remember back to logistic regression).
+
+$$S(x) = \frac{1}{1 + e^{-x}}$$
+
+```{r}
+sigmoid <- function(x) {
+  1 / (1 + exp(-x))
+}
+
+x <- seq(-5, 5, 0.01)
+
+plot(x, sigmoid(x))
+```
+
+These functions do not discretize anything, like a step function would. Instead, we get nicely bound values between 0 and 1. These functions also allow us to stack layers together, without values heading out towards infinity.
+
+#### Tangent Hyperbolic (Tanh)
+
+We can take our sigmoid function and scale it to produce a tanh function.
+
+$$\frac{2}{1+e^{-2x}} - 1$$
+
+Can be reduced to:
+
+$$2sigmoid(2x) - 1$$
+
+```{r}
+plot(x, tanh(x))
+```
+
+This function will produce outputs that are centered around 0.
+
+Both the sigmoid and tanh functions can cause a <a href="https://en.wikipedia.org/wiki/Vanishing_gradient_problem">vanishing gradient problem</a>. The vanishing gradient problem happens because of the space being compressed between 0 and 1 -- this can cause problems when a big sigmoid change causes a very small change in the output. As the *gradient* gets smaller, the weights stop changing. This will make a neural network stop learning.
+
+#### Rectified Linear Units (ReLU)
+
+ReLU serves as a really great default for many problems.
+
+$$A(x) = max(0, x)$$
+
+```{r}
+relu <- function(x) {
+  ifelse(x > 0, x, 0)
+}
+
+plot(x, relu(x))
+```
+
+Why would we ever want this type of function? In dense networks, the sigmoid and tanh functions can end up making everything fire. ReLu, on the other hand, won't activate if the values are below a certain level. As fewer nodes activate, the network gets more sparse -- this makes for an efficient learner.
+
+### Backprop
+
+ANNs have another interesting feature in that they learn from their mistakes (and they indeed know that they have made mistakes). When we reach the output from our first iteration, the model will examine the errors. Our ANN does not really want errors beyond a certain magnitude, so it will take those errors and run them back through the layers to try to re-tune them; this is a process called backpropagation (the backward propagation of errors). It does this by adjusting the weights applied throughout the nodes. As our errors are backpropogated, the ANN will change a weight and see whether it increases or reduces the error -- it will seek to reduce the error, but not to eliminate the error (this would lead to overfitting!). This is the idea behind the *cost* function (loss is the same thing and there is a shift towards using loss over cost). The goal is to provide some type of minimization to whatever our cost function might be (there are many different types of cost functions).
 
 This is a point, along with the previous point about the number of layers, is one that bears repeating. We want our ANN to be flexible to predicting new data; we do not want our ANN to learn everything about the training data. If your model underperforms on the test set, then you likely have overfit the ANN with too many hidden layers. 
 
-There are several different types of neural networks.
+There are several different types of neural networks and we are going to stick with this simple example for now, as it will work for most situations. When we start getting into images, we will see some of the other types of neural networks.
+
+For an in-depth treatment of the background calculations, <a href="https://arxiv.org/pdf/1802.01528.pdf">Parr and Howard</a> is tough to beat.
 
 ## Basics: In Action
 
@@ -305,11 +385,20 @@ results1 = predict(attritionFit, newdata = attritionTest)
 confusionMatrix(results1, attritionTest$Attrition)
 ```
 
+If you are unfamiliar with <a href="https://developers.google.com/machine-learning/crash-course/classification/roc-and-auc">ROC</a> (Receiver Operating Characteristic), it is typically depicted as a curve that helps to identify the sensitivity and specificity of a test (and the accuracy of a test). We tend to look at the area under the curve (AUC) -- it goes from 0 to 1 and we could think of anything over .8 being reasonable accuracy.
 
 ## On To Lyrics
 
+Our goal is to see if we can predict whether a row belongs to <a href="https://en.wikipedia.org/wiki/Frank_Zappa">Frank Zappa</a> or country music. 
+
+<aside>
+If you are interested, Frank Zappa was big into anti-censorship. His interviews from the 80's were great and his <a href="https://www.youtube.com/watch?reload=9&v=hgAF8Vu8G0w">testimony</a> in front of a Senate committee is worth a watch.
+</aside>
+
 ```{r, echo = TRUE}
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/textFeatures.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
 ```
 
 With our data loaded in, we need to determine the mix in proportions:
@@ -320,13 +409,9 @@ summary(as.factor(textFeatures$genre))
 
 We certainly have some class imbalance, but hopefully the flexibility of the ANN will shine through.
 
-With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 447 / 2363`% of the total data. If we want to train our model on 70% of the data, we can just take 80% from each class for training.
+With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 95 / (189+95)`% of the total data. 
 
 ```{r}
-zappaRows = which(textFeatures$genre == "zappa")
-
-countryRows = which(textFeatures$genre == "country")
-
 genre = ifelse(textFeatures$genre == "zappa", 1, 0)
 
 genre = as.factor(make.names(genre))
@@ -337,41 +422,46 @@ minMaxScale = function(x){
 
 scaledVars = textFeatures %>% 
   dplyr::select(-genre) %>% 
-  mutate_all(., funs(minMaxScale(.)))
+  mutate_all(., list(~ minMaxScale(.)))
 
 scaledData = cbind(genre, scaledVars)
 
 set.seed(1001)
 
-trainRows = c(sample(zappaRows, floor(length(zappaRows) * .7), replace = FALSE), 
-              sample(countryRows, floor(length(countryRows) * .7), replace = FALSE))
+trainRows <- rsample::initial_split(scaledData, prop = .7, strata = "genre")
 
-testingData = scaledData[-trainRows, ]
+testingData = rsample::testing(trainRows)
 
-trainingData = scaledData[trainRows, ]
+trainingData = rsample::training(trainRows)
 ```
 
 Now, we can train our model:
+
+<aside>
+You might notice the decay tuning parameter. This is the weight that gets applied to the nodes.
+</aside>
 
 ```{r}
 numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, 
                         verboseIter = FALSE, summaryFunction = twoClassSummary)
 
-fit2 = train(genre ~ ., data = trainingData, method = 'nnet', 
-              trControl = numFolds, trace = FALSE)
+nnGrid = expand.grid(size = c(1:3), decay = seq(0, 1, by = .1))
+
+fit2 = caret::train(genre ~ ., data = trainingData, method = 'nnet', 
+              trControl = numFolds, tuneGrid = nnGrid, trace = FALSE)
 
 # fit2 = train(genre ~ ., data = trainingData, method = 'mlpML',
 #               trControl = numFolds)
-
+# 
 # fit2 = train(genre ~ ., data = trainingData, method = 'mlpKerasDropout',
 #               trControl = numFolds)
 
-results1 = predict(fit2, newdata = trainingData)
+results1 = predict(fit2, newdata = testingData)
 
-confusionMatrix(results1, trainingData$genre)
+confusionMatrix(results1, testingData$genre)
 ```
 
-This is a very basic neural network and much has occurred in the NN space. 
+This is a very basic neural network and much has occurred in the NN space (this neural net is more along the lines of eating a few crackers before going to a very fancy meal). For such a basic model, though, it seems that we have done okay at best (especially given the data).
 
 For the sake of it, let's see how a Naive Bayes would have done...
 
@@ -385,14 +475,74 @@ searchGrid = expand.grid(usekernel = TRUE,
 
 nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
 
-nbAttritionTunedPCA = train(x = x, y = y,
+nbAttritionTuned = train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
   tuneGrid = searchGrid, preProc = c("center", "scale"))
 
-nbAttritionTunedPCA
+nbAttritionTuned
+
+nbPredict <- predict(nbAttritionTuned, newdata = testingData)
 
 # results
-confusionMatrix(nbAttritionTunedPCA)
+confusionMatrix(nbPredict, testingData$genre)
+
+stopCluster(cl)
 ```
 
 Not so good!
+
+### A Modern Approach
+
+The `caret` package is a classic, but it is not the state of the art (and never will be again). Max Kuhn works for RStudio and he has turned most of his attention to `tidymodels`. 
+
+Let's see how the exact same stuff works with `tidymodels`:
+
+```{r}
+# devtools::install_github("tidymodels/discrim")
+
+library(tidymodels)
+
+library(discrim)
+
+textFeatures$genre = ifelse(textFeatures$genre == "zappa", 1, 0)
+
+textFeatures$genre = as.factor(make.names(textFeatures$genre))
+
+minMaxScale = function(x){
+  (x - min(x)) / (max(x) - min(x))
+}
+
+data_split <- initial_split(textFeatures, strata = "genre", p = 0.85)
+
+genreTrain <- training(data_split)
+
+genreTest  <- testing(data_split)
+
+genreRec <- recipe(genre ~ ., data = genreTrain) %>%
+  step_mutate_at(all_predictors(), fn = ~ minMaxScale(.)) %>% 
+  step_mutate_at(all_predictors(), fn = ~ ifelse(is.nan(.), 0, .)) %>% 
+  # step_center(all_predictors(), -all_outcomes()) %>%
+  # step_scale(all_predictors(), -all_outcomes()) %>%
+  prep(retain = TRUE)
+
+testNormalized <- bake(genreRec, new_data = genreTest, all_predictors(), all_outcomes())
+
+modernNN <- parsnip::mlp(mode = "classification", hidden_units = 1, 
+                         penalty = 0) %>% 
+  set_engine("nnet") %>% 
+  fit(genre ~ ., data = juice(genreRec))
+
+test_results <- genreTest %>%
+  dplyr::select(genre) %>%
+  as_tibble() %>%
+  mutate(nnet_class = predict(modernNN, new_data = testNormalized) %>% 
+           pull(.pred_class),
+         nnet_prob  = predict(modernNN, new_data = testNormalized, type = "prob") %>% 
+           pull(.pred_X0))
+
+head(test_results)
+
+yardstick::metrics(test_results, truth = genre, estimate = nnet_class)
+```
+
+This is a marked shift from the `caret` method and will take some getting used to. However, the recipes steps and the ease with with parsnip models can be flipped around will make for much cleaner modeling.

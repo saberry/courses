@@ -119,19 +119,20 @@ attritionTest  = testing(split)
 
 svmTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
 
-nbAttrition = train(Attrition ~ ., data = attritionTrain,
+svmAttrition = train(Attrition ~ ., data = attritionTrain,
   method = "svmLinear", trControl = svmTrainControl, metric = "Accuracy")
-
-nbAttrition
 ```
 
-We see that we have a tuning parameter called `C` (Cost). Remember the planes that we drew earlier, where the goal was to correctly classify and maximize the margins? We cannot always do both in reality and the `C` parameter indicates which we prefer. Higher C values will push us towards *c*orrect classification over maximizing the margins. It essentially serves as a regularization parameter. The values that the `C` parameter can be very small (think .000001) to very large (1000). 
+We see that we have a tuning parameter called `C` (Cost). Remember the planes that we drew earlier, where the goal was to correctly classify and maximize the margins? We cannot always do both in reality and the `C` parameter indicates which we prefer. Higher C values will push us towards *c*orrect classification over maximizing the margins. When `C` is low, we are not penalizing points that are inside of the margin. It essentially serves as a regularization parameter. The values that the `C` parameter can be very small (think .000001) to very large (1000). 
 
 ```{r}
 svmAttrition = train(Attrition ~ ., data = attritionTrain,
   method = "svmLinear", trControl = svmTrainControl, 
   tuneGrid = data.frame(C = c(.001, .1, .5, 1, 5, 10, 100)), 
   metric = "Accuracy", preProc = c("center", "scale"))
+
+ggplot(svmAttrition) +
+  theme_minimal()
 ```
 
 A `C` parameter of .1 tends to get us the best accuracy, but they are all pretty close to each other.
@@ -155,9 +156,9 @@ confusionMatrix(svmAttritionTest, attritionTest$Attrition)
 
 I think it is fair to say that this model performed better than our simple neural network and our Naive Bayes. 
 
-What about the lyrics?
+What about the lyrics? Spend some time seeing how SVM might work with the `textFeatures` data we saw last time.
 
-```{r}
+```{r, eval = FALSE, echo = FALSE}
 if(Sys.info()["sysname"] == "Darwin") {
   load("~/courses/unstructured/data/textFeatures.RData")
 } else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")

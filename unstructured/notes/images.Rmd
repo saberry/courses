@@ -1,7 +1,7 @@
 ---
 title: "Images"
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
@@ -128,7 +128,7 @@ library(spatstat)
 
 shpFile = raster::shapefile(x = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
 
-window = as.owin(W = shpFile)
+window = as.owin(W = SpatialPolygons(shpFile@polygons))
 
 allPPP = ppp(x = latLonOnly$x, y = latLonOnly$y, 
                 window = window)
@@ -167,7 +167,7 @@ jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data
 longImage = reshape2::melt(jason)
   
 rgbImage = reshape(longImage, timevar = "Var3",
-                      idvar = c("Var1", "Var2"), direction = "wide")
+                      idvar = c("Var1", "Var2"), direction = "wide") # That is stats::reshape()!
 
 rgbImage = rgbImage %>% 
   mutate(Var1 = rev(Var1), 
@@ -217,8 +217,8 @@ gb_im = init_gb$gabor_feature_extraction(image = jasonSmall, scales = 5, orienta
                                           gabor_columns = 39, plot_data = TRUE, 
                                           normalize_features = FALSE, threads = 3)
 
-# init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
-#                             margin_btw_plots = 0.65, thresholding = TRUE)
+init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
+                            margin_btw_plots = 0.65, thresholding = TRUE)
 ```
 
 While this is a bit of a mess, you could try it with the *giraffe* image.

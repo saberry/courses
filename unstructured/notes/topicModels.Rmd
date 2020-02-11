@@ -46,7 +46,9 @@ library(tm)
 
 library(textstem)
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/allLyricsDF.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
 
 # load("D:/projects/courses/unstructured/data/allLyricsDF.RData")
 
@@ -117,20 +119,120 @@ The `lyricsTDM` object that we created can be easily explored like we would any 
 
 If we just look at the information, though, we can see that we are dealing in very sparse space (99% sparse). This means that most words are not in most documents -- sparsity is incredibly common in data. To solve the problem of sparsity, we need to perform some dimension reduction on our matrix (you will often here this referred to as *rank reduction*). Our dimension reduction, in this case, can work well because we are really trying to find words that belong to the same topic; for example, "car" and "truck" would reduce down to the same topic space.
 
-How does this dimension reduction happen in LSA? It happens with singular value decomposition (SVD). SVD is but one of many forms of matrix factorization (we will see another soon) that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
+### A Dive Into Linear Algebra
+
+At the root of everything, we are going to be dealing with linear algebra (and optimization). Let's play around with eigenvalues. 
+
+Let's define a small matrix called *A*:
+
+```{r}
+Amatrix <- matrix(c(1, 3, 4, 5), nrow = 2, ncol = 2)
+
+Amatrix
+```
+
+With that matrix, we might want to find two pieces of information: eigenvectors and eigenvalues. 
+
+An eigenvector is a special value that can perform a linear transformation to a matrix; an eigenvalue is the value that scales the eigenvector. You can conceptualize it by thinking that an eigenvector provides the direction to scale a matrix and the eigenvalue is the strength of the scale. We can find the eigenvalues and eigenvectors as follows:
+
+$$Av = \lambda v$$
+Where $v$ is the eigenvector and $\delta$ is the eigenvalue.
+
+We can shuffle this equation around as follows:
+
+$$Av - \lambda v = 0$$
+
+As this is, we cannot factor this down any more. Remember that *A* is a matrix and $\delta$ is a single value, so we really can't do much more. We can, however, make a substition with the identity matrix
+
+$$Av - \lambda v = Av - \lambda I v$$
+
+<aside>
+An identity matrix is the same size as the original matrix, with 1's on the diagonal and 0's elsewhere.
+</aside>
+
+With that identity matrix in there, we can reduce this to:
+
+$$(A - \lambda I)v = 0$$
+
+To begin solving this more, we need to find the determinant (it finds the inverse of any matrix). The determinant for a 2x2 matrix is found as follows:
+
+```{r}
+matrix(c("a", "c", "b", "d"), nrow = 2, ncol = 2)
+```
+
+$$|A| = ad - bc$$
+
+So in our aMatrix, we would have:
+
+```{r}
+1*5 - 4*3
+
+det(Amatrix)
+```
+
+To solve $(A - \lambda I)$, we get the following:
+
+$$
+\begin{pmatrix}
+1 & 4 \\
+3 & 5
+\end{pmatrix} - \lambda
+\begin{pmatrix}
+1 & 0 \\
+0 & 1
+\end{pmatrix}
+$$
+
+Which goes to:
+
+$$
+\begin{pmatrix}
+1 & 4 \\
+3 & 5
+\end{pmatrix} - 
+\begin{pmatrix}
+\lambda & 0 \\
+0 & \lambda
+\end{pmatrix}
+$$
+And then:
+
+$$
+\begin{pmatrix}
+1 - \lambda & 4 \\
+3 & 5 - \lambda
+\end{pmatrix} 
+$$
+
+So to find the determinant of this matrix, we have:
+
+$$det(A − \lambda I) = (1 − \lambda)(5 − \lambda) − (4 * 3)$$
+
+And solving that equation will get us:
+
+$$−7 − 6 \lambda + \lambda^2$$
+
+To produce a quadratic equation:
+
+$$\lambda^2  - 6 \lambda − 7$$
+
+Which solves to -1 and 7: our eigenvalues!
+
+
+All that, just to do the following:
+
+```{r}
+eigen(Amatrix)
+```
+
+
+How does this dimension reduction happen in LSA? It happens with singular value decomposition (SVD). The eigen decomposition that we just saw is a major component of SVD; SVD is but one of many forms of matrix factorization (we will see another soon) that will take a matrix (like the one we have) and break it down into 3 component matrices: $M=U*S*V$. The *S* is where SVD gets its name because it is a diagonal matrix of the singular values of *M* -- these are scaling values. The *U* matrix is the matrix of the columns and the *V* matrix is the matrix of the rows. If we take the dot product (matrix multiplication) of these 3 matrices, we can get the original matrix back. While getting the original matrix back is good, we are want to reduce our dimensionality by specifying the number of topics that we select. When we decide upon a topic number, we are only keeping that number of columns within the *S* matrix. In effect, we are cutting out the lowest weights within the *S* matrix and the ensuing multiplication will provide a best fit matrix.
 
 For a great run down of SVD (and the steps that come before), here is a great <a href="https://davetang.org/file/Singular_Value_Decomposition_Tutorial.pdf">demonstration</a>.
 
-```{r}
-aMatrix <- matrix(c(3, 2, 2, 2, 3, -2), ncol = 3, nrow = 2)
+Here is another <a href="https://web.mit.edu/be.400/www/SVD/Singular_Value_Decomposition.htm">SVD</a> by hand demonstration.
 
-aMatrix
-```
-
-```{r}
-aaT <- aMatrix %*% t(aMatrix)
-```
-
+For a little more expanded understanding of LSA, here is a great <a href="http://lsa.colorado.edu/papers/dp1.LSAintro.pdf">document</a>.
 
 <aside>
 Diving into SVD isn't beyond us, we just need to keep moving along. It is definitely worth looking at a little more if you ever need to perform rank reduction on a matrix.
@@ -177,7 +279,7 @@ associate(lyricsSpace, "drink", threshold = .3)
 
 ## Non-negative Matrix Factorization
 
-Latent semantic analysis works and it is a great first step towards topic models; however, it is not really anything approaching state of the art. At this point there are other techniques that are far superior and one of those techniques is non-negative matrix factorization (NNMF or NMF). Some of the basic set-up remains the same: we have a sparse matrix and we need to reduce the dimensionality of our matrix by somehow breaking the original matrix down into different components. 
+Latent semantic analysis works and it is a great first step towards topic models; however, it is not really anything approaching state of the art. At this point there are other techniques that are far superior and one of those techniques is <a href="https://mlexplained.com/2017/12/28/a-practical-introduction-to-nmf-nonnegative-matrix-factorization/">non-negative matrix factorization</a> (NNMF or NMF). Some of the basic set-up remains the same: we have a sparse matrix and we need to reduce the dimensionality of our matrix by somehow breaking the original matrix down into different components. 
 
 NNMF works as follows:
 
@@ -194,6 +296,8 @@ NNMF works as follows:
 Since our data is already prepped, we can just pass our TDM right into the `nmf` function...in theory.
 
 In reality, though, we need to add a small constant to our matrix. Why? The *k*-means that is being implemented on the backend of `nmf` will have some issues with all of those 0's; in other words, it will handle a smaller sparse matrix, not a bigger sparse matrix. It is not big deal to add this small constant.
+
+Here is an <a href="https://www.cs.rochester.edu/u/jliu/CSC-576/NMF-tutorial.pdf">in-depth treatment of nmf</a>.
 
 ```{r}
 library(tibble)
@@ -223,9 +327,11 @@ save(lyricsNNMF, file = "C:/Users/sberry5/Documents/teaching/courses/unstructure
 After waiting, we can finally start to see what words belong to what topics.
 
 ```{r}
-# load("D:/projects/courses/unstructured/data/nnmfOut.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/nnmfOut.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/nnmfOut.RData")
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/nnmfOut.RData")
+
 
 library(NMF)
 
@@ -254,9 +360,13 @@ rownames(wMatrix[lyricFeatures[[1]], ])
 
 LSA is the godfather of topic models and non-negative matrix factorization is a useful tool that we will see again (it is great for working with images and has great extensions to factor analysis). For topic models, though, the current state of the art is some variation of latent dirichlet allocation (LDA).
 
-Let's start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling.
+Let's start with a brief demonstration of a standard latent dirichlet allocation (LDA) for topic modeling. A main point to take here is that the main driver of LDA is the dirichlet distribution. You can think of the dirichlet distribution as a multivariate beta distribution (many possible categories, with probabilities of belonging to the category being between 0 and 1).
 
-Suffice it to say, one can approach this in (at least) one of two ways. In one sense, LDA is a dimension reduction technique, much like the family of techniques that includes PCA, factor analysis, non-negative matrix factorization, etc. We will take a whole lot of terms, loosely defined, and boil them down to a few topics. In this sense, LDA is akin to discrete PCA. Another way to think about this is more from the perspective of factor analysis, where we are keenly interested in interpretation of the result, and want to know both what terms are associated with which topics, and what documents are more likely to present which topics. The following is the plate diagram and description for standard LDA from Blei, Jordan, and Ng (2003).
+Suffice it to say, one can approach this in (at least) one of two ways. In one sense, LDA is a dimension reduction technique, much like the family of techniques that includes PCA, factor analysis, non-negative matrix factorization, etc. We will take a whole lot of terms, loosely defined, and boil them down to a few topics. In this sense, LDA is akin to discrete PCA. Another way to think about this is more from the perspective of factor analysis, where we are keenly interested in interpretation of the result, and want to know both what terms are associated with which topics, and what documents are more likely to present which topics. The following is the plate diagram and description for standard LDA from <a href="http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf">Blei, Jordan, and Ng (2003)</a>.
+
+<aside>
+Look at the citation count on that paper!
+</aside>
 
 ![](bleiPlate.png)
 
@@ -268,6 +378,8 @@ Suffice it to say, one can approach this in (at least) one of two ways. In one s
 - $w_{mn}$ is the specific word
 
 Both *z* and *w* are from a multinomial draw based on the $\theta$ and $\beta$ distributions respectively. The key idea is that, to produce a given document, one draws a topic, and given the topic, words are drawn from it.
+
+Here is Blei's classic, short <a href="http://www.cs.columbia.edu/~blei/papers/Blei2012.pdf">introduction</a> to probablistic topic models.
 
 ## Topic Probabilities
 
@@ -382,6 +494,7 @@ Now with some theory under our belt, we can take a look at analyzing real data.
 
 Just like our sentiment analysis, there is a fair chunk of cleaning to do. The `textProcessor` function would do a lot of work for us, but we don't really need it to do as much since we already created a pretty clean object. We are, however, going to randomly remove some observations from our data (if the reasons are not obvious now, they will be soon). 
 
+We are going to be constructing what are called <a href="https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf">structural topic models</a>.
 
 ```{r}
 library(stm)
@@ -401,9 +514,6 @@ lyricPrep = prepDocuments(documents = lyricText$documents,
 
 The stm package has some pretty nice facilities for determining a number of topics:
 
-
-
-
 ```{r, eval=FALSE}
 kTest = searchK(documents = lyricPrep$documents, 
              vocab = lyricPrep$vocab, 
@@ -413,12 +523,14 @@ plot(kTest)
 ```
 
 ```{r, echo = FALSE}
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/kTest.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/kTest.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/kTest.RData")
 
 plot(kTest)
 ```
 
-The 4 plots that are returned are going to try to help us determine the best number of topics to take. I like to focus on semantic coherence (how well the words hang together) and the residuals. We want to have low residual and high semantic coherence. The residuals definitely take a sharp dive as we increase K. If we consider one of the major assumptions of LDA, we could almost always guess that we would need a great number of topics (i.e., if every topic that has ever existed, existed before writing, then we could have a huge numebr of topics). Our coherence seems to do pretty well with some of the lower numbers (not entirely surprising). With all of these together, we can settle on 5 topics for our subsequent analyses. 
+The 4 plots that are returned are going to try to help us determine the best number of topics to take. I like to focus on semantic coherence (how well the words hang together -- computed from taking a conditional probability score from frequent words) and the residuals. We want to have low residual and high semantic coherence. The residuals definitely take a sharp dive as we increase K. If we consider one of the major assumptions of LDA, we could almost always guess that we would need a great number of topics (i.e., if every topic that has ever existed, existed before writing, then we could have a huge numebr of topics). Our coherence seems to do pretty well with some of the lower numbers (not entirely surprising); coherence is essentially a measure of human interpretability. With all of these together, we can settle on 5 topics for our subsequent analyses. Just for your information, held-out likelihood can be characterized by how surprised the model would be with new words (it is often called perplexity). Lower bound relates to the lower bound of the marginal likelihood.
 
 It is worthwhile to note that we can also do model selection with the stm package, but that is some work that will be best done if you want some additional playtime.
 
@@ -444,7 +556,7 @@ This is great, but it is really fun to see what emerges from the topics.
 labelTopics(topics5)
 ```
 
-Let's focus on the frex words (they occur *fr*equently within the topic and are *ex*clusive to that topic) and the highest probability words (i.e., the words that have the highest probability of occuring within that topic). The Lift and Score words (just a few different ways of weighting occurance) can be useful, but are a bit less intuitive than the other two. Let's put some names to the topics. 
+Let's focus on the frex words (they occur *fr*equently within the topic and are *ex*clusive to that topic) and the highest probability words (i.e., the words that have the highest probability of occuring within that topic). The Lift (calculated by dividing by frequencies in other topics) and Score (uses log frequencies) words can be useful, but are a bit less intuitive than the other two --  they are really there to give an idea about how common the words are in comparison to how common they are in other topics. Let's put some names to the topics. 
 
 We can look at lyrics that have a high probability of being associated with each topic:
 

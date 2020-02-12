@@ -33,11 +33,8 @@ library(rgdal)
 
 library(sp)
 
-shpFile = readOGR(dsn = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp",
+shpFile = readOGR(dsn = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp",
                   stringsAsFactors = FALSE)
-
-# shpFile = readOGR(dsn = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp", 
-#                   stringsAsFactors = FALSE)
 
 latLon = spTransform(shpFile, CRS("+proj=longlat +datum=WGS84"))
 
@@ -49,10 +46,9 @@ leaflet(latLon) %>%
 
 ## Point Pattern Analysis
 
-With so much focus on creating clickable maps, we should focus some attention on actual analyses of those maps. One way we can do this is by using *Point Pattern Analysis* (PPA). PPA comes in many different forms, but we are ultimately going to end up testing if our data has Complete Spatial Randomness (CSR) or if it is distributed in some other way (uniform/regular or clustered).  In PPA, we view CSR as being the null hypothesis.
+With so much focus on creating clickable maps, we should focus some attention on actual analyses of those maps. One way we can do this is by using <a href="https://mgimond.github.io/Spatial/point-pattern-analysis.html">*Point Pattern Analysis*</a> (PPA). PPA comes in many different forms, but we are ultimately going to end up testing if our data has Complete Spatial Randomness (CSR) or if it is distributed in some other way (uniform/regular or clustered).  In PPA, we view CSR as being the null hypothesis.
 
 In PPA, we are not looking at the frequency with which a point occurs.  Instead, we are only looking for a point's presence and where it is in space compared to other points.  The figure below contains all of homes marked for destruction, the geographic mean, and an ellipse that captures the standard distance deviation of the houses. The ellipses give us a good idea of how the points are distributed.  If our points were distributed in a different manner, the "deviation ellipses" would give us an idea of shape and direction. 
-
 
 ```{r}
 latLonOnly = lapply(1:length(shpFile@polygons), function(x) {
@@ -112,7 +108,6 @@ plotrix::draw.ellipse(meanCenterX, meanCenterY, a = stDevX, b = stDevY, border =
 
 ```
 
-
 Recall that we are only looking at the presence of the points in the PPA, not the number of points at a location.  We are only concerned that a house has a point, not that there are any number of points there.  Within the PPA perspective, this makes intuitive sense.  Things are rarely stacked on top of each other in nature (single-family homes, trees, beaver dams), so PPA does not deal with stacked points.
 
 ### Intensity
@@ -126,7 +121,7 @@ library(maptools)
 
 library(spatstat)
 
-shpFile = raster::shapefile(x = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
+shpFile = raster::shapefile(x = "D:/projects/courses/unstructured/data/Active_Demolition_Orders/Active_Demolition_Orders.shp")
 
 window = as.owin(W = SpatialPolygons(shpFile@polygons))
 
@@ -162,7 +157,7 @@ library(dplyr)
 
 library(OpenImageR)
 
-jason = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png")
+jason = readImage("D:/projects/courses/unstructured/data/f13JV.png")
 
 longImage = reshape2::melt(jason)
   
@@ -182,30 +177,30 @@ forestMean = apply(forestOnly[, 3:5], 2, mean)
 
 forestSD = apply(forestOnly[, 3:5], 2, sd)
 
-colorZ = sweep(rgbImage[, 3:5], 2, forestMean, "-")
+colorZ = sweep(rgbImage[, 3:5], 2, forestMean, "-") # Old school rowwise functions
 
 colorZ = sweep(colorZ, 2, forestSD, "/")
 
-plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 4), 
+plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 1.5), 
      asp = 1, pch = ".")
 ```
 
-You might want to try this with the *boats* image.
+You might want to try this with the *weed* or *boat* image.
 
 # Feature Extraction
 
-We saw a little bit about feature extraction when looking at the data for the letter. Feature extraction is an important point that we will elaborate more on next time.
+We saw a little bit about <a href="http://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/TRAPP1/filter.html">feature extraction</a> when looking at the data for the letter. Feature extraction is an important point that we will elaborate more on next time.
 
 ```{r}
 library(magick)
 
-image_read("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png") %>% 
+image_read("D:/projects/courses/unstructured/data/f13JV.png") %>% 
   image_resize("200") %>%
   image_convert(type = "Grayscale", colorspace = "gray") %>% 
-  image_write(format = "png", path = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/jasonSmall.png", 
+  image_write(format = "png", path = "D:/projects/courses/unstructured/data/jasonSmall.png", 
               density = "300x300", quality = 100)
 
-jasonSmall = readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/jasonSmall.png")
+jasonSmall = readImage("D:/projects/courses/unstructured/data/jasonSmall.png")
 
 jasonSmall = base::matrix(jasonSmall, nrow = 83, ncol = 200)
 
@@ -223,32 +218,37 @@ init_gb$plot_gabor(real_matrices = gb_im$gabor_features_real,
 
 While this is a bit of a mess, you could try it with the *giraffe* image.
 
-
 # Image Identifcation
 
 *You Only Look Once* image identification is an increasingly-popular technique because of its speed. Instead of using really deep neural networks to transverse an image, YOLO looks at the entire image, imposes a grid, and starts creating bounding boxes with some probability of being an object.
 
-These are also fast because we are dealing with pretrained models -- *tiny yolo* is an existing model and we can use already established *Visual Object Classes* for the weights.
+These are also fast because we are dealing with pretrained models -- *tiny yolo* is an existing model and we can use already established *Visual Object Classes* for the weights. You might also encounter YOLO COCO (You Only Look Once, Common Objects in COntext). These are for real-time object identification.
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 library(image.darknet)
 
-yoloVOC = image_darknet_model(type = "classify", 
-                                     model = "tiny-yolo-voc.cfg", 
-                                     weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
-                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+model <- system.file(package = "image.darknet", "include", "darknet", "cfg", "tiny.cfg")
 
-jasonClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
-                          object = yoloVOC, top = 10)
+weights <- system.file(package = "image.darknet", "models", "tiny.weights")
 
-jasonClassifcation
+f <- system.file(package="image.darknet", "include", "darknet", "data", "imagenet.shortnames.list")
+
+labels <- readLines(f)
+
+darknet_tiny <- image_darknet_model(type = 'classify', 
+                                    model = model, weights = weights, labels = labels)
+
+x <- image_darknet_classify(file = "D:/projects/courses/unstructured/data/f13JV.png", 
+                            object = darknet_tiny)
+
+x
 
 yoloVOCDetect = image_darknet_model(type = "detect", 
-                                     model = "tiny-yolo-voc.cfg", 
-                                     weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
-                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+                                     model = "tiny.cfg", 
+                                     weights = system.file(package="image.darknet", "models", "tiny.weights"), 
+                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "imagenet.shortnames.list"))
 
-jasonDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
+jasonDetect = image_darknet_detect(file = "D:/projects/courses/unstructured/data/f13JV.png", 
                           object = yoloVOCDetect, threshold = .001)
 ```
 
@@ -256,42 +256,14 @@ jasonDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/c
 If we were using computer vision to detect this specific thing, we might not fair too well. We can try some different models -- these can be downloaded <a href="https://pjreddie.com/darknet/imagenet/">here</a>.
 
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 yoloVOC = image_darknet_model(type = "classify", 
                               model = "darknet19.cfg", 
                               weights = system.file(package="image.darknet", "models", "darknet19_448.weights"), 
-                              labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
+                              labels = system.file(package="image.darknet", "include", 'darknet', "data", "imagenet.shortnames.list"))
 
-jasonClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
-                                            object = yoloVOC, top = 10)
+jasonClassifcation = image_darknet_classify(file = "D:/projects/courses/unstructured/data/f13JV.png", 
+                                            object = yoloVOC)
 
 jasonClassifcation
-
-yoloVOCDetect = image_darknet_model(type = "detect", 
-                                    model = "darknet19.cfg", 
-                                    weights = system.file(package="image.darknet", "models", "darknet19_448.weights"), 
-                                    labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
-
-jasonDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/f13JV.png", 
-                                   object = yoloVOCDetect, threshold = .01)
-```
-
-Still not too good, so let's find something easier:
-
-```{r, eval = FALSE}
-yoloVOC = image_darknet_model(type = "classify", 
-                                     model = "darknet19.cfg", 
-                                     weights = system.file(package="image.darknet", "models", "darknet19.weights"), 
-                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
-
-animalClassifcation = image_darknet_classify(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/giraffe.jpg", 
-                          object = yoloVOC, top = 10)
-
-yoloVOCDetect = image_darknet_model(type = "detect", 
-                                     model = "darknet.cfg", 
-                                     weights = system.file(package="image.darknet", "models", "tiny-yolo-voc.weights"), 
-                                     labels = system.file(package="image.darknet", "include", 'darknet', "data", "voc.names"))
-
-animalDetect = image_darknet_detect(file = "C:/Users/sberry5/Documents/teaching/courses/unstructured/data/giraffe.jpg", 
-                          object = yoloVOCDetect, threshold = .001)
 ```

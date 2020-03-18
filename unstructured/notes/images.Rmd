@@ -190,6 +190,36 @@ plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 4),
      asp = 1, pch = ".")
 ```
 
+```{r}
+weed <- readImage("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/")
+
+longImage = reshape2::melt(weed)
+  
+rgbImage = reshape(longImage, timevar = "Var3",
+                      idvar = c("Var1", "Var2"), direction = "wide")
+
+rgbImage = rgbImage %>% 
+  mutate(Var1 = rev(Var1), 
+         var2 = rev(Var2))
+
+plot(rgbImage$Var2, rgbImage$Var1, col = rgb(rgbImage[, 3:5]), 
+     asp = 1, pch = ".")
+
+cornOnly = rgbImage[rgbImage$Var2 < 50, ]
+
+cornMean = apply(cornOnly[, 3:5], 2, mean)
+
+cornSD = apply(cornOnly[, 3:5], 2, sd)
+
+colorZ = sweep(rgbImage[, 3:5], 2, cornMean, "-")
+
+colorZ = sweep(colorZ, 2, cornSD, "/")
+
+plot(rgbImage$Var2, rgbImage$Var1, col = rgb(colorZ > 2), 
+     asp = 1, pch = ".")
+```
+
+
 You might want to try this with the *boats* image.
 
 # Feature Extraction

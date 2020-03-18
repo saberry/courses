@@ -1,176 +1,81 @@
 ---
-title: "Text Analysis"
+title: "Lab 2"
 description: |
-  Lab 2
+  Images To Data
 output:
-  radix::radix_article:
+  distill::distill_article:
     toc: true
     toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Expanded Functions of Topic Models
+# Extracting Data From Images (A Handy Aside)
 
-Topic models can be extended to include covariates. If we add a variable to the prevalence argument, we are examining how another variable might predict the probability of a topic occuring within a document.
+Something that you might have to do at some point. It would take some work, but can definitely be done. 
 
+NOTE: You do not need to do anything with this -- it is purely for demonstration.
 
 ```{r}
 library(dplyr)
+library(ggplot2)
+library(magick)
 
-library(stm)
+sotuImage <- image_read("unstructured/notes/reading-level-state-of-the-union.png")
 
-library(stringr)
+imageOut <- image_channel(sotuImage, "saturation") %>% 
+  image_threshold("black", "05%") %>% 
+  image_negate()  
 
-library(tm)
+imageData <- image_data(imageOut)[1, , ] %>%
+  as.data.frame() %>% 
+  mutate(Row = 1:nrow(.)) %>%
+  select(Row, everything()) %>%
+  mutate_all(as.character) %>%
+  tidyr::pivot_longer(cols = starts_with("V")) %>%
+  mutate(name = as.numeric(gsub("V", "", name)),
+         Row = as.numeric(Row),
+         value = ifelse(value == "00", NA, 1)) %>%
+  filter(!is.na(value))
 
-library(textstem)
-
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
-
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/countryTop50.RData")
-
-allTop50 = allTop50 %>% 
-  group_by(song) %>% 
-  slice(1)
-
-hardRemove = c(34, 78, 91, 94, 107, 136, 150, 202, 210, 213, 222, 229, 232, 
-               239, 245, 248, 268, 276, 277, 284, 285, 291, 309, 310, 356, 
-               403, 419, 424, 425, 460, 467, 482, 490, 497, 519, 532, 545, 
-               555, 585, 586, 616, 639, 642, 648, 653, 654, 658, 682, 704, 
-               705, 719, 722, 760, 780, 794, 795, 802, 832, 836, 851, 867, 
-               872, 878, 891, 921, 924, 931, 944, 972, 985, 995, 1026, 1029, 
-               1032, 1041, 1042, 1063, 1101, 1102, 1111, 1115, 1121, 1124,
-               1126, 1128, 1144, 1145, 1158, 1166, 1172, 1175, 1186, 1202, 
-               1204, 1209, 1211, 1215, 1218, 1225, 1240, 1251, 1256, 1257, 
-               1272, 1287, 1311, 1316, 1326, 1327, 1342, 1361, 1421, 1462, 
-               1493, 1534, 1584, 1609, 1627, 1629, 1635, 1638, 1649, 1667, 
-               1676, 1679, 1690, 1696, 1707, 1710, 1717, 1720, 1755, 1758, 
-               1760, 1780, 1786, 1788, 1798, 1805, 1847, 1855, 1858, 1861, 
-               1866, 1882, 1895, 1918, 1929, 1946, 1952, 1994, 2000, 2011, 
-               2017, 2018, 2019, 2027, 2032, 2039, 2055, 2069, 2143, 2164, 
-               2193, 2200, 2201, 2204, 2246, 2254, 2285, 2303, 2318, 2334,
-               2347, 2373, 2383, 2395, 2397, 2401, 2402, 2406, 2434, 2443,
-               2459, 2469, 2472, 2475, 2499, 2507, 2527, 2534, 2540, 2563,
-               2564, 2566, 2570, 2572, 2597, 2604, 2632, 2638, 2655, 2661,
-               2666, 2685, 2696, 2719, 2721, 2724, 2729, 2736, 2740, 2754,
-               2764, 2767, 2768, 2771, 2803, 2843, 2877, 2903, 2905, 2913, 
-               2944, 2951, 2969, 2972, 2978, 2995, 3016, 3041, 3043, 3048, 3092)
-
-cleanLyrics = allLyricsDF[-c(hardRemove)] %>%
-  filter(warningIndicator == 0) %>% 
-  dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
-  mutate(text = as.character(lyrics), 
-         text = str_replace_all(text, "\n", " "),   
-         text = str_replace_all(text, "(\\[.*?\\])", ""),
-         text = str_squish(text), 
-         text = gsub("([a-z])([A-Z])", "\\1 \\2", text), 
-         text = tolower(text), 
-         text = removeWords(text, c("’", stopwords(kind = "en"))), 
-         text = removePunctuation(text), 
-         text = removeNumbers(text),
-         text = lemmatize_strings(text), 
-         doc_id = returnedSong, 
-         author = returnedArtistName) %>% 
-  select(doc_id, text, author)
-
-cleanLyrics = left_join(cleanLyrics, allTop50, by = c("doc_id" = "song"))
-
-# To make things easier on the model side, we can just drop our NAs for now.
-
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/countryTop50.RData")
-
-cleanLyrics = na.omit(cleanLyrics)
-
-cleanLyrics = cleanLyrics %>% 
-  mutate(year = lubridate::year(date))
-
-lyricText = textProcessor(documents = cleanLyrics$text, 
-                          metadata = cleanLyrics, 
-                          stem = FALSE)
-
-lyricPrep = prepDocuments(documents = lyricText$documents, 
-                               vocab = lyricText$vocab,
-                               meta = lyricText$meta)
-
-set.seed(1001)
-
-topicPredictor = stm(documents = lyricPrep$documents, 
-             vocab = lyricPrep$vocab, prevalence = ~ year,
-             data = lyricPrep$meta, K = 5, verbose = FALSE, seed = 1001)
-
-# If significant, overdispersion is a problem and more topics might be needed!
-
-checkResiduals(topicPredictor, documents = lyricPrep$documents)
-
-labelTopics(topicPredictor)
+ggplot(imageData, aes(Row, name)) +
+  geom_point()
 ```
 
-Let's look at the correlations between topics:
+# Reading PDF To Text
+
+Getting data out of a pdf can seem like a daunting task. The `pdftools` and `tabulizer` packages can come to the rescue whenever we are presented with pdf. While `tabulizer` is best used for extracting tables out of pdf files, `pdftools` can handle most text-based situations.
+
+## Trying Tabulizer
+
+Just as an exercise, try to use `tabulizer` to read the tables in the St. Joe County file. Do note that this can cause weird issues for Macs -- it should not be too big of a hassle on a Windows machine. This is here so that you can see it; I do not want you wasting a ton of time trying to troubleshoot this (especially if you are using a Mac). 
 
 ```{r}
-plot.topicCorr(topicCorr(topicPredictor))
+dyn.load('/Library/Java/JavaVirtualMachines/openjdk-13.0.1.jdk/Contents/Home/lib/server/libjvm.dylib')
+
+library(tabulizer)
+
+tabulizer::extract_tables("https://www.in.gov/dlgf/files/PropertyTaxManualCodeLists.pdf")
 ```
 
-Not terribly surprising.
+## Extracting Text
 
+What should offer more success, though, is extracting text from the following two pdf files:
 
-With our new model, we can actually test the effect of year on topic.
+`Trial-Memorandum-of-President-Donald-J.-Trump.pdf`
+
+`in_re_president_trump_house_impeachment_trial_brief_and_sof_1.18.20.pdf`
+
+DO NOT READ THESE! Instead read both of these files in and produce some text descriptives (e.g., word frequency tables, wordclouds). Try to determine the goal of each document and maybe even the composing group.
 
 ```{r}
-set.seed(1001)
+library(magick)
+library(tesseract)
+library(pdftools)
 
-yearEffect = estimateEffect(1:5 ~ year, stmobj = topicPredictor, 
-               metadata = lyricPrep$meta)
-
-summary(yearEffect, topics = c(1:5))
-
-plot.estimateEffect(yearEffect, "year", method = "continuous", 
-                    model = topicPredictor, topics = 1, labeltype = "frex")
-
-plot.estimateEffect(yearEffect, "year", method = "continuous", 
-                    model = topicPredictor, topics = 2, labeltype = "frex")
-
-plot.estimateEffect(yearEffect, "year", method = "continuous", 
-                    model = topicPredictor, topics = 3, labeltype = "frex")
-
-plot.estimateEffect(yearEffect, "year", method = "continuous", 
-                    model = topicPredictor, topics = 4, labeltype = "frex")
-
-plot.estimateEffect(yearEffect, "year", method = "continuous", 
-                    model = topicPredictor, topics = 5, labeltype = "frex")
+writtenstatement <- pdf_text("/Users/sethberry/Downloads/Trial-Memorandum-of-President-Donald-J.-Trump.pdf")
 ```
 
-Absolutely amazing! As the years go by, we see an increase in party country and nostalgia, and a sharp decrease in sad love! I hate to say it, but maybe my sister-in-law is right -- country is changing.
-
-We can add additional information to our models: content. What we get here is a better understanding about how people use language within a topic differently.
-
-It should be noted that this will be a completely different model than what we had before. For these content-based models, we are saying that there is some difference between our content covariate with how words are used in topics, so our model will try to find the base words and then which words are used for the different levels of our content.
-
-```{r, echo=FALSE}
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/topicContent.RData")
-```
-
-
-```{r, eval = FALSE}
-topicContent = stm(documents = lyricPrep$documents, 
-             vocab = lyricPrep$vocab, content = ~ year,
-             data = lyricPrep$meta, K = 5, verbose = FALSE, seed = 1001)
-```
-
-```{r}
-labelTopics(topicContent)
-```
-
-
-## The Data
-
-The data that we will be using comes from review data that some of us have already seen -- spectator feedback. You will find it in the data folder (called *feedbackData.RData*) and it contains only 3 variables: the sport, the feedback, and an overall satisfaction score.
-
-## The Objectives
-
-As a preliminary pass through the data, you might want to conduct a regular topic model (after doing any bit of text cleaning, of course). Try various values of *k* and make a decision based upon the output of `searchK`. After making your decision, run your topic model with your decided *k* value. Explore the results of your analyses and determine if you can create a coherent story for each of the topics.
-
-After running the regular topic model, take some time to explore if any of the additional variables might be interesting to include as a covariate. 
+After completing your text exploration, create a three-slide story using any R-based slides.

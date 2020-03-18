@@ -93,7 +93,7 @@ Now we want to scrape some text about Cambodian Thai. We can do this in the stan
 
 ### IMPORTANT NOTE
 
-The following code for `ctRatings` will not likely work. While the order of the selectors is correct, the characters (e.g., 373c0) seem to change almost daily.
+The following code for `ctRatings` will not likely work. While the order of the selectors is correct, the characters (e.g., Y2F3O) seem to change almost daily. You might also find that it returns 21 star ratings instead of 20 ratings -- it is very likely to be the overall rating and can be dropped after you explore it. 
 
 ```{r}
 library(rvest)
@@ -103,9 +103,11 @@ cambodianThai = "https://www.yelp.com/biz/cambodian-thai-south-bend"
 cambodianThaiHTML = read_html(cambodianThai)
 
 ctRatings = cambodianThaiHTML %>%
-  html_nodes(".lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.arrange-unit-fill__373c0__17z0h.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__1DbOG.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.i-stars__373c0__Y2F3O") %>%
+  html_nodes(".lemon--div__373c0__1mboc.arrange__373c0__UHqhV.gutter-6__373c0__zqA5A.vertical-align-middle__373c0__2TQsQ.border-color--default__373c0__2oFDT .lemon--div__373c0__1mboc.arrange-unit__373c0__1piwO.border-color--default__373c0__2oFDT .lemon--span__373c0__3997G.display--inline__373c0__2q4au.border-color--default__373c0__YEvMS .lemon--div__373c0__1mboc.i-stars__373c0__Y2F3O") %>%
   html_attr("aria-label") %>% 
   stringr::str_extract("[0-5]")
+
+ctRatings = ctRatings[-c(1)]
 
 ctReviews = cambodianThaiHTML %>% 
   html_nodes("p.lemon--p__373c0__3Qnnj.text__373c0__2pB8f.comment__373c0__3EKjH.text-color--normal__373c0__K_MKN.text-align--left__373c0__2pnx_ .lemon--span__373c0__3997G") %>% 
@@ -119,10 +121,11 @@ ctData = data.frame(ratings = ctRatings,
 DT::datatable(ctData)
 ```
 
+You might also be wondering why it took so much effort to get those star ratings. If we just grab the most simple selectors (i.e., the last chunk of selectors), we will grab a bunch of stuff that we don't need.
 
 ### An Aside
 
-I have mentioned that website will change and they are not concerned with telling you about it. This is how the same code looked just a year ago:
+I have mentioned that websites will change and they are not concerned with telling you about it. This is how the same code looked just a year ago:
 
 ```{r, eval = FALSE}
 ctRatings = cambodianThaiHTML %>%
@@ -139,7 +142,7 @@ Definitely an easier scrape!
 
 ## Step 4b
 
-You should notice that we only pulled in 20 reviews, while we know that we have around `r thaiParsed$review_count` reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at `r ceiling(thaiParsed$review_count) / 20` pages worth of reviews. And since we know how the links are constructed, we can just create them:
+You should notice that we only pulled in 20 reviews, while we know that we have around `r thaiParsed$review_count` reviews (I have no doubt that you saw that in the parsed data). If we want them all, we need to do just a little more work. Since there are 20 reviews per page, we are looking at `r ceiling(thaiParsed$review_count / 20)` pages worth of reviews. And since we know how the links are constructed, we can just create them:
 
 ```{r, eval = FALSE}
 linkNumbers = seq(from = 0, to = (floor(thaiParsed$review_count / 20) * 20), by = 20)

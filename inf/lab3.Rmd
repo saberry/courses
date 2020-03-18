@@ -1,0 +1,37 @@
+---
+title: "Lab 03"
+author: "Mixed Models"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# The Data
+
+Just to keep things light and easy, let's just play with the `mtcars` data (boring -- yes; useful -- yes). 
+
+First, let's revist a linear model with mpg as the DV and 
+
+```{r}
+simpleModel = lm(mpg ~ wt, data = mtcars)
+
+summary(simpleModel)
+```
+
+We can see that weight has a pretty strong effect on mpg. When looking at our data, though, we might notice a few variables that naturally group out data:
+
+```{r}
+summary(mtcars)
+```
+
+Variables like `cyl`, `gear`, and `am` might all be suitable grouping variables. With one of those variables, try a mixed model with a random intercept.
+
+```{r}
+library(dplyr)
+
+library(lme4)
+```
+
+In comparison to our standard linear model, is this mixed model providing any additional information? What happened to the coefficient and the standard errors between the models. 

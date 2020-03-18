@@ -56,8 +56,6 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 ```
 
-# Purpose
-
 ## Exploration
 
 Testing hypotheses is a critical part of the scientific process.
@@ -76,15 +74,7 @@ We pick up on visual cues much quicker than reading (i.e., what catches our eye)
 
 Some things hit us pretty quickly:
 
-> - color - hue & intensity
-
-> - shape
-
-> - space/density
-
-> - line width & orientation
-
-> - size
+color (hue & intensity); shape; space/density; line width & orientation; size
 
 ## Preattentive Processing In Action
 
@@ -242,7 +232,7 @@ ggplotly(gamFitPlot)
 
 
 
-# Principles And Properties
+## Principles And Properties
 
 
 
@@ -652,7 +642,7 @@ ggExtra::ggMarginal(p, type = "boxplot")
 ```
 
 
-# Tips (And Maybe Tricks)
+## Tips (And Maybe Tricks)
 
 ## Grid Lines
 
@@ -679,7 +669,6 @@ none = ggplot(mtcars, aes(wt, mpg)) +
 multiplot(full, slim, none, cols = 3)
 
 ```
-
 
 
 ## When To Use Grid Lines
@@ -777,103 +766,13 @@ multiplot(noLines, lightLines)
 ```
 
 
-## Interactivity
 
-Interactive graphics are a great place to start exploring data.
-
-- It is also great for disseminating information on the web.
-
-## Making Old Trouble Disappear
-
-Grid lines...who needs them?
-
-```{r, fig.align = "center", fig.width = 10}
-noLines = ggplot(mpg, aes(hwy, cty)) +
-  geom_point(aes(text = paste(manufacturer, model, sep = " ")), alpha = .5) +
-  visibly::theme_trueMinimal()
-
-ggplotly(noLines)
-```
-
-
-## We All Remember This Monster
-
-```{r, fig.align="center"}
-df = data.frame(
-  x = rep(1:10, 4), 
-  y = sin(1:40),
-  group = rep(c("a", "b", "c", "d"),
-  each = 10)
-)
-
-df = tidyr::spread(df, group, y)
-
-library(dygraphs)
-
-dygraph(df) %>%
-  dyLegend(show = "onmouseover") %>%
-  dyHighlight(highlightSeriesBackgroundAlpha = .2,
-              hideOnMouseOut = FALSE,
-              highlightSeriesOpts = list(strokeWidth = 4)) %>%
-  dyAxis("x", drawGrid = FALSE) %>% 
-  dyAxis("y", drawGrid = FALSE) %>% 
-  dyCSS("dygraphLegend.css")
-
-
-```
-
-
-## The Clutter Is Strong With This One
-
-```{r, fig.align="center"}
-tooMuch = ggplot(mpg, aes(factor(class), fill = factor(cyl))) +
-  geom_bar(position = "dodge") +
-  theme_bw() + 
-  scale_fill_ptol()
-  
-ggplotly(tooMuch)
-```
-
-
-## Still A Better Version
-
-```{r}
-countSize = ggplot(mpg, aes(class, as.factor(cyl))) +
-  geom_count(color = "#117777") +
-  scale_size_area(breaks = c(1, 10, 20, 30)) +
-  theme_bw()
-
-ggplotly(countSize)
-```
-
-
-## Movement
-
-```{r}
-library(gapminder)
-
-ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, colour = country)) +
-  geom_point(alpha = 0.7, show.legend = FALSE) +
-  scale_colour_manual(values = country_colors) +
-  scale_size(range = c(2, 12)) +
-  scale_x_log10() +
-  facet_wrap(~continent) +
-  # Here comes the gganimate specific bits
-  labs(title = 'Year: {frame_time}', x = 'GDP per capita', y = 'life expectancy') +
-  transition_time(year) +
-  ease_aes('linear')
-```
-
-
-
-# The Correct Tool For The Job
-
-## Continuous Data
-
-Scatterplots
+## The Correct Tool For The Job
 
 
 ## Continious and Categorical
+
+## Jitter
 
 ```{r}
 ggplot(diamonds, aes(as.factor(cut), price)) +
@@ -889,6 +788,16 @@ ggplot(diamonds, aes(as.factor(cut), price)) +
   theme_minimal()
 ```
 
+## Ridges
+
+```{r}
+ggplot(diamonds, aes(x = price, y = as.factor(cut), fill = ..x..)) +
+  ggridges::geom_density_ridges_gradient() +
+  scale_fill_viridis_c() +
+  theme_minimal()
+```
+
+
 ## Violin Plots
 
 ```{r}
@@ -897,10 +806,11 @@ ggplot(diamonds, aes(as.factor(cut), price)) +
   theme_minimal()
 ```
 
-## Sina Plots
+## Sina/Beeswarm Plots
 
 ```{r}
 library(ggforce)
+
 ggplot(diamonds, aes(as.factor(cut), price)) +
   geom_violin() +
   geom_sina() +

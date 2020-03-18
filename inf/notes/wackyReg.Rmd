@@ -1,0 +1,503 @@
+---
+title: "The Wacky Side Of Regression"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE)
+
+execPay = read.csv("anncomp.csv")
+```
+
+
+# Various Antics
+
+For the most part, we have focused on things well within the clean, linear regression world. As a parting gift, I present the world of slop.
+
+## Packages
+
+```{r, eval = FALSE}
+install.packages(c("MASS",  "car", "quantreg", 
+                   "lmtest", "sandwich", "penalized", "gridExtra"))
+```
+
+
+## Our Data
+
+```{r, eval = FALSE}
+execPay = readr::read_csv("http://www3.nd.edu/~sberry5/class/anncomp.csv")
+```
+
+**Important Note** While this is real data, it is in no way, shape, or form clean data.  For our purposes tonight, we are not going to worry about the sloppiness within.
+
+# Down Weighting
+
+## What And Why
+
+Extreme scores are just normal parts of data.  Unless there is an issue with these values (incorrect data, invalid values, etc.), they still count as data.  Sometimes, these extreme scores can be classified as "outliers" -- simply put, an outlier is a value with a very large residual.  In many traditional circles, there exists a notion that outliers must be dealt with in the most extreme of ways -- deletion (the gallows of the data world).  The intentions behind this are largely noble, as an ordinary least squares (OLS -- our everyday normal regression) regression is very sensitive to outliers in data.
+
+Let's take a very quick detour towards OLS.  This might be old for some and new for others, but let's take the ride together.  We have seen the regression equations a few times now, but what is it actually attempting to do?  A normal linear regression is trying to minimize the sum of the squared errors.  Let's look at pictures:
+
+```{r}
+set.seed(1001)
+
+x = rnorm(20)
+
+y = rnorm(20)
+
+plot(x, y)
+
+abline(lsfit(x, y))
+```
+
+Again, our OLS is trying to fit (up, down, and rotation) the line between the points in a way that minimizes the sum of the squared errors (errors and residuals are the same thing -- true value - fitted value).  
+
+Outliers tend to have a higher "leverage" than the average value.  Leverage relates to how much an independent variable drifts from its mean.  If we go back to our elementary lessons in physics, it is easy to understand why this is called leverage!  Consider the following:
+
+
+```{r}
+a = sample(1:50, 10, replace = TRUE) 
+
+b = sample(22:29, 10, replace = TRUE)
+
+mean(a)
+
+mean(b)
+```
+
+
+If we just look at the values we from which we are sampling (1:50 and 22:29), we see they have equal means.  The sampling won't give us equal means, but it will get us pretty close.  As the values of a and b move away from 25.5, the values have a higher leverage.  So which might exhibit higher leverage?  It is clear that the more extreme values of a would exhibit a much higher leverage than those within b.  So why does this matter?  Let's imagine two different regression lines:
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(a)
+abline(lsfit(1:10, a))
+
+plot(b)
+abline(lsfit(1:10, b))
+
+```
+
+
+In both, we can imagine some points that are pulling the lines around.  But we see a much larger problem when we have even more leverage within our data.  In both examples, we might see an issues with outliers within the actual data.
+
+Deleting valid data is out of the question -- always.  So what do we do?
+
+## How
+
+Now that we have a good idea about how outliers (i.e., values that exhibit high leverage) can mess with our OLS, we need something that is a little more robust to pulling on the regression line.  There are more than a few ways of dealing with these issues.  One such way is called *trimming*.  In trimming, we are choosing a percentile cut-point and trimming everything above/below that.  We can see how this shifts the mean:
+
+```{r}
+x = 1:100
+
+regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+
+regTrim
+```
+
+We don't see anything with our nice and tidy 1:100.  Let's look at something a bit more plausible:
+
+```{r}
+x = sample(1:100, 100, replace = TRUE)
+
+regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+
+regTrim
+```
+
+
+Nothing too different, but our data is still pretty tame.  Trimming is only presented for a matter of completeness...a rose by another name is still a rose.
+
+Given the lines of work that you might want to pursue (and the people with whom you might interact), you might run into *winsorization*.  It is incredibly common to find Finance and Management folks who came up in the Econometric tradition and live by winsorization.  With winsorization, we are taking every value beyond the 95^th^ percentile and replacing it with the 95^th^ percentile value.  We also do the same for every value below the 5^th^ percentile.  Here is a quick example:
+
+
+```{r}
+x = 1:100
+
+percentile05 = quantile(x, probs = .05)
+
+percentile95 = quantile(x, probs = .95)
+
+x[which(x < percentile05)] = percentile05
+
+x[which(x > percentile95)] = percentile95
+
+x
+```
+
+
+Both of these techniques have a rich tradition in applied and academic settings.  If you trim or winsorize your data, you will rarely find someone who calls this into question.  But, we can handle these outliers in ways that do not delete the data or do not replace perfectly valid values with some other value.
+
+That is where *iteratively re-weighted least squares* (IRLS) comes to save the day.  In our OLS regression, we can imagine that our model checks to see how it can best minimize the sums of squared errors and runs exactly once, with everything getting a weight of 1.  By name alone, you can probably guess how IRLS is different!  Instead of running through the model once, IRLS uses *M*-estimation (*E*, *M*, and *S* estimation are common iterative techniques) to weight residuals.  The residual weighting is re-iterated until certain conditions are satisfied.  It would proceed in this manner: run the model, check the residuals, weight those observations with high residuals, run the model, check the residuals, weight those observations that continue to have high residuals, so forth and so on.   
+
+There are many different weighting estimators, but we are going to focus on bisquare weighting.  With bisquare weighting, we are down-weighting every residual that is not 0.  In that sense, it is a very "aggressive" technique (other estimates, like Huber, are not so aggressive).  Let's see how all of this might work in R.
+
+```{r}
+library(MASS)
+
+olsTest = lm(SALARY ~ AGE, data = execPay)
+
+summary(olsTest)
+
+plot(execPay$AGE, execPay$SALARY)
+
+abline(olsTest, col = "#ff5503")
+
+plot(olsTest$fitted.values, olsTest$residuals)
+
+robTest = rlm(SALARY ~ AGE, data = execPay, psi = psi.bisquare)
+
+summary(robTest)
+
+peeking = data.frame(weights = robTest$w, 
+                     residuals = robTest$residuals)
+
+head(peeking)
+```
+
+
+## Summary
+
+Outliers are real and can cause problems, but deleting them is out of the question.  In general, but not always, deleting outliers is done for the sole purpose of *p*-hacking.  At least once a month, someone asks me if they should delete their outliers to get a significant result.  There may be a day in your future when you listen to a colleaugues present results for a project; you need to be on the look out for poor data practices and this is a clear red flag.  If you have outliers, you can use iteratively re-weighted least squares to "turn down" the leverage of the outliers.  The rlm() function in the "MASS" package will manage the hardwork for you.
+
+# Quantile Regression 
+
+## What And Why
+
+Quantile regression is neat...plain and simple.  While it may not be the most commonly used tool in your toolbox, it will be one that you are really happy to have when the need arises.  Since we just got off the topic of outliers and extreme scores, let's start there.  We just saw how down-weighting took care of our problems with outliers.   When we are doing an OLS regression, we are looking at averages (i.e., we are modeling the mean of y as a function of x).  In quantile regression, however, we are using the 50% (the median) instead of the average (we are looking at the DV).  In the case of large ouliers, this becomes very handy.  For well-behaved data, we have equal means and medians.  But in reality, this is not always the case.  Let's consider the following:
+
+```{r}
+ideal = 1:10
+mean(ideal)
+median(ideal)
+
+lessIdeal = c(1:9, 20)
+mean(lessIdeal)
+median(lessIdeal)
+```
+
+
+## How
+
+Here is a fun historical tidbit -- Roger Koenker has likely made the most contributions to quantile regression from a contemporary perspective.  He wrote the "quantreg" package for R, which SAS promptly copied.
+
+```{r}
+library(quantreg)
+
+quantTest = rq(SALARY ~ AGE, tau = .5, data = execPay)
+
+summary(quantTest)
+```
+
+You can interpret these models in the same way that you would interpret a linear regression.
+
+Quantile regression is not a one-trick-pony, though.  Remember, it is called quantile regression -- not median regression.  Being able to compute a median regression is just a nice by-product.  What we can do with quantile regression is to model different quantiles of the same data.  This becomes very important with certain populations.  In an organizational environment, you will have various levels of performance that likely follow a relatively normal distribution.  If we run some normal linear models, we may not really learn too much about how those out at the tails behave.  Depending on the question we are asking, we may not care.  But if the question is how to improve employee performance, we have some real thinking to do.  
+
+```{r}
+quantTest25 = rq(SALARY ~ AGE, tau = .25, data = execPay)
+
+summary(quantTest25)
+
+quantTest50 = rq(SALARY ~ AGE, tau = .5, data = execPay)
+
+summary(quantTest50)
+
+quantTest75 = rq(SALARY ~ AGE, tau = .75, data = execPay)
+
+summary(quantTest75)
+
+plot(execPay$AGE, execPay$SALARY)
+
+abline(rq(SALARY ~ AGE, tau = .25, data = execPay), col = "blue")
+
+abline(rq(SALARY ~ AGE, tau = .50, data = execPay), col = "green")
+
+abline(rq(SALARY ~ AGE, tau = .75, data = execPay), col = "red")
+```
+
+
+## Summary
+
+Quantile regression allows you do mitigate the influence of extreme scores by using the median instead of the mean.  Furthermore, it allows you to model the various quantiles to get a better understanding of the distribution of your population.
+
+# Robust Standard Errors 
+
+## What And Why
+
+Recall that one of our assumptions about regression is that we don't have heteroscedasticity (or heteroskedasticity, if you prefer), but we do have homoscedasticity.  Saying it is a lot of fun, but what does it mean?  The root words give us a big clue and we are looking at the distribution of errors across the predicted values of a regression model.  Since we are looking for homoscedasticity, we are wanting to see the same distribution of errors across all values of our predicted values.
+
+We can test it in a few different ways: graphically and algorithimcally.
+
+```{r}
+library(ggplot2)
+
+testLM = lm(price ~ carat, data = diamonds)
+
+summary(testLM)
+
+plot(testLM$fitted.values, testLM$residuals)
+```
+
+Do you see any pattern to this plot?  If so, then we have heteroscedasticity (thus, problems).  
+
+We can also use the bptest() function from the lmtest package to perform the Breusch-Pagan test:
+
+```{r}
+lmtest::bptest(testLM)
+```
+
+Well what do we have here?  The null hypothesis is that the residuals are constant.  Our eyeballs told us that we have problems and our fancy little test statistic confirmed it.  The model is shot, we should probably all go home now.
+
+Kidding aside, we could tackle this in a few different ways.  In days of yore, we would have conducted a Box-Cox Test to find out how we should do some transformations.  Fortunately, modern machines enable us to do some pretty fancy stuff that people could not really do before.
+
+## How
+
+We are going to get into some weird stuff here.  Let's look at the variance-covariance matrix for our model:
+
+```{r}
+vcov(testLM)
+```
+
+The diagonal are the variances (the spread from the mean) and the off-diagonals are the covariances (how one variable varies with another variable).  We can do some neat things with this little matrix:
+
+```{r}
+sqrt(diag(vcov(testLM)))
+```
+
+Do those look familiar?  If they don't, they are the standard errors we got from our model output.  The variances are just telling us about the sampling distribution for our model.  The covariances are mostly used to form our confidence intervals.  This vcov matrix came from our model, but our model has problems.  We can take a look at some different vcov matrices:
+
+```{r}
+library(sandwich)
+
+vcovHC(testLM)
+```
+
+Much like we have different ways of computing every statistic (just think -- there are several different types of means), we have *many* alternative ways to construct our variance-covariance matrix.  If we use a different vcov matrix to test our coefficients, we get the following: 
+
+
+```{r}
+lmtest::coeftest(testLM, vcov = vcovHC)
+```
+
+Do you see the difference?  By using a heteroscedasticity-consistent covaraince matrix to test our coefficients, we have more reasonable estimates.
+
+# Penalized Regression
+
+Everyone has been doing a fantastic job thinking through the variables that they want to include in their models -- for this, I give you many claps of the hands!  But there are a variety of different ways to test which variables work best in your model (you will never get out of the hard part of thinking through your first set of candidate predictors).  At some point, you might have learned some kind of step-wise regression (backward, forward, etc.).  This is still practiced by some, but has been slowly falling out of favor for some time.
+
+Our friends, Hastie and Tibshirani, have delivered alternative methods for variable selection.  With these approaches we are not "eliminating" predictors from our model, but we are instead wanting to keep them all in.  This could be done for a huge number of reasons: prior theory, maximizing prediction, just seeing what works, etc.
+
+Let's check the following first:
+
+```{r}
+turnoverDat = read.csv("http://www3.nd.edu/~sberry5/class/turnoverData.csv")
+```
+
+
+## Ridge
+
+In Ridge regression (or the Lambda2 quadratic penalty or L2 regularization) we are applying a penalty to the coefficients of our model.  Specifically, we are applying the penalty to the sum of the squares of the coefficients.  Ridge regression tends to shrink *everything* down pretty close to zero.  Why in the world is this a good idea!?!  When we are dealing with models, we can often run into issues with over-fitting.  When we have over-fitting, we are obtaining near perfect prediction.  Great, right?  It is great for our current sample, but what if we want to use our model to predict new data?  I can tell you...it will probably not perform well.  To keep all of the variables in the model and avoid over-fitting, the ridge regression shrinks the coefficients down pretty close to zero.
+
+There are several packages that would allow us to do what we need to do.  We are going to use the "penalized" package for now, because it gives us the formula interface with which we have practiced.  Do know, though, that the glmnet package is the best one to use. 
+
+```{r}
+library(penalized)
+
+library(dplyr)
+
+execPayShort = execPay %>% 
+  dplyr::select(SALARY, AGE, OTHCOMP, BONUS, TOTAL_CURR) %>% 
+  na.omit()
+
+slimTest = lm(SALARY ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+              data = execPayShort)
+
+coefficients(slimTest)
+
+ridgeTest = penalized(SALARY ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda2 = 1, 
+                      model = "linear", trace = FALSE)
+
+coefficients(ridgeTest)
+```
+
+Our coefficients were already pretty close to zero, so it could not shrink them too much more -- ridge will not shrink anything to zero.  You can see that it did do some shrinking, though.
+
+
+### LASSO
+
+LASSO regression (least absolute shrinkage and selection operator; L1 Absolute Value Penalty) is operating on the same concept as the ridge regression (penalization), but it is doing something a little bit different.  LASSO is trying to minimize the sum of the absolute values of the coefficients.  Instead of shrinking everything way down, but never to zero, it will shrink some variables down to zero while only moderately shrinking others. What does shrinking a coefficient down to zero do?  If you said, "it effectively removes it from the model", then you would be correct.
+
+```{r}
+lassoTest = penalized(SALARY ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda1 = 1, 
+                      model = "linear", trace = FALSE)
+
+coefficients(lassoTest)
+```
+
+
+### Elastic Net
+
+We have ridge regression and we have LASSO regression -- do we need anything else?  Probably not, but statisticians get bored.  The elastic net is just a combination of the ridge and LASSO.  We can do the ridge regularization to shrink coefficients and then do the LASSO to "eliminate" some of the coefficients.  In situations with high multicollinearity, LASSO picks one without any real thought.
+
+```{r}
+netTest = penalized(SALARY ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda1 = 1, lambda2 = 1,
+                      model = "linear", trace = FALSE)
+
+coefficients(netTest)
+```
+
+For all three of these models, you likely noticed the "lambda" arguments.  This is the value that is helping to generate our penalization.  We have just a simple value put in here, but we are going to find a better way soon.
+
+# Generalized Additive Models
+
+## Parametric...Or Not
+
+Most of the statistical shenanigans you have seen to this point has come from the parametric family. In other words, we are making assumptions about the underlying distributions. What if we don’t make any assumptions or we really have no idea and we want to let it be defined by our actual data? Then, we are operating in a non-parametric space. How do we let our data do the talking?
+
+## Smoothing
+
+There are many types of smooths. You will frequently see the loess (local regression – sometimes you will hear it as locally-weighted scatterplot smoothing or lowess). With a loess line, we are fitting some polynomial (generally the linear or the quadratic) to a small section of our data at a time (i.e., a local group) – this is a little bit more complicated than our moving average window type of smooth. Each small section has an associated line and each line gets joined with the line in the next group (these are referred to as knots). Since we are largely in control here, we get to specify how wiggly things might get.
+
+You will also see regression splines (largely what we will be using here today). The great thing about these is that we can penalize them!
+
+## Additive Models
+
+Very briefly, an additive model is not much different than our normal interpretation of a model. In our additive model, we can look at the affect of a predictor on a dependent variable without any consideration for what other variables might be in the model. We can add these effects to best predict our response.
+
+## GAM
+
+During the last few weeks, we have largely been working in the generalized linear models framework. We are going to stay in the general vicinity, but start moving to some more interesting places! We have mostly seen straight lines being fitted to various things. As many of you have likely noted, it often seems like a straight line doesn’t really fit the relationships that we can see within our data. So, what do you do? We could always go the transformation route, but that seems a bit antiquated at this point...don’t you think? 
+
+What if we fit a smooth line to our data instead of trying to jam a single straight line somewhere it does not want to be or do something like throwing a single quadratic term into the model? Now we are doing something interesting.
+
+The `car` package is old-school R, but still has some handy stuff for us. 
+
+```{r}
+library(car)
+
+library(dplyr)
+
+plot(execPayShort[1:1000,])
+```
+
+The splom that we just saw gives us a really good idea about the relationships within the data. The green line is a linear line and the red line is a smoothed line. If those are not sitting on top of each other, then you might want to think carefully about the relationship that is present.
+
+```{r}
+plot(SALARY ~ AGE, data = execPayShort)
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ AGE, 
+                data = execPayShort))[order(execPayShort$AGE)], col = "red")
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ I(AGE^2), 
+                data = execPayShort))[order(execPayShort$AGE)], col = "blue")
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ I(AGE^3), 
+                data = execPayShort))[order(execPayShort$AGE)], col = "green")
+```
+
+The preceding figure shows us 3 different lines: a linear regression line, and two higher-order trends. We will use them as a reference.
+
+Let’s check this out:
+
+```{r}
+lmTest = lm(SALARY ~ AGE, data = execPayShort)
+
+summary(lmTest)
+```
+
+
+Nothing too new here, so let’s move along!
+
+```{r}
+library(mgcv)
+
+gamTest = gam(SALARY ~ AGE, data = execPayShort)
+
+summary(gamTest)
+```
+
+You should notice that there is no difference between our standard linear model and our gam with regard to the coefficient. If we do not smooth a variable, it gets treated just like it would in a linear regression model. We also get some output such as adjusted R^2 (interpreted as per normal) and we also have deviance explained, which is giving us very similiar information to adjusted R^2 (instead of looking at the sums of square error between fitted and observed, it just uses a different error calculation). The scale estimate, in this case, is the residual standard error squared. GCV is the minimized generalised cross-validation and it gives us an idea about our prediction error (ideally, we want this to be a small value).
+
+Let’s try to smooth. In the following code, you will notice how we wrapped out term in <span class="func">s</span>(). Believe it or not, this is to specify a smooth term. We could spend a whole week on different ways to smooth things, but we will just stick with <span class="func">s</span>() and its defaults for now.
+
+```{r}
+gamTestSmooth = gam(SALARY ~ s(AGE), data = execPayShort)
+
+summary(gamTestSmooth)
+```
+
+After smoothing our term, we can see that our output has changed. Instead of getting a linear regression coefficient, we get an edf (estimated degrees of freedom). While these edf values lack the clean interpretation of our linear regression coefficients, we can still get a great deal of information from them. The closer edf is to 1, the more linear in nature the term actually is. However, as edf goes beyond 1, we have an increasingly wigglier relationship. 
+
+Since we included a smooth term, we can see that our model fit has improved from our previous gam without a smooth term.
+
+If we plot our newly-fitted gam model back onto our previous visualization, here is what we get:
+
+```{r}
+plot(SALARY ~ AGE, data = execPayShort)
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ AGE, 
+                data = execPayShort))[order(execPayShort$AGE)], col = "red")
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ I(AGE^2), 
+                data = execPayShort))[order(execPayShort$AGE)], col = "blue")
+lines(sort(execPayShort$AGE), 
+      fitted(lm(SALARY ~ I(AGE^3), 
+                data = execPayShort))[order(execPayShort$AGE)], col = "green")
+lines(sort(execPayShort$AGE), 
+      fitted(gam(SALARY ~ s(AGE), data = execPayShort))[order(execPayShort$AGE)], 
+      col = "orange") 
+```
+
+The soft orange line is our gam fit. We can see that it does not rocket upwards, like our higher-order terms, but is instead capturing a bit of the downward trend towards the larger values of the enabling variable.
+
+## Bias/Variance Trade-Off
+
+The wiggle can be controlled and you are the one to control it (all models are your monster, so build them in a way that you can control it). An important consideration to make with the wiggle (and with almost all of our decision from here on out) is the bias/variance trade-off. You will see this called other things (e.g., error/variance), depending on with whom you are hanging around. Since we have only talked about bias briefly, we do not need to worry about getting bias in this sense conflated with anything else.
+
+It works like this: you cannot have your cake and eat it too. Do you want your in-sample predicition to be awesome (low bias)? Great! You can count on getting that at the expense of higher variance. The lower the variance, the better your model will predict new data. Well that sounds easy – just go with the lowest variance. But...that might contribute to missing some weird pattern. Again, it is just a decision to make (you likely won't be facing off with your monsters in the Arctic in the end).
+
+With our gam models, the wigglier your line, the lower your bias will be and the better you are doing at predicting in sample. 
+
+```{r}
+library(ggplot2)
+
+gamTestLambda1 = gam(SALARY ~ s(AGE, sp = 0, k = 40), data = execPayShort)
+
+p = predict(gamTestLambda1, type = "lpmatrix")
+
+beta = coef(gamTestLambda1)
+
+s = p %*% beta
+
+plotDat = cbind.data.frame(s = s, age = na.omit(execPayShort$AGE))
+
+gam1Plot = ggplot(plotDat, aes(age, s)) + 
+  geom_line(color = "#ff5500", size = 2.5) +
+  geom_point(data = execPayShort, aes(AGE, SALARY), alpha = .5) +
+  theme_minimal()
+
+gamTestLambda9 = gam(SALARY ~ s(AGE, sp = 0.9, k = 40), data = execPayShort)
+
+p = predict(gamTestLambda9, type = "lpmatrix")
+
+beta = coef(gamTestLambda9)
+
+s = p %*% beta
+
+plotDat = cbind.data.frame(s = s, age = na.omit(execPayShort$AGE))
+
+gam9Plot = ggplot(plotDat, aes(age, s)) + 
+  geom_line(color = "#ff5500", size = 2.5) +
+  geom_point(data = execPayShort, aes(AGE, SALARY), alpha = .5) +
+  theme_minimal()
+
+library(gridExtra)
+
+gridExtra::grid.arrange(gam1Plot, gam9Plot)
+```
+
+In the top plot, we have allowed our line a bit more flexibility to wiggle -- you can see the line bending more to fit the pattern within your data. We are going to get very good in-sample prediction here, at the expense of out-of-sample prediction. The bottom plot, is a bit more reserved. It will undoubtedly do better out-of-sample, but might be missing something within the in-sample data.

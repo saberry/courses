@@ -258,6 +258,10 @@ When we are dealing with purely categorical variables, it is not *proper* to say
 
 When we want to see the association between two categorical variables, we can use a few different techniques. The ones that you will most commonly see are Cramer's *V* (also noted as $\phi_c$) and the $\phi$ coefficient. Cramer's *V* is handy because it ranges from 0 (no association) to 1 (perfect association). The $\phi$ coefficient's range will change based upon the distribution of the variables (but only if one of those variables has more than two categories).
 
+$$V = \frac{\chi^2/n}{min(c-1,r-1)} $$
+
+$$\phi = \sqrt\frac{\chi^2}{n}$$
+
 In the case of a 2 x 2 contingency table, both Cramer's *V* and the $\phi$ coefficient will be the same (they will also be the same as our old friend Pearson's *r*). An important consideration is that Cramer's *V* can actually go up to 1, whereas the other values cannot.
 
 A number of packages will run $\phi_c$ and $\phi$, but you can get them both through the <span class="func">assocstats</span> function in <span class="pack">vcd</span>:

@@ -2181,6 +2181,8 @@ managerNY  0  1
 <h2 id="association">Association</h2>
 <p>When we are dealing with purely categorical variables, it is not <em>proper</em> to say correlation (it is not proper in the same way that it is not proper to wear white after Labor Day).</p>
 <p>When we want to see the association between two categorical variables, we can use a few different techniques. The ones that you will most commonly see are Cramer’s <em>V</em> (also noted as <span class="math inline">\(\phi_c\)</span>) and the <span class="math inline">\(\phi\)</span> coefficient. Cramer’s <em>V</em> is handy because it ranges from 0 (no association) to 1 (perfect association). The <span class="math inline">\(\phi\)</span> coefficient’s range will change based upon the distribution of the variables (but only if one of those variables has more than two categories).</p>
+<p><span class="math display">\[V = \frac{\chi^2/n}{min(c-1,r-1)} \]</span></p>
+<p><span class="math display">\[\phi = \sqrt\frac{\chi^2}{n}\]</span></p>
 <p>In the case of a 2 x 2 contingency table, both Cramer’s <em>V</em> and the <span class="math inline">\(\phi\)</span> coefficient will be the same (they will also be the same as our old friend Pearson’s <em>r</em>). An important consideration is that Cramer’s <em>V</em> can actually go up to 1, whereas the other values cannot.</p>
 <p>A number of packages will run <span class="math inline">\(\phi_c\)</span> and <span class="math inline">\(\phi\)</span>, but you can get them both through the <span class="func">assocstats</span> function in <span class="pack">vcd</span>:</p>
 <div class="layout-chunk" data-layout="l-body">

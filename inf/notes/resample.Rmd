@@ -1,8 +1,7 @@
 ---
 title: "Resampling"
 description: |
-  A new article created using the Distill format.
-date: "`r Sys.Date()`"
+  Various Methods for Inference
 output: distill::distill_article
 ---
 
@@ -17,32 +16,69 @@ At this point, we have been using single models pretty regularly. Let's fit a si
 ```{r}
 library(dplyr)
 
-turnoverData <- read.csv("D:/projects/courses/businessAnalytics/turnoverData.csv", stringsAsFactors = FALSE)
+turnoverData <- read.csv("http://www.nd.edu/~sberry5/data/turnoverData2.csv", stringsAsFactors = FALSE)
 
 slim <- lm(startingSalary ~ age + numberPriorJobs, data = turnoverData)
+
+summary(slim)
 
 turnoverData$fittedValue <- slim$fitted.values
 
 turnoverData$residValue <- slim$residuals
 ```
 
-# A Resampled Model
+# Resampled Models
 
-We have spoken a few times about what all of our test statistics are based upon: repeated samples from the population. Unfortunately, we rarely have the time or resources to actually do this. As luck would have it, though, we can treat our sample as a population. If it is a population, then we can repeatedly sample from that population.
+We have spoken a few times about what all of our test statistics are based upon: repeated samples from the population. Unfortunately, we rarely have the time or resources to actually do this. As luck would have it, though, we can treat our sample as a population (in theory, the sample should match the shape of our population if drawn at random). If it is a population, then we can repeatedly sample from that population. When we resample from our "population", we can start to get a general sense of how accurate our estimates might be (we are not improving the estimate).
 
 This resampling can take on a few different forms and those different forms can answer slightly different questions. We are going to discuss three specific techniques: *bootstrapping*, *subsampling*, and *permutation*. Do keep in mind, though, that there are many different forms of resampling.
 
 This is also highly-related to something you are doing in machine learning, so try to think about what that might be.
 
+<aside>
+You might also encounter the jack-knife method, which has analogs to machine learning techniques.
+</aside>
+
+## A Brief Demonstration of infer
+
+Before we get too far, let's use the `infer` package to get a sense of the possible range of values the mean of *startingSalary* could take under resampled conditions.
+
+```{r}
+library(infer)
+
+observedMean <- mean(turnoverData$startingSalary)
+
+bootDist <- turnoverData %>% 
+  specify(response = startingSalary) %>% 
+  hypothesize(null = "point", mu = 90000) %>% 
+  generate(1000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+visualise(bootDist) +
+  shade_p_value(obs_stat = observedMean, direction = NULL) +
+  shade_confidence_interval(endpoints = get_ci(bootDist))
+```
+
+While this serves as a very nice little demonstration, we need to utilize something a bit more substantial than this package.
+
+<aside>
+There are several boostrapping packages in R. You will probably have the best luck with just writing your own functions.
+</aside>
 
 ## Bootstraps
 
-Bootstraps are not a new technique, but they are used more now then when they were first introduced (computers have gotten faster). Bootstrapping involves taking full samples out of the population. The trick here, though, is that the sampling happens with replacement. This means that the same observation can appear in the bootstrapped data more than once and that is by design. 
+Bootstraps are not a new technique, but they are easier to use now compared to when they were first introduced (computers have gotten faster). Bootstrapping involves taking full samples out of the population. The trick here, though, is that the sampling happens with replacement. This means that the same observation can appear in the bootstrapped data more than once and that is by design. 
+
+<aside>
+While not the original, this <a href="https://projecteuclid.org/download/pdf_1/euclid.ss/1177013815">article</a> by Efron and Tibshirani is excellent.
+</aside>
 
 Bootstrap samples provide some pretty cool advantages. Perhaps the biggest is that the underlying distribution of the variables does not need to be normal. As we generate a statistic for each of our samples, we can almost guarentee that our resulting distribution will be normal. We can also easily get the 95% confidence interval of the distribution of test statistics.
 
+In the regression setting, we might be interested in the *t*-values, the coefficients, or even the standard errors. We can compare group means with *t*-tests or even look at the differences. The moral of the story is that we can bootstrap any test statistic that we would like.
+
 ```{r}
-modelVars <- select(turnoverData, startingSalary, age, numberPriorJobs)
+modelVars <- dplyr::select(turnoverData, startingSalary, age, numberPriorJobs)
 
 bootstrapping <- function(df) {
   df <- df
@@ -73,29 +109,99 @@ hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "black")
 abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
 ```
 
-Let's also find the 95% confidence interval. 
+Let's also find the 95% confidence interval and plot them for age. 
 
 ```{r}
-mean(bsCombined$statistic[bsCombined$term == "age"])
+meanEffect <- mean(bsCombined$statistic[bsCombined$term == "age"])
 
 ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "age"], .975)
 
 ciLower <- quantile(bsCombined$statistic[bsCombined$term == "age"], .025)
 
-hist(bsCombined$statistic[bsCombined$term == "age"], col = "black")
+hist(bsCombined$statistic[bsCombined$term == "age"], col = "slategray1")
 
-abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["age","t value"], col = "goldenrod4", lwd = 2)
 
-abline(v = ciUpper, col = "cornflowerBlue", lwd = 2)
+abline(v = ciUpper, col = "sienna3", lwd = 2)
 
-abline(v = ciLower, col = "cornflowerBlue", lwd = 2)
+abline(v = ciLower, col = "sienna3", lwd = 2)
+
+abline(v = meanEffect, col = "sienna3", lwd = 2)
 ```
+
+So what does this mean in practice? First, we are getting a sense of our estimate's precision. Across all of our resampled values, 95% of them will contain the true population value between `r ciLower` and `r ciUpper`.
+
+<aside>
+Here is a really nice <a href="http://users.stat.umn.edu/~helwig/notes/bootci-Notes.pdf">presentation</a> of bootstrap confidence intervals.
+</aside>
+
+Let's check out the effect for `numberPriorJobs`:
+
+```{r}
+meanEffect <- mean(bsCombined$statistic[bsCombined$term == "numberPriorJobs"])
+
+ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], .975)
+
+ciLower <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], .025)
+
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "slategray1")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "goldenrod4", lwd = 2)
+
+abline(v = ciUpper, col = "sienna3", lwd = 2)
+
+abline(v = ciLower, col = "sienna3", lwd = 2)
+
+abline(v = meanEffect, col = "sienna3", lwd = 2)
+```
+
+For our `numberPriorJobs` variable, 95% of the intervals contain the true *t*-value that is somewhere between 0 and 4. For extra information and added clarity, let's look at the coefficient:
+
+```{r}
+meanEffect <- mean(bsCombined$estimate[bsCombined$term == "numberPriorJobs"])
+
+ciUpper <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], .975)
+
+ciLower <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], .025)
+
+hist(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], col = "slategray1")
+
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "goldenrod4", lwd = 2)
+
+abline(v = ciUpper, col = "sienna3", lwd = 2)
+
+abline(v = ciLower, col = "sienna3", lwd = 2)
+
+abline(v = meanEffect, col = "sienna3", lwd = 2)
+```
+
+We have a 95% confidence interval that ranges from near 0 to close to 30. With my *t*-value distribution and the distribution of the coefficients, I might not super confident about the number of prior jobs being a significant predictor for starting salary; in other words, we are seeing a fair amount of variance.
+
+Just for fun, let's do age's coefficient with ggplot2:
+
+```{r}
+library(ggplot2)
+
+meanEffect <- mean(bsCombined$estimate[bsCombined$term == "age"])
+
+ciUpper <- quantile(bsCombined$estimate[bsCombined$term == "age"], .975)
+
+ciLower <- quantile(bsCombined$estimate[bsCombined$term == "age"], .025)
+
+ggplot(bsCombined[bsCombined$term == "age", ], aes(estimate)) +
+  geom_histogram(fill = "slategray1") +
+  geom_vline(xintercept = ciLower) +
+  geom_vline(xintercept = ciUpper) +
+  geom_vline(xintercept = summary(slim)$coefficients["age","Estimate"]) + 
+  theme_minimal()
+```
+
 
 ### Residual Bootstrapping
 
 Shuffling data around is pretty easy. After running our first model, we stuck our predicted values and our residuals back into the original data. We did this because we are going to use them for a specific type of bootstrap: residual bootstrapping. 
 
-Clearly the first step was to create the model. Next, we are going to add a random residual to a specific predicted value: 
+Clearly the first step was to create the model. Next, we are going to add a random residual to a specific predicted value -- this becomes our new outcome variable.
 
 ```{r}
 randomResid <- function(df) {
@@ -129,7 +235,7 @@ hist(residCombined$statistic[residCombined$term == "numberPriorJobs"], col = "bl
 abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
 ```
 
-Why might we want to perform this type of bootstrap? It put less trust in the model. This type of resampling approach would guess that the original regression model has the proper form, but has no assumptions about how the residuals are distributed. 
+We largely get the same results as we did with our boostrapping. Why might we want to perform this type of bootstrap? It put less trust in the model. This type of resampling approach would guess that the original regression model has the proper form (nothing really changes on the predictor variable side), but has no assumptions about how the residuals are distributed. It also removes the influence of any extreme scores within the model.
 
 ## Subsample
 
@@ -221,34 +327,24 @@ Our observed effect is way out in the tail of our null distribution: this gives 
 We can also derive a one-tailed *p*-value for our null distribution:
 
 ```{r}
-(sum(bsCombined$statistic[bsCombined$term == "numberPriorJobs"] > 2.013)) / nrow(bsCombined)
+(sum(bsCombined$statistic[bsCombined$term == "numberPriorJobs"] > summary(slim)$coefficients["numberPriorJobs","t value"])) / nrow(bsCombined)
+
+(sum(bsCombined$statistic[bsCombined$term == "age"] > summary(slim)$coefficients["age","t value"])) / nrow(bsCombined)
 ```
 
 Or a two-tailed *p*-value:
 
 ```{r}
-(sum(abs(bsCombined$statistic[bsCombined$term == "numberPriorJobs"]) > 2.013)) / nrow(bsCombined)
+(sum(abs(bsCombined$statistic[bsCombined$term == "numberPriorJobs"]) > summary(slim)$coefficients["numberPriorJobs","t value"])) / nrow(bsCombined)
+
+(sum(abs(bsCombined$statistic[bsCombined$term == "age"]) > summary(slim)$coefficients["age","t value"])) / nrow(bsCombined)
 ```
 
-## A Brief Demonstration of infer
-
-```{r}
-library(infer)
-
-nullDist <- modelVars %>% 
-  specify(startingSalary ~ age) %>% 
-  hypothesize(null = "independence") %>% 
-  generate(1000, type = "permute") %>% 
-  calculate("slope")
-
-visualise(nullDist) +
-  shade_p_value(obs_stat = 401, direction = "right") +
-  shade_confidence_interval(endpoints = get_ci(nullDist))
-```
+From our null distributions, we can safely reject the null for age's effect on starting salary. We also get very low *p*-values for the number of jobs.
 
 ## Computational Power
 
-When running our bootstrapping functions, things were generally going pretty fast; running 1000 replications is no problem. However, we probably won't be doing this just 1000. We will probably be doing it many thousands of times. If we are going to be running that many simulations, we probably want to get full use of our machines. 
+When running our bootstrapping functions, things were generally going pretty fast; running 1000 replications is no problem. However, we probably won't be doing this just 1000 times (or maybe even with a single model). We will probably be doing it many thousands of times. If we are going to be running that many simulations, we probably want to get full use of our machines. 
 
 We can do that by running our models in parallel.
 

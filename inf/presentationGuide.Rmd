@@ -1,0 +1,27 @@
+---
+title: "Presentation Guide"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Each part (Checks) will have a maximum of 10 points awarded.
+
+```{r}
+dat = data.frame(Checks = c("Clearly-Stated Hypotheses", 
+                           "General Creativity", 
+                           "Interpretation", 
+                           "Appropriate technique use", 
+                           "Transparency"), 
+                 Notes = c("Did you clearly state your hypotheses?", 
+                           "Did you find some data of interest or are you talking about how to read a csv&#8253;", 
+                           "Did you interpret your results?", 
+                           "Did you use the proper method to test your hypotheses and create visualizations?", 
+                           "Is your code presented and reproducible?"))
+
+knitr::kable(dat)
+```
+
+Going over three minutes will be handsomely rewarded.~

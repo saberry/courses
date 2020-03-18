@@ -1,0 +1,285 @@
+---
+title: "Even Wackier Stuff"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: "readable"
+    highligh: "tango"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE)
+
+turnoverDat = read.csv("turnoverData.csv")
+```
+
+
+## The Ordered Predictor Problem
+
+Many of you discovered the weirdness of using an ordinal predictor in your models.  What R is returning is an orthogonal polynomial contrast.  We are dealing with k-1 higher-order approximations of the trends of the variable (linear, quadratic, cubic, ^4, etc.).  So in our model, we are looking at the effects of each trend level on our dependent variable.
+
+```{r}
+
+options(scipen = 999)
+
+library(ggplot2); library(dplyr)
+
+testCoef = coefficients(lm(price ~ cut, data = diamonds))
+
+testCoef
+
+C = contr.poly(5)
+
+linearContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[2] * C[1, 1], 
+                      testCoef[1] + testCoef[2] * C[2, 1],
+                      testCoef[1] + testCoef[2] * C[3, 1], 
+                     testCoef[1] + testCoef[2] * C[4, 1], 
+                     testCoef[1] + testCoef[2] * C[5, 1]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+quadraticContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[3] * C[1, 2], 
+                      testCoef[1] + testCoef[3] * C[2, 2],
+                      testCoef[1] + testCoef[3] * C[3, 2], 
+                     testCoef[1] + testCoef[3] * C[4, 2], 
+                     testCoef[1] + testCoef[3] * C[5, 2]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+cubicContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[4] * C[1, 3], 
+                      testCoef[1] + testCoef[4] * C[2, 3],
+                      testCoef[1] + testCoef[4] * C[3, 3], 
+                     testCoef[1] + testCoef[4] * C[4, 3], 
+                     testCoef[1] + testCoef[4] * C[5, 3]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+quarticContrast = data.frame(meanPrice = c(testCoef[1] + testCoef[5] * C[1, 4], 
+                      testCoef[1] + testCoef[5] * C[2, 4],
+                      testCoef[1] + testCoef[5] * C[3, 4], 
+                     testCoef[1] + testCoef[5] * C[4, 4], 
+                     testCoef[1] + testCoef[5] * C[5, 4]), 
+                     cut = c("Fair", "Good", "Very Good", 
+                             "Premium", "Ideal"))
+
+plotDat = diamonds %>% 
+  dplyr::select(price, cut) %>% 
+  group_by(cut) %>% 
+  summarize(meanPrice = mean(price))
+
+ggplot(plotDat, aes(cut, meanPrice, group = 1)) +
+  geom_point(size = 3, color = "#e41a1c") + # Red
+  geom_point(data = linearContrast, aes(y = meanPrice, group = 1), color = "#377eb8") + # Blue
+  geom_line(data = linearContrast, aes(y = meanPrice, group = 1), color = "#377eb8") +
+  geom_point(data = quadraticContrast, aes(y = meanPrice, group = 1), color = "#4daf4a") + # Green
+  geom_line(data = quadraticContrast, aes(y = meanPrice, group = 1), color = "#4daf4a") +
+  geom_point(data = cubicContrast, aes(y = meanPrice, group = 1), color = "#984ea3") + # Purple
+  geom_line(data = cubicContrast, aes(y = meanPrice, group = 1), color = "#984ea3") +
+  geom_point(data = quarticContrast, aes(y = meanPrice, group = 1), color = "#ff7f00") + # Orange 
+  geom_line(data = quarticContrast, aes(y = meanPrice, group = 1), color = "#ff7f00") +
+  theme_minimal()
+```
+
+From looking at the visualization, we can see how these different "approximations" can fit the data pretty well.
+
+We will look at some alternative ways within the next few weeks, but we have the following methods available to us: orthogonal polynomial contrasts, numeric conversion, factor conversion.
+
+Converting them to numeric will entail a careful theoretical examination of the question at hand and the nature of the ordinal categories, but you get the nice and easier numeric interpretation that comes along with the numeric.  Converting them to factors leads us to the treatment contrasts that we used earlier.
+
+## Our Data For Today
+
+This data represent a small subsample of data from an actual dataset.  Since I very much enjoy my work and don't really want to come under data security scrutinty, I have not given you any *real* data.  Instead, I took a subset of the variables and simulated values for those variables.  
+
+```{r}
+turnoverDat = read.csv("turnoverData.csv")
+```
+
+
+## Poisson and Its Friends
+
+Finally, we can start talking about poisson models!  Try your best to contain your excitement.  Although we have seemingly drifted just a bit away from them, recall that Poisson models are part of the GLM.  For models of this nature (our dependent variable is a count variable), we may have two different distributions with which to operate: the poisson distribution or the negative binomial distribution.
+
+Let's check this out (it will be important later on)
+
+```{r}
+library(dplyr)
+
+turnoverDat %>% 
+  dplyr::select(trainingSessionsAttended, absencePeriods) %>% 
+  group_by(absencePeriods) %>% 
+  summarize(mean = mean(trainingSessionsAttended), sd = sd(trainingSessionsAttended))
+```
+
+What is the purpose of this? We are checking the conditional means and variances (or standard deviations).  Why is this important?  If our standard deviations are larger than our means, we have "over dispersion".  We would expect values to be distributed over levels, but if they are really spread out, this qualifies as over dispersion -- this is not good for our poisson model because it will cause downward bias (bias, while not tricky conceptually, presents interesting thought questions).
+
+It looks like everything is moderately okay (for now), so let's proceed onward with our poisson model:
+
+```{r}
+poissonTest = glm(trainingSessionsAttended ~ absencePeriods, 
+                  data = turnoverDat, 
+                  family = poisson)
+
+summary(poissonTest)
+```
+
+
+**Important Note** We are going to interpret this *almost* the same as a linear regression.  The slight wrinkle here, though, is that we are looking at the log counts.  In other words, an increase in one absence period corresponds to an expected log count of -.001.  Just like our logisitc regression, we could exponentiate this to get .9987.  Let's see what this looks like in action:
+
+```{r}
+
+turnoverDat = turnoverDat %>% 
+  mutate(predValues = predict(poissonTest, type="response"))
+
+library(ggplot2)
+
+ggplot(turnoverDat, aes(absencePeriods, predValues)) + 
+  geom_count() +
+  scale_size_area() +
+  theme_minimal()
+
+```
+
+Finally, we can look at the residual deviance (it is comparing our model to a model with perfect prediction) to get at our model fit:
+
+```{r}
+pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE)
+```
+
+This is a *p*-value -- it should not be significant.
+
+With everything coupled together, we have a next to zero coefficient, a plot without much fun, and poor model fit (none of this stuff makes for a happening party).  Therefore, we can conclude that there is practically no relationship between these two variables.
+
+### Zero-Inflated (ZIP)
+
+Sometimes, we have a seeming abundance of zero values within our data.  We can have employees with zero absence periods, lines with zero quality failures, and days without safety issues.  What is the process that generated the zeros?  Are they coming from our count model ("true" zeroes) or something else (some random process)?  This is where zero-inflated models become important.  ZIP models are mixture models.  We are not going to dive too deeply into this, but all you need to know is that a mixture model contains a "mixture" of different distributions.    
+
+```{r}
+library(pscl) # Thanks, Simon Jackman!
+
+zipTest = zeroinfl(trainingSessionsAttended ~ absencePeriods,
+                   dist = "poisson", data = turnoverDat)
+
+summary(zipTest)
+
+```
+
+We have two separate chunks of output in our summary here: one for our standard model and one from our zero-inflated model.  Again, we are modeling two different processes here.
+
+```{r}
+vuong(poissonTest, zipTest)
+```
+
+Like most of our model comparison tests, we are looking at null and alternative hypotheses.
+
+### (Zero-Inflated) Negative Binomial
+
+Remember that whole issue with our conditional means and standard deviations?  If we would have had problems those means and sds, we would need to abandon our poisson distribution in favor of the negative binomial.
+
+We already saw that the first models we played with did not have any trouble, but lets look at the following relationship:
+
+```{r}
+turnoverDat %>% 
+  dplyr::select(trainingSessionsAttended, workingGroupSize) %>% 
+  group_by(workingGroupSize) %>% 
+  summarize(mean = mean(trainingSessionsAttended), sd = sd(trainingSessionsAttended))
+```
+
+
+Well we don't really have any problems here either, so we might have to do a little pretending (for the sake of our demonstrations).  
+
+```{r}
+library(MASS)
+
+nbTest = glm.nb(trainingSessionsAttended ~ workingGroupSize, data = turnoverDat)
+
+summary(nbTest)
+
+```
+
+
+We can also test for over-dispersion:
+
+```{r}
+odTest(nbTest)
+```
+
+Purely for the sake of time, we are not going to cover the zero-inflated negative binomial model tonight.  If you combine everything that I have just shown you, you would have everything you needed to run one (if the need shall ever arise).
+
+## Penalized Regression
+
+Everyone has been doing a fantastic job thinking through the variables that they want to include in their models -- for this, I give you many claps of the hands!  But there are a variety of different ways to test which variables work best in your model (you will never get out of the hard part of thinking through your first set of candidate predictors).  At some point, you might have learned some kind of step-wise regression (backward, forward, etc.).  This is still practices by some, but has been slowly falling out of favor for some time.
+
+Our friends, Hastie and Tibshirani, have delivered alternative methods for variable selection.  With these approaches we are not "eliminating" predictors from our model, but we are instead wanting to keep them all in.  This could be done for a huge number of reasons: prior theory, maximizing prediction, just seeing what works, etc.
+
+Let's check the following first:
+
+```{r}
+library(corrplot)
+
+corDat = turnoverDat %>% 
+  dplyr::select(-jobClass) %>% 
+  cor()
+
+corrplot.mixed(corDat, lower = "number", upper = "square", order = "hclust")
+```
+
+While these are just Pearson correlations (not everything should have gotten a Pearson correlation given the nature of the data), we can see that we do not have too much going on.
+
+
+### Ridge
+
+In Ridge regression (or the Lambda2 quadratic penalty or L2 regularization) we are applying a penalty to the coefficients of our model.  Specifically, we are applying the penalty to the sum of the squares of the coefficients.  Ridge regression tends to shrink *everything* down pretty close to zero.  Why in the world is this a good idea!?!  When we are dealing with models, we can often run into issues with over-fitting.  When we have over-fitting, we are obtaining near perfect prediction.  Great, right?  It is great for our current sample, but what if we want to use our model to predict new data?  I can tell you...it will probably not perform well.  To keep all of the variables in the model and avoid over-fitting, the ridge regression shrinks the coefficients down pretty close to zero.
+
+There are several packages that would allow us to do what we need to do.  We are going to use the "penalized" package for now, because it gives us the formula interface with which we have practiced.  Do know, though, that the glmnet package is the best one to use. 
+
+```{r}
+library(penalized)
+
+logTest = glm(turnoverNY ~ tenureYears + salaryKs + 
+                        absencePeriods + jobClass, family = binomial, 
+              data = turnoverDat)
+
+coefficients(logTest)
+
+ridgeTest = penalized(turnoverNY ~ tenureYears + salaryKs + 
+                        absencePeriods + jobClass, lambda2 = 1, 
+                      model = "logistic", data = turnoverDat)
+
+coefficients(ridgeTest)
+```
+
+Our coefficients were already pretty close to zero, so it could not shrink them too much more -- ridge will not shrink anything to zero.  You can see that it did do some shrinking, though.
+
+
+### LASSO
+
+LASSO regression (least absolute shrinkage and selection operator; L1 Absolute Value Penalty) is operating on the same concept as the ridge regression (penalization), but it is doing something a little bit different.  LASSO is trying to minimize the sum of the absolute values of the coefficients.  Instead of shrinking everything way down, but never to zero, it will shrink some variables down to zero while only moderately shrinking others. What does shrinking a coefficient down to zero do?  If you said, "it effectively removes it from the model", then you would be correct.
+
+```{r}
+lassoTest = penalized(turnoverNY ~ tenureYears + salaryKs + 
+                        absencePeriods, lambda1 = 1, 
+                      model = "logistic", data = turnoverDat)
+
+coefficients(lassoTest)
+```
+
+
+### Elastic Net
+
+We have ridge regression and we have LASSO regression -- do we need anything else?  Probably not, but statisticians get bored.  The elastic net is just a combination of the ridge and LASSO.  We can do the ridge regularization to shrink coefficients and then do the LASSO to "eliminate" some of the coefficients.  In situations with high multicollinearity, LASSO picks one without any real thought.
+
+```{r}
+netTest = penalized(turnoverNY ~ tenureYears + salaryKs + 
+                        absencePeriods, lambda1 = 1, lambda2 = 1, 
+                      model = "logistic", data = turnoverDat)
+
+coefficients(netTest)
+```
+
+For all three of these models, you likely noticed the "lambda" arguments.  This is the value that is helping to generate our penalization.  We have just a simple value put in here, but we are going to find a better way soon.
+
+## Next Steps
+
+This stuff, as of right now, is likely very vague.  But next week, we are going to talk about why this is actually important.  This was but a mere building block (big hint -- right now, all we see is the bark of a tree and we are soon going to see the whole forest!).  Essentially, we have been more in the point estimate and hypothesis rejection drawers of inference; we are going to start moving to the predicition side very soon.  

@@ -1,0 +1,290 @@
+---
+title: "The Robust Side Of Regression"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE)
+
+execPay = data.table::fread("anncomp.csv")
+```
+
+
+# Various Antics
+
+For the most part, we have focused on things well within the clean, linear regression world. We need to spend some time on what happens when things (i.e., our data) is not how we imagined it. When we violate certain assumptions of a linear model, all is not lost. There are a variety of techniques available to you for taking care of violations like outliers and heteroscedasticity. This is where the name *robust regression* comes from -- these models are robust against assumption violations.
+
+## Packages
+
+```{r, eval = FALSE}
+install.packages(c("MASS",  "car", "quantreg", 
+                   "lmtest", "sandwich", "penalized", "gridExtra"))
+```
+
+
+## Our Data
+
+```{r, eval = FALSE}
+execPay = data.table::fread("http://www3.nd.edu/~sberry5/data/anncomp.csv")
+```
+
+**Important Note** While this is real data, it is in no way, shape, or form clean data.  For our purposes, we are not going to worry about the sloppiness within.
+
+# Down Weighting
+
+## What And Why
+
+Extreme scores are just normal parts of data.  Unless there is an issue with these values (incorrect data, invalid values, etc.), they still count as data.  Sometimes, these extreme scores can be classified as "outliers" -- simply put, an outlier is a value with a very large residual.  In many traditional circles, there exists a notion that outliers must be dealt with in the most extreme of ways -- deletion (the gallows of the data world).  The intentions behind this are largely noble, as an ordinary least squares (OLS -- our everyday normal regression) regression is very sensitive to outliers in data.
+
+Let's take a very quick detour towards OLS.  This might be old for some and new for others, but let's take the ride together.  We have seen the regression equations a few times now, but what is it actually attempting to do?  A normal linear regression is trying to minimize the sum of the squared errors.  Let's look at pictures:
+
+```{r}
+set.seed(1001)
+
+x = rnorm(20)
+
+y = rnorm(20)
+
+plot(x, y)
+
+abline(lsfit(x, y))
+```
+
+Again, our OLS is trying to fit (up, down, and rotation) the line between the points in a way that minimizes the sum of the squared errors (errors and residuals are the same thing -- $\text{true value} - \text{fitted value}$).  
+
+Outliers tend to have a higher "leverage" than the average value.  Leverage relates to how much an independent variable drifts from its mean.  If we go back to our elementary lessons in physics, it is easy to understand why this is called leverage!  Consider the following:
+
+
+```{r}
+a = sample(1:50, 10, replace = TRUE) 
+
+b = sample(22:29, 10, replace = TRUE)
+
+mean(a)
+
+mean(b)
+```
+
+
+If we just look at the values we from which we are sampling (1:50 and 22:29), we see they have equal means.  The sampling won't give us equal means, but it will get us pretty close.  As the values of a and b move away from 25.5, the values have a higher leverage.  So which might exhibit higher leverage?  It is clear that the more extreme values of a would exhibit a much higher leverage than those within b.  So why does this matter?  Let's imagine two different regression lines:
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(a)
+abline(lsfit(1:10, a))
+
+plot(b)
+abline(lsfit(1:10, b))
+
+```
+
+
+In both, we can imagine some points that are pulling the lines around.  But we see a much larger problem when we have even more leverage within our data.  In both examples, we might see an issues with outliers within the actual data.
+
+Deleting valid data is out of the question -- always.  So what do we do?
+
+## How
+
+Now that we have a good idea about how outliers (i.e., values that exhibit high leverage) can mess with our OLS, we need something that is a little more robust to pulling on the regression line.  There are more than a few ways of dealing with these issues.  One such way is called *trimming*.  In trimming, we are choosing a percentile cut-point and trimming everything above/below that.  We can see how this shifts the mean:
+
+```{r}
+x = 1:100
+
+regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+
+regTrim
+```
+
+We don't see anything with our nice and tidy 1:100.  Let's look at something a bit more plausible:
+
+```{r}
+x = sample(1:100, 100, replace = TRUE)
+
+regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+
+regTrim
+```
+
+
+Nothing too different, but our data is still pretty tame.  Trimming is only presented for a matter of completeness...a rose by another name is still a rose (in other words, deletion).
+
+Given the lines of work that you might want to pursue (and the people with whom you might interact), you might run into *winsorization*.  It is incredibly common to find Finance and Management folks who came up in the Econometric tradition and live by winsorization.  With winsorization, we are taking every value beyond the 95^th^ percentile and replacing it with the 95^th^ percentile value.  We also do the same for every value below the 5^th^ percentile.  Here is a quick example:
+
+
+```{r}
+x = 1:100
+
+percentile05 = quantile(x, probs = .05)
+
+percentile95 = quantile(x, probs = .95)
+
+x[which(x < percentile05)] = percentile05
+
+x[which(x > percentile95)] = percentile95
+
+x
+```
+
+
+Both of these techniques have a rich tradition in applied and academic settings.  If you trim or winsorize your data, you will rarely find someone who calls this into question.  But, we can handle these outliers in ways that do not delete the data or do not replace perfectly valid values with some other value.
+
+That is where *iteratively re-weighted least squares* (IRLS) comes to save the day.  In our OLS regression, we can imagine that our model checks to see how it can best minimize the sums of squared errors and runs exactly once, with everything getting a weight of 1.  By name alone, you can probably guess how IRLS is different!  Instead of running through the model once, IRLS uses *M*-estimation (*E*, *M*, and *S* estimation are common iterative techniques) to weight residuals.  The residual weighting is re-iterated until certain conditions are satisfied.  It would proceed in this manner: run the model, check the residuals, weight those observations with high residuals, run the model, check the residuals, weight those observations that continue to have high residuals, so forth and so on.   
+
+There are many different weighting estimators, but we are going to focus on *bisquare weighting*.  With bisquare weighting, we are down-weighting every residual that is not 0.  In that sense, it is a very "aggressive" technique (other estimates, like Huber, are not so aggressive).  Let's see how all of this might work.
+
+```{r}
+library(MASS)
+
+olsTest = lm(SALARY ~ AGE, data = execPay)
+
+summary(olsTest)
+
+plot(execPay$AGE, execPay$SALARY)
+
+abline(olsTest, col = "#ff5503")
+
+plot(olsTest$fitted.values, olsTest$residuals)
+
+robTest = rlm(SALARY ~ AGE, data = execPay, psi = psi.bisquare)
+
+summary(robTest)
+
+comparisonData = data.frame(weights = robTest$w, 
+                     residuals = robTest$residuals)
+
+head(comparisonData, 25)
+
+head(comparisonData[order(comparisonData$weights), ], 25)
+```
+
+
+## Summary
+
+Outliers are real and can cause problems, but deleting them is out of the question.  In general, but not always, deleting outliers is done for the sole purpose of *p*-hacking.  There may be a day in your future when you listen to a colleaugues present results for a project; you need to be on the look out for poor data practices and this is a clear red flag.  If you have outliers, you can use iteratively re-weighted least squares to "turn down" the leverage of the outliers.  The `rlm` function in the "MASS" package will manage the hardwork for you.
+
+# Quantile Regression 
+
+## What And Why
+
+Quantile regression is neat...plain and simple.  While it may not be the most commonly used tool in your toolbox, it will be one that you are really happy to have when the need arises.  Since we just got off the topic of outliers and extreme scores, let's start there.  We just saw how down-weighting took care of our problems with outliers.   When we are doing an OLS regression, we are looking at averages (i.e., we are modeling the mean of y as a function of x).  In quantile regression, however, we are using the 50% (the median) instead of the average (we are looking at the DV).  In the case of large ouliers, this becomes very handy.  For well-behaved data, we have equal means and medians.  But in reality, this is not always the case.  Let's consider the following:
+
+```{r}
+ideal = 1:10
+mean(ideal)
+median(ideal)
+
+lessIdeal = c(1:9, 20)
+mean(lessIdeal)
+median(lessIdeal)
+```
+
+
+## How
+
+Roger Koenker has likely made the most contributions to quantile regression from a contemporary perspective.  He wrote the "quantreg" package for R.
+
+```{r}
+library(quantreg)
+
+quantTest = rq(SALARY ~ AGE, tau = .5, data = execPay)
+
+summary(quantTest)
+```
+
+You can interpret these models in the same way that you would interpret a linear regression; instead of talking about the average, we are talking about the specified quantile.
+
+Quantile regression is not a one-trick-pony, though.  Remember, it is called quantile regression -- not median regression.  Being able to compute a median regression is just a nice by-product.  What we can do with quantile regression is to model different quantiles of the same data.  This becomes very important with certain populations.  In an organizational environment, you will have various levels of performance that likely follow a relatively normal distribution.  If we run some normal linear models, we may not really learn too much about how those out at the tails behave.  Depending on the question we are asking, we may not care.  But if the question is how to improve employee performance, we have some real thinking to do.  
+
+```{r}
+quantTest25 = rq(SALARY ~ AGE, tau = .25, data = execPay)
+
+summary(quantTest25)
+
+quantTest50 = rq(SALARY ~ AGE, tau = .5, data = execPay)
+
+summary(quantTest50)
+
+quantTest75 = rq(SALARY ~ AGE, tau = .75, data = execPay)
+
+summary(quantTest75)
+
+plot(execPay$AGE, execPay$SALARY)
+
+abline(rq(SALARY ~ AGE, tau = .25, data = execPay), col = "blue")
+
+abline(rq(SALARY ~ AGE, tau = .50, data = execPay), col = "green")
+
+abline(rq(SALARY ~ AGE, tau = .75, data = execPay), col = "red")
+```
+
+
+## Summary
+
+Quantile regression allows you do mitigate the influence of extreme scores by using the median instead of the mean.  Furthermore, it allows you to model the various quantiles to get a better understanding of the distribution of your population.
+
+# Robust Standard Errors 
+
+## What And Why
+
+Recall that one of our assumptions about regression is that we don't have heteroscedasticity (or heteroskedasticity, if you prefer), but we do have homoscedasticity.  Saying it is a lot of fun, but what does it mean?  The root words give us a big clue and we are looking at the distribution of errors across the predicted values of a regression model.  Since we are looking for homoscedasticity, we are wanting to see the same distribution of errors across all values of our predicted values.
+
+We can test it in a few different ways: graphically and algorithimcally.
+
+```{r}
+library(ggplot2)
+
+testLM = lm(price ~ carat, data = diamonds)
+
+summary(testLM)
+
+plot(testLM$fitted.values, testLM$residuals)
+```
+
+Do you see any pattern to this plot?  If so, then we have heteroscedasticity (thus, problems).  
+
+We can also use the bptest() function from the lmtest package to perform the Breusch-Pagan test:
+
+```{r}
+lmtest::bptest(testLM)
+```
+
+Well what do we have here?  The null hypothesis is that the residuals are constant.  Our eyeballs told us that we have problems and our fancy little test statistic confirmed it.  The model is shot, we should probably all go home now.
+
+Kidding aside, we could tackle this in a few different ways.  In days of yore, we would have conducted a Box-Cox Test to find out how we should do some transformations.  Fortunately, modern machines enable us to do some pretty fancy stuff that people could not really do before.
+
+## How
+
+We are going to get into some weird stuff here.  Let's look at the variance-covariance matrix for our model:
+
+```{r}
+vcov(testLM)
+```
+
+The diagonals are the variances (the spread from the mean) and the off-diagonals are the covariances (how one variable varies with another variable).  We can do some neat things with this little matrix:
+
+```{r}
+sqrt(diag(vcov(testLM)))
+```
+
+Do those look familiar?  If they don't, they are the standard errors we got from our model output.  The variances are just telling us about the sampling distribution for our model.  The covariances are mostly used to form our confidence intervals.  This `vcov` matrix came from our model, but our model has problems.  We can take a look at some different vcov matrices:
+
+```{r}
+library(sandwich)
+
+vcovHC(testLM)
+```
+
+Much like we have different ways of computing every statistic (just think -- there are several different types of means), we have *many* alternative ways to construct our variance-covariance matrix.  
+
+To see the formula for one such correction (one of several in the Huber-White family of standard error caluclations), this <a href="https://www.econometrics-with-r.org/5-4-hah.html#computation-of-heteroskedasticity-robust-standard-errors">online book</a> is excellent (and covers a broad range of topics from an econometrics perspective). 
+
+If we use a different vcov matrix to test our coefficients, we get the following: 
+
+
+```{r}
+lmtest::coeftest(testLM, vcov = vcovHC)
+```
+
+Do you see the difference?  By using a heteroscedasticity-consistent covariance matrix to test our coefficients, we have more reasonable estimates.
+

@@ -1,6 +1,9 @@
 ---
 title: "Mixed Models"
-output: distill::distill_article
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
@@ -64,7 +67,7 @@ As mentioned earlier, we will get improved standard errors.
 
 Mixed models don't get bogged down by large groups (i.e., large groups do not dominate the inference) and the smaller groups do not get buried by the larger groups. 
 
-mixed models will not overfit or underfit when we have repeated samples/measurement. We also get improved estimates for repeated measures when dealing with mixed models.
+Mixed models will not overfit or underfit when we have repeated samples/measurement. We also get improved estimates for repeated measures when dealing with mixed models.
 
 Our models retain the variation inherent within the data when we used a mixed model.
 
@@ -111,7 +114,7 @@ library(dplyr)
 
 library(ggplot2)
 
-performanceReview <- readr::read_csv("inf/performanceReviewData.csv")
+performanceReview <- readr::read_csv("http://www.nd.edu/~sberry5/data/performanceReviewData.csv")
 
 lmTest <- lm(performanceScore ~ Manager + age, data = performanceReview)
 
@@ -127,13 +130,13 @@ We have our standard output here. As before, our intercept is the average score 
 Let's see how some additional information changes our viz:
 
 ```{r}
-ggplot(performanceReview, aes(as.factor(idDepartment), performanceScore)) +
-  geom_boxplot() + 
+ggplot(performanceReview, aes(performanceScore, age, color = as.factor(Manager))) +
+  geom_point() + 
   facet_wrap( ~ idBuilding) +
   theme_minimal()
 ```
 
-## Random Intercepts Model
+# Random Intercepts Model
 
 Let's include the department variable in our model. We are not going to add it as another predictor, but we are going to include it as another level to our model. The `lme4` package will make this very easy. We will start with an intercept-only model:
 
@@ -141,11 +144,9 @@ Let's include the department variable in our model. We are not going to add it a
 library(lme4)
 
 intMod <- lmer(performanceScore ~  1 + (1|idDepartment), data = performanceReview)
-
-summary(intMod)
 ```
 
-Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. 
+Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. We are just specifying an intercept here.
 
 The next part in the parentheses is how we denote our random effect. Whenever you see a 1 included in a formula interface, we can be pretty comfortable that it is in reference to a intercept. The `|` specifies a grouping. With that information, we might be able to guess that we are specifying a random intercept for each borough. 
 
@@ -155,7 +156,13 @@ We should probably check out the summary:
 summary(intMod)
 ```
 
+<aside>
+You might notice that this is being fit by restricted maximum likelihood (REML). This is just a specific version of maximum likelihood estimation (MLE), which seeks to maximize a function so that the proposed model fits the data.
+</aside>
+
 We don't really get anything too interesting here for now. Let's do explore the random effects components just a little bit. Let's do the following with our variances:
+
+$$\frac{\text{intercept variance}}{\text{intercept variance} + \text{residual variance}}$$
 
 ```{r}
 5.22 / (39.09 + 5.22)
@@ -171,7 +178,7 @@ We can compute $\sigma^2$ as:
 
 $$\sigma^2 = \frac{\Sigma(n_j - 1)S^2_j}{N-C}$$
 
-Where $\S^2_j$ (the variance within the cluster) is defined as:
+Where $S^2_j$ (the variance within the cluster) is defined as:
 
 $$\frac{\Sigma(y_{ij}-\bar{y}_j)}{(n_j - 1)}$$
 
@@ -216,7 +223,16 @@ When groups are largely balanced, we would find that our coefficients would be t
 
 What should almost always change is our standard errors -- by integrating information about the groups, we are getting a better sense of how much uncertainty our model contains at the global average level.
 
-We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon department after getting the information from our fixed effects (i.e., the score can move around nearly 2 whole point from department alone). We can also use various bits of information in our output to create different *R^2* values. 
+We also see some additional information -- this is for our random effects. The standard deviation is telling us how much the score moves around based upon department after getting the information from our fixed effects (i.e., the score can move around nearly 2 whole point from department alone). 
+
+We can get a good sense of the random effect estimates:
+
+```{r}
+ranef(riMod)
+```
+
+
+We can also use various bits of information in our output to create different *R^2* values. 
 
 For the first level of the model, we can calculate the $R^2$ as:
 
@@ -244,15 +260,15 @@ $$R^2_2 = 1 - \frac{\sigma^2_{M1} / B + \tau^2_{M1}}{\sigma^2_{M0} / B + \tau^2_
 
 We see that we added a *B* into the mix here and it is just the average size of the level 2 units (534 / 26). 
 
-```{r}
-level2Mean <- 534 / 26
+<!-- ```{r} -->
+<!-- level2Mean <- 534 / 26 -->
 
-r2Numerator <- m1Sigma / level2Mean + m1Tau
+<!-- r2Numerator <- m1Sigma / level2Mean + m1Tau -->
 
-r2Denominator <- m0Sigma / level2Mean + m0Tau
+<!-- r2Denominator <- m0Sigma / level2Mean + m0Tau -->
 
-1 - (r2Numerator / r2Denominator)
-```
+<!-- 1 - (r2Numerator / r2Denominator) -->
+<!-- ``` -->
 
 
 We can also plot simulated random effect ranges for each of the random effect groups. We want to pay attention to those that are highlighted with black (i.e., the range does not cross the red line at 0). 
@@ -347,56 +363,7 @@ plot(allPred[, "actual"], allPred[, "clustered"])
 ```
 
 
-<!-- If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses. We could imagine two different ways that the works: one in which a restaurant's score improves as observations increase (it takes some time for the owner to get his staff fully up to speed) or one in which the score decreases as the observations increase (the "shine has worn off the penny"). -->
-
-<!-- Let's do a bit of data processing first. -->
-
-<!-- ```{r} -->
-<!-- healthDataGrouped = healthData %>%  -->
-<!--   tidyr::unite(col = nameLocation, DBA, BUILDING , remove = FALSE) %>%  -->
-<!--   group_by(nameLocation) %>% -->
-<!--   arrange(lubridate::mdy(`GRADE DATE`)) %>%  -->
-<!--   mutate(observation = 1:n()) -->
-
-<!-- timeReviewed = healthDataGrouped %>%  -->
-<!--   summarize(n = n()) %>%  -->
-<!--   filter(n > 10) -->
-
-<!-- reviewedRest = healthDataGrouped[which(healthDataGrouped$nameLocation %in%  -->
-<!--                                          timeReviewed$nameLocation), ] -->
-<!-- ``` -->
-
-
-<!-- ```{r} -->
-<!-- observationModInt = lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest) -->
-<!-- ``` -->
-
-<!-- In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. We have essentially created a model that will deal with the repeated measures for each of the locations. -->
-
-<!-- ```{r} -->
-<!-- reviewedRest %>%  -->
-<!--   arrange(nameLocation, observation) %>%  -->
-<!--   head(., 350) %>%  -->
-<!--   ggplot(., aes(observation, SCORE, group = nameLocation)) + -->
-<!--   geom_point() + -->
-<!--   geom_smooth(method = "lm") + -->
-<!--   facet_wrap( ~ nameLocation) + -->
-<!--   theme_minimal() -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- summary(observationModInt) -->
-<!-- ``` -->
-
-<!-- Our fixed effect here would indicate that we have a slight increase in scores as our observations increase, but we can also see that scores will bounce around about 5 points on average by location alone. -->
-
-<!-- ```{r} -->
-<!-- 29.46 / (29.46 + 125.82) -->
-<!-- ``` -->
-
-<!-- We see that the location alone accounts for nearly 20% of the variance in health scores.  -->
-
-## Hierarchical Models
+# Hierarchical Models
 
 Hierarchical models are a slight variation on the models that we have just seen. In these models, we have groups nested within other groups. We know that we have a department variable and a building variable. One source of inquiry would be to incorporate the nesting of this information.
 
@@ -444,7 +411,7 @@ plot(allPred[, "actual"], allPred[, "hierMod"])
 
 For these predictions, it really does not look like anything changed at all. You might not see massive changes in fit when moving from model to model. The more important question, though, is your model reflecting the reality of your data?
 
-## Random Slopes
+# Random Slopes
 
 Now that we have seen random intercepts and hierarchical models, we can add one final piece: random slopes. In the following model, we will specify a random intercept (recall, it is the 1 within our parenthesis) and a random slope (we are prefixing our grouping variable with a slope of interest). Not only will this model allow the intercept to vary between groups, but it will also allow the slope to vary between groups.
 
@@ -477,58 +444,113 @@ summary(observationModSlope)
 ```
 
 
-<!-- If we use the predicted values of our model, we can see what our results will look like over the observations: -->
-
-<!-- ```{r} -->
-<!-- performanceReview %>%  -->
-<!--   mutate(mixedPrediction = predict(observationModSlope)) %>%  -->
-<!--   group_by(nameLocation) %>%  -->
-<!--   ggplot(., aes(observation, mixedPrediction, group = nameLocation)) +  -->
-<!--   geom_line(alpha = .5) +  -->
-<!--   theme_minimal() -->
-
-<!-- randEffPlot -->
-<!-- ``` -->
-
-<!-- Amazing! We can really see the varying intercepts for each restaurant and we can see how the slopes are completely different (some are similar, but we have a completely mixed bag of directions and magnitudes).  -->
-
-<!-- For the sake of demonstration, and hopefully as a way to bring everything together, let's see what predictions from a standard regression might look like compared to our mixed model: -->
-
-<!-- ```{r} -->
-<!-- slimPred = predict(lm(SCORE ~ observation, data = reviewedRest)) -->
-
-<!-- reviewedRest = reviewedRest %>%  -->
-<!--   ungroup() %>%  -->
-<!--   mutate(slimPrediction = slimPred) -->
-
-<!-- randEffPlot + -->
-<!--   geom_line(data = reviewedRest, aes(observation, slimPrediction),  -->
-<!--             color = "#ff5500", size = 2) -->
-<!-- ``` -->
-
-
-<!-- It looks like the standard regression line would do okay for many of our locations, but we can see that it would do poorly with many others. This should help to provide an illustration of just how flexible and powerful mixed model can be in your hands. -->
-
-<!-- ```{r} -->
-<!-- randomSlopePredict = predict(observationModSlope) -->
-
-<!-- randomIntPredict = predict(observationModInt) -->
-
-<!-- head(cbind(actual = reviewedRest$SCORE,  -->
-<!--            slim = slimPred, -->
-<!--            randomInt = randomIntPredict,  -->
-<!--            randomSlope = randomSlopePredict), 20) -->
-<!-- ``` -->
-
-## The Alternative
+# The Alternative
 
 If you don't want to go the mixed model route, the natural thing to do would be to conduct a regression for each individual group. Here is what that might look like:
 
 ```{r}
 library(purrr)
 
-healthData %>% 
-  split(., f = .$BORO) %>% 
-  map(~ lm(SCORE ~ distanceCentered, data = .x)) %>% 
-  map(~ summary(.x))
+indPredictions <- performanceReview %>% 
+  split(., f = .$idDepartment) %>% 
+  map_df(~ data.frame(predicted = predict(lm(performanceScore ~ Manager + age, data = .x)), 
+                   score = .x$performanceScore)) 
+
+plot(indPredictions$score, indPredictions$predicted)
 ```
+
+
+# Longitudinal Data
+
+If we continue to look at our data (and with some knowledge about how NYC does health inspections), we will see that restaurants are rated yearly -- let's use this information in our model. We won't worry about distance anymore, because now we have a few competing hypotheses. We could imagine two different ways that the works: one in which a restaurant's score improves as observations increase (it takes some time for the owner to get his staff fully up to speed) or one in which the score decreases as the observations increase (the "shine has worn off the penny").
+
+Let's do a bit of data processing first.
+
+```{r}
+healthData <- readr::read_csv("https://www.nd.edu/~sberry5/data/healthViolationsDistances.csv")
+
+healthData <- healthData %>% 
+  mutate(BORO = as.factor(.$BORO), 
+         cuisine = as.factor(.$`CUISINE DESCRIPTION`), 
+         distanceCentered = dohDistanceMeter - mean(dohDistanceMeter))
+
+healthDataGrouped <- healthData %>%
+  tidyr::unite(col = nameLocation, DBA, BUILDING , remove = FALSE) %>%
+  group_by(nameLocation) %>%
+  arrange(lubridate::mdy(`GRADE DATE`)) %>%
+  mutate(observation = 1:n())
+
+timeReviewed <- healthDataGrouped %>%
+  summarize(n = n()) %>%
+  filter(n > 10)
+
+reviewedRest <- healthDataGrouped[which(healthDataGrouped$nameLocation %in%
+                                         timeReviewed$nameLocation), ]
+```
+
+Now we can fit a mixed model, with each location getting its own intercept.
+
+```{r}
+observationModInt <- lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest)
+```
+
+In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. We have essentially created a model that will deal with the repeated measures for each of the locations.
+
+```{r}
+reviewedRest %>%
+  arrange(nameLocation, observation) %>%
+  head(., 350) %>%
+  ggplot(., aes(observation, SCORE, group = nameLocation)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap( ~ nameLocation) +
+  theme_minimal()
+```
+
+```{r}
+summary(observationModInt)
+```
+
+Our fixed effect here would indicate that we have a slight increase in scores as our observations increase, but we can also see that scores will bounce around about 5 points on average by location alone.
+
+```{r}
+29.46 / (29.46 + 125.82)
+```
+
+We see that the location alone accounts for nearly 20% of the variance in health scores.
+
+### Adding Random Slopes
+
+```{r}
+observationModSlope <- lme4::lmer(SCORE ~ observation + (1 + observation|nameLocation), data = reviewedRest)
+
+summary(observationModSlope)
+```
+
+The observation variance is telling us how much variability there is within the slope between locations
+
+If we use the predicted values of our model, we can see what our results will look like over the observations:
+
+```{r}
+plottingData <- reviewedRest %>% 
+  ungroup() %>% 
+  mutate(mixedPrediction = predict(observationModSlope), 
+         lmPrediction = predict(lm(SCORE ~ observation, data = .))) %>% 
+  group_by(nameLocation)
+  
+ggplot() + 
+  geom_line(mapping = aes(observation, mixedPrediction, group = nameLocation), 
+            data = plottingData, alpha = .25) + 
+  geom_smooth(mapping = aes(x = observation, y = lmPrediction), 
+              data = plottingData, method = "lm", 
+              color = "red") +
+  theme_minimal()
+```
+
+Amazing! We can really see the varying intercepts for each restaurant and we can see how the slopes are completely different (some are similar, but we have a completely mixed bag of directions and magnitudes).
+
+It looks like the standard regression line would do okay for many of our locations, but we can see that it would do poorly with many others. This should help to provide an illustration of just how flexible and powerful mixed model can be in your hands.
+
+# Extensions
+
+No matter what type of model you want to run, there is a mixed model extension for it. Any distribution can be used with the `glmer` function, nonlinear models can be fit with `nlme` from the *nlme*, and generalized additive models can be fit with `gamm` from mgcv.

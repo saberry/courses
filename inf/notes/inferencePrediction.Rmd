@@ -1,0 +1,243 @@
+---
+title: "Inference and Prediction"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "")
+```
+
+Prediction and inference are two-sides of the same coin. People tend to think they are working in one or the other, but techniques traditionally used for one area can help inform the other. 
+
+Since you have already seen decision trees and random forests, you can consider how these two techniques might be used to generate variables of interest for an inferential model.
+
+We will spend time with `lime` next mod!
+
+## Helpful Packages
+
+```{r, eval = FALSE}
+install.packages(c("psych", "factoextra", "FactoMineR", "penalized"))
+```
+
+# PCA
+
+PCA takes our multidimensional data and reduces it down to fewer dimensions. 
+
+This is accomplished by using the covariance between variables (eigenvalues) and direction of axes (eigenvectors). 
+
+This strength and direction is then used to *rotate* the data and project it to a smaller space.
+
+Just as a reminder, only use PCA when you want to reduce the number of variables.
+
+PCA components don't mean anything (technically). 
+
+- We will see where we can play with that a bit, though.
+
+## Helpful Functions
+
+For PCA, you have some choices: `princomp()` or `prcomp()`
+
+- `princomp` is done using spectral decomposition
+
+- `prcomp` is done using singular value decomposition
+
+How many factors/components do you need: `psych::fa.parallel()`
+
+## Data
+
+```{r}
+hospitalData <- data.table::fread("http://www.nd.edu/~sberry5/data/hospitalData.csv")
+
+hospitalData <- as.data.frame(hospitalData)
+
+names(hospitalData)
+```
+
+
+## A Quick Visualization
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+library(plotly)
+
+plot_ly(hospitalData, x = ~HospAge, y = ~AHAAdmissions, z = ~TotalOperExpense, 
+        color = ~as.factor(NFP), colors = c('#BF382A', '#0C4B8E')) %>%
+  add_markers() 
+```
+
+## And after PCA
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+library(ggplot2); library(ggfortify); library(factoextra)
+
+keepVariables = c("HospAge", "AHAAdmissions", "TotalOperExpense")
+
+pcaResult = prcomp(hospitalData[, keepVariables], scale. = TRUE)
+
+autoplot(pcaResult, 
+         data = hospitalData, colour = "NFP", 
+         loadings = TRUE, loadings.label = TRUE) +
+  theme_minimal()
+```
+
+
+
+
+## Contributions To Components
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+fviz_contrib(pcaResult, choice = "var", axes = 1, top = 5)
+```
+
+## Contributions To Components
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+fviz_contrib(pcaResult, choice = "var", axes = 2, top = 5)
+```
+
+Let's try it with some data that we have already seen:
+
+```{r}
+library(dplyr)
+
+load("C://Users/sberry5/Documents/teaching/courses/inf/notes/teamPerc.RData")
+
+pcaVars <- teamPerc %>% 
+  filter(Rater == 3) %>% 
+  select(starts_with("lvi"), effect) 
+
+cor(pcaVars[, 1:48], use = "pairwise.complete.obs") %>% 
+  corrplot::corrplot()
+```
+
+And in a regression:
+
+```{r}
+mod <- lm(effect ~ ., data = pcaVars)
+
+broom::tidy(mod)
+
+broom::glance(mod)
+```
+
+That is just too much to deal with and our model would probably better served with fewer terms (we already saw how some of the predictors are correlated with each other)
+
+```{r}
+pcaVars %>% 
+  select(-effect) %>% 
+  psych::fa.parallel()
+```
+
+```{r}
+pcaResult <- FactoMineR::PCA(pcaVars[, grepl("^lvi", names(pcaVars))], ncp = 9, 
+                             graph = FALSE)
+
+knitr::kable(pcaResult$eig)
+
+factoextra::fviz_pca(pcaResult)
+
+corrplot::corrplot(cor(pcaResult$ind$coord))
+```
+
+```{r}
+summary(lm(pcaVars$effect ~ pcaResult$ind$coord))
+```
+
+```{r}
+factoextra::fviz_contrib(pcaResult, choice = "var", axes = 1, top = 5)
+
+factoextra::fviz_contrib(pcaResult, choice = "var", axes = 5, top = 5)
+```
+
+
+# Regularization
+
+## Ridge
+
+In Ridge regression (or the $\lambda2$ quadratic penalty or L2 regularization) we are applying a penalty to the coefficients of our model.  Specifically, we are applying the penalty to the square of the coefficients -- this offers a higher penalty for larger coefficients.  Ridge regression tends to shrink *everything* down.  Why in the world is this a good idea!?!  When we are dealing with models, we can often run into issues with over-fitting.  When we have over-fitting, we are obtaining near perfect prediction.  Great, right?  It is great for our current sample, but what if we want to use our model to predict new data?  I can tell you...it will probably not perform well.  To keep all of the variables in the model and avoid over-fitting, the ridge regression shrinks the coefficients down pretty close to zero. It will also help limit the effects of multicollinearity on a model.
+
+There are several packages that would allow us to do what we need to do.  We are going to use the "penalized" package for now, because it gives us the formula interface with which we have practiced.  Do know, though, that the glmnet package is the best one to use. 
+
+```{r}
+library(penalized)
+
+execPay <- data.table::fread("http://www3.nd.edu/~sberry5/class/anncomp.csv")
+
+execPayShort = execPay %>% 
+  dplyr::select(SALARY, AGE, OTHCOMP, BONUS, TOTAL_CURR) %>% 
+  na.omit()
+
+slimTest <- lm(SALARY ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+              data = execPayShort)
+
+coefficients(slimTest)
+
+ridgeTest <- penalized(response = SALARY, penalized = ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda2 = 1,
+                      model = "linear", trace = FALSE)
+
+coefficients(ridgeTest)
+```
+
+Our coefficients were already pretty close to zero, so it could not shrink them too much more -- ridge will not shrink anything to zero.  You can see that it did do some shrinking, though.
+
+
+## LASSO
+
+LASSO regression (least absolute shrinkage and selection operator; L1 Absolute Value Penalty) is operating on the same concept as the ridge regression (penalization), but it is doing something a little bit different.  LASSO is trying to minimize the sum of the absolute values of the coefficients.  Instead of shrinking everything way down, but never to zero, it will shrink some variables down to zero while only moderately shrinking others (if any at all). What does shrinking a coefficient down to zero do?  If you said, "it effectively removes it from the model", then you would be correct. This can provide a hint towards feature selection that we would not have otherwise had.
+
+```{r}
+lassoTest <- penalized(response = SALARY, penalized = ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda1 = 1, 
+                      model = "linear", trace = FALSE)
+
+coefficients(lassoTest)
+```
+
+
+## Elastic Net
+
+We have ridge regression and we have LASSO regression -- do we need anything else?  Probably not, but statisticians get bored.  The elastic net is just a combination of the ridge and LASSO.  We can do the ridge regularization to shrink coefficients and then do the LASSO to "eliminate" some of the coefficients.  In situations with high multicollinearity, LASSO picks one without any real thought.
+
+```{r}
+netTest <- penalized(response = SALARY, penalized = ~ AGE + OTHCOMP + BONUS + TOTAL_CURR, 
+                      data = execPayShort, lambda1 = 1, lambda2 = 1,
+                      model = "linear", trace = FALSE)
+
+coefficients(netTest)
+```
+
+
+### Testing Methods
+
+```{r}
+library(caret)
+
+pcaVars <- na.omit(pcaVars)
+
+trainIndex <- createDataPartition(pcaVars$effect, p = .8, list = FALSE, times = 1)
+
+train <- pcaVars[trainIndex, ]
+
+test <- pcaVars[-trainIndex, ]
+
+regularizedGrid <- expand.grid(lambda1 = seq(1, 3, by = 1), lambda2 = seq(1, 3, by = 1))
+
+regularizedTrain <- caret::train(effect ~ ., data = pcaVars, method = "penalized", 
+                                 tuneGrid = regularizedGrid, trace = FALSE)
+
+regularizedTrain
+
+predictions <- predict(regularizedTrain, newdata = test)
+
+RMSE(predictions, pcaVars$effect)
+
+lmTrain <- lm(effect ~ . , data = pcaVars)
+
+lmPredict <- predict(lmTrain, newdata = test)
+
+RMSE(lmPredict, pcaVars$effect)
+```
+

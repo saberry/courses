@@ -9,6 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+## The Data
+
+The data that we are using is available in the "data" folder and is called: teamPerc.RData.
+
 ## What Makes An Effective Leader?
 
 Why are some people seen as effective leaders and others are not? Are there any behaviors or characteristics that can help us quantify what an effective leader looks like? 
@@ -41,7 +45,7 @@ Discuss the results of your model, both in terms of the model performance and yo
 
 ### Silver
 
-Conduct any form of resampling and discuss the output from your resampled results. How do the resultant distribution help to support your hypotheses?
+Conduct any form of resampling and discuss the output from your resampled results. How does the resultant distribution help to support your hypotheses?
 
 ### Gold
 

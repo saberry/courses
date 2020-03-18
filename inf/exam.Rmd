@@ -1,22 +1,11 @@
 ---
 title: "Exam"
 author: "Your Name Here"
-output:
-  html_document:
-    theme: united
-    highlight: pygments
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE, comment = "")
-
-library(dplyr)
-
-library(ggplot2)
-
-library(readr)
-
-library(pwr)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Section 1  
@@ -29,7 +18,7 @@ After looking at the bivariate relationship in the previous visualization, add d
 
 
 ```{r}
-visualizationData = read_csv("https://www.nd.edu/~sberry5/data/visualizationData.csv")
+sec1Link <- "https://www.nd.edu/~sberry5/data/visualizationData.csv"
 ```
 
 
@@ -42,7 +31,7 @@ Using the following data, formulate a hypothesis for training.sessions.attended.
 After reporting and interpreting your findings, conduct a post hoc power analysis to determine if you had a sufficient sample size to detect an effect. Discuss the results from your power analysis.
 
 ```{r}
-glmData = read_csv("https://www.nd.edu/~sberry5/data/glmData.csv")
+sec2Link <- "https://www.nd.edu/~sberry5/data/glmData.csv"
 ```
 
 
@@ -55,7 +44,7 @@ Consider the following A/B testing data. This data tracks a user's time on page 
 Discuss your results and indicate any actionable decision that comes from your analysis. Additionally, determine if your analyses were sufficiently powered.
 
 ```{r}
-abData = read_csv("https://www.nd.edu/~sberry5/data/abData.csv")
+sec3Link <- "https://www.nd.edu/~sberry5/data/abData.csv"
 ```
 
 
@@ -68,7 +57,7 @@ Using the following data, determine if there are any differences in the daily ne
 Discuss your results.
 
 ```{r}
-performanceData = read_csv("https://www.nd.edu/~sberry5/data/performanceData.csv")
+sec4Link <- "https://www.nd.edu/~sberry5/data/performanceData.csv"
 ```
 
 # Section 5  
@@ -78,6 +67,6 @@ performanceData = read_csv("https://www.nd.edu/~sberry5/data/performanceData.csv
 Using the following data, determine what variables influence a franchise's ultimate outcome -- failure or success. Using any variables available to you, select the appropriate method and test your model. Discuss your results and describe your rationale for any data processing that you might undertake.
 
 ```{r}
-outcomeData = read_csv("https://www.nd.edu/~sberry5/data/outcomeData.csv")
+sec5Link <- "https://www.nd.edu/~sberry5/data/outcomeData.csv"
 ```
 

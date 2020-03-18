@@ -12,38 +12,70 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-We have already seen the basics of the general linear model (linear regression, *t*-tests, and ANOVAs). Now, we are going to get into some expanded topics related to the general linear model: centering, interactions, two-way ANOVAs, paired *t*-tests, and statistical power.
+We have already seen the basics of the general linear model (linear regression, *t*-tests, and ANOVAs). Now, we are going to get into some expanded topics related to the general linear model: centering, interactions, two-way ANOVAs, and statistical power.
 
-## Centerign
+## Centering
 
 Think back to what the intercept means in the context of a linear regression model: it is the value of the DV/outcome when everything else is at 0. There are times where that makes sense (you can have 0 dollars, but I don't recommend it). 
 
 What if we want to have a meaningful intercept?
 
 ```{r}
-crimeScore = read.csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+crimeScore = data.table::fread("http://nd.edu/~sberry5/data/crimeScore.csv")
 
 library(dplyr)
 
 uncentered = lm(SSL_SCORE ~ NARCOTICS_ARR_CNT, data = crimeScore)
 
 summary(uncentered)
+
+plot(uncentered$fitted.values, uncentered$model$SSL_SCORE)
+
+plot(uncentered$model$SSL_SCORE, uncentered$model$NARCOTICS_ARR_CNT)
 ```
 
 Now we can do some very simple centering: we can just subtract the mean of the item from every observation of that item.
 
 ```{r}
-crimeScore %>% 
+centeredMod <- crimeScore %>% 
   mutate(narcCenter = NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, na.rm = TRUE)) %>% 
-  lm(SSL_SCORE ~ narcCenter, data = .) %>% 
-  summary()
+  lm(SSL_SCORE ~ narcCenter, data = .)
+
+summary(centeredMod)
+
+plot(centeredMod$fitted.values, centeredMod$model$SSL_SCORE)
+
+plot(centeredMod$model$SSL_SCORE, centeredMod$model$narcCenter)
 ```
 
-We can see that nothing really changes except for the intercept's coefficient. Let's think about what is being said here: with narcotics arrest count being a 0, we would expect the SSL score to be 277 on average. Since we centered that narcotics variable, though, the 0 is actually the mean of variable (2.06). 
+We can see that nothing really changes except for the intercept's coefficient. Let's think about what is being said here: with narcotics arrest count being a 0, we would expect the SSL score to be 277 on average. Since we centered that narcotics variable, though, the 0 is actually the mean of that variable (2.06). 
 
 ## Interactions
 
-We can start by looking at a multiple regression with 2 variables:
+We will get back to more interesting data in a second, but let's look at some mtcars data first (we can't possibly learn anything new about it):
+
+```{r}
+library(ggplot2)
+
+ggplot(mtcars, aes(mpg, hp)) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+We can clearly see the effect of horsepower on mpg.
+
+Let's add some additional context to this visualization:
+
+```{r}
+ggplot(mtcars, aes(mpg, hp, color = as.factor(cyl))) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+We have already been doing stuff like this, but not really thinking about the model that could test it.
+
+
+Let's start by looking at a multiple regression with 2 predictor variables:
 
 ```{r}
 twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
@@ -56,6 +88,11 @@ Let's explore interactions (moderation to some). A key idea here is that interac
 "What is the effect of X on Y?"
 
 "It depends on Z's value."
+
+
+<aside>
+A thing called *mediation* also exists, but it tests a slightly different model.
+</aside>
 
 ```{r}
 intMod = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * NARCOTICS_ARR_CNT, data = crimeScore)
@@ -90,7 +127,8 @@ This is offering the relationship between weapons arrests and score at various l
 ```{r}
 crimeScoreGender = crimeScore %>% 
   filter(SEX_CODE_CD != "X") %>%
-  select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT)
+  dplyr::select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT) %>% 
+  mutate(SEX_CODE_CD = as.factor(SEX_CODE_CD))
 
 intMod2 = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD, data = crimeScoreGender)
 
@@ -120,11 +158,6 @@ interact_plot(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
 sim_slopes(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
 ```
 
-
-```{r}
-probe_interaction(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
-```
-
 For the sake of it, let's look at one more continuous by continuous interaction:
 
 
@@ -145,9 +178,7 @@ And also some categorical interactions:
 ```{r}
 crimeScore2 = crimeScore %>% 
   filter(AGE_CURR != "" & SEX_CODE_CD != "X") %>% 
-  mutate(SEX_CODE_CD = droplevels(.$SEX_CODE_CD),
-         AGE_CURR = droplevels(.$AGE_CURR), 
-         AGE_CURR = relevel(.$AGE_CURR, ref = "less than 20"))
+  mutate(AGE_CURR = relevel(as.factor(.$AGE_CURR), ref = "less than 20"))
 
 sexMod = lm(SSL_SCORE ~ SEX_CODE_CD, data = crimeScore2)
 
@@ -181,46 +212,131 @@ summary(aov(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR, data = crimeScore2))
 TukeyHSD(aov(SSL_SCORE ~ SEX_CODE_CD + AGE_CURR, data = crimeScore2), which = "SEX_CODE_CD:AGE_CURR")
 ```
 
-## Paired t-tests
+# Effect Sizes
 
-We have already seen the use cases for a standard independent samples *t*-test ()
+Effect sizes, in conjunction with our *p*-values, will provide a really good idea about the strength of the difference.
+
+With regard to effect sizes, you will most commonly come across Cohen's *d* -- it is generally used for *t*-tests.
+
+Computationally, it is pretty simple:
+
+$$ \frac{\mu_1 - \mu_2}{\sigma}$$
+
+There is also an expanded version:
+
+$$ d = \frac{\mu_1-\mu_2}{\sigma_{pooled}} $$
+
+$$ SD_{pooled} = \sqrt{\frac{\sigma_1^2 + \sigma_2^2}{2}} $$
 
 
-## Power Analysis
+We are subtracting the mean of one group from another and dividing by the standard deviation.
 
-Do you want to melt most people's brains?
+```{r}
+library(dplyr)
 
->-  Don't use rules of thumb!
+crimeScoreGender %>%
+  group_by(SEX_CODE_CD) %>%
+  summarize(mean = mean(SSL_SCORE),
+            sd = sd(SSL_SCORE),
+            n = n())
 
->-  Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
+sd(crimeScoreGender$SSL_SCORE)
+```
 
-## Power Analysis
+
+We can do it by hand:
+
+```{r}
+(283.46-278.689) / 57.99564
+```
+
+And with the pooled method:
+
+```{r}
+sdPooled = sqrt((52.74889^2 + 59.52397^2) / 2)
+
+(283.46-278.689) / sdPooled
+```
+
+
+Or use things already built:
+
+```{r}
+library(compute.es)
+
+tes(t = 23.674, n.1 = 96307, n.2 = 302320)
+
+mes(m.1 = 283.46, m.2 = 278.689,
+    sd.1 = 52.74889, sd.2 = 59.52397,
+    n.1 = 96307, n.2 = 302320)
+```
+
+# Power Analysis
+
+Rules of thumb have been around for a long time and have changed over the years -- maybe you learned that you needed 20 rows per predictor, or maybe even 50 rows per predictor. Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
 
 We need three of the following parameters:
 
->-  Effect size
+-  Effect size
 
->-  Sample size
+-  Sample size
 
->-  Significance level
+-  Significance level
 
->-  Power
+-  Power
 
->-  We **should** always be doing this *a priori*
+We **should** always be doing this *a priori*.
 
->-  Sometimes, it is fun to be a "statistical coroner"
+## Power
 
-## Effect Sizes
+Power is ability to detect an effect. In NHST words, we are trying to determine if we correctly reject the null hypothesis.
 
-We won't get too deep here, just know that it is a way to determine the difference between groups.
+- Type I errors: Reject a true $H_{o}$ (false positive -- saying something is there when it is not)
 
-- It's an improvement of *p*-values alone.
+- Type II errors: Reject a false $H_{o}$ (false negative -- saying something is not there when it is)
 
-Cohen's *d* is likely the most common.
+## Putting It All Together
 
-Let theory be your guide.
+Let's use the <span class="func">pwr</span> package.
 
-> - Be realistic!
+```{r}
+library(pwr)
+
+pwr.f2.test(u = 1, v = NULL, f2 = .05, power = .8)
+```
+
+In the function:
+
+- u is the numerator df (*k* - 1)
+
+- v is the denominator df (*n* - *k*)
+
+- f2 is signficance level
+
+- \(\Pi = 1 -\beta\)
+
+- \(\beta = Type\,II_{prob}\)
+
+Power is typically set at .8, because it represents a 4 to 1 trade between Type II and Type I errors.
+
+
+## Different Test, Different Power Tests
+
+We just did a test for a linear regression model.
+
+Here is one for a *t*-test:
+
+```{r}
+tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8,
+                    type = "two.sample", alternative = "greater")
+
+plot(tPower)
+```
+
+
+
+
+Let theory be your guide (but be realistic).
 
 ## Power
 
@@ -232,17 +348,27 @@ Power is ability to detect an effect.
 
 - Type II errors: Reject a false $H_{o}$ (false negative)
 
->- Which is more dangerous?
+We typically set power to be .8 or .9 (depending upon the context). Th
 
 ## Putting It All Together
 
-Let's use the <span class="func">pwr</span> package.
+Let's use the `pwr` package.
+
+Here is how we can determine a necessary sample size for a regression. We just need the numerator and denominator degrees of freedom for the *F*-test.
+
+We also need to specify the size of our effect. Here is an estimate for a medium effect size:
+
 
 ```{r}
 library(pwr)
 
-pwr.f2.test(u = 1, v = NULL, f2 = .05, power = .8)
+pwr::cohen.ES("f2", "medium")
+```
 
+We can pop that into the `pwr.f2.test` function:
+
+```{r}
+pwr.f2.test(u = 1, v = NULL, f2 = .15, power = .8)
 ```
 
 In the function: 
@@ -251,11 +377,7 @@ In the function:
 
 - v is the denominator df (*n* - *k*) 
 
-- f2 is signficance level
-
-- \(\Pi = 1 -\beta\)
-
-- \(\beta = Type\,II_{prob}\)
+- f2 is the effect size
 
 
 ## Your Turn!
@@ -282,8 +404,4 @@ tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8,
 plot(tPower)
 ```
 
-
-## Congratulations
-
->-  Your knowledge now far exceeds most professionals!
   

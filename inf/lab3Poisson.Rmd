@@ -1,0 +1,32 @@
+---
+title: "Lab 03"
+author: "Your Name Here"
+date: "11/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The Data
+
+The following data contains information about the number of service events a truck has had in a given time period (2 years). 
+
+```{r}
+dataLink <- "https://www.nd.edu/~sberry5/data/breakdowns.csv"
+```
+
+A potentially-interesting dependent variable would be the number of breakdowns experienced during the time period. With regard to predictors, there are a few that might be worth exploring.
+
+## Poisson Regression
+
+After you have decided upon some variables, construct a linear model. Next, create a model with a Poisson distribution.
+
+Compare the summary of both models' fitted values to the summary of the observed value. Without exploring any other fit indices, which model do you think captures the original distribution better?
+
+## ZIP
+
+If you did not do it at first, look at a histogram for your outcome variable. Any 0's could be caused by alternative processes. Think of a few of those variables that might give cause to 0's within the data and test that hypothesis with a zero-inflated Poisson regression. 
+
+Where the additional parameters able to predict the 0's. If they were not, can you imagine any additional information that might help to determine if there is another cause?

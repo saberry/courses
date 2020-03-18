@@ -471,11 +471,11 @@ Determine some cut-off values for backers and build a new model. See if you can 
 
 3.  If your count variable does not follow a Poisson distribution, then you might want to use a negative binomial model.
 
-```{r}
-breakdowns <- read.csv("https://www.nd.edu/~sberry5/data/breakdowns.csv")
+<!-- ```{r} -->
+<!-- breakdowns <- read.csv("https://www.nd.edu/~sberry5/data/breakdowns.csv") -->
 
-dpois(100, 1)
-```
+<!-- dpois(100, 1) -->
+<!-- ``` -->
 
 ## The Poisson Distribution
 
@@ -502,12 +502,13 @@ ggplot(data.frame(x=c(0:20)), aes(x)) +
 We can also see what it looks like for different rates (some places might be safer than others):
 
 ```{r}
-ggplot(data.frame(x=c(0:35)), aes(x)) +
-  geom_line(aes(y=dpois(x, (.1 / 7) * 28)), colour="red") +
-  geom_line(aes(y=dpois(x, (.5 / 7) * 28)), colour="yellow") +
-  geom_line(aes(y=dpois(x, (5 / 7) * 28)), colour="blue") +
-  geom_line(aes(y=dpois(x, (7 / 7) * 28)), colour="green") +
-  theme_dark()
+ggplot() +
+  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (1 / 7) * 28)), 
+           mapping = aes(x, y), width = .97, alpha = .25, fill = "red") +
+  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (3 / 7) * 28)), 
+           mapping = aes(x, y), width = .97, alpha = .25, fill = "blue") +
+  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (5 / 7) * 28)), 
+           mapping = aes(x, y), width = .97, alpha = .25, fill = "green") 
 
 ```
 
@@ -590,9 +591,7 @@ exp(poissonTest$coefficients)
 
 ```{r}
 shroudData = shroudData %>%
-  mutate(predValues = poissonTest$fitted.values)
-
-library(ggplot2)
+  mutate(predValues = predict(poissonTest, type = "response"))
 
 ggplot(shroudData, aes(employeeCount, predValues)) +
   geom_count() +
@@ -604,8 +603,6 @@ ggplot(shroudData, aes(employeeCount, predValues)) +
 ```{r}
 pchisq(poissonTest$deviance, poissonTest$df.residual, lower.tail = FALSE)
 ```
-
-
 
 With everything coupled together, we have a meaningful coefficient, a clear plot, and adequate model fit. Therefore, we might conclude that there is a positive relationship between number of employees on shift and shrouds produced.
 
@@ -649,7 +646,7 @@ We can also exponentiate that value to get an indicent rate:
 exp(poissonRedlight$coefficients)
 ```
 
-Now, we could say that the incident rate (redlight citations) for intersections with a camera is about .58 times less than for intersections without a camera.
+Let's see what those mean with an example:
 
 ```{r}
 tapply(redlights$citation_count, redlights$camera_installed_ny, mean) #Old school group_by and summarize!

@@ -16,7 +16,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Office Hours
 
-*By Vote*
+Monday & Wednesday: 11:00 to 1:30
+
+Friday: 10:00 to 12:00
 
 If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in and chat with me about absolutely anything (stats, programming, career, etc.).
 
@@ -54,19 +56,19 @@ There will be one exam during the course of this semester and it will be a takeh
 
 # Presentations
 
-I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriateness of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a defensible way.  
+I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriateness of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a defensible way.
 
 # Grade Breakdown
 
-Comprehension Checks -- 50 points (11%)
+Comprehension Checks -- 50 points (16%)
 
-Homework -- 90 points (31%)
+Homework -- 90 points (29%)
 
-Test -- 120 points (41%)
+Test -- 120 points (39%)
 
-Presentation -- 50 points (17%)
+Presentation -- 50 points (16%)
 
-Total -- 290 points
+Total -- 310 points
 
 # Schedule
 
@@ -91,7 +93,7 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                     "12/10 (T)",
                     "12/12 (TR)", 
                     "12/17"),  
-           Topic = c("Introduction and RMarkdown", 
+           Topic = c("Introduction and R Markdown", 
                      "Data Exploration and Visualization", 
                      "Categorical Data Analysis", 
                      "The General Linear Model", 

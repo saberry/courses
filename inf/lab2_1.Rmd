@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 Continue using the annual exective compensation file:
 
 ```{r}
-link <- "http://www3.nd.edu/~sberry5/class/anncomp.csv"
+link <- "http://www3.nd.edu/~sberry5/data/anncomp.csv"
 ```
 
 As noted in the lecture notes, this data needs some cleaning. You will notice that people are listed multiple times within this data, since it is yearly data -- we are just going to deal with that as it is right now. While there are better ways to handle this, it is a lecture for another time. Another issue is that we might not have data from the same year for everyone. Again, multiple ways of dealing with it -- we could convert all of the nominal dollars to real dollars (using the Consumer Price Index). This would be the best way to deal with that issue.
@@ -25,13 +25,9 @@ library(rvest)
 cpiTable <- read_html("https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/") %>% 
   html_table(header = TRUE) %>% 
   `[[`(1)
-
-names(cpiTable) <- cpiTable[1, ]
-
-cpiTable <- cpiTable[-c(1), ]
 ```
 
-Now we can join the cpiTable into our compensation data and create an inflation-adjusted total salary variable.
+After a little row/name clean-up, we can join the cpiTable into our compensation data and create an inflation-adjusted total salary variable.
 
 The formula to convert nominal dollars to real dollars is $\frac{\text{nominal}}{\text{price index} / 100}$
 

@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Office Hours
 
-Mondays & Wednesdays -- 10:00 to 2:00
+Mondays & Wednesdays -- 10:00 to 12:00
 
 These are the *official* office hours. If you find my door ajar to any degree (it will typically be less than 10$^\circ$ and the office will be dark), then you are more than welcome to drop in and chat with me about absolutely anything (stats, programming, career, etc.).
 
@@ -42,9 +42,9 @@ There is no official textbook for this course, but there are going to be a few a
 
 # Homework
 
-All homework assignments must be submitted in an html file knitted from Rmarkdown. The reasons for this requirement are mainly related to making sure that you have successfully gotten results from your code and that you are not just submitting code without running it first. Once you start using RMarkdown, it will be hard for you to go back to writing in a traditional word processor. 
+All homework assignments must be submitted in an html file knitted from R Markdown. The reasons for this requirement are mainly related to making sure that you have successfully gotten results from your code and that you are not just submitting code without running it first. Once you start using R Markdown, it will be hard for you to go back to writing in a traditional word processor. 
 
-A significant portion of your grade will come from the homework map (i.e., your path towards statistical enlightenment). The skills roadmap has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
+A significant portion of your grade will come from the homework skills map (i.e., your path towards statistical enlightenment). The skills road map has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
 
 Please feel free to work together on the bronze level of homework, but each assignment needs to be your own work.  Putting your heads together to formulate an analytic attack plan is perfect (we all stands on the shoulders of giants), but copying and pasting text from each other is unacceptable. In other words, your code and words should not look like one of your classmate's -- you will be graded accordingly. 
 
@@ -54,15 +54,15 @@ The skills map is intended to let you get practice in areas that most interest y
 
 # Exam
 
-There will be one exam during the course of this semester and it will be a takehome test.  You **cannot** work together on this.  You will have one week to complete the test.
+There will be one exam during the course of this semester and it will be a take-home test.  You **cannot** work together on this.  You will have one week to complete the test.
 
 # Presentations
 
-I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriate of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a way defensible way.  
+I promise you that these will be the easiest presentations you will ever give.  Find data and prepare a 3 minute presentation (bonus points if you can explain it with one visualization!).  These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriateness of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your results in a way defensible way.  
 
 # R
 
-There are many statistical programs available and you have likely had some exposure to many of them.  In this course, we will be using R exclusively.  R is a free and open-source statistical computing language and it is *lingua franca* for modern statistics.  We are going to dedicate some time to learning R and working through examples together; our arrangment will be very similar to the science labs that we all remember from our undergrad days.  If you have never done any object-oriented programming, it will take a little work -- I am only ever an email or visit away.  
+There are many statistical programs available and you have likely had some exposure to many of them.  In this course, we will be using R exclusively.  R is a free and open-source statistical computing language and it is *lingua franca* for modern statistics.  We are going to dedicate some time to learning R and working through examples together; our arrangement will be very similar to the science labs that we all remember from our undergrad days.  If you have never done any object-oriented programming, it will take a little work -- I am only ever an email or visit away.  
 
 
 # Grade Breakdown
@@ -94,6 +94,8 @@ C+ = 223-249 points
 ```{r, echo = FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 
+library(kableExtra)
+
 data.frame(Week = c(1, "", 2, "", 3, "",
                     4, "", 5, "", 6, "", 
                     7, "", 8),
@@ -113,7 +115,7 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                     "05/01 (W)", 
                     "05/06 (M)"), 
            Topic = c("Introduction", 
-                     "Probability, Data Types, Distributrions, Samples", 
+                     "Probability, Data Types, Distributions, Samples", 
                      "Data Exploration and Visualization", 
                      "Categorical Data Analysis", 
                      "The General Linear Model", 
@@ -125,9 +127,8 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                      "Hippitus Hoppitus -- no class",
                      "Bayesian Data Analysis", 
                      "Bayesian Data Analysis", 
-                     "Review", 
+                     "Review & Wrap", 
                      "Presentations"), 
-           # Description = unlist(topicDesc),
            Assignments = c("", 
                         "", 
                         "Homework #1 Assigned", 
@@ -142,6 +143,7 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                         "Homework #3 Assigned", 
                         "", "", 
                         "Same time, day, and place")) %>% 
-  knitr::kable(., format = "latex")
+  knitr::kable(., format = "latex") %>% 
+  kable_styling(latex_options = "striped")
 ```
 

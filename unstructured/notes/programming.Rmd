@@ -19,12 +19,47 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 Disk or ram?
 
 
-
 ### Apache Arrow 
 
 - feather
 
 - parquet
+
+```{r, eval = FALSE}
+library(arrow)
+```
+
+```{python, eval = FALSE}
+import pandas as pd
+
+import pyarrow
+
+pd.read_feather()
+
+pd.read_parquet()
+
+pyarrow.feather.write_feathe
+```
+
+
+## Efficient Looping
+
+You like for loops? That's cool, just do them efficiently.
+
+```{r}
+library(foreach)
+
+library(randomForest)
+
+expand.grid(ntree = seq(100, 1000, by = 50), 
+            mtry = 3:5)
+
+rf <- foreach(ntree=rep(250, 4), 
+              .combine=combine, 
+              .packages='randomForest') %dopar%
+  randomForest(x, y, ntree=ntree)
+```
+
 
 
 ## Exception/Error Handling

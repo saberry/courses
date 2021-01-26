@@ -12,6 +12,9 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
+
+> Some people, when confronted with a problem, think, “I know, I'll use regular expressions.” Now they have two problems. 
+
 ## The 3 Goals of Regular Expressions
 
 ## What's The Pattern?
@@ -37,6 +40,14 @@ data.frame(match = c("intervisibility", "pseudoprimitivism",
            no_match = c("overregularly", "energetics", 
                         "observancy", "predisable"))
 ```
+
+## Great Places To Practice And Learn
+
+<a href="https://regexr.com/">regexr</a>
+
+<a href="https://regexcrossword.com/">Will destroy your soul</a>
+
+
 
 ## Special Symbols
 
@@ -109,6 +120,8 @@ $
 [[:space:]]
 
 [[:word:]]
+
+[[:blank:]]
 ```
 
 ```{r}
@@ -141,7 +154,7 @@ It might surprise you to find which has a more robust set of functions.
 
 base functions:
 
-```{r}
+```{r, eval = FALSE}
 test_strings <- c("Mick", "Rick", "candlestick", "quick", 
                   "fickleness", "unlicked", "Beck", "quickly")
 
@@ -165,7 +178,7 @@ regmatches(regexpr())
 
 stringr functions
 
-```{r}
+```{r, eval = FALSE}
 library(stringr)
 str_which()
 str_detect()
@@ -174,4 +187,59 @@ str_extract()
 str_squish()
 ```
 
+
+Here's an additional chunk of text to explore:
+
+```{r}
+wacky_text <- c("hereIam", "this is a test", 
+          "I repeat, this is a test", 
+          "N0. Rea11y", "anotherProblem")
+```
+
+
 ### Python
+
+```{python}
+import re
+
+p = re.compile('([a-z])([A-Z])')
+
+wacky_text = ["hereIam", "this is a test", 
+        "I repeat, this is a test", 
+        "N0. Rea11y", "anotherProblem"]
+
+matches = list(filter(p.search, wacky_text)) 
+
+# Match is another method, but only works at the beginning of the string
+
+re.sub(pattern = r"([a-z])([A-Z])", # The nonsense r is denoting a raw string.
+       repl = "\\1 \\2", 
+       string = "hereI am")
+
+
+
+wacky_text = [re.sub(pattern = "([a-z])([A-Z])", repl = "\\1 \\2", string = wacky_text) 
+  for wacky_text in wacky_text]
+
+re.sub(pattern = "((?<=[a-z]))([A-Z])([a-z])", 
+       repl = "\\1 \\2 \\3", 
+       string = "hereIam")
+
+```
+
+Naturally, pandas has its own set of methods:
+
+count, replace, contains, extract, findall, match, split
+
+```{python, eval = FALSE}
+import pandas as pd
+
+pbpData = pd.read_csv("https://eightthirtyfour.com/nba/pbp/2000-01_pbp.csv")
+
+pbpData['event'] = pbpData.HOMEDESCRIPTION.str.extract(r"([A-Z]{3,})")
+```
+
+## Common Regex Puzzles
+
+\(*[0-9]{3}\)*-*\s*[0-9]{3}.*[0-9]{4}
+

@@ -22,7 +22,7 @@ Once we get rolling, it will become clear that most data is unstructured to vari
 
 And this is where the challenge of unstructured data rests -- getting that data into a usable form. Some data that we consider to be unstructured is structured (JSON, XML, etc.), but not in an immediately useful manner. 
 
-When thinking about unstrucutred data, it also helps to put ourselves into a creative frame of mind. In no other part of the analytics world will you have to think through puzzle-like solutions like you will with unstructured data. The reward, however, is that you walk away with a skill set that will allow you to create insights from situations/organizations that are otherwise "data rich, but information poor". 
+When thinking about unstructured data, it also helps to put ourselves into a creative frame of mind. In no other part of the analytics world will you have to think through puzzle-like solutions like you will with unstructured data. The reward, however, is that you walk away with a skill set that will allow you to create insights from situations/organizations that are otherwise "data rich, but information poor". 
 
 # Data Types
 
@@ -41,10 +41,6 @@ The great thing about text is that we can treat it like we would most any other 
 You may not believe this, but we are at the point now where there are tons of images floating around online. Not only do people put an obscene number of pictures of themselves online, but we also have an incredible number of images from computers (drones, satelittes etc.). 
 
 Images, however, will prove to be a little bit more difficult to work on. This difficulty rests mostly with what an image actually is -- a collection of pixels in various combinations of RGB space. Before we do anything with actual analyses, we will need to do a fair amount of preprocessing for any image that we will want to use.
-
-## Audio
-
-Alexa, Google, and any other machine that you talk to has recorded that data for analysis. Can we find the point when a voice changes?
 
 # Acquisition & Types
 
@@ -242,17 +238,17 @@ While they still have a place in the world, that is all the further we will go o
 
 # Methods
 
-We are going to see several different methods during the next several weeks. We will go from dimension reduction (LSA, LDA, SVD) to Naive Bayes to Neural Networks, with stops in between. A great many of these techniques will focus on classification (e.g., what topic does a text belong to, is that an image or a person or a monster), but many have extensions to regression-focused problems. 
+We are going to see several different methods during the next several weeks. We will go from dimension reduction (LSA, LDA, SVD) to Naive Bayes to Neural Networks, with stops in between. A great many of these techniques will focus on classification (e.g., what topic does a text belong to, is that an image of a person or a monster), but many have extensions to regression-focused problems. 
 
-With regard to depth, it will vary for each topic. We will have a pretty good idea about how we would do something like a Naive Bayes or PCA by hand, but will stay out of the weeds of Neural Networks. The biggest reason for this is due in large part to how you might actually engage with such models. If you are going to be working on an image classification problem, the routines are already pretty well established for reasonable image classification. Largely, the focus will be on application and interpretation.
+With regard to depth, it will vary for each topic. We will have a pretty good idea about how we would do something like a Naive Bayes, PCA, or Neural Network by hand; for other topics, though, we won't get too crazy. The biggest reason for this is due in large part to how you might actually engage with such models. If you are going to be working on an image classification problem, the routines/architectures are already pretty well established for reasonable image classification. Largely, the focus will be on application and interpretation.
 
 Let's work through an example. Let's define two objects:
 
 ```{r}
 N <- 1000 # sample size
 k <- 1  # variables
-X <- matrix(rnorm(N*k), ncol=k)  
-Y <- -.5 + .2*X[,1] + rnorm(N, sd=.5)  
+X <- matrix(rnorm(N * k), ncol = k)  
+Y <- -.5 + .2 * X[, 1] + rnorm(N, sd = .5)  
 
 head(X)
 
@@ -266,7 +262,7 @@ transposeX <- t(X)
 
 multiplyX <- transposeX %*% X
 
-solveX <- solve(multiplyX)
+solveX <- solve(multiplyX) # Functionally equivalent to 1 / multiplyX
 
 solveX
 ```
@@ -323,16 +319,14 @@ corXY * (sdY / sdX)
 meanY - ((corXY * (sdY / sdX)) * meanX)
 ```
 
-We could also just try this:
+How comfortable do you feel using and interpreting a linear regression? At this point, you likely feel reasonably comfortable with it; you can use it and feel comfortable using even without knowing all of that stuff that is going on in the background. The background can come with time. 
 
 ```{r}
 lm(Y ~ X)
 ```
 
-How comfortable do you feel using and interpreting a linear regression? At this point, you likely feel reasonably comfortable with it; you can use it and feel comfortable using even without knowing all of that stuff that is going on in the background. The background can come with time. 
-
 # Software
 
-We are going to be using a pretty fair chunk of R for work in the class. We will not, however, be using R when it comes time to get into the modern Deep Neural Network action; instead, we will be using the pytorch library in Python. While other options exist (e.g., TensorFlow), pytorch is a great library to get started with and you won't find it lacking any features that you might want to use.
+What is best for the task?
 
 One issue with deep networks is the computational demand -- they are not for the weaker machines. If you have an Nvidia GPU, you can make good use of it; otherwise, you will be running these things on your CPU and waiting.

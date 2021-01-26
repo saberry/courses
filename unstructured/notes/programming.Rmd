@@ -1,0 +1,89 @@
+---
+title: "Unstructured Data Analytics"
+description: |
+  Important Programming Ideas
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## I/O
+
+### disk.frame & dask
+
+Disk or ram?
+
+
+
+### Apache Arrow 
+
+- feather
+
+- parquet
+
+
+## Exception/Error Handling
+
+
+```{r}
+library(rvest)
+read_html("https://www.homedepot.com/p/Delta-Cartridge-Assembly-RP46074/100685949") %>% 
+  html_nodes(".review-content-body")
+
+# Dig some more
+
+read_html("https://www.homedepot.com/p/reviews/Delta-Cartridge-Assembly-RP46074/100685949/1") %>% 
+  html_nodes(".review_item")
+
+XML::xmlToDataFrame(XML::xmlParse("http://interconnected.org/more/lightcone/rss/?d=1985-12-18"))
+
+urls <- c(
+      "http://stat.ethz.ch/R-manual/R-devel/library/base/html/connections.html",
+    "https://www.marvel.com/404",
+    1
+)
+
+readUrl <- function(url) {
+    out <- tryCatch(
+        {
+          # What you want to happen
+        },
+        error = function(cond) {
+          # What you worry will happen
+          # and what you will return
+        },
+        warning = function(cond) {
+          # Just in case, 
+          # but not required
+        },
+        finally = {
+          # Not necessary, but will
+          # execute no matter what.
+        }
+    )    
+    return(out)
+}
+
+y <- lapply(urls[3], readUrl)
+```
+
+
+```{python}
+try:
+    f = open('myfile.txt')
+    s = f.readline()
+    i = int(s.strip())
+except OSError as err:
+    print("OS error: {0}".format(err))
+except ValueError:
+    print("Could not convert data to an integer.")
+except:
+    print("Unexpected error:", sys.exc_info()[0])
+    raise
+```
+

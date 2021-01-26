@@ -64,15 +64,13 @@ There is no official textbook for this course, but here are some good resources:
 
 \href{https://swcarpentry.github.io/r-novice-inflammation/02-func-R/}{Creating Functions}
 
-\href{https://www.datacamp.com/community/tutorials/r-tutorial-apply-family}{The apply family}
-
 Additional resources will be linked within course notes and on Sakai.
 
 # Homework
 
 During the course of the mod, we will have 3 homework assignments (worth 60, 60, and 80 points). All homework assignments must be submitted in an compiled file (knitted from R Markdown or a Python-flavored notebook of your preference) -- no other file types will be accepted and reminders won't be given. 
 
-Homework will be composed of three distinct parts -- initial submission, individual feedback session, second submission -- and each will count towards 1/3 of the points. The initial submission must be completed before any feedback can be offered.
+Homework will be composed of three distinct parts -- initial submission, individual feedback session, second submission -- and each will count towards 1/3 of the points. The initial submission must be completed before any feedback can be offered. While you do have flexibility with regard to completing the homework assignments, pushing these until the end of the mod is not advisable.
 
 # Presentations
 
@@ -125,10 +123,10 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                      "Text Classification (5)",
                      "Lab 2 (6)",
                      "Optical Character Recognition (7)", 
-                     "Lab 3 (8)", 
-                     "Image Classification (9)",
+                     "Image Classification (8)",
+                     "Presentation Prep",
                      "Presentations"), 
-           Assignments = c("", 
+           Homework = c("", 
                         "", 
                         "", 
                         "Homework #1",
@@ -161,6 +159,4 @@ data.frame(Week = c(1, "", 2, "", 3, "",
 
 7.    Support Vector Machines and their application to identifying text (OCR)
 
-8.    Practicum on supervised text analysis
-
-9.    Artificial Neural Networks and image classification.
+8.    Artificial Neural Networks and image classification.

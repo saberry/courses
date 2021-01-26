@@ -1,0 +1,177 @@
+---
+title: "Unstructured Data Analytics"
+description: |
+  Regular Expressions
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## The 3 Goals of Regular Expressions
+
+## What's The Pattern?
+
+```{r, echo = FALSE}
+data.frame(match = c("Mick", "Rick", "candlestick", "quick"), 
+           no_match = c("fickleness", "unlicked", "Beck", "quickly"))
+```
+
+```{r, echo = FALSE}
+data.frame(match = c("effusive", "fluted", "nihilistic", "suspenseful"), 
+           no_match = c("otto", "abba", "trillion", "unfitting"))
+```
+
+```{r, echo = FALSE}
+data.frame(match = c("civic", "level", "rotator", "tenet"), 
+           no_match = c("pretest", "sunburn", "springer", "gourmet"))
+```
+
+```{r, echo = FALSE}
+data.frame(match = c("intervisibility", "pseudoprimitivism", 
+                     "micropoikilitic", "odontonosology"), 
+           no_match = c("overregularly", "energetics", 
+                        "observancy", "predisable"))
+```
+
+## Special Symbols
+
+```
+[
+\
+^
+$
+.
+|
+?
+*
++
+(
+)
+```
+
+### Weird Things
+
+```
+\s
+\t
+\n
+```
+
+
+## Ranges
+
+### Letters
+
+```
+[a-z]
+
+```
+
+### Digits
+
+```
+[1-9]
+
+[[:digit:]]
+```
+
+### Punctuation
+
+```
+\.
+\?
+!
+```
+
+
+### Negation
+
+```
+[^aeiou]
+```
+
+### Posix Classes
+
+```
+[[:alpha:]]
+
+[[:lower:]]
+
+[[:punct:]]
+
+[[:alnum:]]
+
+[[:space:]]
+
+[[:word:]]
+```
+
+```{r}
+testStrings <- c("test", "string", "123", "I'm here.")
+
+grep("[[:blank:]]", testStrings, value = TRUE, perl = TRUE)
+```
+
+
+## Boundaries
+
+```
+\b
+\w
+```
+
+## Groupings and Backreference
+
+```
+([a-z])
+\1
+```
+
+
+## Using Regex
+
+It might surprise you to find which has a more robust set of functions.
+
+### R
+
+base functions:
+
+```{r}
+test_strings <- c("Mick", "Rick", "candlestick", "quick", 
+                  "fickleness", "unlicked", "Beck", "quickly")
+
+# Complete the pattern
+
+grep(pattern = "", x = test_strings, 
+     perl = TRUE, value = TRUE)
+
+# Which position is the match?
+
+grepl(pattern = "", x = test_strings)
+
+# Replace the match with something else.
+
+gsub(pattern = "", replacement = "", x = test_strings)
+
+# Find and extract a match
+
+regmatches(regexpr())
+```
+
+stringr functions
+
+```{r}
+library(stringr)
+str_which()
+str_detect()
+str_replace_all()
+str_extract()
+str_squish()
+```
+
+### Python

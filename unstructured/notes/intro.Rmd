@@ -53,7 +53,7 @@ Where would the web be without HTML? Probably a much different place. For us, th
 ```{r}
 library(rvest)
 
-songs = read_html("https://en.wikipedia.org/wiki/List_of_Hot_Country_Songs_number_ones_of_2005") %>% 
+songs <- read_html("https://en.wikipedia.org/wiki/List_of_Hot_Country_Songs_number_ones_of_2005") %>% 
   html_table() %>% 
   `[[`(1) %>% 
   rmarkdown::paged_table()
@@ -66,7 +66,7 @@ What about this <a href="https://www.billboard.com/charts/country-songs">page</a
 
 
 ```{r}
-test = read_html("https://www.billboard.com/charts/country-songs") %>% 
+test <- read_html("https://www.billboard.com/charts/country-songs") %>% 
   html_nodes(".chart-list-item__text-wrapper") %>% 
   html_text() %>% 
   gsub("\n*Song Lyrics\n*|^\n+|\n+\\s*$", "", .) %>% 
@@ -82,10 +82,10 @@ Before CSS, the web was styled purely with HTML -- and what a style it was! Whil
 Whenever you are trying to pull data off of a page, it is always a good idea to inspect the source for any hints offered. Let's say that I want to do some headhunting for an analytics department and we want to find some <a href="https://psychology.nd.edu/graduate-programs/areas-of-study/quantitative/area-faculty/">Quant Psych faculty</a> who might be worth a visit. We also want to know where those people went to school. We might also want to grab everyone else, but we don't need to know their educational background.
 
 ```{r}
-facultyData = read_html("https://psychology.nd.edu/faculty/faculty-by-alpha/") %>% 
+facultyData <- read_html("https://psychology.nd.edu/faculty/faculty-by-alpha/") %>% 
   html_nodes(".columns.medium-9.large-10")
 
-faculty = lapply(1:length(facultyData), function(x) {
+faculty <- lapply(1:length(facultyData), function(x) {
   
   out = tryCatch({
     name = facultyData[x] %>% 
@@ -131,8 +131,6 @@ faculty = lapply(1:length(facultyData), function(x) {
   
   return(out)
 })
-
-
 ```
 
 
@@ -225,11 +223,11 @@ Extensible markup language (XML) was created with the intention of being both hu
 ```{r}
 library(xml2)
 
-mainPage = xml2::read_html("https://psychology.nd.edu/faculty/faculty-by-alpha/")
+mainPage <- xml2::read_html("https://psychology.nd.edu/faculty/faculty-by-alpha/")
 
-facultyNodes = xml_find_all(mainPage, '//*[@class="faculty-item"]/*[@class="columns medium-9 large-10"]')
+facultyNodes <- xml_find_all(mainPage, '//*[@class="faculty-item"]/*[@class="columns medium-9 large-10"]')
 
-nameNode = xml_find_all(facultyNodes, '//h3/a/text()')
+nameNode <- xml_find_all(facultyNodes, '//h3/a/text()')
 
 xml_find_all(facultyNodes, '//*[@class="faculty-areas"]/ul')
 ```
@@ -327,8 +325,209 @@ meanY - ((corXY * (sdY / sdX)) * meanX)
 
 That is all simple and straightforward, right? We have 3 methods (normal equations, QR decomp, and means/correlations), that all return the same results. 
 
-# Software
+# Software And Programming
 
 What is best for the task?
 
 One issue with deep networks is the computational demand -- they are not for the weaker machines. If you have an Nvidia GPU, you can make good use of it; otherwise, you will be running these things on your CPU and waiting.
+
+## Some I/O For Your Information
+
+### disk.frame & dask
+
+In R, you might want to check out <a href="https://github.com/xiaodaigh/disk.frame">disk.frame</a>; for Python, <a href="https://dask.org/">dask</a> is what you need.
+
+### Apache Arrow 
+
+- feather
+
+- parquet
+
+```{r, eval = FALSE}
+library(arrow)
+
+read_arrow()
+
+read_parquet()
+
+write_arrow()
+
+write_parquet()
+```
+
+```{python, eval = FALSE}
+import pandas as pd
+
+import pyarrow
+
+pd.read_feather()
+
+pd.read_parquet()
+
+pyarrow.feather.write_feather
+```
+
+
+## Efficient Looping
+
+You like for loops? That's cool, just do them efficiently with `doParallel` and `foreach`.
+
+```{r}
+library(doParallel)
+
+library(foreach)
+
+library(randomForest)
+
+tuning_params <- expand.grid(ntree = seq(100, 1000, by = 10), 
+                             mtry = 1:4)
+
+t1 <- proc.time()
+rf <- for(i in 1:nrow(tuning_params)) {
+    rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+    
+}
+proc.time() - t1
+```
+
+Fine for a silly example, but let's provide some power to this:
+
+```{r}
+cl <- makeCluster(detectCores() - 1)
+
+registerDoParallel(cl)
+
+t1 <- proc.time()
+rf <- foreach(i = 1:nrow(tuning_params), 
+              .packages='randomForest') %dopar%
+  {
+    rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+    
+  }
+proc.time() - t1  
+
+stopCluster(cl)
+```
+
+It really doesn't get any easier than this...except if you just let `caret` handle all of this for you.
+
+You've already seen this, but here it is again:
+
+```{r}
+cl <- makeCluster(detectCores() - 1)
+
+clusterExport(cl, c("tuning_params", "iris"))
+
+clusterEvalQ(cl, library(randomForest))
+
+t1 <- proc.time()
+rf <- parLapply(cl, 1:nrow(tuning_params), function(i) {
+  rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+})
+proc.time() - t1  
+
+stopCluster(cl)
+```
+
+This can be extended to mapply, sapply, among others.
+
+```{python}
+from joblib import Parallel, delayed
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import datasets
+import numpy as np
+
+iris = datasets.load_iris()
+X = iris.data 
+y = iris.target
+
+def train_model(X, y, n_estimators, max_features):
+    model = RandomForestClassifier(n_estimators, max_features = 2)
+    return model.fit(X, y)
+
+result = Parallel(n_jobs=4)(delayed(train_model)(X, y, n_estimators, max_features) 
+    for n_estimators in range(1, 20, 1) for max_features in range(1, 4, 1))
+
+```
+
+Bust out some of your own code and see if you can make it work faster!
+
+
+## Exception/Error Handling
+
+Try this code:
+
+```{r}
+numbers <- list(1, 2, 3, "4")
+
+adderFunction <- function(x) {
+  x + 4
+}
+
+lapply(1:length(numbers), function(x) adderFunction(numbers[[x]]))
+```
+
+How would you fix this?
+
+```{r}
+yourFunction <- function(nums) {
+    out <- tryCatch(
+        {
+          # What you want to happen
+        },
+        error = function(cond) {
+          # What you worry will happen
+          # and what you will return
+        },
+        warning = function(cond) {
+          # Just in case, 
+          # but not required
+        },
+        finally = {
+          # Not necessary, but will
+          # execute no matter what.
+        }
+    )    
+    return(out)
+}
+
+y <- lapply(numbers, yourFunction)
+```
+
+
+```{python}
+numbers = [1, 2, 3, "4"]
+
+def adderFunction(x):
+    print(x + 4)
+
+for x in range(0, numbers.__len__()):
+  adderFunction(numbers[x])
+
+for x in range(numbers.__len__()):
+  try:
+    adderFunction(numbers[x])
+  except:
+    print("Something failed with value: " + str(x))
+  finally: 
+    print("How do things look?")
+```
+

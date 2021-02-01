@@ -16,11 +16,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Office Hours
 
-Monday & Wednesday: 10:00 to 1:00
+M -- 12:30 to 1:30
 
-Most Fridays: 10:00 to 12:00
+W -- 10:00 to 12:00
 
-As of writing, I will be holding my M/W office hours on Zoom. On Friday, we will try Twitch.  
+F -- 10:00 to 1:00 
 
 # Class Days and Time
 

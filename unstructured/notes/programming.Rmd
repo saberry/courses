@@ -12,12 +12,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-## I/O
+## Some I/O For Your Information
 
 ### disk.frame & dask
 
-Disk or ram?
-
+In R, you might want to check out <a href="https://github.com/xiaodaigh/disk.frame">disk.frame</a>; for Python, <a href="https://dask.org/">dask</a> is what you need.
 
 ### Apache Arrow 
 
@@ -27,6 +26,14 @@ Disk or ram?
 
 ```{r, eval = FALSE}
 library(arrow)
+
+read_arrow()
+
+read_parquet()
+
+write_arrow()
+
+write_parquet()
 ```
 
 ```{python, eval = FALSE}
@@ -38,52 +45,128 @@ pd.read_feather()
 
 pd.read_parquet()
 
-pyarrow.feather.write_feathe
+pyarrow.feather.write_feather
 ```
 
 
 ## Efficient Looping
 
-You like for loops? That's cool, just do them efficiently.
+You like for loops? That's cool, just do them efficiently with `doParallel` and `foreach`.
 
 ```{r}
+library(doParallel)
+
 library(foreach)
 
 library(randomForest)
 
-expand.grid(ntree = seq(100, 1000, by = 50), 
-            mtry = 3:5)
+tuning_params <- expand.grid(ntree = seq(100, 1000, by = 10), 
+                             mtry = 1:4)
 
-rf <- foreach(ntree=rep(250, 4), 
-              .combine=combine, 
-              .packages='randomForest') %dopar%
-  randomForest(x, y, ntree=ntree)
+t1 <- proc.time()
+rf <- for(i in 1:nrow(tuning_params)) {
+    rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+    
+}
+proc.time() - t1
 ```
 
+Fine for a silly example, but let's provide some power to this:
+
+```{r}
+cl <- makeCluster(detectCores() - 1)
+
+registerDoParallel(cl)
+
+t1 <- proc.time()
+rf <- foreach(i = 1:nrow(tuning_params), 
+              .packages='randomForest') %dopar%
+  {
+    rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+    
+  }
+proc.time() - t1  
+
+stopCluster(cl)
+```
+
+It really doesn't get any easier than this...except if you just let `caret` handle all of this for you.
+
+You've already seen this, but here it is again:
+
+```{r}
+cl <- makeCluster(detectCores() - 1)
+
+clusterExport(cl, c("tuning_params", "iris"))
+
+clusterEvalQ(cl, library(randomForest))
+
+t1 <- proc.time()
+rf <- parLapply(cl, 1:nrow(tuning_params), function(i) {
+  rfMod <- randomForest(Species ~ ., data= iris,
+                          ntree = tuning_params[i, "ntree"],
+                          mtry = tuning_params[i, "mtry"])
+    
+    data.frame(ntree = tuning_params[i, "ntree"],
+               mtry = tuning_params[i, "mtry"],
+               oobError = rfMod$err.rate[nrow(rfMod$err.rate), 1])
+})
+proc.time() - t1  
+
+stopCluster(cl)
+```
+
+This can be extended to mapply, sapply, among others.
+
+Bust out some of your own code and see if you can make it work faster!
+
+```{python}
+from joblib import Parallel, delayed
+from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+
+def train_model(X, y, seed):
+    model = LinearSVC(random_state=seed)
+    return model.fit(X, y)
+
+X = np.array([[1,2,3],[4,5,6]])
+y = np.array([0, 1])
+result = Parallel(n_jobs=4)(delayed(train_model)(X, y, seed) for seed in range(10))
+# result is a list of 10 models trained using different seeds
+
+```
 
 
 ## Exception/Error Handling
 
+Try this code:
 
 ```{r}
-library(rvest)
-read_html("https://www.homedepot.com/p/Delta-Cartridge-Assembly-RP46074/100685949") %>% 
-  html_nodes(".review-content-body")
+numbers <- list(1, 2, 3, "4")
 
-# Dig some more
+adderFunction <- function(x) {
+  x + 4
+}
 
-read_html("https://www.homedepot.com/p/reviews/Delta-Cartridge-Assembly-RP46074/100685949/1") %>% 
-  html_nodes(".review_item")
+lapply(1:length(numbers), function(x) adderFunction(numbers[[x]]))
+```
 
-XML::xmlToDataFrame(XML::xmlParse("http://interconnected.org/more/lightcone/rss/?d=1985-12-18"))
+How would you fix this?
 
-urls <- c(
-      "http://stat.ethz.ch/R-manual/R-devel/library/base/html/connections.html",
-    "https://www.marvel.com/404",
-    1
-)
-
-readUrl <- function(url) {
+```{r}
+yourFunction <- function(nums) {
     out <- tryCatch(
         {
           # What you want to happen
@@ -104,7 +187,7 @@ readUrl <- function(url) {
     return(out)
 }
 
-y <- lapply(urls[3], readUrl)
+y <- lapply(numbers, yourFunction)
 ```
 
 

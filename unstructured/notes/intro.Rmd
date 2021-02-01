@@ -248,6 +248,7 @@ Let's work through an example. Let's define two objects:
 N <- 1000 # sample size
 k <- 1  # variables
 X <- matrix(rnorm(N * k), ncol = k)  
+X <- cbind(X, 1)
 Y <- -.5 + .2 * X[, 1] + rnorm(N, sd = .5)  
 
 head(X)
@@ -262,7 +263,7 @@ transposeX <- t(X)
 
 multiplyX <- transposeX %*% X
 
-solveX <- solve(multiplyX) # Functionally equivalent to 1 / multiplyX
+solveX <- solve(multiplyX) 
 
 solveX
 ```
@@ -271,7 +272,6 @@ Next, let's take that transposed X and multiply it by Y:
 
 ```{r}
 multiplyY <- transposeX %*% Y
-
 multiplyY
 ```
 
@@ -281,15 +281,27 @@ Finally, we can take our solveX and multiply it by the multiplyY matrix:
 solveX %*% multiplyY
 ```
 
+Or we can do that all with one line:
+
+```{r}
+solve(t(X) %*% X) %*% t(X) %*% Y
+```
+
+Or more succinctly:
+
+```{r}
+solve(crossprod(X), crossprod(X, Y))
+```
+
 Let's do something else with our X and Y objects: do some linear algebra and perform a Gram–Schmidt orthogonalization of the X matrix (this is also called QR decomposition).
 
-Every single X matrix can be broken down to the QR matrices
+Every single X matrix (no matter the dimension) can be broken down to the QR matrices
 
 Q is going to be $N * p$ - the same dimension as the original. 
 
 R is going to be $p * p$ - the number of columns by the number of columns with 0's below the diagonal.
 
-The Q matrix will be an orthogonal matrix (remember that orthogonal means that the components will not be correlated -- $Q^T * Q = I$) and the R matrix is the upper triangle.
+The Q matrix will be an orthogonal matrix ($Q^T * Q = I$) and the R matrix is the upper triangle.
 
 ```{r}
 QRX <- qr(X)
@@ -304,26 +316,16 @@ Bhat
 Finally, let's try this:
 
 ```{r}
-meanX <- mean(X)
-
+meanX <- mean(X[, 1])
 meanY <- mean(Y)
-
-sdX <- sd(X)
-
+sdX <- sd(X[, 1])
 sdY <- sd(Y)
-
-corXY <- cor(X, Y)
-
+corXY <- cor(X[, 1], Y)
 corXY * (sdY / sdX)
-
 meanY - ((corXY * (sdY / sdX)) * meanX)
 ```
 
-How comfortable do you feel using and interpreting a linear regression? At this point, you likely feel reasonably comfortable with it; you can use it and feel comfortable using even without knowing all of that stuff that is going on in the background. The background can come with time. 
-
-```{r}
-lm(Y ~ X)
-```
+That is all simple and straightforward, right? We have 3 methods (normal equations, QR decomp, and means/correlations), that all return the same results. 
 
 # Software
 

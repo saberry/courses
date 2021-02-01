@@ -25,7 +25,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Office Hours
 
-MWF -- 10:00 to 12:00 (Open Time)
+M -- 12:30 to 1:30
+
+W -- 10:00 to 12:00
+
+F -- 10:00 to 1:00
 
 We can also always find mutual times that will work.
 
@@ -68,13 +72,13 @@ Additional resources will be linked within course notes and on Sakai.
 
 # Homework
 
-During the course of the mod, we will have 3 homework assignments (worth 60, 60, and 80 points). All homework assignments must be submitted in an compiled file (knitted from R Markdown or a Python-flavored notebook of your preference) -- no other file types will be accepted and reminders won't be given. 
+During the course of the mod, we will have 3 homework assignments (worth 60, 60, and 80 points). All homework assignments must be submitted in a compiled file (knitted from R Markdown or a Python-flavored notebook of your preference) -- no other file types will be accepted and reminders won't be given. 
 
 Homework will be composed of three distinct parts -- initial submission, individual feedback session, second submission -- and each will count towards 1/3 of the points. The initial submission must be completed before any feedback can be offered. While you do have flexibility with regard to completing the homework assignments, pushing these until the end of the mod is not advisable.
 
 # Presentations
 
-As opposed to a final exam, we will be having presentations on our last day of class. You can work individually or as duos. These presentations are not to exceed 4 minutes and will be on a course topic of your choosing. Presentation guidelines will follow, but general creativity and appropriate technique use will figure heavily into your grade. This is a chance for you to find interesting data, not just go with what might be easy on Kaggle. 
+As opposed to a final exam, we will be having presentations on our last day of class. You can work individually or as duos. These presentations are not to exceed 4 minutes. The goal is to answer a question or solve a problem. Presentation guidelines will follow, but general creativity and appropriate technique use will figure heavily into your grade. This is a chance for you to find interesting data, not just go with what might be easy on Kaggle. 
 
 # Engagement
 
@@ -110,11 +114,11 @@ data.frame(Week = c(1, "", 2, "", 3, "",
                     "03/04 (R)", 
                     "03/09 (T)",
                     "03/11 (R)",
-                    "02/16 (T)", 
-                    "02/18 (R)"), 
+                    "03/16 (T)", 
+                    "03/18 (R)"), 
            Topic = c("Introduction & Programming",
                      "Regular Expressions",
-                     "Data Collection (1a)", # Change to regex
+                     "Data Collection (1a)", 
                      "Data Collection (1b)",
                      "Text Analysis (2)", 
                      "Sentiment Analysis",

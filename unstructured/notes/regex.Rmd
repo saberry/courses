@@ -45,9 +45,26 @@ data.frame(match = c("intervisibility", "pseudoprimitivism",
 
 <a href="https://regexr.com/">regexr</a>
 
+<a href="https://regex101.com/">regex101</a>
+
 <a href="https://regexcrossword.com/">Will destroy your soul</a>
 
+Throw these into regexr's or regex101's editor:
 
+```
+$100
+$100.00
+$GME
+100
+618-549-5326
+Page 42
+ElonMusk
+I like this stock
+Stonks
+Were
+Reeeee
+Best
+```
 
 ## Special Symbols
 
@@ -74,7 +91,7 @@ $
 ```
 
 
-## Ranges
+## Ranges and Sets
 
 ### Letters
 

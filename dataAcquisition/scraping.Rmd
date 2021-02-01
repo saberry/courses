@@ -1,0 +1,414 @@
+---
+title: "Scraping Data"
+description: |
+  A valuable skillset
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+A great person once said something along the lines of this:
+
+>I don't know who you are. I don't know what you want. If you are looking to sell me a subscription, I can tell you I don't have money. But what I do have are a very particular set of skills -- skills I have acquired over a very long career -- skills that make me a nightmare for websites like yours. If you give me an API now, that'll be the end of it. I will not look through your network structure. I will not pursue your CSS tags. But if you don't, I will look for your data, I will find your data, and I will take your data.
+
+When we are scraping data, our goal isn't necessarily to take what isn't ours; instead, we are just trying to make good use of available data. As with everything, let's start somewhere pretty easy and work our way up from there.
+
+Just keep in mind that our potential goals are very broad: we could be scraping clients/leads, "pure" data, or something along the lines of pure text. 
+
+<a href="https://www.tdcj.texas.gov/death_row/dr_executed_offenders.html">Here</a> is what got me into scraping -- a bit morbid, so click at your own risk. 
+
+The most simple form of all scraping is the html table -- it has always been easy and it will always be easy. You don't need to know much in the way of fancy code, just that you are dealing with an html table:
+
+```{r}
+nflGrade <- "http://nflsavant.com/grade.php"
+
+head(XML::readHTMLTable(nflGrade)$tblPlayers)
+```
+
+And that, my friends, is from the `XML` package -- it is as old-school R as you can possibly get. Deborah Nolan's and Duncan Temple Lang's "XML and Web Technologies for Data Sciences with R" was a whole generation's intro to web scraping. If you are ever itching to get into parsing XML, then it would be a great resource. If you are only scraping pages with individual tables, it is great. If, on the other hand, you are going to be doing more work, the `rvest` package is the way to go.
+
+```{r}
+library(rvest)
+
+library(magrittr)
+
+cpiLink <- "https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/"
+
+cpiTable <- read_html(cpiLink) %>% 
+  html_table() %>% 
+  magrittr::extract2(1) # or `[[`(1) 
+```
+
+We have talked about the extraction method a little bit before, but let's think through the purpose. When we use the html_table function, it gets a list of every table on the page, whether it is 1 or 100 tables. The extraction is great when you know which table you want and it will never change. However, you might run into the case where it does change. Let's see what we might be able to do to program around that.
+
+```{r}
+read_html("https://data.bls.gov/pdq/SurveyOutputServlet") %>% 
+  html_table()
+```
+
+
+```{r}
+topFilms <- "https://en.wikipedia.org/wiki/List_of_highest-grossing_films"
+
+topTables <- read_html(topFilms) %>% 
+  html_table(fill = TRUE)
+
+tableFinder <- lapply(topTables, function(x) {
+  tf <- grepl("Peak", names(x))
+  any(tf)
+})
+
+tableInd <- which(tableFinder == TRUE)
+
+topTables[[tableInd]]
+
+# NOTE: If the tables were named, the following would work!
+
+# grep("Peak", lapply(tableFinder, function(x) names(x)))
+```
+
+That really wasn't too bad and you got to see a good base R function: `any`. The `any` function is part of the all/any/which family of logical checks.
+
+This brings us to an interesting idea about tables -- some are better than others. The table that we want from that Wikipedia page, *Highest-grossing films*, might have been easier to grab than we thought:
+
+```{r}
+read_html(topFilms) %>%
+  html_table(fill = TRUE) %>% 
+  extract2(
+    read_html(topFilms) %>% 
+      html_nodes("table caption") %>% 
+      grepl(">Highest-grossing films<", .) %>% 
+      which(. == TRUE))
+```
+
+That is a silly way of doing that, but I think you probably get the drift. Let's consider something that is table adjacent -- the BLS has a ton of available data and it is very easy to scrape:
+
+```{r}
+blsPage <- "https://download.bls.gov/pub/time.series/cw/cw.data.11.USFoodBeverage"
+
+read_html(blsPage) %>% 
+  html_table()
+```
+
+At least I though it was...
+
+While it looks like a table at first glance, it really isn't. Instead, it is really just a text file:
+
+```{r}
+head(read.delim(blsPage))
+```
+
+The moral of the story? Don't try to make things harder than necessary. What will be a fun task, though, is program around all of the possible pages that you need. 
+
+Unfortunately, there will be times where things are just tricky and we have to deal with it as best we can:
+
+```{r}
+albumLink <- "https://en.wikipedia.org/wiki/List_of_best-selling_albums"
+
+read_html(albumLink) %>% 
+  html_table(fill = TRUE) %>% 
+  length()
+```
+
+That is a lot of tables to sift through. Instead, we can use some expanded CSS selectors to narrow things down:
+
+```{r}
+read_html(albumLink) %>% 
+  html_nodes("h2 + p + table.wikitable")
+```
+
+Those "+" signs are CSS combinators -- specifically, they are adjacent sibling cobinators. What we said here is to "find an h2, that is followed by a p, which is followed by a wikitable classed table, all under the same parent object." That is clear as obsidian. There are several CSS selectors that you migth find handy, with <a href="https://www.w3schools.com/cssref/css_selectors.asp">w3schools</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors">MDN</a> being excellent resources.
+
+While we couldn't isolate the exact table with all code, we certainly got closer.
+
+Tables, while being tables, aren't always the type of tables that we expect of our tables -- got it...
+
+```{r}
+inmateLink <- "https://www.tdcj.texas.gov/death_row/dr_info/brewerlawrence.html"
+
+inmateInfo <- read_html(inmateLink) %>% 
+  html_table() %>% 
+  `[[`(1)
+
+inmateInfo
+```
+
+So that is going to be a complete and total pain to deal with, but never fear!
+
+```{r}
+inmateInfo[] <- inmateInfo[, -c(1)]
+
+tidyr::pivot_wider(inmateInfo, names_from = X2, values_from = X3)
+```
+
+Or a fun trick, but only for certain things:
+
+```{r}
+newNames <- inmateInfo$X2
+
+newData <- as.data.frame(t(inmateInfo$X3))
+
+colnames(newData) <- newNames
+
+newData
+```
+
+As helpful as getting tables might be, there will be other bits of data that we might want to be able to pull. For example, we might want to keep track of who is sitting on a <a href="https://www.apple.com/leadership/">Board of Directors</a>. That is clearly not a table, so how do we get at it? We know about the inspect element tool, but here we need to think about scraping multiple items to create a data frame.
+
+After inspecting the elements of the names and roles, we should have a pretty good idea about the *nodes* that we are trying to pull.
+
+```{r}
+appleHTML <- read_html("https://www.apple.com/leadership/")
+
+appleBoard <- data.frame(name =  appleHTML %>% 
+                          html_nodes(".typography-body.block-link.profile-name") %>% 
+                          html_text(), 
+                        role = appleHTML %>% 
+                          html_nodes(".typography-body.typography-profile-title") %>% 
+                          html_text(), 
+                        stringsAsFactors = FALSE)
+
+knitr::kable(appleBoard)
+```
+
+As we move forward, we are going to need to play with combinations of nodes and selectors. Let's turn back to Texas. Let's start by finding the links on this page: https://www.tdcj.texas.gov/death_row/dr_executed_offenders.html. Our goal will be to get the last statements.
+
+```{r}
+txEx <- "https://www.tdcj.texas.gov/death_row/dr_executed_offenders.html"
+
+txExRead <- read_html(txEx) 
+
+txExRead %>% 
+  html_nodes("a") %>% 
+  length()
+```
+
+We have over twice the amount of links that we really need. Let's explore those links a little bit more:
+
+```{r}
+txExRead %>% 
+  html_nodes("a") %>% 
+  html_attrs() %>% 
+ .[41:44]
+```
+
+Those attributes are going to be useful, because we can use them to filter our request. 
+
+```{r}
+lastLinks <- txExRead %>% 
+  html_nodes("a[href*='last']") %>% 
+  html_attr("href")
+ 
+length(lastLinks)
+```
+
+Be sure to check out w3schools for more ways you can filter with attributes. 
+
+Now, though, we run into something tricky -- how to get that text and only that text.
+
+```{r}
+testLink <- paste("https://www.tdcj.texas.gov/death_row/", 
+                  lastLinks[[8]], sep = "")
+
+read_html(testLink) %>% 
+  html_nodes("p.bold:contains('Last') + p") %>% 
+  html_text()
+```
+
+Let's try another one:
+
+```{r}
+testLink <- paste("https://www.tdcj.texas.gov/death_row/", 
+                  lastLinks[[10]], sep = "")
+
+
+read_html(testLink) %>% 
+  html_nodes("p.bold:contains('Last') + p") %>% 
+  html_text()
+```
+
+That runs into a problem. There isn't much there for a spoken statement, but we might want to grab the written statement:
+
+```{r}
+read_html(testLink) %>% 
+  html_nodes("p:last-child") %>% 
+  html_text()
+```
+
+### Practice
+
+For a great number of games and sports, ESPN offers pre and post game betting information. Try to scrape both, but note that the technique to get them will be different.
+
+Notre Dame keeps a list of notable alumni: https://www.nd.edu/about/notable-alumni/. Can you grab the names and only the names?
+
+
+## Getting More Difficult
+
+Before we move onto scraping flavored tasks, I would be ashamed if I didn't show you all how to download and unzip programmatically. Believe it or not, it is something that you will likely encounter. 
+
+For the fun of it, let's download some R-help archives: https://stat.ethz.ch/pipermail/r-help/
+
+```{r}
+rHelpLink <- "https://stat.ethz.ch/pipermail/r-help/"
+
+newMonthName <- read_html(rHelpLink) %>% 
+  html_nodes("a[href*='gz']") %>% 
+  html_attr("href") %>% 
+  .[1]
+
+newMonthName
+```
+
+We can download with the `download.file` function:
+
+```{r}
+newMonth <- paste(rHelpLink, newMonthName, sep = "")
+
+download.file(newMonth, 
+              destfile = paste("~/courses/dataAcquisition/", newMonthName, sep = ""))
+```
+
+You likely noticed that this not a typical zip file; it is a gz file. 
+
+```{r}
+R.utils::gunzip("~/courses/dataAcquisition/2020-September.txt.gz", 
+                remove = FALSE)
+
+head(readLines("~/courses/dataAcquisition/2020-September.txt"))
+```
+
+Back to other web stuff now!
+
+Let's do some compound work now. 
+
+```{r, eval = FALSE}
+spScriptLink <- "https://southpark.fandom.com/wiki/Portal:Scripts"
+
+spSeasonLinks <- read_html(spScriptLink) %>% 
+  html_nodes("a[href*='Scripts/Season_']") %>% 
+  html_attr("href")  %>% 
+  unique() %>% 
+  paste("https://southpark.fandom.com/", ., sep = "")
+  
+spEpisodeLinks <- lapply(spSeasonLinks, function(link) {
+  read_html(link) %>% 
+    html_nodes("a[href*='/Script']") %>% 
+    html_attr("href")  %>% 
+    unique() %>% 
+    paste("https://southpark.fandom.com/", ., sep = "")
+})
+
+spScripts <- lapply(spEpisodeLinks, function(link) {
+  read_html(link) %>% 
+    html_table(fill = TRUE) %>% 
+    `[[`(2)
+})
+```
+
+Or for something slightly less offensive. Let's build something so that we can find good movies from Shudder! 
+
+https://www.shudder.com/movies
+
+I don't have time to click everything and I want to be able to search what I might like.
+
+Let's take a look at some movies:
+
+https://www.shudder.com/movies/watch/host/b89c77f392b1c5e8
+
+https://www.shudder.com/movies/watch/color-out-of-space/355f649a57a267e8
+
+https://www.shudder.com/movies/watch/halloween-5-the-revenge-of-michael-myers/373e434e3b5469a9
+
+Let's pull some specific information from the movies: title, description, year, and rating. 
+
+
+```{r}
+shudderLinks <- "https://www.shudder.com/movies?size=15" # You could bump this up!
+
+shudderMovies <- read_html(shudderLinks) %>% 
+  html_nodes(".movie-card-wrapper") %>% 
+  html_attr("href") %>% 
+  paste("https://www.shudder.com", ., sep = "")
+
+movieInfo <- purrr::map_df(shudderMovies, ~{
+  Sys.sleep(.25)
+  movieRead <- read_html(.x) 
+  
+  movieTitle <- movieRead %>% 
+    html_nodes(".detail-page__title.heading.lg.hvy") %>% 
+    html_text()
+  
+  movieYear <- movieRead %>% 
+    html_nodes(".detail-page__metadata-items span:first-child") %>% 
+    html_text()
+  
+  movieDesc <- movieRead %>% 
+    html_nodes(".detail-page__description__long") %>% 
+    html_text()
+  
+  movieRating <- movieRead %>% 
+    html_nodes(".detail-page__metadata .rating-item.rating-item--fill") %>% 
+    length(.)
+  
+  data.frame(title = movieTitle, 
+             year = movieYear, 
+             desc = movieDesc, 
+             rating = movieRating)
+})
+
+DT::datatable(movieInfo)
+```
+
+All of the CSS stuff that we just saw is not only helpful, but it will take you very far on your scraping journeys. There are pages out there, though, that are really not built for scraping. It might not be because "they" don't want you to, but because the content needs to be loaded dynamically. If you see things "bubble" as they load, I will almost guarentee you that you are going to be in for a rough time.
+
+Since the NFL season is underway, let's see if we can start finding some big shot players. To do that, let's turn to the NFL Next Gen Stats page: https://nextgenstats.nfl.com/stats/passing. As you can probably guess from the URL, we are going to be looking at passing. 
+
+When we go to that page, we see a pretty sleek-looking table. Since it is clearly a table, I bet that we can grab it:
+
+```{r}
+nextGenLink <- "https://nextgenstats.nfl.com/stats/passing"
+
+read_html(nextGenLink) %>% 
+  html_table()
+```
+
+That didn't work out so well, but maybe if we try to find a specific class or id, we will have some success.
+
+```{r}
+read_html(nextGenLink) %>% 
+  html_nodes(".ngs-data-table")
+```
+
+Still no. This is about the time that many people will resign themselves to handling this manually, but I am a slow learner. 
+Instead, let's check out the requests that come through the site. We can do this by exploring the Network within our Inspect tool. As we mine through the network, we want to look for a json file -- that is where our data actually lives.
+
+Once you find it (and you will find it), you can just access it directly!
+
+```{r}
+library(httr)
+
+GET("https://appapi.ngs.nfl.com/statboard/passing?season=2020&seasonType=REG")
+```
+
+For the love of all that is good! Why did this happen? Very simple...you don't look like a standard browswer request. When you use that GET function, any site looks at it and says, "Hey! You are not a browser! You are curl! Get out!". Some sites couldn't care less if the request comes from a browser or from curl, but clearly other sites care. So, what can we do to make ourselves look more like a browser? We can set headers! 
+
+You can find headers in that network structure that we just explored. Where do you start, though? If a site is giving you that 401 error, they are going to be checking your *user-agent*, *host*, *origin*, and *referer*. As we explore those request headers, we can see where those are and the information that is being passed into them. All we need to do is to lift it and paste it into an *add_headers* call:
+
+```{r}
+seriously <- GET("https://appapi.ngs.nfl.com/statboard/passing?season=2020&seasonType=REG", 
+    add_headers("User-Agent" = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:80.0) Gecko/20100101 Firefox/80.0)", 
+                Host = "appapi.ngs.nfl.com", 
+                Origin = "https://nextgenstats.nfl.com",
+                Referer = "https://nextgenstats.nfl.com/"))
+
+jsonlite::fromJSON(content(seriously, as = "text"))
+```
+
+Oh glorious data! From there, we can apply things we have already learned about programming to get several seasons work of data or even different tables of information.
+
+Is this scraping or just crafty data acquisition? I don't know the answer, but I know that you will definitely encounter a need to do this at some time. 

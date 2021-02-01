@@ -1,0 +1,128 @@
+---
+title: |  
+      | Data Acquisition
+      | ITAO70450
+output: pdf_document
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Office: 337 Mendoza
+
+# Email: seth.berry@nd.edu
+
+# Office Hours
+
+Monday & Wednesday: 10:00 to 1:00
+
+Most Fridays: 10:00 to 12:00
+
+As of writing, I will be holding my M/W office hours on Zoom. On Friday, we will try Twitch.  
+
+# Class Days and Time
+
+Tuesday and Thursday -- 8:00 to 9:40
+
+Location -- L068
+
+# Course Objectives
+
+While data is everywhere, you cannot always rely on having the appropriate data on hand. As an analyst, you need to be able to acquire data from many different resources to get answers. By the end of the class, I want you to be able to:
+
+-   Develop good surveys and refine existing surveys
+
+-   Create surveys for deployment in various online and mobile platforms
+
+-   Use appropriate statistical methods, like factor analysis, for analyzing survey data
+
+-   Programatically access data from the web, using APIs and scraping
+
+-   Articulate the different methods for analyzing streaming data
+
+# Class Activities
+
+In addition to more "traditional" lecturing, we are going to engage in different activities during class time. We will try some socially-distanced, team-based coding challenges and concept quizzes. All of these activities are designed to practice the skills that we are learning in class, in a (hopefully) fun and low-stakes manner.
+
+# Readings
+
+There is no official textbook for this course, but there are going to be a few assorted readings and resources for topics.  I will also share resources for topics.  At the start of each class, we will each be finding an article to share with the class. You will be expected to find an article that interests you and share a brief synopsis with the class. This is designed for you to see the wealth of research that exists within the topics that we are going to cover.
+
+# Homework
+
+All homework assignments must be submitted in an html file knitted from R Markdown. 
+
+A significant portion of your grade will come from the homework map (i.e., your path towards statistical enlightenment). The skills roadmap has different levels (bronze, silver, and gold). Each level must be completed in order (i.e., you cannot skip silver and go straight to gold from bronze). Silver and gold levels essentially act as modifiers to not only your grade, but also your understanding.
+
+# Final Project and Presentation
+
+These will be given during the designated final day and time.  These will be graded on the content of your presentation (general creativity, appropriateness of analysis, etc.), not necessarily on the scientific merit of your work!  I really want you to be able to speak about your process and results in a defensible way.
+
+# Grade Breakdown
+
+Participation -- 50 points
+
+Homework -- 90 points
+
+Project Touch Points -- 50 points
+
+Project -- 60 points
+
+Presentation -- 50 points 
+
+Total -- 300 points
+
+# Schedule
+
+```{r, results='asis',echo = FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+
+data.frame(Week = c(1, "", 2, "", 3, "",
+                    4, "", 5, "", 6, "", 
+                    7, ""),
+           Date = c("02/04 (R)", 
+                    "02/09 (T)", 
+                    "02/11 (R)", 
+                    "02/16 (T)", 
+                    "02/18 (R)", 
+                    "02/23 (T)", 
+                    "02/25 (R)", 
+                    "03/02 (T)", 
+                    "03/04 (R)", 
+                    "03/09 (T)",
+                    "03/11 (R)",
+                    "03/16 (T)", 
+                    "03/18 (R)", 
+                    "03/23 (T)"),   
+           Topic = c("Introduction, Software, Programming", 
+                     "Survey Design - Basics", 
+                     "Survey Design - Web", 
+                     "Survey Design - Action",
+                     "Survey Analysis - Standard", 
+                     "Survey Analysis - Psychometrics and Choice", 
+                     "APIs and Forms",
+                     "APIs and Forms", 
+                     "Scraping - Easy", 
+                     "Scraping - Not easy", 
+                     "Automation", 
+                     "Streaming data analysis", 
+                     "Presentations"), 
+           # Description = unlist(topicDesc),
+           Assignments = c("", 
+                        "", 
+                        "", 
+                        "Homework #1 Assigned",
+                        "",
+                        "",
+                        "Homework #2 Assigned",
+                        "",
+                        "",
+                        "Homework #3 Assigned",
+                        "",
+                        "", 
+                        "Presentations")) %>% 
+ stargazer::stargazer(., summary = FALSE, header = FALSE, title = "Tentative Schedule", rownames = FALSE)
+```
+

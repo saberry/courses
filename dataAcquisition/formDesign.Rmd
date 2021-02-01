@@ -1,0 +1,99 @@
+---
+title: "Survey Design"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Just as bricks are individual pieces of a building, items are individual pieces of a survey. Just as bricks need to be carefully arranged to create a strong structure, our survey items need to be arranged in a way that creates a strong survey.
+
+## Item Ordering and Wording
+
+We have already talked about some issues related to item wording, but here are some additional discussion points:
+
+- Generally, demographic questions should go at the end (there are some exceptions).
+
+- Question instructions should come at the beginning of a question, not at the end.
+
+- "Some people"...
+
+<aside>
+The <a href="https://electionstudies.org/project/anes-2016-pilot-study/">ANES</a> is the biggest instigator of the "some people" problem!
+</aside>
+
+- Verbal cues take precedence over visual cues.
+
+  - As such, all scale points should be labeled.
+
+In nearly every case, your scale points should be words. If you use numbers as response options, here is what happens.
+
+
+```{r, echo = FALSE}
+library(dplyr)
+
+library(ggplot2)
+
+data.frame(responseOption = c(1, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5,
+                              1, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 5,
+                               0, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4,
+                              1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 
+                               -2, -1, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 
+                              -1, -1, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2),
+           response = rep(c("1-5", "0-4", "-2-2"), each = 24)) %>% 
+  ggplot(., aes(responseOption, color = response)) +
+  geom_density() +
+  theme_minimal()
+
+```
+
+
+
+## Design Choices
+
+These will become more obvious as we begin our dive into survey programming next time, but the following discussion points are worth some...discussion:
+
+- One page or multiple pages?
+
+- Progress bars?
+
+- In general, use radio buttons for response options.
+
+  - Except when there are many response options or when you want participants to be able to select multiple response options.
+
+- Make the layout look nice. Nice layouts have a lower drop-out rate than black and white.
+  - This, however, has produced some interesting mixed results.
+
+- Vertical or horizontal response options? It does not really matter, as the response rates and response distributions are the same.
+
+- For response rates: radio buttons > text entry > sliders
+  - The same can be said for response times.
+  
+## Distribution Methods
+
+- Web-based
+
+  - Most cost effective, but limited to only those with internet connections
+
+- Paper-based
+
+  - Paper surveys are largely immune to SES bias, but are time consuming for data processing
+
+- In-person
+
+  - In-person interviews are time consuming and respondents might not be comfortable answering questions
+
+- Phone
+
+  - Labor and resource intensive
+
+## Further Consideration
+
+Question development does not stop once your questions are created.  It is (somewhat) common for people to pilot the entire survey, but only to make sure that it is functioning as they expected.  While this is important, it is incomplete.  Survey questions, just like the form itself, need to be pretested.  Research is scarce on the absolute best methods of pretesting; however, that does not mean that techniques do not exist.  Cognitive interviewing is one such technique.  In addition to cognitive interviewing, survey paradata (e.g., number of clicks, response times) can be insightful in determining the quality of a question.  Regardless of the method, you need to pretest your survey questions to make sure they are performing as expected. 
+
+## Practical Lessons
+

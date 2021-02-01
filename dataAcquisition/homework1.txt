@@ -1,0 +1,33 @@
+##################
+### Homework 1 ###
+##################
+
+# Step 1
+
+In "surveyMaterials" folder, you will find 2 documents. These surveys are pretty 
+famous in the Organizational Behavior world and it is typically administered in 
+the format that you see. Pick one of these surveys, review it, and make improvements 
+to the survey in a text file. You do not need to recreate the entire survey, 
+but definitely hit the points where you see the most need for improvement.
+
+# Step 2
+
+You will notice that these two surveys share a large portion of the same 
+questions. That information, coupled with the names of the surveys, should 
+give you a pretty good idea that one of these surveys is completed by an 
+employee about his/her boss and the other survey is to be completed by the 
+boss about his/her self perceptions. 
+Create a survey in Qualtrics (ideally using the text file from Step 1) 
+that will caputre data from both the employee and the boss. This should be one 
+survey that branches correctly and uses appropriate logic. 
+You do not need to create the entire survey; you may pick one of the leadership 
+styles and a few of the other questions that are specific to each group. 
+
+# Step 3
+
+In the data folder, you will find an RData file (hint: you can use the load 
+function to bring this data in and you do not need to assign it a name). 
+Perform a factor analysis for the leadership style that you included in your 
+survey and one other leadership style. Report your factor loadings and what 
+that means for these items. You should also check the reliability of 
+these two measures and report the alpha value. 

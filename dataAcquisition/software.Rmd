@@ -1,0 +1,35 @@
+---
+title: "Helpful Software"
+author: "Data Acquisition"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Qualtrics
+
+Qualtrics is probably the premier web-based survey platform and has been for some time. Since ND has a site license, we can use it. Go to <a href="https://www.qualtrics.nd.edu">qualtrics.nd.edu</a> and go through the typical process.
+
+## Open Data Kit
+
+Where Qualtrics is the champion of web-based surveys, ODK is great for mobile data collection. And while Qualtrics will cost a tidy sum of money, ODK is basically free. The only money that you would spend is on hosting it.
+
+I will have a place created for everyone to see, but ODK's <a href="https://docs.getodk.org/aggregate-aws/">documentation</a> is excellent if you want to try your own.
+
+## Google
+
+We are going to be using Google for a lot of stuff -- not just for usual searching. If you go to the <a href="https://console.developers.google.com">developer's console</a>, we can start to put some APIs together.
+
+The general steps are to create a new project and then add APIs to it. For now, though, we will just make sure that we can access the console.
+
+## Docker
+
+Containers are a current rage and Docker is one of the popular ones. We are going to be using Docker for scraping; so while you won't need it now, going through the install process is good.
+
+You can install <a href="https://www.docker.com/get-started">Docker Desktop</a> for your computer's OS.
+
+## Amazon Web Services
+
+We will also make some use of AWS in class. You can get a free account <a href="https://aws.amazon.com">here</a>. This is a bit of a your choice deal: you can either watch what we do or you can try the stuff out for yourself.

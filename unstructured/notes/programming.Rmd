@@ -145,6 +145,7 @@ from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import datasets
 import numpy as np
+import time
 
 iris = datasets.load_iris()
 X = iris.data 
@@ -154,8 +155,10 @@ def train_model(X, y, n_estimators, max_features):
     model = RandomForestClassifier(n_estimators, max_features = 2)
     return model.fit(X, y)
 
-result = Parallel(n_jobs=4)(delayed(train_model)(X, y, n_estimators, max_features) 
-    for n_estimators in range(1, 20, 1) for max_features in range(1, 4, 1))
+t1 = time.time()
+result = Parallel(n_jobs=11)(delayed(train_model)(X, y, n_estimators, max_features)
+    for n_estimators in range(100, 1000, 10) for max_features in range(1, 4, 1))
+print(time.time() - t1)
 ```
 
 

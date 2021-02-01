@@ -475,7 +475,7 @@ Bust out some of your own code and see if you can make it work faster!
 
 Try this code:
 
-```{r}
+```{r, eval = FALSE}
 numbers <- list(1, 2, 3, "4")
 
 adderFunction <- function(x) {
@@ -485,7 +485,7 @@ adderFunction <- function(x) {
 lapply(1:length(numbers), function(x) adderFunction(numbers[[x]]))
 ```
 
-How would you fix this?
+Would an if/else fix this?
 
 ```{r}
 yourFunction <- function(nums) {

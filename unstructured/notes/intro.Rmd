@@ -449,7 +449,7 @@ stopCluster(cl)
 
 This can be extended to mapply, sapply, among others.
 
-```{python}
+```{python, eval = FALSE}
 from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import datasets
@@ -487,7 +487,7 @@ lapply(1:length(numbers), function(x) adderFunction(numbers[[x]]))
 
 Would an if/else fix this?
 
-```{r}
+```{r, eval = FALSE}
 yourFunction <- function(nums) {
     out <- tryCatch(
         {
@@ -508,12 +508,10 @@ yourFunction <- function(nums) {
     )    
     return(out)
 }
-
-y <- lapply(numbers, yourFunction)
 ```
 
 
-```{python}
+```{python, eval = FALSE}
 numbers = [1, 2, 3, "4"]
 
 def adderFunction(x):

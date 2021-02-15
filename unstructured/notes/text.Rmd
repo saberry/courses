@@ -12,42 +12,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-```{css, echo = FALSE}
-.day   { background: #eee; color: black; }
-.night { background: #333; color: white; }
-
-@media (prefers-color-scheme: dark) {
-  .day.dark-scheme   { background:  #333; color: white; }
-  .night.dark-scheme { background: black; color:  #ddd; }
-}
-
-@media (prefers-color-scheme: light) {
-  .day.light-scheme   { background: white; color:  #555; }
-  .night.light-scheme { background:  #eee; color: black; }
-}
-
-.day, .night {
-  display: inline-block;
-  padding: 1em;
-  width: 7em;
-  height: 2em;
-  vertical-align: middle;
-}
-```
 
 
 # Text
 
-The ability to produce written word is one of the major separators between us and the other great apes. And with the ability to produce it, comes the benefit of interpretting it.
-
-
-# Working With Text
-
-Text, more than almost any other type of data, is tough to work with. Images can be grayscaled, shrunk, and converted to their respective channels. Audio can be broken down into millisecond chunks of waves. Even video, in its massive entirety, can be broken into frames and then treated like images. Text, on the other hand, is just ugly. The likelihood that you will get clean text is exceedingly slim. Maybe you will find a nice tidy set of documents, but you should be prepared for a considerable amount of cleaning when it comes to processing your text. 
-
-## Regular Expressions
-
-A great deal of your cleaning is going to come from regular expressions (if you have seen me before, you have likely heard me drone on about them at some point). Now, even more so than the other times we have discussed them, is the most critical time to learn them. You don't need to reach mastery at this point, but you should be able to work through a pretty basic pattern. 
+The ability to produce written word is one of the major separators between us and the other great apes. And with the ability to produce it, comes the benefit of interpreting it.
 
 
 # Initial Analyses

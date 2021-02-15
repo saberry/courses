@@ -43,6 +43,8 @@ data.frame(match = c("intervisibility", "pseudoprimitivism",
 
 ## Great Places To Practice And Learn
 
+<a href="https://www.regular-expressions.info/lookaround.html">Regex Buddy</a>
+
 <a href="https://regexr.com/">regexr</a>
 
 <a href="https://regex101.com/">regex101</a>
@@ -62,14 +64,16 @@ ElonMusk
 I like this stock
 Stonks
 Were
-Reeeee
+Reee
 Best
+SEC
 ```
 
 ## Special Symbols
 
 ```
 [
+]
 \
 ^
 $
@@ -81,6 +85,11 @@ $
 (
 )
 ```
+
+Can you match everything that starts with a dollar sign?
+
+What about multiple e's only?
+
 
 ### Weird Things
 
@@ -104,9 +113,8 @@ $
 
 ```
 [1-9]
-
-[[:digit:]]
 ```
+
 
 ### Punctuation
 
@@ -128,6 +136,8 @@ $
 ```
 [[:alpha:]]
 
+[[:digit:]]
+
 [[:lower:]]
 
 [[:punct:]]
@@ -140,13 +150,6 @@ $
 
 [[:blank:]]
 ```
-
-```{r}
-testStrings <- c("test", "string", "123", "I'm here.")
-
-grep("[[:blank:]]", testStrings, value = TRUE, perl = TRUE)
-```
-
 
 ## Boundaries
 
@@ -162,6 +165,33 @@ grep("[[:blank:]]", testStrings, value = TRUE, perl = TRUE)
 \1
 ```
 
+## Look Arounds
+
+```
+Ahead
+a(?!b)
+a(?=b)
+
+Behind
+(?<!a)b
+(?<=a)b
+```
+
+Let's think about what the following might do:
+
+```
+[0-9]+(?!\.)
+[0-9]+(?=\.)
+
+(?<!\b)[A-Z]
+(?<=\$)[0-9]+
+```
+
+Combining groups and look arounds provides silly power:
+
+```
+([?<=\$])([0-9]{1,50})(?=\.)*
+```
 
 ## Using Regex
 
@@ -175,7 +205,7 @@ base functions:
 test_strings <- c("Mick", "Rick", "candlestick", "quick", 
                   "fickleness", "unlicked", "Beck", "quickly")
 
-# Complete the pattern
+# Find the pattern
 
 grep(pattern = "", x = test_strings, 
      perl = TRUE, value = TRUE)
@@ -192,6 +222,13 @@ gsub(pattern = "", replacement = "", x = test_strings)
 
 regmatches(regexpr())
 ```
+
+```{r}
+testStrings <- c("test", "string", "123", "I'm here.")
+
+grep("[[:blank:]]", testStrings, value = TRUE, perl = TRUE)
+```
+
 
 stringr functions
 
@@ -211,6 +248,12 @@ Here's an additional chunk of text to explore:
 wacky_text <- c("hereIam", "this is a test", 
           "I repeat, this is a test", 
           "N0. Rea11y", "anotherProblem")
+```
+
+Here's a potential solutions for breaking text into pieces:
+
+```{r}
+gsub("([a-z])([A-Z])", "\\1 \\2", wacky_text)
 ```
 
 
@@ -233,8 +276,6 @@ re.sub(pattern = r"([a-z])([A-Z])", # The nonsense r is denoting a raw string.
        repl = "\\1 \\2", 
        string = "hereI am")
 
-
-
 wacky_text = [re.sub(pattern = "([a-z])([A-Z])", repl = "\\1 \\2", string = wacky_text) 
   for wacky_text in wacky_text]
 
@@ -256,7 +297,8 @@ pbpData = pd.read_csv("https://eightthirtyfour.com/nba/pbp/2000-01_pbp.csv")
 pbpData['event'] = pbpData.HOMEDESCRIPTION.str.extract(r"([A-Z]{3,})")
 ```
 
-## Common Regex Puzzles
+## A Puzzle For You
 
+```
 \(*[0-9]{3}\)*-*\s*[0-9]{3}.*[0-9]{4}
-
+```

@@ -491,7 +491,7 @@ stopCluster(cl)
 
 Not so good!
 
-### A Modern Approach
+### Some Different Approaches
 
 The `caret` package is a classic, but it is not the state of the art (and never will be again). Max Kuhn works for RStudio and he has turned most of his attention to `tidymodels`. 
 
@@ -525,7 +525,8 @@ genreRec <- recipe(genre ~ ., data = genreTrain) %>%
   # step_scale(all_predictors(), -all_outcomes()) %>%
   prep(retain = TRUE)
 
-testNormalized <- bake(genreRec, new_data = genreTest, all_predictors(), all_outcomes())
+testNormalized <- bake(genreRec, new_data = genreTest, 
+                       all_predictors(), all_outcomes())
 
 modernNN <- parsnip::mlp(mode = "classification", hidden_units = 1, 
                          penalty = 0) %>% 
@@ -546,3 +547,44 @@ yardstick::metrics(test_results, truth = genre, estimate = nnet_class)
 ```
 
 This is a marked shift from the `caret` method and will take some getting used to. However, the recipes steps and the ease with with parsnip models can be flipped around will make for much cleaner modeling.
+
+If you want to take a detour from the RStudio folks, you can try out `mlr3`. It is part of a growing set of R packages that use an R6 class of objects. For my money, it is far more straightforward than the tidymodels framework.
+
+```{r}
+# remotes::install_github("mlr-org/mlr3extralearners")
+# mlr3extralearners::install_learners("classif.nnet")
+library(mlr3)
+library(mlr3viz)
+
+textFeatures$genre <- ifelse(textFeatures$genre == "zappa", 1, 0)
+
+textFeatures$genre <- as.factor(make.names(textFeatures$genre))
+
+names(textFeatures) <- make.names(names(textFeatures))
+
+genreClass <- TaskClassif$new(id = "zappa", 
+                             backend = textFeatures, 
+                             target = "genre", 
+                             positive = "X1")
+
+learner <- lrn("classif.nnet")
+
+learner$param_set$values = list(size = 3)
+
+resampling = rsmp("cv")
+
+resampling$instantiate(genreClass)
+
+resampling$iters
+
+rr <- resample(genreClass, learner, resampling, store_models = TRUE)
+
+# as.data.table(mlr_measures)
+
+rr$aggregate(msr("classif.acc"))
+
+rr$prediction()
+
+autoplot(rr, type = "roc")
+```
+

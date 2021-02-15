@@ -972,11 +972,12 @@
 <li><a href="#whats-the-pattern">What’s The Pattern?</a></li>
 <li><a href="#great-places-to-practice-and-learn">Great Places To Practice And Learn</a></li>
 <li><a href="#special-symbols">Special Symbols</a></li>
-<li><a href="#ranges">Ranges</a></li>
+<li><a href="#ranges-and-sets">Ranges and Sets</a></li>
 <li><a href="#boundaries">Boundaries</a></li>
 <li><a href="#groupings-and-backreference">Groupings and Backreference</a></li>
+<li><a href="#look-arounds">Look Arounds</a></li>
 <li><a href="#using-regex">Using Regex</a></li>
-<li><a href="#common-regex-puzzles">Common Regex Puzzles</a></li>
+<li><a href="#a-puzzle-for-you">A Puzzle For You</a></li>
 </ul>
 </nav>
 <hr class="d-toc-separator" />
@@ -1018,10 +1019,29 @@
 4    odontonosology    predisable</code></pre>
 </div>
 <h2 id="great-places-to-practice-and-learn">Great Places To Practice And Learn</h2>
+<p><a href="https://www.regular-expressions.info/lookaround.html">Regex Buddy</a></p>
 <p><a href="https://regexr.com/">regexr</a></p>
+<p><a href="https://regex101.com/">regex101</a></p>
+<p><a href="https://regexcrossword.com/">Will destroy your soul</a></p>
+<p>Throw these into regexr’s or regex101’s editor:</p>
+<pre><code>
+$100
+$100.00
+$GME
+100
+618-549-5326
+Page 42
+ElonMusk
+I like this stock
+Stonks
+Were
+Reee
+Best
+SEC</code></pre>
 <h2 id="special-symbols">Special Symbols</h2>
 <pre><code>
 [
+]
 \
 ^
 $
@@ -1032,21 +1052,21 @@ $
 +
 (
 )</code></pre>
+<p>Can you match everything that starts with a dollar sign?</p>
+<p>What about multiple e’s only?</p>
 <h3 id="weird-things">Weird Things</h3>
 <pre><code>
 \s
 \t
 \n</code></pre>
-<h2 id="ranges">Ranges</h2>
+<h2 id="ranges-and-sets">Ranges and Sets</h2>
 <h3 id="letters">Letters</h3>
 <pre><code>
 [a-z]
 </code></pre>
 <h3 id="digits">Digits</h3>
 <pre><code>
-[1-9]
-
-[[:digit:]]</code></pre>
+[1-9]</code></pre>
 <h3 id="punctuation">Punctuation</h3>
 <pre><code>
 \.
@@ -1059,6 +1079,8 @@ $
 <pre><code>
 [[:alpha:]]
 
+[[:digit:]]
+
 [[:lower:]]
 
 [[:punct:]]
@@ -1070,14 +1092,6 @@ $
 [[:word:]]
 
 [[:blank:]]</code></pre>
-<div class="layout-chunk" data-layout="l-body">
-<pre class="r"><code>
-testStrings &lt;- c(&quot;test&quot;, &quot;string&quot;, &quot;123&quot;, &quot;I&#39;m here.&quot;)
-
-grep(&quot;[[:blank:]]&quot;, testStrings, value = TRUE, perl = TRUE)</code></pre>
-<pre><code>
-[1] &quot;I&#39;m here.&quot;</code></pre>
-</div>
 <h2 id="boundaries">Boundaries</h2>
 <pre><code>
 \b
@@ -1086,6 +1100,25 @@ grep(&quot;[[:blank:]]&quot;, testStrings, value = TRUE, perl = TRUE)</code></pr
 <pre><code>
 ([a-z])
 \1</code></pre>
+<h2 id="look-arounds">Look Arounds</h2>
+<pre><code>
+Ahead
+a(?!b)
+a(?=b)
+
+Behind
+(?&lt;!a)b
+(?&lt;=a)b</code></pre>
+<p>Let’s think about what the following might do:</p>
+<pre><code>
+[0-9]+(?!\.)
+[0-9]+(?=\.)
+
+(?&lt;!\b)[A-Z]
+(?&lt;=\$)[0-9]+</code></pre>
+<p>Combining groups and look arounds provides silly power:</p>
+<pre><code>
+([?&lt;=\$])([0-9]{1,50})(?=\.)*</code></pre>
 <h2 id="using-regex">Using Regex</h2>
 <p>It might surprise you to find which has a more robust set of functions.</p>
 <h3 id="r">R</h3>
@@ -1095,7 +1128,7 @@ grep(&quot;[[:blank:]]&quot;, testStrings, value = TRUE, perl = TRUE)</code></pr
 test_strings &lt;- c(&quot;Mick&quot;, &quot;Rick&quot;, &quot;candlestick&quot;, &quot;quick&quot;, 
                   &quot;fickleness&quot;, &quot;unlicked&quot;, &quot;Beck&quot;, &quot;quickly&quot;)
 
-# Complete the pattern
+# Find the pattern
 
 grep(pattern = &quot;&quot;, x = test_strings, 
      perl = TRUE, value = TRUE)
@@ -1111,6 +1144,14 @@ gsub(pattern = &quot;&quot;, replacement = &quot;&quot;, x = test_strings)
 # Find and extract a match
 
 regmatches(regexpr())</code></pre>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+testStrings &lt;- c(&quot;test&quot;, &quot;string&quot;, &quot;123&quot;, &quot;I&#39;m here.&quot;)
+
+grep(&quot;[[:blank:]]&quot;, testStrings, value = TRUE, perl = TRUE)</code></pre>
+<pre><code>
+[1] &quot;I&#39;m here.&quot;</code></pre>
 </div>
 <p>stringr functions</p>
 <div class="layout-chunk" data-layout="l-body">
@@ -1129,6 +1170,15 @@ wacky_text &lt;- c(&quot;hereIam&quot;, &quot;this is a test&quot;,
           &quot;I repeat, this is a test&quot;, 
           &quot;N0. Rea11y&quot;, &quot;anotherProblem&quot;)</code></pre>
 </div>
+<p>Here’s a potential solutions for breaking text into pieces:</p>
+<div class="layout-chunk" data-layout="l-body">
+<pre class="r"><code>
+gsub(&quot;([a-z])([A-Z])&quot;, &quot;\\1 \\2&quot;, wacky_text)</code></pre>
+<pre><code>
+[1] &quot;here Iam&quot;                 &quot;this is a test&quot;          
+[3] &quot;I repeat, this is a test&quot; &quot;N0. Rea11y&quot;              
+[5] &quot;another Problem&quot;         </code></pre>
+</div>
 <h3 id="python">Python</h3>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
@@ -1146,8 +1196,7 @@ matches = list(filter(p.search, wacky_text))
 
 re.sub(pattern = r&quot;([a-z])([A-Z])&quot;, # The nonsense r is denoting a raw string.
        repl = &quot;\\1 \\2&quot;, 
-       string = &quot;hereI am&quot;)
-</code></pre>
+       string = &quot;hereI am&quot;)</code></pre>
 <pre><code>
 &#39;here I am&#39;</code></pre>
 <pre class="python"><code>
@@ -1170,8 +1219,9 @@ pbpData = pd.read_csv(&quot;https://eightthirtyfour.com/nba/pbp/2000-01_pbp.csv&
 
 pbpData[&#39;event&#39;] = pbpData.HOMEDESCRIPTION.str.extract(r&quot;([A-Z]{3,})&quot;)</code></pre>
 </div>
-<h2 id="common-regex-puzzles">Common Regex Puzzles</h2>
-<p><span class="math inline">\(*[0-9]{3}\)</span><em>-</em>.*[0-9]{4}</p>
+<h2 id="a-puzzle-for-you">A Puzzle For You</h2>
+<pre><code>
+\(*[0-9]{3}\)*-*\s*[0-9]{3}.*[0-9]{4}</code></pre>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
@@ -1179,15 +1229,6 @@ pbpData[&#39;event&#39;] = pbpData.HOMEDESCRIPTION.str.extract(r&quot;([A-Z]{3,}
 <div class="d-appendix">
 </div>
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 
 <!--radix_placeholder_site_after_body-->
 <!--/radix_placeholder_site_after_body-->

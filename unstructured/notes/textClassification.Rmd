@@ -12,23 +12,23 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-Classificiation is nothing new at this point -- you have seen methods ranging from simple logistic regression to random forest. We are going to see two alternative methods for classification: Naive Bayes and neural networks. Both of these techniques can offer reasonable prediction, without too much complexity. 
+Classificiation is nothing new at this point -- you have seen methods ranging from simple logistic regression to random forest and beyond. We are going to see two alternative methods for classification: Naive Bayes and neural networks. Both of these techniques can offer reasonable prediction, without too much complexity. 
 
 A few things to remember:
 
 1.  Naive Bayes just works. It won't get too bogged down by high dimensionality and you won't need a fancy machine to run your models.
 
-2.  Neural networks are not only the past, but are the future. The strongest predictions will almost uniformly come from some type of neural network.
+2.  Neural networks are not only the past, but are the future. The strongest predictions will *almost* uniformly come from some type of neural network.
 
 # Naive Bayes
 
-With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central assumptions violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods with often similar performance. 
+With any exercise in statistical learning, the *Naive Bayesian* model is a great place to start. Why? Mostly because it tends to perform pretty well without too much hassle (i.e., tuning and various parameter tweaking). This reasonable performance even comes with some pretty central assumptions violated -- the naive part of the method comes from an assumption that observations are always completely and totally independent with regard to outcome variable. Another handy feature of the Naive Bayes is that it can handle missing observations without any issue. It will also work on smaller training set or data with higher correlations among variables. Perhaps most importantly, it is blazing fast compared to more complex methods, with often similar performance. 
 
-With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific class of customers cancelling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
+With all of this together, it becomes a really solid baseline for problems -- if another technique cannot beat a Naive Bayes on a problem, then it is probably not going to be worth using for that problem. The Naive Bayes has been used with great effect from everything to spam detection to determining the probability of a specific class of customers canceling a service (e.g., what is the probability that a 50 year-old, with a limited data plan, using a flip phone, would cancel his cell service). 
 
 With "Bayesian" in the name, you would probably guess that we are going to be dealing with probabilities and we certainly are. Not that you need it, but let's do a really quick refresher on probability, odds, and likelihoods.
 
-*Probability* is bound between 0 and 1, and indicates the chance of an event occuring. 
+*Probability* is bound between 0 and 1, and indicates the chance of an event occurring. 
 
 *Odds* are scaled from 0 to $\infty$ and are the ratio of the probability of a particular event occurring to the probability of it not occurring. With a probability of occurrance at .25, we would have an odds of 1 to 4 of the event occurring.
 
@@ -139,10 +139,9 @@ countryLikelihood / (countryLikelihood + rapLikelihood)
 
 
 
-
 ## A Quick And Dirty Example
 
-We will step away from text just for a little bit to see a good example of how Naive Bayes can be put to great use. The `rsample` package is great for creating data for us in cross-validation, but it also has a data set called "attrition" (created by IBM for Watson training). Attrition contains a lot of demographic-flavored variables and a variable called...Attrition! Let's see if we can use all of the features within the data to predict attrition. 
+We will step away from text just for a little bit to see a good example of how Naive Bayes can be put to great use. The `rsample` package is great for creating data for us in cross-validation. 
 
 ```{r}
 library(caret)
@@ -151,34 +150,38 @@ library(dplyr)
 
 library(klaR)
 
+library(modeldata)
+
 library(rsample)
 
 # Looking at the data, there are some variables needing conversion
 # to factors.
 
-attrition = attrition %>%
-  mutate_at(c("JobLevel", "StockOptionLevel", "TrainingTimesLastYear"), factor)
+data(attrition)
+
+attrition <-  attrition %>%
+  mutate(across(c("JobLevel", "StockOptionLevel", "TrainingTimesLastYear"), ~ as.factor(.x)))
 
 # We could use base R or caret to perform our splitting, but we can 
 # keep rolling with rsample (praise be to Hadley and Max).
 
 set.seed(1001)
 
-split = initial_split(attrition, prop = .6, strata = "Attrition")
+split <- initial_split(attrition, prop = .6, strata = "Attrition")
 
-attritionTrain = training(split)
+attritionTrain <- training(split)
 
-attritionTest  = testing(split)
+attritionTest <- testing(split)
 
-y = attritionTrain$Attrition
+y <- attritionTrain$Attrition
 
-x = dplyr::select(attritionTrain, -Attrition)
+x <- dplyr::select(attritionTrain, -Attrition)
 
 # set up 10-fold cross validation procedure
 
-nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
+nbTrainControl <- trainControl(method = "cv", number = 10, verboseIter = FALSE)
 
-nbAttrition = train(x = x, y = y,
+nbAttrition <- train(x = x, y = y,
   method = "nb", trControl = nbTrainControl, metric = "Accuracy")
 
 nbAttrition
@@ -196,9 +199,9 @@ Out of the box, that is not too bad:
 ```{r}
 # Incorporating a Laplacian smooth for 0 value probability cells:
 
-searchGrid = expand.grid(fL = 0:5, usekernel = FALSE, adjust = 1)
+searchGrid <- expand.grid(fL = 0:5, usekernel = FALSE, adjust = 1)
 
-nbAttritionSmoothed = train(x = x, y = y,
+nbAttritionSmoothed <- train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
   tuneGrid = searchGrid, preProc = c("center", "scale"))
 
@@ -218,10 +221,10 @@ cl <- makePSOCKcluster(parallel::detectCores() - 1)
 
 registerDoParallel(cl)
 
-searchGrid = expand.grid(usekernel = c(TRUE, FALSE), 
+searchGrid <- expand.grid(usekernel = c(TRUE, FALSE), 
                            fL = 0:5, adjust = seq(0, 5, by = 1))
 
-nbAttritionTuned = train(x = x, y = y,
+nbAttritionTuned <- train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
   tuneGrid = searchGrid, preProc = c("center", "scale"))
 
@@ -233,10 +236,10 @@ confusionMatrix(nbAttritionTuned)
 Now we are getting somewhere. Let's add one more feature to our model to reduce down our feature space:
 
 ```{r}
-searchGrid = expand.grid(usekernel = TRUE, 
+searchGrid <- expand.grid(usekernel = TRUE, 
                          fL = 5, adjust = 5)
 
-nbAttritionTunedPCA = train(x = x, y = y,
+nbAttritionTunedPCA <- train(x = x, y = y,
   method = "nb", trControl = nbTrainControl,
   tuneGrid = searchGrid, preProc = c("center", "scale", "pca"))
 
@@ -249,7 +252,7 @@ confusionMatrix(nbAttritionTunedPCA)
 Let's see how our best run does with our test data:
 
 ```{r}
-pred = predict(nbAttritionTuned, newdata = attritionTest)
+pred <- predict(nbAttritionTuned, newdata = attritionTest)
 
 confusionMatrix(pred, attritionTest$Attrition, positive = "Yes")
 ```
@@ -371,16 +374,16 @@ For an in-depth treatment of the background calculations, <a href="https://arxiv
 The most basic of all neural nets can be done with `nnet`. 
 
 ```{r}
-numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, 
+numFolds <- trainControl(method = 'cv', number = 10, classProbs = TRUE, 
                         verboseIter = FALSE, summaryFunction = twoClassSummary)
 
-attritionFit = train(Attrition ~ ., data = attritionTrain, method = 'nnet', 
+attritionFit <- train(Attrition ~ ., data = attritionTrain, method = 'nnet', 
               trControl = numFolds, metric = "Accuracy", 
               preProc = c("center", "scale"), trace = FALSE)
 
 attritionFit
 
-results1 = predict(attritionFit, newdata = attritionTest)
+results1 <- predict(attritionFit, newdata = attritionTest)
 
 confusionMatrix(results1, attritionTest$Attrition)
 ```
@@ -409,30 +412,30 @@ summary(as.factor(textFeatures$genre))
 
 We certainly have some class imbalance, but hopefully the flexibility of the ANN will shine through.
 
-With the class split in mind, we need to develop a training set that will represent the proprotion of country and zappa. We would find that the zappa class represents `r 95 / (189+95)`% of the total data. 
+With the class split in mind, we need to develop a training set that will represent the proportion of country and zappa. We would find that the zappa class represents `r 95 / (189+95)`% of the total data. 
 
 ```{r}
-genre = ifelse(textFeatures$genre == "zappa", 1, 0)
+genre <- ifelse(textFeatures$genre == "zappa", 1, 0)
 
-genre = as.factor(make.names(genre))
+genre <- as.factor(make.names(genre))
 
-minMaxScale = function(x){
+minMaxScale <- function(x){
   (x - min(x)) / (max(x) - min(x))
 }
 
-scaledVars = textFeatures %>% 
+scaledVars <- textFeatures %>% 
   dplyr::select(-genre) %>% 
   mutate_all(., list(~ minMaxScale(.)))
 
-scaledData = cbind(genre, scaledVars)
+scaledData <- cbind(genre, scaledVars)
 
 set.seed(1001)
 
 trainRows <- rsample::initial_split(scaledData, prop = .7, strata = "genre")
 
-testingData = rsample::testing(trainRows)
+testingData <- rsample::testing(trainRows)
 
-trainingData = rsample::training(trainRows)
+trainingData <- rsample::training(trainRows)
 ```
 
 Now, we can train our model:
@@ -442,12 +445,12 @@ You might notice the decay tuning parameter. This is the weight that gets applie
 </aside>
 
 ```{r}
-numFolds = trainControl(method = 'cv', number = 10, classProbs = TRUE, 
+numFolds <- trainControl(method = 'cv', number = 10, classProbs = TRUE, 
                         verboseIter = FALSE, summaryFunction = twoClassSummary)
 
-nnGrid = expand.grid(size = c(1:3), decay = seq(0, 1, by = .1))
+nnGrid <- expand.grid(size = c(1:3), decay = seq(0, 1, by = .1))
 
-fit2 = caret::train(genre ~ ., data = trainingData, method = 'nnet', 
+fit2 <- caret::train(genre ~ ., data = trainingData, method = 'nnet', 
               trControl = numFolds, tuneGrid = nnGrid, trace = FALSE)
 
 # fit2 = train(genre ~ ., data = trainingData, method = 'mlpML',
@@ -456,7 +459,7 @@ fit2 = caret::train(genre ~ ., data = trainingData, method = 'nnet',
 # fit2 = train(genre ~ ., data = trainingData, method = 'mlpKerasDropout',
 #               trControl = numFolds)
 
-results1 = predict(fit2, newdata = testingData)
+results1 <- predict(fit2, newdata = testingData)
 
 confusionMatrix(results1, testingData$genre)
 ```
@@ -466,18 +469,20 @@ This is a very basic neural network and much has occurred in the NN space (this 
 For the sake of it, let's see how a Naive Bayes would have done...
 
 ```{r}
-y = trainingData$genre
+library(naivebayes)
 
-x = dplyr::select(trainingData, -genre)
+y <- trainingData$genre
 
-searchGrid = expand.grid(usekernel = TRUE, 
-                           fL = 1:2, adjust = seq(1, 3, by = 1))
+x <- dplyr::select(trainingData, -genre)
 
-nbTrainControl = trainControl(method = "cv", number = 10, verboseIter = FALSE)
+searchGrid <- expand.grid(usekernel = c(TRUE, FALSE), 
+                           laplace = 1:2, adjust = seq(1, 3, by = 1))
 
-nbAttritionTuned = train(x = x, y = y,
-  method = "nb", trControl = nbTrainControl,
-  tuneGrid = searchGrid, preProc = c("center", "scale"))
+nbTrainControl <- trainControl(method = "cv", number = 10, verboseIter = FALSE)
+
+nbAttritionTuned <- train(x = x, y = y,
+  method = "naive_bayes", trControl = nbTrainControl,
+  tuneGrid = searchGrid)
 
 nbAttritionTuned
 
@@ -485,8 +490,6 @@ nbPredict <- predict(nbAttritionTuned, newdata = testingData)
 
 # results
 confusionMatrix(nbPredict, testingData$genre)
-
-stopCluster(cl)
 ```
 
 Not so good!
@@ -498,19 +501,25 @@ The `caret` package is a classic, but it is not the state of the art (and never 
 Let's see how the exact same stuff works with `tidymodels`:
 
 ```{r}
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/textFeatures.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+
+library(doParallel)
+
 # devtools::install_github("tidymodels/discrim")
 
 library(tidymodels)
 
 library(discrim)
 
+cl <- parallel::detectCores() - 1
+
+registerDoParallel(cores = cl)
+
 textFeatures$genre = ifelse(textFeatures$genre == "zappa", 1, 0)
 
 textFeatures$genre = as.factor(make.names(textFeatures$genre))
-
-minMaxScale = function(x){
-  (x - min(x)) / (max(x) - min(x))
-}
 
 data_split <- initial_split(textFeatures, strata = "genre", p = 0.85)
 
@@ -529,7 +538,7 @@ testNormalized <- bake(genreRec, new_data = genreTest,
                        all_predictors(), all_outcomes())
 
 modernNN <- parsnip::mlp(mode = "classification", hidden_units = 1, 
-                         penalty = 0) %>% 
+                         penalty = 0, epochs = 20) %>% 
   set_engine("nnet") %>% 
   fit(genre ~ ., data = juice(genreRec))
 
@@ -548,6 +557,99 @@ yardstick::metrics(test_results, truth = genre, estimate = nnet_class)
 
 This is a marked shift from the `caret` method and will take some getting used to. However, the recipes steps and the ease with with parsnip models can be flipped around will make for much cleaner modeling.
 
+We can try some boosted trees now:
+
+```{r}
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/textFeatures.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+
+cl <- parallel::detectCores() - 1
+
+doParallel::registerDoParallel(cores = cl)
+
+textFeatures$genre <- ifelse(textFeatures$genre == "zappa", 1, 0)
+
+textFeatures$genre <- as.factor(make.names(textFeatures$genre))
+
+data_split <- initial_split(textFeatures, strata = "genre", p = 0.85)
+
+genreTrain <- training(data_split)
+
+genreTest  <- testing(data_split)
+
+xgb_spec <- boost_tree(trees = 1000, 
+                       tree_depth = tune(), # max_depth
+                       min_n = tune(), 
+                       loss_reduction = tune(), # gamma                     
+                       sample_size = tune(), # subsample
+                       mtry = tune(),      
+                       learn_rate = tune()) %>% # eta
+  set_engine("xgboost") %>% 
+  set_mode("classification")
+
+xgb_grid <- grid_latin_hypercube( # not as silly as a full grid search!
+  tree_depth(),
+  min_n(),
+  loss_reduction(),
+  sample_size = sample_prop(),
+  finalize(mtry(), genreTrain),
+  learn_rate(),
+  size = 30
+)
+
+xgb_wf <- workflow() %>%
+  add_formula(genre ~ .) %>%
+  add_model(xgb_spec)
+
+genre_folds <- vfold_cv(genreTrain, strata = genre)
+
+xgb_res <- tune_grid(
+  xgb_wf,
+  resamples = genre_folds,
+  grid = xgb_grid,
+  control = control_grid(save_pred = TRUE)
+)
+
+best_auc <- select_best(xgb_res, "roc_auc")
+best_auc
+
+final_xgb <- finalize_workflow(
+  xgb_wf,
+  best_auc
+)
+
+final_xgb
+
+final_res <- last_fit(final_xgb, data_split)
+
+collect_metrics(final_res)
+
+preds <- final_res %>% 
+  collect_predictions()
+
+library(fastshap)
+
+xgb_recipe <- recipe(genre ~ ., data = genreTrain)
+
+X <- prep(xgb_recipe, genreTrain) %>% 
+  juice() %>% 
+  dplyr::select(-genre) %>%
+  as.matrix()
+
+xg_mod <- final_xgb %>%
+  fit(data = genreTrain) %>%
+  pull_workflow_fit()
+
+colnames(X) <- xg_mod$fit$feature_names
+
+shap <- fastshap::explain(object = xg_mod$fit,  
+                          newdata = X, exact = TRUE)
+
+autoplot(shap, type = "contribution", row_num = 2, num_features = 20)
+```
+
+
 If you want to take a detour from the RStudio folks, you can try out `mlr3`. It is part of a growing set of R packages that use an R6 class of objects. For my money, it is far more straightforward than the tidymodels framework.
 
 ```{r}
@@ -555,6 +657,12 @@ If you want to take a detour from the RStudio folks, you can try out `mlr3`. It 
 # mlr3extralearners::install_learners("classif.nnet")
 library(mlr3)
 library(mlr3viz)
+library(mlr3extralearners)
+
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/textFeatures.RData")
+} else load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/textFeatures.RData")
+
 
 textFeatures$genre <- ifelse(textFeatures$genre == "zappa", 1, 0)
 

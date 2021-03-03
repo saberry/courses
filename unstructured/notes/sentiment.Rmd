@@ -26,7 +26,7 @@ What if we remove the suffixes, "ed" and "ing" -- we are left with three instanc
 Let's take a look to see how this works (you will need to install `tm` and `SnowballC` first):
 
 ```{r}
-chewStrings = c("chew", "chewing", "chewed", "chewer")
+chewStrings <- c("chew", "chewing", "chewed", "chewer")
 
 tm::stemDocument(chewStrings)
 ```
@@ -41,14 +41,14 @@ Shall we take a look?
 ```{r}
 library(tm)
 
-documents = c("I like to chew", 
+documents <- c("I like to chew", 
               "I have chewed my whole life", 
               "Chewing and stomping through the fields", 
               "I am a chewer")
 
-documentsCorp = tm::SimpleCorpus(VectorSource(documents))
+documentsCorp <- tm::SimpleCorpus(VectorSource(documents))
 
-documentsDTM = DocumentTermMatrix(documentsCorp)
+documentsDTM <- DocumentTermMatrix(documentsCorp)
 
 inspect(documentsDTM)
 ```
@@ -56,7 +56,7 @@ inspect(documentsDTM)
 We can see that without stemming, we have 9 terms (things like "I", "a", and "to" get removed automatically). Let's do some stemming now:
 
 ```{r}
-documentsStemmed = stemDocument(documents)
+documentsStemmed <- stemDocument(documents)
 
 documentsStemmed
 ```
@@ -64,9 +64,9 @@ documentsStemmed
 And now the document-term matrix:
 
 ```{r}
-stemmedDocCorp = tm::SimpleCorpus(VectorSource(documentsStemmed))
+stemmedDocCorp <- tm::SimpleCorpus(VectorSource(documentsStemmed))
 
-stemmedDocDTM = DocumentTermMatrix(stemmedDocCorp)
+stemmedDocDTM <- DocumentTermMatrix(stemmedDocCorp)
 
 inspect(stemmedDocDTM)
 ```
@@ -84,7 +84,7 @@ If we compare some "chewing" stuff on stemming and lemmatization, we can see wha
 ```{r}
 library(textstem)
 
-chewStrings = c("chew", "chewing", "chewed", "chewer")
+chewStrings <- c("chew", "chewing", "chewed", "chewer")
 
 stem_words(chewStrings)
 
@@ -96,7 +96,7 @@ Absolutely nothing different. Both stemming and lemmatizing will perform the sam
 But let's take a look at something different. If we have a string of the most lovely words, what might happen?
 
 ```{r}
-lovelyString = c("lovely", "lovelier", "loveliest")
+lovelyString <- c("lovely", "lovelier", "loveliest")
 
 stem_words(lovelyString)
 ```
@@ -114,9 +114,13 @@ We get something that starts to make sense. Now, let's try these on some actual 
 ```{r}
 # This data is in the "data" folder on Sakai!
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/allLyricsDF.RData")
+} else {
+  load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/allLyricsDF.RData")
+}
 
-sampleLyrics = allLyricsDF[40, ]
+sampleLyrics <- allLyricsDF[40, ]
 
 sampleLyrics$lyrics
 ```
@@ -132,39 +136,32 @@ library(dplyr)
 
 library(stringr)
 
-cleanLyrics = sampleLyrics$lyrics %>% 
+cleanLyrics <- sampleLyrics$lyrics %>% 
   str_replace_all(., "\n", " ") %>% 
   str_replace_all(., "\\[[A-Za-z]+\\s*[0-9]*]", "") %>%
   str_squish(.) %>% 
   gsub("([a-z])([A-Z])", "\\1 \\2", .)
 ```
 
-We have to try the obligatory stemming:
 
-```{r}
-stem_strings(cleanLyrics)
-```
+#### You Try It!
 
-And now the lemmatized version:
-
-```{r}
-lemmatize_strings(cleanLyrics)
-```
+You can take it for a spin -- compare what comes from stemming and lemmatizing:
 
 Here is something very interesting:
 
-```{r}
+```{r, eval = FALSE}
 microbenchmark::microbenchmark(stem_strings(cleanLyrics), 
                                lemmatize_strings(cleanLyrics))
 ```
 
-What is the point here? This song has a little over 400 words in it. Stemming, over 100 runs, took on average 1.3 milliseconds, while lemmatizing took 3.6. We are just talking milliseconds, so this is almost to the point where we would not notice; but, if we did this over an entire corpus, we would definitely notice the time.
+What does this tell you?
 
 The question, then, is what do you decide to do. For my money, lemmatization does a better job and getting words down to their actual meaning.
 
 ### Stop Words
 
-Some words do us very little good: articles, prepistions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own -- a great many dictionaries exist that contain words ready for removal.
+Some words do us very little good: articles, prepositions, and very high frequency words. These are all words that need to be removed. Fortunately, you don't have to do this on your own -- a great many dictionaries exist that contain words ready for removal.
 
 ```{r}
 tm::stopwords("en")
@@ -221,26 +218,25 @@ gsub('"', "", replacedText)
 There are several R packages that will help us process text. The tm package is popular and automates most of our work. You already saw how we use the stemming and stopword removal functions, but tm is full of fun stuff and allows for one pass text processing.
 
 ```{r, eval = FALSE}
-
-documents = c("I like to chew.", 
+documents <- c("I like to chew.", 
               "I am stompin and chewing.", 
               "Chewing is in my blood.", 
               "I am a chewer")
 
-documentCorp = SimpleCorpus(VectorSource(documents))
+documentCorp <- SimpleCorpus(VectorSource(documents))
 
-stopWordRemoval = function(x) {
+stopWordRemoval <- function(x) {
   removeWords(x, stopwords("en"))
 }
 
-textPrepFunctions = list(tolower,
+textPrepFunctions <- list(tolower,
                          removePunctuation,
                          lemmatize_strings,
                          stopWordRemoval,
                          removeNumbers,
                          stripWhitespace)
 
-documentCorp = tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
+documentCorp <- tm_map(documentCorp, FUN = tm_reduce, tmFuns = textPrepFunctions)
 
 documentCorp[1][[1]]$content
 ```
@@ -282,13 +278,12 @@ Let's take a peak at some simple sentiment analysis.
 
 Let's consider the following statements:
 
-
 ```{r}
 library(tidytext)
 
-statement = "I dislike beer, but I really love the shine."
+statement <- "I dislike beer, but I really love the shine."
 
-tokens = data_frame(text = statement) %>% 
+tokens <- data_frame(text = statement) %>% 
   unnest_tokens(tbl = ., output = word, input = text)
 
 tokens
@@ -302,7 +297,7 @@ library(tidyr)
 tokens %>%
   inner_join(get_sentiments("bing")) %>% 
   count(sentiment) %>% 
-  spread(sentiment, n, fill = 0) %>% 
+  pivot_wider(values_from = n, names_from = sentiment) %>% 
   mutate(sentiment = positive - negative)
 ```
 
@@ -322,7 +317,7 @@ If we divide the sum of our word sentiments by the number of words within the di
 ```{r}
 tokens %>%
   inner_join(get_sentiments("afinn")) %>% 
-  summarize(n = nrow(.), sentSum = sum(score)) %>% 
+  summarize(n = nrow(.), sentSum = sum(value)) %>% 
   mutate(sentiment = sentSum / n)
 ```
 
@@ -391,7 +386,7 @@ While the text that we have used so far serves its purpose as an example quite w
 ```{r}
 load(url("https://raw.githubusercontent.com/saberry/courses/master/hash_sentiment_vadar.RData"))
 
-cleanLyrics = allLyricsDF %>%
+cleanLyrics <- allLyricsDF %>%
   filter(stringDistance < .2) %>% 
   dplyr::select(lyrics, returnedArtistName, returnedSong) %>%
   mutate(lyrics = as.character(lyrics), 
@@ -400,16 +395,16 @@ cleanLyrics = allLyricsDF %>%
          lyrics = str_squish(lyrics), 
          lyrics = gsub("([a-z])([A-Z])", "\\1 \\2", lyrics))
 
-songSentiment = sentiment(get_sentences(cleanLyrics), 
+songSentiment <- sentiment(get_sentences(cleanLyrics), 
           polarity_dt = hash_sentiment_vadar) %>% 
   group_by(returnedSong) %>% 
-  summarize(meanSentiment = mean(sentiment))
+  summarize(meanSentiment = mean(sentiment)) # Check sentimentr for better options!
 ```
 
 Naturally, we would want to join those sentiment values up with our original data:
 
 ```{r}
-cleanLyrics = left_join(cleanLyrics, songSentiment, by = "returnedSong")
+cleanLyrics <- left_join(cleanLyrics, songSentiment, by = "returnedSong")
 ```
 
 
@@ -434,13 +429,18 @@ We can also do some checking over time:
 ```{r}
 library(ggplot2)
 
-load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/countryTop50.RData")
+if(Sys.info()["sysname"] == "Darwin") {
+  load("~/courses/unstructured/data/countryTop50.RData")
+} else {
+  load("C:/Users/sberry5/Documents/teaching/courses/unstructured/data/countryTop50.RData")
+}
 
-allTop50 = allTop50 %>% 
+
+allTop50 <- allTop50 %>% 
   group_by(song) %>% 
   slice(1)
 
-cleanLyrics = left_join(cleanLyrics, allTop50, by = c("returnedSong" = "song"))
+cleanLyrics <- left_join(cleanLyrics, allTop50, by = c("returnedSong" = "song"))
 
 cleanLyrics %>% 
   group_by(date) %>% 
@@ -497,68 +497,100 @@ The `koRpus` package allows for all types of interesting types descriptives. The
 
 We need to tokenize our text in a manner that will please koRpus.
 
-<!-- ### Embeddings -->
+```{r, warning=FALSE}
+library(koRpus)
 
-<!-- English is hard and seeing how words relate to other words can be tricky. Let's think through something weird: -->
+readability(
+  tokenize(
+    cleanLyrics$lyrics[27], format = "obj", lang = "en"
+  ), quiet = TRUE
+)
+```
 
-<!-- $$\text{church} - \text{jesus} + \text{muhammad} = \text{mosque}$$ -->
+For other lingual measures, you can check out the `quanteda` package:
 
-<!-- Or how about: -->
+```{r}
+library(quanteda)
 
-<!-- $$\text{Washing D.C.} - \text{America} + \text{Mexico} = \text{Mexico City}$$ -->
+tokens(cleanLyrics$lyrics[27]) %>%
+    textstat_lexdiv(measure = c("TTR", "CTTR", "K"))
+```
 
-<!-- What is the purpose here? Word embeddings start to break down how words can be different, but still deal in the same contextual space. Whether we are talking about a church or a mosque, we are just dealing with a place of worship. If we have two different text documents (one talking about mosques and one talking about churches), it would be nice to be able to recognize that they are largely talking about the same idea. -->
+For TTR, consider 0 to be the same word on repeat and 1 to be no word repitition.
 
-<!-- ```{r} -->
-<!-- library(text2vec) -->
+```{r}
+library(rvest)
 
-<!-- links <- c("https://en.wikipedia.org/wiki/Christianity",  -->
-<!--            "https://en.wikipedia.org/wiki/Islam",  -->
-<!--            "https://en.wikipedia.org/wiki/Muslims",  -->
-<!--            "https://en.wikipedia.org/wiki/Jesus",  -->
-<!--            "https://en.wikipedia.org/wiki/Muhammad",  -->
-<!--            "https://en.wikipedia.org/wiki/Quran",  -->
-<!--            "https://en.wikipedia.org/wiki/Bible") -->
+choctawBingoLyrics <- read_html("https://genius.com/James-mcmurtry-choctaw-bingo-lyrics") %>% 
+  html_nodes(".lyrics") %>% 
+  html_text() %>% 
+  str_replace_all(., "\n", " ") %>% 
+  str_replace_all(., "\\[\\w+\\s*\\w*\\]", "") %>% 
+  str_squish(.) %>% 
+  gsub("([a-z])([A-Z])", "\\1 \\2", .)
 
-<!-- allText <- lapply(links, function(x) { -->
-<!--   read_html(x) %>%  -->
-<!--   html_nodes("p") %>%  -->
-<!--   html_text() %>%  -->
-<!--   gsub("\\[[0-9]*\\]|[[:punct:]]", " ", .) %>%  -->
-<!--   stringr::str_squish(.) %>%  -->
-<!--   tolower(.) %>%  -->
-<!--   tm::removeWords(., tm::stopwords("en")) -->
-<!-- }) -->
+tokens(choctawBingoLyrics) %>%
+    textstat_lexdiv(measure = c("TTR", "CTTR", "K"))
+```
 
-<!-- tokens <- space_tokenizer(unlist(allText)) -->
+### Embeddings
 
-<!-- it <- itoken(tokens, progressbar = FALSE) -->
+English is hard and seeing how words relate to other words can be tricky. Let's think through something weird:
 
-<!-- vocab <- create_vocabulary(it) -->
+$$\text{church} - \text{jesus} + \text{muhammad} = \text{mosque}$$
 
-<!-- vocab <- prune_vocabulary(vocab, term_count_min = 20L) -->
+Or how about:
 
-<!-- vectorizer <- vocab_vectorizer(vocab) -->
+$$\text{Washing D.C.} - \text{America} + \text{Mexico} = \text{Mexico City}$$
 
-<!-- tcm <- create_tcm(it, vectorizer, skip_grams_window = 5L) -->
+What is the purpose here? Word embeddings start to break down how words can be different, but still deal in the same contextual space. Whether we are talking about a church or a mosque, we are just dealing with a place of worship. If we have two different text documents (one talking about mosques and one talking about churches), it would be nice to be able to recognize that they are largely talking about the same idea.
 
-<!-- glove <- GlobalVectors$new(word_vectors_size = 350, vocabulary = vocab, x_max = 10) -->
+```{r}
+library(text2vec)
 
-<!-- glove_main <- glove$fit_transform(tcm, n_iter = 100) -->
+links <- c("https://en.wikipedia.org/wiki/Christianity",
+           "https://en.wikipedia.org/wiki/Islam",
+           "https://en.wikipedia.org/wiki/Muslims",
+           "https://en.wikipedia.org/wiki/Jesus",
+           "https://en.wikipedia.org/wiki/Muhammad",
+           "https://en.wikipedia.org/wiki/Quran",
+           "https://en.wikipedia.org/wiki/Bible")
 
-<!-- glove_context <- glove$components -->
+allText <- lapply(links, function(x) {
+  read_html(x) %>%
+  html_nodes("p") %>%
+  html_text() %>%
+  gsub("\\[[0-9]*\\]|[[:punct:]]", " ", .) %>%
+  stringr::str_squish(.) %>%
+  tolower(.) %>%
+  tm::removeWords(., tm::stopwords("en"))
+})
 
-<!-- word_vectors <- glove_main + t(glove_context) -->
+tokens <- space_tokenizer(unlist(allText))
 
-<!-- churchVec <- word_vectors["christian", , drop = FALSE] -  -->
-<!--   word_vectors["jesus", , drop = FALSE] +  -->
-<!--   word_vectors["muhammad", , drop = FALSE] -->
+it <- itoken(tokens, progressbar = FALSE)
 
-<!-- cos_sim = sim2(x = word_vectors, y = churchVec, method = "cosine", norm = "l2") -->
+vocab <- create_vocabulary(it)
 
-<!-- head(sort(cos_sim[, 1], decreasing = TRUE), 10) -->
-<!-- ``` -->
+vocab <- prune_vocabulary(vocab, term_count_min = 20L)
 
-<!-- <aside> -->
-<!-- If you looked at the Selenium code and noticed some of the code above, you might have seen some code behaving in a way that seems very similar to Python. Code like `glove$fit_transform()` is using the `R6` class. It is not a base R class, but is a package. -->
-<!-- </aside> -->
+vectorizer <- vocab_vectorizer(vocab)
+
+tcm <- create_tcm(it, vectorizer, skip_grams_window = 10L)
+
+glove = GlobalVectors$new(rank = 50, x_max = 10)
+
+glove_main <- glove$fit_transform(tcm, n_iter = 250, quiet = TRUE)
+
+glove_context <- glove$components
+
+word_vectors <- glove_main + t(glove_context)
+
+churchVec <- word_vectors["bible", , drop = FALSE] -
+  word_vectors["jesus", , drop = FALSE] +
+  word_vectors["muhammad", , drop = FALSE]
+
+cos_sim <- sim2(x = word_vectors, y = churchVec, method = "cosine", norm = "l2")
+
+head(sort(cos_sim[, 1], decreasing = TRUE), 10)
+```

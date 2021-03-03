@@ -160,12 +160,6 @@ https://www.cia.gov/library/publications/the-world-factbook/ -- Can you get to C
 
 https://github.com/login -- Can you login into your account (you have an account...right?)
 
-https://www.indiegogo.com/ -- Can you do anything?
-
-https://www.wunderground.com/history -- Can you get to your hometown?
-
-Find something on your own
-
 As we progress through the remainder of class, you will be able to process more information that comes from these requests (not everything lives in a table, but you will have the power to cobble data together).
 
 ## API
@@ -181,7 +175,7 @@ A common task to encounter is to take a city and return the coordinates. We will
 ```{r}
 library(httr)
 
-GET("http://www.api.zippopotam.us/us/61949")
+GET("http://api.zippopotam.us/us/61949")
 ```
 
 All we need to do to construct this API call to GET is to append a zip code at the end of the link. Super easy and as easy as an API can get.
@@ -231,6 +225,24 @@ purrr::flatten_df(jsonlite::fromJSON(zipText, simplifyDataFrame = TRUE))
 ```
 
 Depending upon how deeply nested your JSON return is, this will work just fine. If you have a deeply-nested JSON return, you will have to do some programmatic work.
+
+```{python}
+import json
+import pandas as pd
+import requests
+
+r = requests.get("http://api.zippopotam.us/us/61949")
+
+r.text
+
+rawText = r.text
+
+json.loads(rawText)
+
+pd.read_json(rawText)
+
+pd.json_normalize(data = json.loads(rawText), record_path = 'places', meta = ['post code', 'country'])
+```
 
 That API is great -- not only is it simple, but it does not require a key. The more interesting APIs, however, will require you to pass a user key into the request. Usually, you can just pop it into the url request. 
 
@@ -504,6 +516,21 @@ read.delim(text = content(geocodedAddresses, as = "text"), sep = ",",
 ```
 
 Just as a tip -- use `stop_for_status` if you are going to wrap any of this in a larger function!
+
+```{python}
+import requests
+
+url = "https://geocoding.geo.census.gov/geocoder/locations/addressbatch"
+
+file = {'addressFile': ('address.csv', open('/Users/sethberry/courses/addresses.csv', 'rb'), 'text/csv')}
+
+data = {'benchmark':'Public_AR_Current'} 
+  
+# sending post request and saving response as response object 
+r = requests.post(url = url, data = data, files = file) 
+
+print(r.text)
+```
 
 Using any POST request is just a minor variant of what we just saw. Let's tackle something fun. We had previously used GET to pass parameters into the url, but some APIs just want query parameters. 
 

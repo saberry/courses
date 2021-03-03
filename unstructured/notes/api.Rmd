@@ -1,0 +1,580 @@
+---
+title: "APIs"
+description: |
+  Your Path To Easy Living
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+## Packages
+
+You will need the following packages:
+
+```{r}
+library(httr)
+
+library(rvest)
+```
+
+## APIs
+
+Whether you know it or not, you use application programming interfaces (APIs) all the time...how else would you be able to copy from one program and paste into another? While APIs exist at all levels of our interactions with computers, we are going to focus on using APIs to acquire data from providers. You will see APIs offered from most of the big tech companies (Facebook, Google, Reddit, just to name a small fraction), but not all of them are immediately useful for collecting data. 
+
+### An Easy Example
+
+The most basic of all APIs will allow us to pass information into a URL string and return the request:
+
+A common task to encounter is to take a city and return the coordinates. We will check out more elaborate ways of performing this task with Google, but Zippopotam.us gives us something really easy:
+
+```{r}
+library(httr)
+
+GET("http://www.api.zippopotam.us/us/61949")
+```
+
+All we need to do to construct this API call to GET is to append a zip code at the end of the link. Super easy and as easy as an API can get.
+
+We see that we got a 200 status, but not much else. We need the data out of this request, which leads us, undoubtedly, to JavaScript Object Notation (JSON). Let's see how this works: 
+
+```{r}
+zipRequest <- GET("http://api.zippopotam.us/us/61949")
+
+str(zipRequest)
+
+content(zipRequest, as = "raw")
+```
+
+This is the raw request in byte codes -- no thanks.
+
+```{r}
+content(zipRequest, as = "text")
+```
+
+Depending upon the situation, you might need to return the text output and wrangle it yourself. Fortunately, we don't need to do that.
+
+```{r}
+content(zipRequest, as = "parsed")
+```
+
+The majority of APIs are going to return JSON objects (not all, but definitely most). Why? Mostly because it is the best way to deal with data on the web. It makes our life just a little bit harder, but it is not the worst thing that we will encounter. It does become difficult, though, when the JSON is malformed. 
+
+```{r}
+zipParsed <- content(zipRequest, as = "parsed")
+
+zipParsed
+```
+
+That is a little clunky, so let's look at another alternative:
+
+```{r}
+zipText <- content(zipRequest, as = "text")
+
+jsonlite::fromJSON(zipText, simplifyDataFrame = TRUE)
+```
+
+We are getting something closer to usable data, so we can just wrangle this into place. Let's just cheat and use `purrr`:
+
+```{r}
+purrr::flatten_df(jsonlite::fromJSON(zipText, simplifyDataFrame = TRUE))
+```
+
+Depending upon how deeply nested your JSON return is, this will work just fine. If you have a deeply-nested JSON return, you will have to do some programmatic work.
+
+```{python}
+import json
+import pandas as pd
+import requests
+
+r = requests.get("http://api.zippopotam.us/us/61949")
+
+r.text
+
+rawText = r.text
+
+json.loads(rawText)
+
+pd.read_json(rawText)
+
+pd.json_normalize(data = json.loads(rawText), record_path = 'places', meta = ['post code', 'country'])
+```
+
+You can try an easy one now. Write a function to pass a date in and return the parsed information. Oddly enough, you will actually need to parse the XML for this request:
+
+```{r, eval = FALSE}
+link <- "http://interconnected.org/more/lightcone/rss/?d=YYYY-MM-DD"
+```
+
+If you want to try this in R, you can do it pretty easily with the `XML` package, by first parsing and then taking it to a data frame:
+
+```{r, eval = FALSE}
+XML::xmlParse()
+
+XML::xmlToDataFrame()
+```
+
+For python, you will need `requests` (again) and xml.etree.ElementTree. Unfortunately, it will require a loop. Here is a great <a href="https://stackabuse.com/reading-and-writing-xml-files-in-python-with-pandas/">resource</a> for tackling it without much hassle. If you use the page.text method, just remember that you have to read that string first (what is called xmlOut below):
+
+```{python}
+import xml.etree.ElementTree as ET
+
+link = "http://interconnected.org/more/lightcone/rss/?d=1985-12-18"
+
+page = requests.get(link)
+
+xmlOut = ET.ElementTree(ET.fromstring(page.text))
+```
+
+That API is great -- not only is it simple, but it does not require a key. The more interesting APIs, however, will require you to pass a user key into the request. Usually, you can just pop it into the url request. 
+
+We can use AlphaVantage as a good testing place. You can get a key here: https://www.alphavantage.co/support/#api-key
+
+Before we start on that, there are a few things to remember. 
+
+1. Always search for the "developers" tab for any given site -- they probably have an API.
+
+2. Always read through the documentation. 
+
+3. Look for example calls.
+
+Once you have a key, you can explore the various endpoints that AlphaVantage has to offer. For demonstration, we will just use the time series weekly endpoint and have an interval set to 5 minutes.
+
+```{r}
+avKey <- "W2J61LUSTTXBV64M"
+
+avSymbol <- "GOOGL"
+
+avLinkGenerator <- glue::glue("https://www.alphavantage.co/query?function=TIME_SERIES_WEEKLY&symbol={avSymbol}&apikey={avKey}")
+
+avRequest <- GET(avLinkGenerator)
+
+avParsed <- jsonlite::fromJSON(content(avRequest, as = "text"), flatten = TRUE, 
+                               simplifyDataFrame = TRUE)
+
+avFlat <- purrr::flatten(avParsed)
+
+avDates <- names(avFlat)
+
+avDates <- avDates[which(grepl("\\.", avDates) == FALSE)]
+
+returnWrangle <- function(x) {
+  
+  outDate <- purrr::flatten_df(avFlat[x])
+  
+  outDate$Date <- x
+  
+  return(outDate)
+}
+
+avOutput <- purrr::map_df(avDates, ~returnWrangle(.x))
+
+head(avOutput)
+```
+
+Now that you have some idea about how to construct an API call, turn your attention to the *Intraday* endpoint. It has a few pieces of required information: function, symbol, key, and interval (which we haven't seen yet). All you need to do is to add another bit of information to your url: `&interval=5min`. You should also notice that we have options on our `datatype` object, so we can see how that might work. 
+
+```{r}
+baseLink <- "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol="
+avLinkGenerator <- paste(baseLink, 
+                         avSymbol, "&interval=60min", "&datatype=csv",
+                         "&apikey=", avKey, 
+                         sep = "")
+
+avRequest <- GET(avLinkGenerator)
+
+avParsed <- read.delim(text = content(avRequest, as = "text"), sep = ",")
+```
+
+Revise this to return more points -- you can focus on `outputsize` and `interval.`
+
+There is a lot of cool information in this API, but as you continue messing with this, you will eventually find that you run into limitations. Those limitations might be related to the number of calls that you can make (there is a cap) or the data available to you (this one is actually pretty deep historically). This tends to be where many APIs will turn towards a subscription-based API -- the more money you pay, the more data you get. Twitter, for instance, was once very open. As time goes on, though, they are reducing their free access for normal clients (academics get some expanded goodness). 
+
+There are APIs, though, that do not really limit you. Let's look at the Census API. It has everything you can imagine (free geocoding -- oh yeah), but it will make you work for it. For now, let's try some individual addresses; we are going to learn how to process batches next time.
+
+```{r}
+oldHouse <- GET("https://geocoding.geo.census.gov/geocoder/locations/address?street=107+East+Street&city=redmon&state=IL&zip=61949&benchmark=Public_AR_Current&format=json")
+
+content(oldHouse, as = "parsed")
+```
+
+Excellent! And easy. However, getting into the census API is really difficult, mostly because you need to know a lot about the census. If you need to use the census, I would just use the censusapi R package. 
+
+Another fun bit of API is from the FBI API (note that data.gov has a great number of endpoints).
+
+```{r}
+crimeAPI <- "rGeDzYLtqHj630z1NOrsGr37SbyOP8D4jMZCWiWY"
+
+crimeCall <- glue::glue("https://api.usa.gov/crime/fbi/sapi/api/nibrs/homicide/offender/agencies/IN0710200/age?API_KEY={crimeAPI}")
+
+crimeRequest <- GET(crimeCall)
+
+content(crimeRequest, as = "parsed")
+```
+
+Again, a lot of intricacy to get through here. For starters, what in the name of all that is good is that *IN0710200* code? That is the `ori` code and you can find them here: https://www.icpsr.umich.edu/files/NACJD/ORIs/STATESoris.html. Every agency has one and the FBI uses that to identify individual reporting agencies. 
+
+If you start looking through this API documentation, you might notice it to be a bit clunky -- all you can do is start messing around with the "Try It" functions to see how the calls are formed. 
+
+<!-- I'll leave you with the following code: -->
+
+<!-- ```{r, eval = FALSE} -->
+<!-- library(rvest) -->
+<!-- library(httr) -->
+<!-- library(shiny) -->
+<!-- library(qualtricsR) -->
+
+<!-- server <- function(input, output, session) { -->
+<!--   updateData <- eventReactive(input$updateData, { -->
+<!--     # browser() -->
+<!--     token <- "DSfaY34hc6jFdTOHiEns1sFf4IOtfuJbB15O0Xz2" -->
+<!--     surveyID <- "SV_0J8XNV6FUiig" -->
+
+<!--     studentResponses <- importQualtricsDataV3(token = token, -->
+<!--                                               dataCenter = "ca1", -->
+<!--                                               surveyID = surveyID) -->
+<!--     return(studentResponses) -->
+<!--   }) -->
+
+<!--   observeEvent(input$updateData, { -->
+<!--     updateSelectInput(session, "studentSelect", -->
+<!--                       choices = updateData()$name -->
+<!--     )}) -->
+
+<!--   studentSample <- eventReactive(input$studentSelect, { -->
+<!--     # browser() -->
+<!--     df <- updateData() -->
+<!--     sampleStudent <- df[df$name == input$studentSelect, ] -->
+<!--     return(sampleStudent) -->
+<!--   }) -->
+
+<!--   goToVideo <- observeEvent(input$goVideo, { -->
+<!--     # browser() -->
+<!--     songSearchText <- paste(studentSample()$songArtist_1_1,  -->
+<!--                             studentSample()$songArtist_1_2, sep = "+") -->
+
+<!--     songSearchText <- gsub("\\s", "\\+", songSearchText) -->
+
+<!--     callConstruction <- paste("https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=",  -->
+<!--                               songSearchText,  -->
+<!--                               "&maxResults=1&type=video&key=AIzaSyCTyTAFxB7PSy0vKB4Dj58w6v3",  -->
+<!--                               sep = "") -->
+
+<!--     videoID <- content(GET(callConstruction))$items[[1]]$id$videoId -->
+
+<!--     videoLink <- paste("https://www.youtube.com/watch?v=", videoID, sep = "")  -->
+
+<!--     browseURL(videoLink) -->
+<!--   }) -->
+<!-- } -->
+
+<!-- ui <- fluidPage(titlePanel("Favorite Song"),  -->
+<!--                 actionButton("updateData", "Update Data"),  -->
+<!--                 selectInput("studentSelect", "Student Select", ""),  -->
+<!--                 actionButton("goVideo", "Go To Video!")) -->
+
+<!-- runApp(appDir = list(ui = ui, server = server)) -->
+
+<!-- ``` -->
+
+## More Involved APIs
+
+Before getting serious, here is some fun stuff:
+
+```{r}
+fbi <- GET("https://api.fbi.gov/wanted/v1/list")
+```
+
+```{r, echo = FALSE}
+mwKey <- "36c5f108-cffb-4c11-b59d-165c8c13c00e"
+
+word <- "fancy"
+
+mwThes <- function(word){
+  
+  word <- word
+  
+  callLink <- glue::glue("https://www.dictionaryapi.com/api/v3/references/thesaurus/json/{word}?key={mwKey}")
+  
+  wordOut <- jsonlite::fromJSON(content(GET(callLink), as = "text"))
+  
+  if(is.list(wordOut) == TRUE) {
+    sample(unlist(wordOut$meta$syns), 1)
+  } else sample(wordOut)
+    
+}
+```
+
+Do you want to know something `r mwThes("amazing")`? You can `r mwThes("build")` `r mwThes("fascinating")` `r mwThes("tools")` with APIs...
+
+```{r, eval = FALSE}
+mwKey <- "36c5f108-cffb-4c11-b59d-165c8c13c00e"
+
+word <- "fancy"
+
+mwThes <- function(word){
+  
+  word <- word
+  
+  callLink <- glue::glue("https://www.dictionaryapi.com/api/v3/references/thesaurus/json/{word}?key={mwKey}")
+  
+  wordOut <- jsonlite::fromJSON(content(GET(callLink), as = "text"))
+  
+  if(is.list(wordOut) == TRUE) {
+    sample(unlist(wordOut$meta$syns), 1)
+  } else sample(wordOut)
+    
+}
+```
+
+Back to serious business...Let's look at some batch geocoding. We need to dig into the documentation just a little bit: https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html
+
+It might not be obvious what we would need to do, but we are going to need to utilize a different method other than GET. While we might be trying to get something from them, we need to POST something to their server.
+
+Before we post anything, though, we see that we will need a csv file with specific information -- we can handle that:
+
+```{r}
+addresses <- data.frame(ID = c(1, 2), 
+                        Address = c("104 East Street", "210 East Elizabeth"), 
+                        City = c("Redmon", "Paris"), 
+                        State = c("IL", "IL"), 
+                        ZIP = c(61949, 61944))
+
+write.table(addresses, "./addresses.csv", # Change this to your own machine!
+            row.names = FALSE, col.names = FALSE, sep = ",")
+```
+
+Let's see what we can put together from the documentation. We have the endpoint, but that endpoint is going to need some additional information: benchmark and addressFile. Unlike what we covered last time, we can't just append those to the url; instead, we have to submit that information in the body or the head of the request.
+
+Let's go with what the documentation tells us and try something out. Since the documentation isn't super clear, we can just do a quick test:
+
+```{r}
+batchEndpoint <- "https://geocoding.geo.census.gov/geocoder/locations/addressbatch"
+
+POST(batchEndpoint,
+  body = list(addressFile = upload_file("~/courses/addresses.csv"), 
+              benchmark = "DatasetType_Public_AR"),
+  encode = "multipart",
+  verbose())
+```
+
+While testing, I would recommend that you keep that verbose function in -- it will be a good start to telling you what might be going wrong.
+
+Our Status: 400 means that it is a bad request and we can work with that. Let's think back to the documentation, read some more, and try something else out:
+
+```{r}
+POST(batchEndpoint,
+  body = list(
+    addressFile = upload_file("~/courses/addresses.csv")
+  ),
+  add_headers(
+              "benchmark" = "Public_AR_Current"),
+  verbose()
+)
+```
+
+Awesome! Status: 500 means we have an internal server error. Our request might have gone to the proper place, but wasn't able to be handled how it was written.
+
+We have information split up over the head and the body, so let's try moving all of it into the body:
+
+```{r}
+POST(batchEndpoint,
+     body = list(addressFile = upload_file("~/courses/addresses.csv"), 
+                 benchmark = "Public_AR_Current"),
+     encode = "multipart",
+     verbose())
+```
+
+That is a victory! Let's try this out now:
+
+```{r}
+geocodedAddresses <- 
+  POST(batchEndpoint,
+       body = list(addressFile = upload_file("~/courses/addresses.csv"), 
+                   benchmark = "Public_AR_Current"),
+       encode = "multipart")
+
+read.delim(text = content(geocodedAddresses, as = "text"), sep = ",", 
+           header = FALSE)
+```
+
+Just as a tip -- use `stop_for_status` if you are going to wrap any of this in a larger function!
+
+For the python people at the party:
+
+```{python}
+import requests
+
+url = "https://geocoding.geo.census.gov/geocoder/locations/addressbatch"
+
+file = {'addressFile': ('address.csv', open('/Users/sethberry/courses/addresses.csv', 'rb'), 'text/csv')}
+
+data = {'benchmark':'Public_AR_Current'} 
+  
+# sending post request and saving response as response object 
+r = requests.post(url = url, data = data, files = file) 
+
+print(r.text)
+```
+
+
+Using any POST request is just a minor variant of what we just saw. Let's tackle something fun. We had previously used GET to pass parameters into the url, but some APIs just want query parameters. 
+
+```{r}
+nbaPlayers <- GET("https://www.balldontlie.io/api/v1/players", 
+                  query = list(page = 1, 
+                               per_page = 100))
+
+nbaPlayers <- content(nbaPlayers, as = "text")
+
+nbaPlayers <- jsonlite::fromJSON(nbaPlayers, flatten = TRUE)
+
+nbaPlayers$meta
+```
+
+This is something that you see with a great number of APIs -- you will get data (what we want) and meta information (what we need to know). We need to use that information to get everything that we need.
+
+Any ideas about how we can process everything? There are many ways, but let's see a few.
+
+```{r, eval = FALSE}
+nbaPlayersOut <- purrr::map_df(1:2, ~{
+  nbaPlayers <- GET("https://www.balldontlie.io/api/v1/players", 
+                    query = list(page = .x, 
+                                 per_page = 100))
+  
+  nbaPlayers <- content(nbaPlayers, as = "text")
+  
+  nbaPlayers <- jsonlite::fromJSON(nbaPlayers, flatten = TRUE)
+  
+  nbaPlayers$data
+})
+```
+
+We could also use a handy `while` loop:
+
+```{r, eval = FALSE}
+pages <- 1
+
+results <- list()
+
+while(is.null(pages) == FALSE) {
+  nbaPlayers <- GET("https://www.balldontlie.io/api/v1/players", 
+                    query = list(page = pages, 
+                                 per_page = 100))
+  
+  nbaPlayers <- content(nbaPlayers, as = "text")
+  
+  nbaPlayers <- jsonlite::fromJSON(nbaPlayers, flatten = TRUE)
+  
+  results[[pages]] <- nbaPlayers$data
+  
+  if(is.null(nbaPlayers$meta$next_page) == FALSE) {
+    pages <- pages + 1
+  } else {
+    pages <- NULL
+  }
+}
+
+```
+
+Something to make note of here is the rate at which you make requests. The API we were just hitting is free and unlimited -- probably one of those situations where we need to be cool with people who are cool with us. Let's put a little bit of a time out in there:
+
+```{r, eval = FALSE}
+pages <- 1
+
+results <- list()
+
+while(is.null(pages) == FALSE) {
+  Sys.sleep(sample(runif(1, min = 1, max = 3)))
+  
+  nbaPlayers <- GET("https://www.balldontlie.io/api/v1/players", 
+                    query = list(page = pages, 
+                                 per_page = 100))
+  
+  nbaPlayers <- content(nbaPlayers, as = "text")
+  
+  nbaPlayers <- jsonlite::fromJSON(nbaPlayers, flatten = TRUE)
+  
+  results[[pages]] <- nbaPlayers$data
+  
+  if(is.null(nbaPlayers$meta$next_page) == FALSE) {
+    pages <- pages + 1
+  } else {
+    pages <- NULL
+  }
+}
+
+```
+
+Even with this time out, the multi-step approach is something that you should expect to see. It can take this pagination form or it can take finding specific information from one API call to pass along to another API call.
+
+We probably know that Youtube comments are largely insane, so let's see what we might be able to get from the song with the most comments: Despacito. 
+
+```{r}
+songSearchText <- "Despacito."
+    
+callConstruction <- paste("https://www.googleapis.com/youtube/v3/search?part=id,snippet&q=", 
+                          songSearchText, 
+                          "&maxResults=1&type=video&key=AIzaSyCTyTAFxB7PSy0vKB4Dj58w6v3bPQhmPTU", 
+                          sep = "")
+
+videoID <- content(GET(callConstruction))$items[[1]]$id$videoId
+
+commentLink <- paste("https://www.googleapis.com/youtube/v3/commentThreads?part=id&videoId=", 
+                     videoID, "&key=AIzaSyCTyTAFxB7PSy0vKB4Dj58w6v3bPQhmPTU", 
+                     sep = "")
+
+commentReturn <- GET(commentLink)
+
+commentData <- jsonlite::fromJSON(content(commentReturn, as = "text"))
+
+commentData
+```
+
+A lot of stuff to talk about here. First, you will notice that we didn't actually get any comments -- we just got IDs for comments. You can probably guess what we need to do next. Before that, you should also notice that we get a `nextPageToken` -- we can pass that as a parameter into our request to get the next page of comments.
+
+```{r}
+commentID <- commentData$items$id[1]
+
+commentTextLink <- paste("https://www.googleapis.com/youtube/v3/comments?part=id,snippet&id=", 
+                     commentID, "&key=AIzaSyCTyTAFxB7PSy0vKB4Dj58w6v3bPQhmPTU", 
+                     "&textFormat=plainText",
+                     sep = "")
+
+commentReturn <- GET(commentTextLink)
+
+content(commentReturn, as = "parsed")
+```
+
+Let's see what this might look like with multiple comments:
+
+```{r}
+commentID <- commentData$items$id[1:3]
+
+idString <- paste("&id=", commentID, collapse = "", sep = "")
+
+commentTextLink <- paste("https://www.googleapis.com/youtube/v3/comments?part=id,snippet", 
+                              idString, 
+                              "&key=AIzaSyCTyTAFxB7PSy0vKB4Dj58w6v3bPQhmPTU&textFormat=plainText",
+                              sep = "")
+
+commentReturn <- GET(commentTextLink)
+
+jsonlite::fromJSON(content(commentReturn, as = "text"))
+```
+
+Now it is time to take a look at our developers page...
+
+
+### Some APIs To Try
+
+<a href="https://docs.graphhopper.com/#section/Explore-our-APIs">GraphHopper</a>
+
+<a href="https://www.walkscore.com/professional/travel-time-http-api.php">Walk Score</a>
+
+<a href="https://www.brewerydb.com/developers/docs">BreweryDB</a>

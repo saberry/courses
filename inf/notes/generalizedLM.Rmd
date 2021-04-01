@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, error = FAL
 
 2.  Logistic regression is for binary outcome variables (e.g., closed/open, broke/working, dead/alive) and we are predicting the probability of the outcome.
 
-3.  Our coefficients might take on different meaning when we use a different distribution.
+3.  Our coefficients might take on different meanings when we use a different distribution.
 
 4.  Predicted probabilities are likely the easiest way to interpret some models.
 
@@ -49,6 +49,8 @@ From a conceptual perspective, all they are doing is allowing the linear predict
 
 At the end of the day, these link functions will convert the outcome (DV) to an unbounded continuous variable.
 
+The take-away here is that the link function describes how the mean is generated from the predictors.
+
 # Linear Regression
 
 Linear regression is not new to us.
@@ -59,12 +61,18 @@ It is the most vanilla within the GLM.
 
 - Gaussian distribution with an "identity" link function
 
+How do you find a mean from a normal distribution? 
+
 ## In R
 
 ```{r}
-crimeScore = read.csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+crimeLink <- "http://nd.edu/~sberry5/data/crimeScore.csv"
 
-lmTest = glm(SSL_SCORE ~ WEAPONS_ARR_CNT, data = crimeScore, family = gaussian)
+crimeScore <- data.table::fread(crimeLink)
+
+lmTest <- glm(SSL_SCORE ~ WEAPONS_ARR_CNT, 
+              data = crimeScore, 
+              family = gaussian)
 
 summary(lmTest)
 ```
@@ -78,11 +86,14 @@ Our model, captured in the residual deviance, showed a marked decrease in devian
 We can test it with the following:
 
 ```{r}
-pchisq(lmTest$deviance, lmTest$df.residual)
+pchisq(lmTest$null.deviance - lmTest$deviance, 
+       df = lmTest$df.null - lmTest$df.residual, 
+       lower.tail = FALSE)
 ```
 
+We are testing a hypothesis that the difference between our null and model deviance is $\chi^2$ distributed. By specifying that our lower tail is false, we are specifically testing a proportion of the distribution that is higher than the value that we found. This significant *p*-value tells us that our model is certainly better than a model without predictors!
 
-The value of AIC is not really interpretable -- it is used only for model comparison.
+As a final point about our output, the value of AIC is not really interpretable -- it is used only for model comparison.
 
 We can also produce our confidence intervals:
 
@@ -132,7 +143,7 @@ as.data.frame(rbind(binom.25, binom.5, binom.75)) %>%
   theme_minimal()
 ```
 
-If we examine the line for a probability of .5 (the orange line title "binom.5"), we will see that it is centered over 50 -- this would suggest that we have the highest probability of encountering 50 successes. If we run 20 trials and the outcome is 50/50, we would expect to see success in half the trials and a decreasing number of trials for more or less successes. Shifting our attention to a .75 probability of success, we see that our density is sitting over 75. 
+If we examine the line for a probability of .5 (the orange line titled "binom.5"), we will see that it is centered over 50 -- this would suggest that we have the highest probability of encountering 50 successes. If we run 20 trials and the outcome is 50/50, we would expect to see success in half the trials and a decreasing number of trials for more or less successes. Shifting our attention to a .75 probability of success, we see that our density is sitting over 75. 
 
 Since we are dealing with a number of trials, it is worth noting that the binomial distribution is a discreet distribution. If you have any interest in knowing the probability for a number of success under the binomial distribution, we can use the following formula:
 
@@ -145,6 +156,7 @@ $$y \sim Binomial(n, p) \\ logit(p) = \alpha + \beta X$$
 The *logit* function is defined as:
 
 $$log\frac{p}{1-p}$$
+
 We are literally just taking the log of the odds (the log odds becomes important later).
 
 Now we can map this back to our model:
@@ -158,13 +170,24 @@ $$p = \frac{exp(\alpha + \beta X)}{1 + exp(\alpha + \beta X)}$$
 We will see more about how this happens after playing with the following model:
 
 ```{r}
-library(dplyr)
+library(data.table)
 
-kickstarter = readr::read_csv("https://www.nd.edu/~sberry5/data/kickstarter.csv")
+kickstarter <- fread("https://www.nd.edu/~sberry5/data/kickstarter.csv")
 
-kickstarter = kickstarter %>% 
-  filter(state == "successful" | state == "failed") %>% 
-  mutate(state = ifelse(state == "successful", 1, 0))
+kickstarter <- kickstarter[state == "successful" | state == "failed", 
+                           ][, state := ifelse(state == "successful", 1, 0)] 
+
+# You can set the variable types individually:
+
+# kickstarter$backers <- as.numeric(kickstarter$backers)
+# kickstarter$goal <- as.numeric(kickstarter$goal)
+
+
+# But the following is more efficient:
+numericVars <- c("backers", "goal")
+
+kickstarter[, (numericVars) := lapply(.SD, function(x) as.numeric(x)), 
+            .SDcols = numericVars]
 ```
 
 Let's start with a visual breakdown of failure and success:
@@ -187,14 +210,14 @@ If we take the number of successes and divide by the total, we will get the prob
 113081 / 281302
 ```
 
-The probability of being funded is .4
+The probability of being funded is `r 113081 / 281302`
 
 ## Continuous Predictors
 
 While just knowing the probability is great, it does not provide much of a model. So, we can add predictor variables to model their relationship with the outcome variable.
 
 ```{r}
-logTest = glm(state ~ backers, data = kickstarter, 
+logTest <- glm(state ~ backers, data = kickstarter, 
               family = binomial)
 
 summary(logTest)
@@ -220,7 +243,7 @@ As its default, R produces the log odds for the regression coefficient in a logi
 Probability lies at the heart of all of this.  We can look at the relationship between the probability, odds, and log odds.
 
 ```{r}
-probabilityList = c(.001, .01, .15, .2, 
+probabilityList <- c(.001, .01, .15, .2, 
                     .25, .3, .35, .4, .45, 
                     .5, .55, .6, .65, .7, 
                     .75, .8, .85, .9)
@@ -230,12 +253,12 @@ probabilityList = c(.001, .01, .15, .2,
 We have a list of probability values (always between 0 and 1).  Now, let's write a function to convert them to odds. We will use the $\\p\, / 1 - p$ equation.
 
 ```{r}
-oddsConversion = function(p) {
+oddsConversion <- function(p) {
   res = p / (1 - p)
   return(res)
 }
 
-odds = oddsConversion(probabilityList)
+odds <- oddsConversion(probabilityList)
 
 plot(probabilityList, odds)
 ```
@@ -268,13 +291,13 @@ Let's start at the median value of backers:
 median(kickstarter$backers)
 ```
 
-Now, let's solve our equation for that one. This will produce the conditional logit.
+Now, let's solve our equation for that median value. This will produce the conditional logit.
 
 ```{r}
-medLogit = logTest$coefficients["(Intercept)"] + 
+medLogit <- logTest$coefficients["(Intercept)"] + 
   (logTest$coefficients["backers"] * median(kickstarter$backers))
 
-names(medLogit) = NULL
+names(medLogit) <- NULL
 
 medLogit
 ```
@@ -282,7 +305,7 @@ medLogit
 Let's do the same thing for the next sequential value of backers:
 
 ```{r}
-medLogitPlus1 = logTest$coefficients["(Intercept)"] + 
+medLogitPlus1 <- logTest$coefficients["(Intercept)"] + 
   (logTest$coefficients["backers"] * (median(kickstarter$backers) + 1))
 
 names(medLogitPlus1) = NULL
@@ -293,12 +316,12 @@ medLogitPlus1
 Now we have two sequential conditional logits that we can subtract from each other:
 
 ```{r}
-backersCoef = medLogitPlus1 - medLogit
+backersCoef <- medLogitPlus1 - medLogit
 
 backersCoef
 ```
 
-This is exactly the coefficient that we got from the model. If we exponentiate the log odds, we are "unlogging" it to get the odds ratio that we saw eariler (just plain old odds at this point). This is sometimes referred to as the *proportional change in odds*.
+This is exactly the coefficient that we got from the model. If we exponentiate the log odds, we are "unlogging" it to get the odds ratio that we saw earlier (just plain old odds at this point). This is sometimes referred to as the *proportional change in odds*.
 
 ```{r}
 exp(backersCoef)
@@ -315,10 +338,8 @@ When we construct our linear model, we are trying to predict the response value 
 First, we need to make our predicitions and put them back into the data:
 
 ```{r}
-library(dplyr)
-
-kickstarter = kickstarter %>% 
-  mutate(predictedProbs = predict(logTest, type = "response"))
+kickstarter$predictedProbs <- predict(logTest, 
+                                      type = "response")
 ```
 
 The `predict` function is how we get the predictions from any model.  Do note the type argument with the "response" specification; this ensures that we are using the type of response particular to the model.
@@ -326,9 +347,7 @@ The `predict` function is how we get the predictions from any model.  Do note th
 Now, we can plot it:
 
 ```{r}
-kickstarter %>% 
-  filter(backers < 500) %>% 
-  ggplot(., aes(backers, predictedProbs)) +
+ggplot(kickstarter[backers < 500], aes(backers, predictedProbs)) +
   geom_line(size = 1.5) +
   theme_minimal()
 ```
@@ -337,19 +356,66 @@ For our data, once you start to get above 250 backers, there is a probablity of 
 
 If we wanted to apply new data to our model, we would also use the predict() function, but give it new data.
 
+Let's add one more continuous predictor into the model.
+
+```{r}
+twoPredictors <- glm(state ~ backers + goal, data = kickstarter, 
+              family = binomial)
+
+summary(twoPredictors)
+```
+
+```{r}
+exp(twoPredictors$coefficients)
+```
+
+Lets run that same model, but with some tweaks, and then do something cool!
+
+```{r}
+library(plotly)
+
+truncatedData <- kickstarter[backers >= median(backers) &
+                               backers <= quantile(backers, .75) &
+                               goal >= median(goal) &
+                               goal <= quantile(goal, .75)]
+
+summary(truncatedData)
+
+twoPredictors <- glm(state ~ backers + goal, 
+                     data = truncatedData, 
+                     family = binomial)
+
+backers <- unique(truncatedData$backers)
+goals <- unique(truncatedData$goal)
+
+grid <- expand.grid(backers, 
+                    goals)
+
+newData <- setNames(data.frame(grid), c("backers", "goal"))
+predictedVals <- predict(twoPredictors, 
+                         newdata = newData, 
+                         type = "response")
+
+zMatrix <- matrix(predictedVals, 
+            nrow = length(unique(newData$backers)), 
+            ncol = length(unique(newData$goal)))
+
+plot_ly() %>% 
+  add_surface(x = ~goals, y = ~backers, z = ~zMatrix)
+```
+
+
 
 ## Categorical Predictors
 
 Let's pick a few categories to work on.
 
 ```{r}
-catData = kickstarter %>% 
-  select(state, main_category) %>% 
-  filter(main_category == "Film & Video" |
+catData <- kickstarter[main_category == "Film & Video" |
            main_category == "Music" |
-           main_category == "Games")
+           main_category == "Games", 
+           .(state, main_category)]
 ```
-
 
 Let's look a the crosstabs for those variables:
 
@@ -360,11 +426,11 @@ addmargins(table(catData))
 We can start to look at the odds for each category being successful:
 
 ```{r}
-filmOdds = (21404 / 51057) / (29653 / 51057) # You can reduce this to 21404 / 29653
+filmOdds <- (21404 / 51057) / (29653 / 51057) # You can reduce this to 21404 / 29653
 
-gamesOdds = (9385 / 22398) / (13013 / 22398)
+gamesOdds <- (9385 / 22398) / (13013 / 22398)
 
-musicOdds = (21763 / 40956) / (19193 / 40956)
+musicOdds <- (21763 / 40956) / (19193 / 40956)
 ```
 
 ```{r}
@@ -393,7 +459,7 @@ filmOdds / (1 + filmOdds) / (1 - (filmOdds / (1 + filmOdds)))
 musicOdds / (1 + musicOdds) / (1 - (musicOdds / (1 + musicOdds)))
 ```
 
-When we consider what our odds mean now, we can envision them as the probability of the outcome occuring divided by the probability that it does not happen.
+When we consider what our odds mean now, we can envision them as the probability of the outcome occurring divided by the probability that it does not happen.
 
 We could also compare those two directly:
 
@@ -414,7 +480,9 @@ Here, the odds that a game will be funded are less than 1% lower than the odds f
 Let's run our logistic regression now:
 
 ```{r}
-categoryLogTest = glm(state ~ main_category, data = catData, family = binomial)
+categoryLogTest <- glm(state ~ main_category, 
+                       data = catData, 
+                       family = binomial)
 
 summary(categoryLogTest)
 ```
@@ -428,7 +496,7 @@ exp(coef(categoryLogTest))
 filmOdds
 ```
 
-The film group is about 28% less likely to be funded.
+The film group is about 28% less likely to be funded than everything else.
 
 ## Cautions About Logistic Regression
 
@@ -479,7 +547,7 @@ Determine some cut-off values for backers and build a new model. See if you can 
 
 ## The Poisson Distribution
 
-The Poisson distribution is very similar to the binomial distribution, but has some key differences. The biggest difference is in its parameter: poisson has a single parameter noted as $\lambda$. This rate parameter is going to estimate the expected number of events during a time interval. This can be accidents in a year, pieces produced in a day, or hits during the course of a baseball season. We can find the rate by determing the number of events per interval, multiplied by the interval length.
+The Poisson distribution is very similar to the binomial distribution, but has some key differences. The biggest difference is in its parameter: Poisson has a single parameter noted as $\lambda$. This rate parameter is going to estimate the expected number of events during a time interval. This can be accidents in a year, pieces produced in a day, or hits during the course of a baseball season. We can find the rate by determining the number of events per interval, multiplied by the interval length.
 
 $$\frac{\text{event}}{\text{interval}}*\text{interval length} $$
 
@@ -494,22 +562,22 @@ We expect about 4 accidents over the course of a month.
 Let's see what that particular distribution might look like:
 
 ```{r}
-ggplot(data.frame(x=c(0:20)), aes(x)) +
-    geom_line(aes(y=dpois(x, (1 / 7) * 28)), colour="red")
+ggplot(data.frame(x = 0:20), aes(x)) +
+  geom_col(aes(y = dpois(x, (1 / 7) * 28)), fill = "#ff5500") +
+  theme_minimal()
 ```
-
 
 We can also see what it looks like for different rates (some places might be safer than others):
 
 ```{r}
 ggplot() +
-  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (1 / 7) * 28)), 
+  geom_col(data = data.frame(x = 1:28, y = dpois(1:28, (1 / 7) * 28)),
            mapping = aes(x, y), width = .97, alpha = .25, fill = "red") +
-  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (3 / 7) * 28)), 
+  geom_col(data = data.frame(x = 1:28, y = dpois(1:28, (3 / 7) * 28)),
            mapping = aes(x, y), width = .97, alpha = .25, fill = "blue") +
-  geom_col(data = data.frame(x = 1:30, y = dpois(1:30, (5 / 7) * 28)), 
-           mapping = aes(x, y), width = .97, alpha = .25, fill = "green") 
-
+  geom_col(data = data.frame(x = 1:28, y = dpois(1:28, (5 / 7) * 28)),
+           mapping = aes(x, y), width = .97, alpha = .25, fill = "green") +
+  theme_minimal()
 ```
 
 
@@ -524,11 +592,12 @@ This gets into an area where we need to think long and hard about our dependent 
 - Since Poisson regression gets its name from the Poisson distribution, we should probably see if it follows the Poisson distribution.
 
 ```{r}
+library(data.table)
 library(vcd)
 
-shroudData = readr::read_csv("https://www.nd.edu/~sberry5/data/shroudData.csv")
+shroudData <- fread("https://www.nd.edu/~sberry5/data/shroudData.csv")
 
-poissonTest = goodfit(shroudData$shroudsProduced, type = "poisson")
+poissonTest <- goodfit(shroudData$shroudsProduced, type = "poisson")
 
 summary(poissonTest)
 ```
@@ -551,12 +620,9 @@ For models of this nature (our dependent variable is a count variable), we may h
 Let’s check this out (it will be important later on!).
 
 ```{r}
-library(dplyr)
-
-shroudData %>%
-  dplyr::select(shroudsProduced, employeeCount) %>%
-  group_by(employeeCount) %>%
-  summarize(mean = mean(shroudsProduced), var = var(shroudsProduced))
+shroudData[, list(mean = mean(shroudsProduced), 
+                  var = var(shroudsProduced)), 
+           by = employeeCount]
 ```
 
 What is the purpose of this? We are checking the conditional means and variances. Why is this important? If our variances are larger than our means, we have *overdispersion*. We would expect values to be equally distributed over levels, but if they are really spread out, this qualifies as overdispersion – this is not good for our Poisson model because it will cause downward bias.
@@ -568,6 +634,8 @@ mean(shroudData$shroudsProduced)
 
 var(shroudData$shroudsProduced)
 ```
+
+Not terribly far off, but we will see if it becomes a problem later. You might be wondering why overdispersion is a problem -- it goes back to the single parameter within the Poisson distribution. The normal distribution has a parameter for dealing with variance -- $\sigma$ -- Poisson does not, so the assumption is that any variance would be equal to the mean.
 
 ### The Model
 
@@ -614,7 +682,7 @@ library(AER)
 dispersiontest(poissonTest)
 ```
 
-The dispersion value that we see returned (0.9452052 in our case) should be under 1. A dispersion value over 1 means that we have overdispersion. Our dispersion value, coupled with our high *p*-value, indicates that we would fail to reject the null hypothesis of equidispersion
+The dispersion value that we see returned (0.9452052 in our case) should be under 1. A dispersion value over 1 means that we have overdispersion. Our dispersion value, coupled with our high *p*-value, indicates that we would fail to reject the null hypothesis of equidispersion.
 
 We can also look back to our model results to compare our residual deviance to our residual deviance degrees of freedom; if our deviance is greater than our degrees of freedom, we might have an issue with overdispersion. Since we are just a bit over and our overdispersion tests do not indicate any huge issue, we can be relatively okay with our model. If we had some more extreme overdispersion, we would want to flip to a quasi-poisson distribution -- our coefficients would not change, but we would have improved standard errors.
 
@@ -627,9 +695,9 @@ $$y \sim \text{ZIP}(p,\lambda) \\ \text{logit} = \alpha_p + \beta_pX \\ \text{lo
 This just formalizes the fact that our *y* can be generated from multiple processes.
 
 ```{r}
-redlights = readr::read_csv("https://www.nd.edu/~sberry5/data/redlights.csv")
+redlights <- fread("https://www.nd.edu/~sberry5/data/redlights.csv")
 
-poissonRedlight = glm(citation_count ~ as.factor(camera_installed_ny),
+poissonRedlight <- glm(citation_count ~ as.factor(camera_installed_ny),
             data = redlights,
             family = poisson)
 
@@ -640,7 +708,7 @@ With this output, we are comparing citation counts against intersections without
 
 We see that our coefficient is -.88529 –- this means that having a camera leads to having .88529 less log counts than without having a camera.
 
-We can also exponentiate that value to get an indicent rate:
+We can also exponentiate that value to get an incident rate:
 
 ```{r}
 exp(poissonRedlight$coefficients)
@@ -649,7 +717,9 @@ exp(poissonRedlight$coefficients)
 Let's see what those mean with an example:
 
 ```{r}
-tapply(redlights$citation_count, redlights$camera_installed_ny, mean) #Old school group_by and summarize!
+tapply(X = redlights$citation_count, 
+       INDEX = redlights$camera_installed_ny, 
+       FUN = mean) # Old-school group_by and summarize!
 ```
 
 ```{r}
@@ -669,17 +739,25 @@ For our redlight data, we saw that having a camera present had an effect on cita
 ```{r}
 library(pscl)
 
-zipTest = zeroinfl(citation_count ~ as.factor(camera_installed_ny),
+zipTest <- zeroinfl(citation_count ~ as.factor(camera_installed_ny),
                    dist = "poisson", data = redlights)
+
+# Important note: If you want your logistic model to differ from your
+# poisson model, you would do this:
+
+zipTest <- zeroinfl(citation_count ~ 
+                      as.factor(camera_installed_ny) | 
+                      as.factor(camera_installed_ny),
+                    dist = "poisson", data = redlights)
 
 summary(zipTest)
 ```
 
-Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflational model will not account for the 0s within our data. This would be a clear indication that we have something else that might be contributing to the number of 0s that we see.
+Here we have two sets of coefficients: one for our count model (our actual Poisson regression) and one model attempting to account for excessive 0s. Our count model does not change, but we also see that our zero-inflation model will not account for the 0s within our data. This would be a clear indication that we have something else that might be contributing to the number of 0s that we see.
 
 # Negative Binomial
 
-Remember that whole issue with our conditional means and standard deviations? If we would have had problems those means and variances, we would need to abandon our poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely.
+Remember that whole issue with our conditional means and variances? If we would have had problems those means and variances, we would need to abandon our Poisson distribution in favor of the negative binomial. The poisson distribution works when the sample mean and variance are equal – the negative binomial distribution frees that constraint and allows them to vary freely.
 
 <aside>
 The negative binomial adds an extra parameter (*p*) to free up the assumption of equal means and variances.
@@ -688,10 +766,10 @@ The negative binomial adds an extra parameter (*p*) to free up the assumption of
 Remember this:
 
 ```{r}
-redlights %>%
-  dplyr::select(citation_count, camera_installed_ny) %>%
-  group_by(camera_installed_ny) %>%
-  summarize(mean = mean(citation_count), var = var(citation_count))
+redlights[, 
+          list(mean = mean(citation_count), 
+               var = var(citation_count)), 
+          by = camera_installed_ny] 
 ```
 
 Those look like the start of problems. Let’s check our whole sample now:
@@ -710,7 +788,8 @@ There is clearly a problem here!
 ```{r}
 library(MASS)
 
-nbTest = glm.nb(citation_count ~ as.factor(camera_installed_ny), data = redlights)
+nbTest <- glm.nb(citation_count ~ as.factor(camera_installed_ny), 
+                 data = redlights)
 
 summary(nbTest)
 ```
@@ -719,4 +798,4 @@ The interpretation of our negative binomial is exactly the same as our Poisson m
 
 ## Another Distribution Worth Noting
 
-The beta distribution has many practical uses. It can be used to model variables that are bound by 0 and 1 (but do not hit 0 or 1). If you have an outcome variable that is a proportion, it would be useful to keep the beta distribution in mind. We will also see the beta distribution in the context of Bayesian analysis, because we can use it as a prior for R^2. 
+The beta distribution has many practical uses. It can be used to model variables that are bound by 0 and 1 (but do not hit 0 or 1). If you have an outcome variable that is a proportion, it would be useful to keep the beta distribution in mind. We will also see the beta distribution in the context of Bayesian analysis, because we can use it as a prior for R^2.

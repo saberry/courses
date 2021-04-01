@@ -1,0 +1,282 @@
+---
+title: "Python statsmodels"
+description: | 
+  Doing great analyses, but with extra code
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Why statsmodels?
+
+If you find yourself favoring Python, the choice is clear for things like typical machine learning tasks (Scikit-learn/sklearn). There are a few decisions to make for deep-learning (Keras or PyTorch), but both are pretty solid. What do you have for inferential stats? You could use *numpy*, but that is just a waste of time (why write methods for stuff when it exists elsewhere). You could use *scipy*, but you could get just as much from a decent calculator. You can absolutely miss me with, "yOu CaN uSe SkLeArN fOr EvErYtHiNg" nonsense -- it works just fine for machine learning tasks, but is not built for inference at all. This is where *statsmodels* comes into play. It gives a whole ton of different stats functionality, in addition to working with right out of the box with pandas. It takes a specific view of the world (definitely coming from an econometric perspective), but it offers a great number of handy features that are scattered across several R packages. 
+
+### What It Won't Do
+
+It will do everything we learned in class (among other handy stuff -- survival analysis, time series, MICE). It won't do much for really common forms of dimension reduction tasks (factor analysis) or spatial work. Again, it is very clear this is built with the Econ folks in mind. 
+
+<aside>
+Want to run Python through RStudio? The `reticulate` package will do it!
+</aside>
+
+## Using It
+
+Of course, there are some packages to bring in:
+
+```{python}
+# We will be using both
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+# Naturally, you need pandas
+import pandas as pd
+
+# But dask has most pandas functions, with more speed.
+# Sometimes it works, but sometimes it doesn't
+# import dask.dataframe as dd
+
+# If you want easy design matrices, you need to bring in patsy:
+from patsy import dmatrices
+from patsy.contrasts import Treatment
+
+# We should not need this:
+import math
+
+# But will definitely need this:
+import numpy as np
+
+# Rocking something based upon ggplot2
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Everybody enjoys a dark background:
+plt.style.use("dark_background")
+```
+
+When we get to the modeling, you will need to pay attention to which package we are calling: `sm` works for everything, but `smf` is a bit limited.
+
+Now let's read in data that we have already seen:
+
+```{python}
+# If you use dd.read_csv, it will read fast, but slow indexing down.
+# If you use pd.read_csv, it will read slow, but be fine afterwards.
+
+crime_score = pd.read_csv("http://nd.edu/~sberry5/data/crimeScore.csv")
+
+crime_score = crime_score[["SSL_SCORE", "WEAPONS_ARR_CNT", "SEX_CODE_CD", 
+  "COMMUNITY_AREA", "AGE_CURR"]]
+
+# Note the filtering for COMMUNITY_AREA and AGE_CURR, definitely 
+# different than how R filters blank characters.
+
+crime_score = crime_score[(crime_score.AGE_CURR != " ") &
+                          (crime_score.SEX_CODE_CD != "X") &
+                          (crime_score.COMMUNITY_AREA != " ")
+]
+
+crime_score["AGE_CURR"] = crime_score["AGE_CURR"].astype("category")
+
+# The same idea as R's relevel:
+
+crime_score["AGE_CURR"] = crime_score["AGE_CURR"].cat.reorder_categories(
+    ["less than 20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80"]
+)
+
+crime_score = crime_score.dropna()
+```
+
+Let's try an easy group by and summarize for gender and crime score:
+
+```{python}
+crime_score.groupby(by="SEX_CODE_CD")["SSL_SCORE"].mean()
+```
+
+Keep this in mind, because we will come back to it.
+
+### Linear Regression
+
+The statsmodels package makes use of *endogenous* and *exogenous* variable names. Those terms might not be familiar to you, so we can break it down:
+
+Exogenous = Exogenous variables, and their values, live outside the model. The variables are directly imposed upon the model.
+
+Endogenous = Endogenous variables, and their values, are determined by the model. 
+
+How does this map back to our models: $y = \beta_0 + \beta_1 X_1$
+
+What part depends on the model -- *y*
+
+What values come from the world -- *x*
+
+Want any easy way to remember? The x variables (predictors/IVs) are e**x**ogenous! Since you've been using R, it might surprise you to know that statsmodels won't take care of your factor variables for you. Instead, you need to create the dummy matrix through pandas and then subset your exogenous variables:
+
+```{python}
+exogX = pd.get_dummies(crime_score, columns=['SEX_CODE_CD'])[["WEAPONS_ARR_CNT", 
+  "SEX_CODE_CD_M"]]
+```
+
+More shocking than the lack of implicit treatment contrasts, is that statsmodels doesn't include an intercept in the model by default...gtfo. There is an easy method for it; we can add the constant and then specify our endogenous variable:
+
+```{python}
+exogX = sm.add_constant(exogX)
+
+endogY = (crime_score.SSL_SCORE)
+```
+
+Now, we can fit and produce the summary:
+
+```{python}
+results = sm.OLS(endogY, exogX).fit()
+
+print(results.summary())
+```
+
+You probably noticed that we needed to include the fit attribute to our OLS function. 
+
+We see familiar output, with some additional model diagnostics below the typical output. The Durbin-Watson test is telling us if our residuals are exhibiting autocorrelation (really more important for time series data). Still, it should be around 2 to indicate we don't have residual problems. 
+
+We also see the Jarque-Bera test for normality -- this tests the assumption of normally-distributed errors. The higher this value, the more likely it is that we have problems with this assumption. This all comes from our skewness (should be 0) and kurtosis values (should be 3).
+
+The condition number (Cond. No.) provide an idea about multicollinearity -- higher values (think in the 100's), would indicate multicollinearity.
+
+### Robust Regression
+
+If you like the endogenous/exogenous way of doing things, that is awesome. Personally, I prefer a formula interface -- it looks much more like the regression equation to me. We can use the formula api that we loaded in up front. Notice, though, that we aren't using the `OLS` function, but the `ols` function. Let's define our formula and then fit a series of models:
+
+```{python}
+formula = 'SSL_SCORE ~ WEAPONS_ARR_CNT + SEX_CODE_CD'
+
+mod1 = smf.ols(formula=formula, data=crime_score)
+fittedMod1 = mod1.fit()
+print(fittedMod1.summary())
+```
+
+That is the same model we previously saw, so let's add some robust standard errors to that model:
+
+```{python}
+fittedMod1 = mod1.fit(cov_type="HC1")
+print(fittedMod1.summary())
+```
+
+Now we have improved standard error estimates. What about outliers, I'm not sure if we have any, but that won't stop us from adjusting like we have in the past:
+
+```{python}
+mod2 = smf.rlm(formula=formula,
+  data=crime_score,
+  M=sm.robust.norms.TukeyBiweight())
+
+fittedMod2 = mod2.fit(cov="H1")
+print(fittedMod2.summary())
+```
+
+Now we have a regression model that is corrected for faulty standard errors and outliers -- nice.
+
+### Mixed-effects
+
+We can add a random effect for community area into our model with a mixed-effects model:
+
+```{python}
+md = smf.mixedlm("SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD",
+                 crime_score,
+                 groups=crime_score["COMMUNITY_AREA"])
+
+mdf = md.fit(method=["lbfgs"])
+
+print(mdf.summary())
+```
+
+Nothing too exciting with grouping variable...let's get a bit more wild!
+
+### Poisson Regression
+
+We can try to model our weapons arrest count variable with a Poisson model:
+
+```{python}
+countFomula = "WEAPONS_ARR_CNT ~ AGE_CURR + SEX_CODE_CD"
+
+modCount = smf.glm(formula=countFomula, data=crime_score, 
+  family=sm.families.Poisson()).fit()
+
+print(modCount.summary())
+```
+
+Our coefficients here are in log units, so we can exponentiate them to make a little more sense of them. Doing this, though, can be a bit of a hassle. The *math* package has an `exp` function, but it really only likes to take straight numbers; the *numpy* version of `exp` is more functional for us. Let's try it two ways:
+
+A "pythonic" method:
+
+```{python}
+for i in range(len(modCount.params.values)):
+    print(math.exp(modCount.params.values[i]))
+```
+
+And a vectorized method:
+
+```{python}
+np.exp(modCount.params)
+```
+
+What if we want to fit a Bayesian random effect to this model. Naturally, it will be some work, but it isn't too bad!
+
+```{python}
+random = {"a": '0 + C(COMMUNITY_AREA)'}
+
+model = sm.PoissonBayesMixedGLM.from_formula(
+               'WEAPONS_ARR_CNT ~ AGE_CURR + SEX_CODE_CD', random, crime_score)
+
+result = model.fit_vb()
+
+result.summary
+```
+
+Let's plot those random effects to see how they shake out:
+
+```{python}
+reData = result.random_effects()
+
+reData.index.name = 'area'
+reData.reset_index(inplace=True)
+
+reData.area = reData.replace(to_replace ='C.*\)|\[|\]', value = '', regex = True)
+
+reData = reData.sort_values("Mean")
+
+sns.relplot(x="Mean", y="area", data=reData).set_yticklabels(size=5)
+plt.show()
+```
+
+### Bootstrapping
+
+Finally, we can boostrap our original model. 
+
+```{python}
+formula = 'SSL_SCORE ~ WEAPONS_ARR_CNT + SEX_CODE_CD'
+
+def bootstrapping(data, formula):
+  data = data.sample(data.__len__(), replace = True)
+  mod1 = smf.ols(formula=formula, data=data)
+  fittedMod1 = mod1.fit()
+  return pd.DataFrame(fittedMod1.tvalues, columns = ["value"])
+
+bootstrapping(crime_score, formula)
+
+replicates = 10
+results = []
+
+for i in range(replicates):
+  modRes = bootstrapping(crime_score, formula)
+  results.append(modRes)
+
+bootOut = pd.concat(results)
+bootOut.index.name = 'term'
+bootOut.reset_index(inplace=True)
+
+bootOut.value[bootOut.term == "WEAPONS_ARR_CNT"]
+
+sns.kdeplot(bootOut.value[bootOut.term == "WEAPONS_ARR_CNT"], 
+  palette="pastel")
+plt.show()
+```

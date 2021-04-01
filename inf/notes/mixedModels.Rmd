@@ -23,7 +23,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "
 We will need the following:
 
 ```{r, eval = FALSE}
-install.packages(c("lme4", "lmerTest", "merTools"))
+install.packages(c("lme4", "lmerTest", "merTools", "MuMIn"))
 ```
 
 
@@ -76,9 +76,11 @@ Our models retain the variation inherent within the data when we used a mixed mo
 ```{r, echo = FALSE}
 library(ggplot2)
 
-visualizationData = readr::read_csv("https://www.nd.edu/~sberry5/data/visualizationData.csv")
+visualizationData = readr::read_csv(
+  "https://www.nd.edu/~sberry5/data/visualizationData.csv"
+  )
 
-names(visualizationData) = c("spent", "visits", "adSource")
+names(visualizationData) <- c("spent", "visits", "adSource")
 
 visualizationData$adSource[visualizationData$adSource == "cancer"] = "print"
 
@@ -110,17 +112,20 @@ This changes things entirely!
 For the sake of conceptual grounding, let's do some data prep and go back to our standard linear model:
 
 ```{r}
-library(dplyr)
-
+library(data.table)
 library(ggplot2)
 
-performanceReview <- readr::read_csv("http://www.nd.edu/~sberry5/data/performanceReviewData.csv")
+performanceReview <- fread(
+  "http://www.nd.edu/~sberry5/data/performanceReviewData.csv"
+  )
 
-lmTest <- lm(performanceScore ~ Manager + age, data = performanceReview)
+lmTest <- lm(performanceScore ~ Manager + age, 
+             data = performanceReview)
 
 summary(lmTest)
 
-ggplot(performanceReview, aes(performanceScore, age, color = as.factor(Manager))) +
+ggplot(performanceReview, 
+       aes(performanceScore, age, color = as.factor(Manager))) +
   geom_point() + 
   theme_minimal()
 ```
@@ -130,7 +135,8 @@ We have our standard output here. As before, our intercept is the average score 
 Let's see how some additional information changes our viz:
 
 ```{r}
-ggplot(performanceReview, aes(performanceScore, age, color = as.factor(Manager))) +
+ggplot(performanceReview, 
+       aes(performanceScore, age, color = as.factor(Manager))) +
   geom_point() + 
   facet_wrap( ~ idBuilding) +
   theme_minimal()
@@ -143,7 +149,8 @@ Let's include the department variable in our model. We are not going to add it a
 ```{r}
 library(lme4)
 
-intMod <- lmer(performanceScore ~  1 + (1|idDepartment), data = performanceReview)
+intMod <- lmer(performanceScore ~  1 + (1|idDepartment), 
+               data = performanceReview)
 ```
 
 Before we look at the summary for this model, let's get an idea about what is happening in the syntax. The first part of our formula should look familiar -- these are the global estimates (fixed effects) within our model and will behave exactly the same as our standard linear model. We are just specifying an intercept here.
@@ -214,7 +221,8 @@ We could do all of this work by hand and before running the model, but I'll let 
 We can add a predictor variable to the model:
 
 ```{r}
-riMod <- lmer(performanceScore ~ Manager + age + (1|idDepartment), data = performanceReview)
+riMod <- lmer(performanceScore ~ Manager + age + (1|idDepartment), 
+              data = performanceReview)
 
 summary(riMod)
 ```
@@ -260,16 +268,34 @@ $$R^2_2 = 1 - \frac{\sigma^2_{M1} / B + \tau^2_{M1}}{\sigma^2_{M0} / B + \tau^2_
 
 We see that we added a *B* into the mix here and it is just the average size of the level 2 units (534 / 26). 
 
-<!-- ```{r} -->
-<!-- level2Mean <- 534 / 26 -->
+```{r}
+level2Mean <- 534 / 26
 
-<!-- r2Numerator <- m1Sigma / level2Mean + m1Tau -->
+r2Numerator <- m1Sigma / level2Mean + m1Tau
 
-<!-- r2Denominator <- m0Sigma / level2Mean + m0Tau -->
+r2Denominator <- m0Sigma / level2Mean + m0Tau
 
-<!-- 1 - (r2Numerator / r2Denominator) -->
-<!-- ``` -->
+1 - (r2Numerator / r2Denominator)
+```
 
+You can also get these values like this:
+
+```{r}
+MuMIn::r.squaredGLMM(riMod)
+```
+
+Here we have two values: the marginal R2 (R2m) and the conditional R2 (R2c). You can think of the marginal values as the standard type of R2 -- it is the variability explained by the fixed effects part of the model (it is what we have already done above). The conditional R2 is using both fixed and random effects. So in this case, we would see that we are accounting for about 11% of the variation in wave alone
+
+Let's take a look at the effects:
+
+```{r}
+library(sjPlot)
+
+plot_model(riMod, type = "re") + 
+  theme_minimal()
+```
+
+For the plot above, the easiest way to think about it is that the values are effects for each individual random effect (i.e., each departments random intercept). Since we are just dealing with intercepts right now, they are the deviations from the fixed intercept. The intercept for the model is ~57 and the random effect for department 6 appears to be about 4.25. If we wanted to predict scores for someone from department 6, we would take -57 + 4.25 for the intercept portion of the model (the same would go for any random slopes in the model). In the end, it is showing how much the intercept shifts from department to department, and some department have a positive effect beyond the average and others have a negative effect (department 17, for instance, is well below the average).
 
 We can also plot simulated random effect ranges for each of the random effect groups. We want to pay attention to those that are highlighted with black (i.e., the range does not cross the red line at 0). 
 
@@ -292,12 +318,18 @@ Those confidence intervals are interpreted how they always are, but we see two t
 If you *really* want to see *p*-values, you can get them easily:
 
 ```{r}
-riModP <- lmerTest::lmer(performanceScore ~ Manager + age + (1|idDepartment), data = performanceReview)
+riModP <- lmerTest::lmer(performanceScore ~ Manager + age + 
+                           (1|idDepartment), 
+                         data = performanceReview)
 
 summary(riModP)
 ```
 
 **NOTE:** I would never load the `lmerTest` package, but would attach with colons! If you load it, you will find that it masks things from lme4 that you don't want to have masked (i.e., lmer) and they are not equivalent objects!
+
+<aside>
+A model from lme4 is an S4 object, whereas lmerTest return S3 objects.
+</aside>
 
 Getting predicted values from our mixed model is no different then getting them from any other model:
 
@@ -313,7 +345,7 @@ allPred <- cbind(actual = performanceReview$performanceScore,
 head(allPred, 20)
 ```
 
-While there were cases where the standard linear model did a slightly better job, our mixed model generally did a better job. Plotting these makes it even more clear:
+While there were cases where the standard linear model did a slightly better job, our mixed model generally did better. Plotting these makes it even more clear:
 
 ```{r}
 plot(allPred[, "actual"], allPred[, "slim"])
@@ -321,13 +353,15 @@ plot(allPred[, "actual"], allPred[, "slim"])
 plot(allPred[, "actual"], allPred[, "mixed"])
 ```
 
-Let's add some more information to our model. As we dive into our data, we will notice that we also have building variable. We can add this additional grouping into our model:
+Let's add some more information to our model. As we dive into our data, we will notice that we also have a building variable. We can add this additional grouping into our model:
 
 ```{r}
-clusterMod <- lmer(performanceScore ~ Manager + age + (1|idDepartment) + (1|idBuilding), data = performanceReview)
+clusterMod <- lmer(performanceScore ~ Manager + age + 
+                     (1|idDepartment) + (1|idBuilding), 
+                   data = performanceReview)
 ```
 
-This is often called a cross-classified model. 
+This is often called a *cross-classified* model. 
 
 ```{r}
 summary(clusterMod)
@@ -342,7 +376,7 @@ plotREsim(REsim(clusterMod), labs = TRUE)
 We should also see if our predictions improved:
 
 ```{r}
-clusterPredict = predict(clusterMod)
+clusterPredict <- predict(clusterMod)
 
 allPred <- cbind(actual = performanceReview$performanceScore, 
            clustered = clusterPredict,
@@ -370,7 +404,9 @@ Hierarchical models are a slight variation on the models that we have just seen.
 The model set-up is just different enough to cause some potential confusion here. Within the parentheses, we have our intercept as before, but we are also saying that we are looking at the departments nested within buildings (it follows an A/B constructions).
 
 ```{r}
-hierMod <- lmer(performanceScore ~ Manager + age +  (1|idBuilding/idDepartment), data = performanceReview)
+hierMod <- lmer(performanceScore ~ Manager + age +  
+                  (1|idBuilding/idDepartment), 
+                data = performanceReview)
 
 summary(hierMod)
 ```
@@ -386,7 +422,7 @@ plotREsim(REsim(hierMod), labs = TRUE)
 And checking our predictions again:
 
 ```{r}
-hierModPredict = predict(hierMod)
+hierModPredict <- predict(hierMod)
 
 allPred <- cbind(actual = performanceReview$performanceScore, 
                  hierMod = hierModPredict,
@@ -397,7 +433,7 @@ allPred <- cbind(actual = performanceReview$performanceScore,
 head(allPred, 20)
 ```
 
-For many observations, our predictions definitely go tighter, but there isn't a big difference between our two mixed models.
+Still, not much of a difference bewteen our mixed effects models:
 
 ```{r}
 plot(allPred[, "actual"], allPred[, "slim"])
@@ -416,7 +452,9 @@ For these predictions, it really does not look like anything changed at all. You
 Now that we have seen random intercepts and hierarchical models, we can add one final piece: random slopes. In the following model, we will specify a random intercept (recall, it is the 1 within our parenthesis) and a random slope (we are prefixing our grouping variable with a slope of interest). Not only will this model allow the intercept to vary between groups, but it will also allow the slope to vary between groups.
 
 ```{r}
-randomSlopes <- lmer(performanceScore ~ Manager + age + (age|idDepartment), data = performanceReview)
+randomSlopes <- lmer(performanceScore ~ Manager + age + 
+                       (age|idDepartment), 
+                     data = performanceReview)
 
 summary(randomSlopes)
 ```
@@ -426,11 +464,12 @@ Nothing changes with regard to our fixed effects, but we get some added informat
 We can look at it graphically:
 
 ```{r}
-mutate(performanceReview, idDepartment = as.factor(idDepartment)) %>% 
-ggplot(., aes(performanceScore, age, group = idDepartment, color = idDepartment)) +
+performanceReview$idDepartment <- as.factor(performanceReview$idDepartment)
+
+ggplot(performanceReview, aes(performanceScore, age, 
+                              group = idDepartment, color = idDepartment)) +
   geom_smooth(method = "lm", se = FALSE) +
   theme_minimal()
-  
 ```
 
 When looking at this visualization, it becomes clear that there really is not too much difference in the slopes of age between departments here.
@@ -438,7 +477,9 @@ When looking at this visualization, it becomes clear that there really is not to
 We can also fit that random effects model to our hierarchical model:
 
 ```{r}
-observationModSlope <- lmer(performanceScore ~ Manager + age + (age|idBuilding/idDepartment), data = performanceReview)
+observationModSlope <- lmer(performanceScore ~ Manager + age + 
+                              (age|idBuilding/idDepartment), 
+                            data = performanceReview)
 
 summary(observationModSlope)
 ```
@@ -453,8 +494,9 @@ library(purrr)
 
 indPredictions <- performanceReview %>% 
   split(., f = .$idDepartment) %>% 
-  map_df(~ data.frame(predicted = predict(lm(performanceScore ~ Manager + age, data = .x)), 
-                   score = .x$performanceScore)) 
+  map_df(~ data.frame(predicted = predict(lm(performanceScore ~ Manager + age, 
+                                             data = .x)), 
+                      score = .x$performanceScore)) 
 
 plot(indPredictions$score, indPredictions$predicted)
 ```
@@ -467,40 +509,50 @@ If we continue to look at our data (and with some knowledge about how NYC does h
 Let's do a bit of data processing first.
 
 ```{r}
-healthData <- readr::read_csv("https://www.nd.edu/~sberry5/data/healthViolationsDistances.csv")
+library(dplyr)
 
-healthData <- healthData %>% 
-  mutate(BORO = as.factor(.$BORO), 
-         cuisine = as.factor(.$`CUISINE DESCRIPTION`), 
-         distanceCentered = dohDistanceMeter - mean(dohDistanceMeter))
+healthData <- fread(
+  "https://www.nd.edu/~sberry5/data/healthViolationsDistances.csv"
+)
 
-healthDataGrouped <- healthData %>%
-  tidyr::unite(col = nameLocation, DBA, BUILDING , remove = FALSE) %>%
-  group_by(nameLocation) %>%
-  arrange(lubridate::mdy(`GRADE DATE`)) %>%
-  mutate(observation = 1:n())
+healthData <- healthData[, `:=`(BORO = as.factor(BORO), 
+                              cuisine = as.factor(`CUISINE DESCRIPTION`), 
+                              distanceCentered = dohDistanceMeter - 
+                                mean(dohDistanceMeter))]
 
-timeReviewed <- healthDataGrouped %>%
-  summarize(n = n()) %>%
-  filter(n > 10)
+healthData$nameLocation <- paste(healthData$DBA, 
+                                 healthData$BUILDING, 
+                                 sep = "_")
 
-reviewedRest <- healthDataGrouped[which(healthDataGrouped$nameLocation %in%
-                                         timeReviewed$nameLocation), ]
+healthData$`GRADE DATE` <- lubridate::mdy(healthData$`GRADE DATE`)
+
+healthData <- setkey(healthData, nameLocation)
+
+healthData <- healthData[order(`GRADE DATE`), observation := 1:.N, 
+                         by = nameLocation]
+
+timeReviewed <- healthData[, 
+                           .(n = .N), 
+                           by = nameLocation][n > 10]
+
+reviewedRest <- healthData[which(healthData$nameLocation %in%
+                                   timeReviewed$nameLocation), ]
 ```
 
 Now we can fit a mixed model, with each location getting its own intercept.
 
 ```{r}
-observationModInt <- lmer(SCORE ~ observation + (1|nameLocation), data = reviewedRest)
+observationModInt <- lmer(SCORE ~ observation + 
+                            (1|nameLocation), 
+                          data = reviewedRest)
 ```
 
 In this model, we have a fixed effect for observation and we are allowing each location to have it's own random intercept. We have essentially created a model that will deal with the repeated measures for each of the locations.
 
 ```{r}
-reviewedRest %>%
-  arrange(nameLocation, observation) %>%
-  head(., 350) %>%
-  ggplot(., aes(observation, SCORE, group = nameLocation)) +
+plottingData <- head(reviewedRest[order(nameLocation, observation)], 350)
+
+ggplot(plottingData, aes(observation, SCORE, group = nameLocation)) +
   geom_point() +
   geom_smooth(method = "lm") +
   facet_wrap( ~ nameLocation) +
@@ -517,12 +569,18 @@ Our fixed effect here would indicate that we have a slight increase in scores as
 29.46 / (29.46 + 125.82)
 ```
 
-We see that the location alone accounts for nearly 20% of the variance in health scores.
+We see that the location alone accounts for a substantial chunk of the variance in health scores.
+
+```{r}
+MuMIn::r.squaredGLMM(observationModInt)
+```
 
 ### Adding Random Slopes
 
 ```{r}
-observationModSlope <- lme4::lmer(SCORE ~ observation + (1 + observation|nameLocation), data = reviewedRest)
+observationModSlope <- lmer(SCORE ~ observation + 
+                                    (1 + observation|nameLocation), 
+                                  data = reviewedRest)
 
 summary(observationModSlope)
 ```
@@ -532,17 +590,17 @@ The observation variance is telling us how much variability there is within the 
 If we use the predicted values of our model, we can see what our results will look like over the observations:
 
 ```{r}
-plottingData <- reviewedRest %>% 
-  ungroup() %>% 
-  mutate(mixedPrediction = predict(observationModSlope), 
-         lmPrediction = predict(lm(SCORE ~ observation, data = .))) %>% 
-  group_by(nameLocation)
+
+reviewedRest$mixedPrediction  <-  predict(observationModSlope)
+
+reviewedRest$lmPrediction <- predict(lm(SCORE ~ observation, 
+                                        data = reviewedRest))
   
 ggplot() + 
   geom_line(mapping = aes(observation, mixedPrediction, group = nameLocation), 
-            data = plottingData, alpha = .25) + 
+            data = reviewedRest, alpha = .25) + 
   geom_smooth(mapping = aes(x = observation, y = lmPrediction), 
-              data = plottingData, method = "lm", 
+              data = reviewedRest, method = "lm", 
               color = "red") +
   theme_minimal()
 ```

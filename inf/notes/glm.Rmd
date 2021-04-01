@@ -79,7 +79,7 @@ ggplot(xyDat, aes(x, y)) +
   theme_minimal()
 ```
 
-The regression line gets adjusted so that it has the shortest squared distance between each and every point.
+The regression line gets adjusted so that it has the shortest squared distance between each and every point and the line. To be a little more specific, the distance between the line and the point gets squared and each of those squared values gets summed -- these are called the sum of squares.
 
 You should definitely play with <a href="http://setosa.io/ev/ordinary-least-squares-regression/">this</a>!
 
@@ -141,7 +141,6 @@ It can alternatively be expressed as:
 $$R^2 = 1 -\frac {\Sigma(y - \hat{y})^2} {\Sigma(y_i-\bar{y})^2}$$
 
 If you have a bivariate model, it is literally $r^2$
-
 
 ```{r}
 x = rnorm(1000)
@@ -244,7 +243,7 @@ summary(basicExample)
 
 ### What Does This Mean For Me?
 
-We can see that there is chunk of information about our residuals. This distribution of residuals is telling us how much we are off in our predictions. our minimum is telling us the greatest over-prediction (observed - predicted) of the model and our maximum is telling us the greatest under-prediction. The median residual is offering the general model performance (are we generally under-predicting, over-predicting, or something else).
+We can see that there is chunk of information about our residuals. This distribution of residuals is telling us how much we are off in our predictions. Our minimum is telling us the greatest over-prediction (observed - predicted) of the model and our maximum is telling us the greatest under-prediction. The median residual is offering the general model performance (are we generally under-predicting, over-predicting, or something else).
 
 The intercept is the fitted value of Happiness.Score when everything else (i.e., our predictor coefficient) is equal to 0.
 
@@ -252,7 +251,11 @@ The coefficient for "Economy.GDP" is saying that for every unit increase in GDP,
 
 The standard error (**Std. Error**) is essentially providing the standard deviation of the coefficient -- it is the average distance that estimates fall from the regression line for that variable. As we see smaller standard errors, we see better predictions.
 
-Our *t*-values, and corresponding *p*-values (**Pr(>|t|)**) provide whether or not that variable is predictive of the DV. High *t*-values and low *p*-values are going to give us significant predictors.
+Our *t*-values, and corresponding *p*-values (**Pr(>|t|)**) provide whether or not that variable is predictive of the DV. High *t*-values and low *p*-values are going to give us significant predictors. Those *t*-values are the coefficient divided by the standard error. 
+
+<aside>
+We can determine the significance of the *t*-value by looking at its place in a distribution.
+</aside>
 
 As we go beyond the coefficients, we get into the model-based information. The *Residual standard error* gives us information about how our average amount of drift between our observed data and our predicted response. So, on average, our actual happiness scores deviate about .7174 points from our predicted scores. While this offers us a glimpse into our model's lack of fit, it is up to us to determine how bad this is as a model.
 
@@ -304,7 +307,6 @@ Using the plot method for our linear model will give us 4 very informative plots
 
 plot(twoPredictors)
 ```
-
 
 The "Residuals vs Fitted" plot is showing us our linear relationships within residuals -- it should appear random!
 
@@ -372,7 +374,6 @@ modlm = lm(y~., dfXy)
 summary(modlm)
 ```
 
-
 ### QR Decomposition
 
 ```{r}
@@ -392,7 +393,7 @@ coefs = solve(t(X)%*%X) %*% t(X)%*%y
 
 ## Factor Variables
 
-There is a lot of interesting data in the world. The following data comes from the Chicago:
+There is a lot of interesting data in the world. The following data comes from Chicago:
 
 ```{r}
 crimeScore = read.csv("http://nd.edu/~sberry5/data/crimeScore.csv")
@@ -429,7 +430,6 @@ factorTest2 = lm(SSL_SCORE ~ relevel(crimeScore$SEX_CODE_CD, ref = "X"),
 summary(factorTest2)
 ```
 
-
 ## Ordered Factors
 
 ```{r}
@@ -451,7 +451,6 @@ orderedMod = lm(SSL_SCORE ~ ageRec, data = crimeScore)
 
 summary(orderedMod)
 ```
-
 
 What R is returning is an *orthogonal polynomial contrast*.  We are dealing with k-1 higher-order approximations of the trends of the variable (linear, quadratic, cubic, ^4, etc.).  So in our model, we are looking at the effects of each trend level on our dependent variable.
 

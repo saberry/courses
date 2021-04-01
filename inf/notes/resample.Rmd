@@ -14,9 +14,10 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 At this point, we have been using single models pretty regularly. Let's fit a simple model:
 
 ```{r}
-library(dplyr)
+library(data.table)
+library(ggplot2)
 
-turnoverData <- read.csv("http://www.nd.edu/~sberry5/data/turnoverData2.csv", stringsAsFactors = FALSE)
+turnoverData <- fread("http://www.nd.edu/~sberry5/data/turnoverData2.csv")
 
 slim <- lm(startingSalary ~ age + numberPriorJobs, data = turnoverData)
 
@@ -26,6 +27,8 @@ turnoverData$fittedValue <- slim$fitted.values
 
 turnoverData$residValue <- slim$residuals
 ```
+
+We will just tuck that values away in our data for now, but we will return to them.
 
 # Resampled Models
 
@@ -56,7 +59,8 @@ bootDist <- turnoverData %>%
 
 visualise(bootDist) +
   shade_p_value(obs_stat = observedMean, direction = NULL) +
-  shade_confidence_interval(endpoints = get_ci(bootDist))
+  shade_confidence_interval(endpoints = get_ci(bootDist)) +
+  theme_minimal()
 ```
 
 While this serves as a very nice little demonstration, we need to utilize something a bit more substantial than this package.
@@ -73,12 +77,13 @@ Bootstraps are not a new technique, but they are easier to use now compared to w
 While not the original, this <a href="https://projecteuclid.org/download/pdf_1/euclid.ss/1177013815">article</a> by Efron and Tibshirani is excellent.
 </aside>
 
-Bootstrap samples provide some pretty cool advantages. Perhaps the biggest is that the underlying distribution of the variables does not need to be normal. As we generate a statistic for each of our samples, we can almost guarentee that our resulting distribution will be normal. We can also easily get the 95% confidence interval of the distribution of test statistics.
+Bootstrap samples provide some pretty cool advantages. Perhaps the biggest is that the underlying distribution of the variables does not need to be normal. As we generate a statistic for each of our samples, we can almost guarantee that our resulting distribution will be normal. We can also easily get the 95% confidence interval of the distribution of test statistics.
 
 In the regression setting, we might be interested in the *t*-values, the coefficients, or even the standard errors. We can compare group means with *t*-tests or even look at the differences. The moral of the story is that we can bootstrap any test statistic that we would like.
 
 ```{r}
-modelVars <- dplyr::select(turnoverData, startingSalary, age, numberPriorJobs)
+modelVars <- turnoverData[, 
+                          .(startingSalary, age, numberPriorJobs)]
 
 bootstrapping <- function(df) {
   df <- df
@@ -96,17 +101,22 @@ bootstrapping <- function(df) {
 
 bootstrapping(modelVars)
 
-bsRep <- replicate(1000, bootstrapping(modelVars), simplify = FALSE)
+bsRep <- replicate(1000, bootstrapping(modelVars), 
+                   simplify = FALSE)
 
 bsCombined <- do.call("rbind", bsRep)
 
-hist(bsCombined$statistic[bsCombined$term == "age"], col = "black")
+hist(bsCombined$statistic[bsCombined$term == "age"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["age","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 
-hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "black")
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 ```
 
 Let's also find the 95% confidence interval and plot them for age. 
@@ -118,9 +128,11 @@ ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "age"], .975)
 
 ciLower <- quantile(bsCombined$statistic[bsCombined$term == "age"], .025)
 
-hist(bsCombined$statistic[bsCombined$term == "age"], col = "slategray1")
+hist(bsCombined$statistic[bsCombined$term == "age"], 
+     col = "slategray1")
 
-abline(v = summary(slim)$coefficients["age","t value"], col = "goldenrod4", lwd = 2)
+abline(v = summary(slim)$coefficients["age","t value"], 
+       col = "goldenrod4", lwd = 2)
 
 abline(v = ciUpper, col = "sienna3", lwd = 2)
 
@@ -140,13 +152,17 @@ Let's check out the effect for `numberPriorJobs`:
 ```{r}
 meanEffect <- mean(bsCombined$statistic[bsCombined$term == "numberPriorJobs"])
 
-ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], .975)
+ciUpper <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], 
+                    .975)
 
-ciLower <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], .025)
+ciLower <- quantile(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], 
+                    .025)
 
-hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "slategray1")
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], 
+     col = "slategray1")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "goldenrod4", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], 
+       col = "goldenrod4", lwd = 2)
 
 abline(v = ciUpper, col = "sienna3", lwd = 2)
 
@@ -160,13 +176,17 @@ For our `numberPriorJobs` variable, 95% of the intervals contain the true *t*-va
 ```{r}
 meanEffect <- mean(bsCombined$estimate[bsCombined$term == "numberPriorJobs"])
 
-ciUpper <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], .975)
+ciUpper <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], 
+                    .975)
 
-ciLower <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], .025)
+ciLower <- quantile(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], 
+                    .025)
 
-hist(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], col = "slategray1")
+hist(bsCombined$estimate[bsCombined$term == "numberPriorJobs"], 
+     col = "slategray1")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "goldenrod4", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","Estimate"], 
+       col = "goldenrod4", lwd = 2)
 
 abline(v = ciUpper, col = "sienna3", lwd = 2)
 
@@ -175,7 +195,7 @@ abline(v = ciLower, col = "sienna3", lwd = 2)
 abline(v = meanEffect, col = "sienna3", lwd = 2)
 ```
 
-We have a 95% confidence interval that ranges from near 0 to close to 30. With my *t*-value distribution and the distribution of the coefficients, I might not super confident about the number of prior jobs being a significant predictor for starting salary; in other words, we are seeing a fair amount of variance.
+We have a 95% confidence interval that ranges from near 0 to close to 30. With my *t*-value distribution and the distribution of the coefficients, I might not be super confident about the number of prior jobs being a significant predictor for starting salary; in other words, we are seeing a fair amount of variance.
 
 Just for fun, let's do age's coefficient with ggplot2:
 
@@ -190,12 +210,12 @@ ciLower <- quantile(bsCombined$estimate[bsCombined$term == "age"], .025)
 
 ggplot(bsCombined[bsCombined$term == "age", ], aes(estimate)) +
   geom_histogram(fill = "slategray1") +
-  geom_vline(xintercept = ciLower) +
-  geom_vline(xintercept = ciUpper) +
-  geom_vline(xintercept = summary(slim)$coefficients["age","Estimate"]) + 
+  geom_vline(xintercept = ciLower, color = "sienna2") +
+  geom_vline(xintercept = ciUpper, color = "sienna2") +
+  geom_vline(xintercept = summary(slim)$coefficients["age","Estimate"], 
+             color = "goldenrod4") + 
   theme_minimal()
 ```
-
 
 ### Residual Bootstrapping
 
@@ -222,17 +242,22 @@ randomResid <- function(df) {
 
 randomResid(turnoverData)
 
-residRep <- replicate(1000, randomResid(turnoverData), simplify = FALSE)
+residRep <- replicate(1000, randomResid(turnoverData), 
+                      simplify = FALSE)
 
 residCombined <- do.call("rbind", residRep)
 
-hist(residCombined$statistic[residCombined$term == "age"], col = "black")
+hist(residCombined$statistic[residCombined$term == "age"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["age","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 
-hist(residCombined$statistic[residCombined$term == "numberPriorJobs"], col = "black")
+hist(residCombined$statistic[residCombined$term == "numberPriorJobs"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 ```
 
 We largely get the same results as we did with our boostrapping. Why might we want to perform this type of bootstrap? It put less trust in the model. This type of resampling approach would guess that the original regression model has the proper form (nothing really changes on the predictor variable side), but has no assumptions about how the residuals are distributed. It also removes the influence of any extreme scores within the model.
@@ -248,8 +273,10 @@ bootstrapping <- function(df, type = c("bs", "subsample")) {
   df <- df
   
   sampledRows <- switch(type, 
-                        bs = sample(1:nrow(df), nrow(df), replace = TRUE), 
-                        subsample = sample(1:nrow(df), round(nrow(df) * .75), replace = FALSE))
+                        bs = sample(1:nrow(df), nrow(df), 
+                                    replace = TRUE), 
+                        subsample = sample(1:nrow(df), round(nrow(df) * .75), 
+                                           replace = FALSE))
   
   df <- df[sampledRows, ]
   
@@ -260,17 +287,22 @@ bootstrapping <- function(df, type = c("bs", "subsample")) {
   return(results)
 }
 
-ssRep <- replicate(1000, bootstrapping(modelVars, type = "subsample"), simplify = FALSE)
+ssRep <- replicate(1000, bootstrapping(modelVars, type = "subsample"), 
+                   simplify = FALSE)
 
 ssCombined <- do.call("rbind", ssRep)
 
-hist(ssCombined$statistic[ssCombined$term == "age"], col = "black")
+hist(ssCombined$statistic[ssCombined$term == "age"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["age","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["age","t value"], 
+       col = "cornflowerBlue")
 
-hist(ssCombined$statistic[ssCombined$term == "numberPriorJobs"], col = "black")
+hist(ssCombined$statistic[ssCombined$term == "numberPriorJobs"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 ```
 
 Just like we did before, let's see the CIs.
@@ -278,9 +310,11 @@ Just like we did before, let's see the CIs.
 ```{r}
 mean(ssCombined$statistic[ssCombined$term == "age"])
 
-quantile(ssCombined$statistic[ssCombined$term == "age"], .975)
+quantile(ssCombined$statistic[ssCombined$term == "age"], 
+         .975)
 
-quantile(ssCombined$statistic[ssCombined$term == "age"], .025)
+quantile(ssCombined$statistic[ssCombined$term == "age"], 
+         .025)
 ```
 
 
@@ -311,15 +345,18 @@ permuteBS <- function(df) {
 ```
 
 ```{r}
-bsRep <- replicate(1000, permuteBS(modelVars), simplify = FALSE)
+bsRep <- replicate(1000, permuteBS(modelVars), 
+                   simplify = FALSE)
 
 bsCombined <- do.call("rbind", bsRep)
 
 hist(bsCombined$statistic[bsCombined$term == "age"])
 
-hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], col = "black")
+hist(bsCombined$statistic[bsCombined$term == "numberPriorJobs"], 
+     col = "black")
 
-abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], col = "cornflowerBlue", lwd = 2)
+abline(v = summary(slim)$coefficients["numberPriorJobs","t value"], 
+       col = "cornflowerBlue", lwd = 2)
 ```
 
 Our observed effect is way out in the tail of our null distribution: this gives a pretty clear idea that we can probably reject the null for this model.
@@ -329,7 +366,8 @@ We can also derive a one-tailed *p*-value for our null distribution:
 ```{r}
 (sum(bsCombined$statistic[bsCombined$term == "numberPriorJobs"] > summary(slim)$coefficients["numberPriorJobs","t value"])) / nrow(bsCombined)
 
-(sum(bsCombined$statistic[bsCombined$term == "age"] > summary(slim)$coefficients["age","t value"])) / nrow(bsCombined)
+(sum(bsCombined$statistic[bsCombined$term == "age"] > 
+       summary(slim)$coefficients["age","t value"])) / nrow(bsCombined)
 ```
 
 Or a two-tailed *p*-value:
@@ -355,24 +393,26 @@ timeRunner <- function(repNumber) {
 
 library(parallel)
 
-cl <- parallel::makeCluster(10)
+cl <- parallel::makeCluster(detectCores() - 1)
 
 clusterExport(cl, c("turnoverData", "timeRunner", "randomResid"))
 
 clusterEvalQ(cl, library(dplyr))
 
 t1 <- proc.time()
-residOut <- clusterEvalQ(cl, timeRunner(1000))
+residOut <- clusterEvalQ(cl, timeRunner(500))
 proc.time() - t1
+
+stopCluster(cl)
 
 residOut <- purrr::flatten(residOut) %>% 
   bind_rows(.)
 
 t1 <- proc.time()
-test4 <- timeRunner(10000)
+test4 <- timeRunner(3500) # Will produce the same number of bootstraps as above.
 proc.time() - t1
 
-stopCluster(cl)
+test4 <- do.call("rbind", test4)
 ```
 
 An alternative way is as follows:
@@ -386,7 +426,7 @@ timeRunner <- function(repNumber) {
   }, simplify = FALSE)
 }
 
-cl <- parallel::makeCluster(10)
+cl <- parallel::makeCluster(detectCores() - 1)
 
 clusterExport(cl, c("turnoverData", "timeRunner", "randomResid"))
 
@@ -415,4 +455,26 @@ residOut <- purrr::flatten(residOut) %>%
 stopCluster(cl)
 ```
 
-The parallel apply statement are a bit slower than what we previously used when we just evaluated the statement, but you should keep these in mind because they are very helpful to keep in mind if you are doing anything that a `for` loop might normally do.
+The parallel apply statement are a bit slower than what we previously used when we just evaluated the statement, but you should keep these in mind because they are very helpful if you are doing anything that a `for` loop might normally do.
+
+Using the parallel package is great, but the future is with `future`: the goal is to provide a streamlined approach to parallelization, without any OS-related problems.
+
+```{r}
+library(future)
+
+plan(multiprocess, workers = availableCores() - 1)
+
+futureReps <- future(replicate(1000, randomResid(turnoverData), 
+                               simplify = FALSE))
+
+t1 <- proc.time()
+testOut <- do.call("rbind", value(futureReps))
+proc.time() - t1
+
+t1 <- proc.time()
+oldReps <- replicate(1000, randomResid(turnoverData), 
+                     simplify = FALSE)
+proc.time() - t1
+```
+
+As you would expect, we are hitting a speedup of around 8X, with very little in the way of code!

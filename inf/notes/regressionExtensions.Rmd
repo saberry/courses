@@ -6,26 +6,83 @@ output: distill::distill_article
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, eval = TRUE, warning = FALSE, message = FALSE)
 
-execPay = data.table::fread("anncomp.csv")
+# execPay <- data.table::fread("anncomp.csv")
 ```
 
 
 # Various Antics
 
-For the most part, we have focused on things well within the clean, linear regression world. We need to spend some time on what happens when things (i.e., our data) is not how we imagined it. When we violate certain assumptions of a linear model, all is not lost. There are a variety of techniques available to you for taking care of violations like outliers and heteroscedasticity. This is where the name *robust regression* comes from -- these models are robust against assumption violations.
+For the most part, we have focused on things well within the clean, linear regression world. We need to spend some time on what happens when things (i.e., our data) is not how we imagined it. When we violate certain assumptions of a linear model, all is not lost. There are a variety of techniques available to you for taking care of violations like censored variables, outliers, and heteroscedasticity. This is where the name *robust regression* comes from -- these models are robust against assumption violations.
 
 ## Packages
 
 ```{r, eval = FALSE}
-install.packages(c("MASS",  "car", "quantreg", 
-                   "lmtest", "sandwich", "penalized", "gridExtra"))
+install.packages(c("MASS",  "car", "quantreg", "VGAM",
+                   "lmtest", "sandwich", "penalized", 
+                   "gridExtra"))
 ```
 
+<!-- ## Returning To A Life Of Crime -->
 
-## Our Data
+<!-- Remember this data? -->
 
-```{r, eval = FALSE}
-execPay = data.table::fread("http://www3.nd.edu/~sberry5/data/anncomp.csv")
+<!-- ```{r} -->
+<!-- library(data.table) -->
+<!-- library(ggplot2) -->
+
+<!-- crimeScore <- fread("http://nd.edu/~sberry5/data/crimeScore.csv") -->
+<!-- ``` -->
+
+<!-- When we were playing around with our regression models, we did so without really taking a solid look at the DV -- SSL_SCORE: -->
+
+<!-- ```{r} -->
+<!-- summary(crimeScore$SSL_SCORE) -->
+
+<!-- ggplot(crimeScore, aes(SSL_SCORE)) + -->
+<!--   geom_histogram() + -->
+<!--   theme_minimal() -->
+<!-- ``` -->
+
+<!-- The min/max values present some interesting issues: what comes above or below? We are essentially limiting the upper end of our score, even if some people could be more "violent" than other people with a score of 500. This is what is known as right-censoring. The reverse could be said for the lower value of 10. Does this mean that all of the people with a score of 200 are truly the same or could some be lower? This is left-censoring. -->
+
+<!-- Fortunately for us, the distribution is pretty normal and we don't get any weird stacking at the left or right. Still, though, we would need to be careful to not predict an impossible value. -->
+
+<!-- ```{r} -->
+<!-- library(VGAM) -->
+
+<!-- crimeScore <- crimeScore[AGE_CURR != "",  -->
+<!--                          .(SSL_SCORE, NARCOTICS_ARR_CNT,  -->
+<!--                            WEAPONS_ARR_CNT, AGE_CURR)] -->
+
+<!-- crimeScore <- na.omit(crimeScore) -->
+
+<!-- tobitMod <- vglm(SSL_SCORE ~ NARCOTICS_ARR_CNT + WEAPONS_ARR_CNT,  -->
+<!--                  tobit(Upper = 500),  -->
+<!--                  data = crimeScore) -->
+
+<!-- summary(tobitMod) -->
+
+<!-- cor(fitted(tobitMod), crimeScore$SSL_SCORE)^2 -->
+
+<!-- plot(tobitMod@fitted.values, crimeScore$SSL_SCORE) -->
+
+<!-- plot(fitted(tobitMod), resid(tobitMod)[, 1]) -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- linMod <- lm(SSL_SCORE ~ NARCOTICS_ARR_CNT + WEAPONS_ARR_CNT,  -->
+<!--              data = crimeScore) -->
+
+<!-- plot(linMod$fitted.values, crimeScore$SSL_SCORE) -->
+
+<!-- plot(fitted(linMod), resid(linMod)) -->
+<!-- ``` -->
+
+## Some Interesting Data
+
+```{r}
+dataLink <- "http://www3.nd.edu/~sberry5/data/anncomp.csv"
+execPay <- data.table::fread(dataLink)
 ```
 
 **Important Note** While this is real data, it is in no way, shape, or form clean data.  For our purposes, we are not going to worry about the sloppiness within.
@@ -41,9 +98,9 @@ Let's take a very quick detour towards OLS.  This might be old for some and new 
 ```{r}
 set.seed(1001)
 
-x = rnorm(20)
+x <- rnorm(20)
 
-y = rnorm(20)
+y <- rnorm(20)
 
 plot(x, y)
 
@@ -56,9 +113,9 @@ Outliers tend to have a higher "leverage" than the average value.  Leverage rela
 
 
 ```{r}
-a = sample(1:50, 10, replace = TRUE) 
+a <- sample(1:50, 10, replace = TRUE) 
 
-b = sample(22:29, 10, replace = TRUE)
+b <- sample(22:29, 10, replace = TRUE)
 
 mean(a)
 
@@ -89,9 +146,10 @@ Deleting valid data is out of the question -- always.  So what do we do?
 Now that we have a good idea about how outliers (i.e., values that exhibit high leverage) can mess with our OLS, we need something that is a little more robust to pulling on the regression line.  There are more than a few ways of dealing with these issues.  One such way is called *trimming*.  In trimming, we are choosing a percentile cut-point and trimming everything above/below that.  We can see how this shifts the mean:
 
 ```{r}
-x = 1:100
+x <- 1:100
 
-regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+regTrim <- data.frame(ariMean = mean(x), 
+                      trimMean = mean(x, trim = .1))
 
 regTrim
 ```
@@ -99,9 +157,10 @@ regTrim
 We don't see anything with our nice and tidy 1:100.  Let's look at something a bit more plausible:
 
 ```{r}
-x = sample(1:100, 100, replace = TRUE)
+x <- sample(1:100, 100, replace = TRUE)
 
-regTrim = data.frame(ariMean = mean(x), trimMean = mean(x, trim = .1))
+regTrim <- data.frame(ariMean = mean(x), 
+                      trimMean = mean(x, trim = .1))
 
 regTrim
 ```
@@ -113,15 +172,15 @@ Given the lines of work that you might want to pursue (and the people with whom 
 
 
 ```{r}
-x = 1:100
+x <- 1:100
 
-percentile05 = quantile(x, probs = .05)
+percentile05 <- quantile(x, probs = .05)
 
-percentile95 = quantile(x, probs = .95)
+percentile95 <- quantile(x, probs = .95)
 
-x[which(x < percentile05)] = percentile05
+x[which(x < percentile05)] <- percentile05
 
-x[which(x > percentile95)] = percentile95
+x[which(x > percentile95)] <- percentile95
 
 x
 ```
@@ -136,7 +195,7 @@ There are many different weighting estimators, but we are going to focus on *bis
 ```{r}
 library(MASS)
 
-olsTest = lm(SALARY ~ AGE, data = execPay)
+olsTest <- lm(SALARY ~ AGE, data = execPay)
 
 summary(olsTest)
 
@@ -146,11 +205,11 @@ abline(olsTest, col = "#ff5503")
 
 plot(olsTest$fitted.values, olsTest$residuals)
 
-robTest = rlm(SALARY ~ AGE, data = execPay, psi = psi.bisquare)
+robTest <- rlm(SALARY ~ AGE, data = execPay, psi = psi.bisquare)
 
 summary(robTest)
 
-comparisonData = data.frame(weights = robTest$w, 
+comparisonData <- data.frame(weights = robTest$w, 
                      residuals = robTest$residuals)
 
 head(comparisonData, 25)
@@ -161,7 +220,7 @@ head(comparisonData[order(comparisonData$weights), ], 25)
 
 ## Summary
 
-Outliers are real and can cause problems, but deleting them is out of the question.  In general, but not always, deleting outliers is done for the sole purpose of *p*-hacking.  There may be a day in your future when you listen to a colleaugues present results for a project; you need to be on the look out for poor data practices and this is a clear red flag.  If you have outliers, you can use iteratively re-weighted least squares to "turn down" the leverage of the outliers.  The `rlm` function in the "MASS" package will manage the hardwork for you.
+Outliers are real and can cause problems, but deleting them is something that you should really think about.  In general, but not always, deleting outliers is done for the sole purpose of *p*-hacking.  There may be a day in your future when you listen to colleagues present results for a project; you need to be on the look out for poor data practices and this is a clear red flag.  If you have outliers, you can use iteratively re-weighted least squares to "turn down" the leverage of the outliers.  The `rlm` function in the "MASS" package will manage the hardwork for you.
 
 # Quantile Regression 
 
@@ -170,11 +229,11 @@ Outliers are real and can cause problems, but deleting them is out of the questi
 Quantile regression is neat...plain and simple.  While it may not be the most commonly used tool in your toolbox, it will be one that you are really happy to have when the need arises.  Since we just got off the topic of outliers and extreme scores, let's start there.  We just saw how down-weighting took care of our problems with outliers.   When we are doing an OLS regression, we are looking at averages (i.e., we are modeling the mean of y as a function of x).  In quantile regression, however, we are using the 50% (the median) instead of the average (we are looking at the DV).  In the case of large ouliers, this becomes very handy.  For well-behaved data, we have equal means and medians.  But in reality, this is not always the case.  Let's consider the following:
 
 ```{r}
-ideal = 1:10
+ideal <- 1:10
 mean(ideal)
 median(ideal)
 
-lessIdeal = c(1:9, 20)
+lessIdeal <- c(1:9, 20)
 mean(lessIdeal)
 median(lessIdeal)
 ```
@@ -187,7 +246,8 @@ Roger Koenker has likely made the most contributions to quantile regression from
 ```{r}
 library(quantreg)
 
-quantTest = rq(SALARY ~ AGE, tau = .5, data = execPay)
+quantTest <- rq(SALARY ~ AGE, tau = .5, 
+                data = execPay)
 
 summary(quantTest)
 ```
@@ -197,15 +257,18 @@ You can interpret these models in the same way that you would interpret a linear
 Quantile regression is not a one-trick-pony, though.  Remember, it is called quantile regression -- not median regression.  Being able to compute a median regression is just a nice by-product.  What we can do with quantile regression is to model different quantiles of the same data.  This becomes very important with certain populations.  In an organizational environment, you will have various levels of performance that likely follow a relatively normal distribution.  If we run some normal linear models, we may not really learn too much about how those out at the tails behave.  Depending on the question we are asking, we may not care.  But if the question is how to improve employee performance, we have some real thinking to do.  
 
 ```{r}
-quantTest25 = rq(SALARY ~ AGE, tau = .25, data = execPay)
+quantTest25 <- rq(SALARY ~ AGE, tau = .25, 
+                  data = execPay)
 
 summary(quantTest25)
 
-quantTest50 = rq(SALARY ~ AGE, tau = .5, data = execPay)
+quantTest50 <- rq(SALARY ~ AGE, tau = .5, 
+                  data = execPay)
 
 summary(quantTest50)
 
-quantTest75 = rq(SALARY ~ AGE, tau = .75, data = execPay)
+quantTest75 <- rq(SALARY ~ AGE, tau = .75, 
+                  data = execPay)
 
 summary(quantTest75)
 
@@ -232,13 +295,9 @@ Recall that one of our assumptions about regression is that we don't have hetero
 We can test it in a few different ways: graphically and algorithimcally.
 
 ```{r}
-library(ggplot2)
+summary(olsTest)
 
-testLM = lm(price ~ carat, data = diamonds)
-
-summary(testLM)
-
-plot(testLM$fitted.values, testLM$residuals)
+plot(olsTest$fitted.values, olsTest$residuals)
 ```
 
 Do you see any pattern to this plot?  If so, then we have heteroscedasticity (thus, problems).  
@@ -246,33 +305,39 @@ Do you see any pattern to this plot?  If so, then we have heteroscedasticity (th
 We can also use the bptest() function from the lmtest package to perform the Breusch-Pagan test:
 
 ```{r}
-lmtest::bptest(testLM)
+lmtest::bptest(olsTest)
 ```
 
-Well what do we have here?  The null hypothesis is that the residuals are constant.  Our eyeballs told us that we have problems and our fancy little test statistic confirmed it.  The model is shot, we should probably all go home now.
+Well what do we have here?  The null hypothesis is that the residuals are constant -- we can reject that null and conclude that we do have heteroscedasticity.  Our eyeballs told us that we have problems and our fancy little test statistic confirmed it.  The model is shot, we should probably all go home now.
 
-Kidding aside, we could tackle this in a few different ways.  In days of yore, we would have conducted a Box-Cox Test to find out how we should do some transformations.  Fortunately, modern machines enable us to do some pretty fancy stuff that people could not really do before.
+Kidding aside, we could tackle this in a few different ways.  In days of yore, we might have conducted a Box-Cox Test to find out how we should do some transformations.  Fortunately, modern machines enable us to do some pretty fancy stuff that people could not really do before.
 
-## How
+### How
 
 We are going to get into some weird stuff here.  Let's look at the variance-covariance matrix for our model:
 
 ```{r}
-vcov(testLM)
+vcov(olsTest)
 ```
 
 The diagonals are the variances (the spread from the mean) and the off-diagonals are the covariances (how one variable varies with another variable).  We can do some neat things with this little matrix:
 
 ```{r}
-sqrt(diag(vcov(testLM)))
+sqrt(diag(vcov(olsTest)))
 ```
 
-Do those look familiar?  If they don't, they are the standard errors we got from our model output.  The variances are just telling us about the sampling distribution for our model.  The covariances are mostly used to form our confidence intervals.  This `vcov` matrix came from our model, but our model has problems.  We can take a look at some different vcov matrices:
+Do those look familiar?  If they don't, they are the standard errors we got from our model output.  The variances are just telling us about the sampling distribution for our model.  The covariances are mostly used to form our confidence intervals.  
+
+<aside>
+A correlation matrix and a variance/covariance matrix can be used for a ridiculous number of statistical techniques.
+</aside>
+
+This `vcov` matrix came from our model, but our model has problems.  We can take a look at some different vcov matrices:
 
 ```{r}
 library(sandwich)
 
-vcovHC(testLM)
+vcovHC(olsTest)
 ```
 
 Much like we have different ways of computing every statistic (just think -- there are several different types of means), we have *many* alternative ways to construct our variance-covariance matrix.  
@@ -281,9 +346,10 @@ To see the formula for one such correction (one of several in the Huber-White fa
 
 If we use a different vcov matrix to test our coefficients, we get the following: 
 
-
 ```{r}
-lmtest::coeftest(testLM, vcov = vcovHC)
+lmtest::coeftest(olsTest, vcov = vcovHC)
+
+summary(olsTest)
 ```
 
 Do you see the difference?  By using a heteroscedasticity-consistent covariance matrix to test our coefficients, we have more reasonable estimates.

@@ -1,7 +1,7 @@
 ---
-title: "General Linear Model"
+title: "The General Linear Model"
 description: |
-  Expanded Topics
+  Extending Effects
 output:
   distill::distill_article:
     toc: true
@@ -12,7 +12,15 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-We have already seen the basics of the general linear model (linear regression, *t*-tests, and ANOVAs). Now, we are going to get into some expanded topics related to the general linear model: centering, interactions, two-way ANOVAs, and statistical power.
+You have already seen the basics of the general linear model (linear regression, *t*-tests, and ANOVAs). Now, we are going to get into some expanded topics related to the general linear model: centering, interactions, and mediation. 
+
+## Main Ideas
+
+Centering -- Makes interpretable intercepts
+
+Interactions -- Adds context to models
+
+Mediation -- Adds paths to models
 
 ## Centering
 
@@ -21,11 +29,11 @@ Think back to what the intercept means in the context of a linear regression mod
 What if we want to have a meaningful intercept?
 
 ```{r}
-crimeScore = data.table::fread("http://nd.edu/~sberry5/data/crimeScore.csv")
+library(data.table)
 
-library(dplyr)
+crimeScore <- fread("http://nd.edu/~sberry5/data/crimeScore.csv")
 
-uncentered = lm(SSL_SCORE ~ NARCOTICS_ARR_CNT, data = crimeScore)
+uncentered <- lm(SSL_SCORE ~ NARCOTICS_ARR_CNT, data = crimeScore)
 
 summary(uncentered)
 
@@ -37,9 +45,14 @@ plot(uncentered$model$SSL_SCORE, uncentered$model$NARCOTICS_ARR_CNT)
 Now we can do some very simple centering: we can just subtract the mean of the item from every observation of that item.
 
 ```{r}
-centeredMod <- crimeScore %>% 
-  mutate(narcCenter = NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, na.rm = TRUE)) %>% 
-  lm(SSL_SCORE ~ narcCenter, data = .)
+crimeScore[, narcCenter := NARCOTICS_ARR_CNT - mean(NARCOTICS_ARR_CNT, 
+                                                    na.rm = TRUE)]
+
+# Notice how I didn't assign crimeScore back to crimeScore?
+# The skull operator handled it for us!
+
+centeredMod <- lm(SSL_SCORE ~ narcCenter, 
+                  data = crimeScore)
 
 summary(centeredMod)
 
@@ -50,16 +63,71 @@ plot(centeredMod$model$SSL_SCORE, centeredMod$model$narcCenter)
 
 We can see that nothing really changes except for the intercept's coefficient. Let's think about what is being said here: with narcotics arrest count being a 0, we would expect the SSL score to be 277 on average. Since we centered that narcotics variable, though, the 0 is actually the mean of that variable (2.06). 
 
-## Interactions
+### Standardizing
 
 We will get back to more interesting data in a second, but let's look at some mtcars data first (we can't possibly learn anything new about it):
+
+```{r}
+cor(mtcars[, c("hp", "disp", "wt")])
+```
+
+That is a pretty strong correlation. Let's see how they behave in a model:
+
+```{r}
+testMod <- lm(mpg ~ hp + disp + wt, data = mtcars)
+```
+
+Since those variable had pretty strong correlations, let's look at the *variance inflation factor* for each:  
+
+$$\frac{1}{1-R^2_i}$$
+
+```{r}
+summary(lm(hp ~ disp + wt, data = mtcars))
+```
+
+We can plug our $R^2$ value in:
+
+```{r}
+1 / (1 - .6346)
+```
+
+VIF starts at 1 and goes up from there. Anything over 5 would indicate worrisome multicolinearity. 
+
+```{r}
+car::vif(testMod)
+```
+
+When modeling these main effects, nothing is going to change this problem. If we are going to be using our variable as *interactions*, we might want to *standardize* these variables -- we would center our items and then divide by the standard deviation of the item:
+
+```{r}
+mtcarsDT <- as.data.table(mtcars)
+
+scaleVars <- c("hp", "disp", "wt")
+
+mtcarsDT[, 
+         (scaleVars) := lapply(.SD, function(x) scale(x)), 
+         .SDcols = scaleVars]
+
+summary(mtcarsDT)
+```
+
+```{r}
+scaledMod <- lm(mpg ~ hp + disp + wt, data = mtcarsDT)
+
+summary(scaledMod)
+```
+
+## Interactions
+
+Sticking with some boring data for just a little while longer:
 
 ```{r}
 library(ggplot2)
 
 ggplot(mtcars, aes(mpg, hp)) + 
   geom_point() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm") +
+  theme_minimal()
 ```
 
 We can clearly see the effect of horsepower on mpg.
@@ -69,16 +137,17 @@ Let's add some additional context to this visualization:
 ```{r}
 ggplot(mtcars, aes(mpg, hp, color = as.factor(cyl))) + 
   geom_point() +
-  geom_smooth(method = "lm", se = FALSE)
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
 ```
 
 We have already been doing stuff like this, but not really thinking about the model that could test it.
 
-
 Let's start by looking at a multiple regression with 2 predictor variables:
 
 ```{r}
-twoVars = lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, data = crimeScore)
+twoVars <- lm(SSL_SCORE ~ WEAPONS_ARR_CNT + NARCOTICS_ARR_CNT, 
+             data = crimeScore)
 
 summary(twoVars)
 ```
@@ -89,13 +158,8 @@ Let's explore interactions (moderation to some). A key idea here is that interac
 
 "It depends on Z's value."
 
-
-<aside>
-A thing called *mediation* also exists, but it tests a slightly different model.
-</aside>
-
 ```{r}
-intMod = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * NARCOTICS_ARR_CNT, data = crimeScore)
+intMod <- lm(SSL_SCORE ~ WEAPONS_ARR_CNT * NARCOTICS_ARR_CNT, data = crimeScore)
 
 summary(intMod)
 ```
@@ -112,25 +176,51 @@ To predict what the score value would be for certain values of weapons arrests, 
 
 $$score = b_0 + (b_1 + b3*narcotics)weapons + b_2(narcotics)$$
 
-
+Before we look at those interactions, let's compare how our models fit:
 
 ```{r}
+anova(twoVars, intMod)
+```
+
+We can compare some information about the residuals to compute an *F* statistic and the accompanying *p*-value -- these models are no different from each other.
+
+```{r, results='asis'}
+stargazer::stargazer(twoVars, intMod, type = "html", header = FALSE)
+```
+
+
+```{r, fig.width=10}
 library(effects)
 
-modEffects = effect("WEAPONS_ARR_CNT*NARCOTICS_ARR_CNT", intMod)
+modEffects <- effect("WEAPONS_ARR_CNT*NARCOTICS_ARR_CNT", intMod)
 
 plot(modEffects)
 ```
 
-This is offering the relationship between weapons arrests and score at various levels of narcotics arrests.
+This is offering the relationship between weapons arrests and score at various levels of narcotics arrests. What we are really looking for are slopes that differ from each other. Knowing that we didn't find a significant interaction in our model, we probably shouldn't be surprised that we don't see any slope difference here.
+
+The five levels that get plotted over is what would lead us towards something like a "floodlight analysis". Below is more of a "spotlight analysis":
 
 ```{r}
-crimeScoreGender = crimeScore %>% 
-  filter(SEX_CODE_CD != "X") %>%
-  dplyr::select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT) %>% 
-  mutate(SEX_CODE_CD = as.factor(SEX_CODE_CD))
+library(interactions)
 
-intMod2 = lm(SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD, data = crimeScoreGender)
+interact_plot(intMod, pred = WEAPONS_ARR_CNT, modx = NARCOTICS_ARR_CNT)
+```
+
+```{r}
+crimeScoreGender <- 
+  crimeScore[SEX_CODE_CD != "X", .(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT)
+  ][, SEX_CODE_CD := as.factor(SEX_CODE_CD)]
+
+# Below is the dplyr equivalent to what we just used.
+# Try it and see how slow it is...smh.
+
+# crimeScoreGender = crimeScore %>% 
+#   filter(SEX_CODE_CD != "X") %>%
+#   dplyr::select(SSL_SCORE, SEX_CODE_CD, WEAPONS_ARR_CNT) %>% 
+#   mutate(SEX_CODE_CD = as.factor(SEX_CODE_CD))
+
+intMod2 <- lm(SSL_SCORE ~ WEAPONS_ARR_CNT * SEX_CODE_CD, data = crimeScoreGender)
 
 summary(intMod2)
 ```
@@ -140,7 +230,7 @@ Compared to women, men's score increases by 19.25 on average for each weapons ar
 Sometimes it helps to see what is going on with a plot:
 
 ```{r}
-modEffects = effect("WEAPONS_ARR_CNT*SEX_CODE_CD", intMod2)
+modEffects <- effect("WEAPONS_ARR_CNT*SEX_CODE_CD", intMod2)
 
 plot(modEffects)
 ```
@@ -148,21 +238,32 @@ plot(modEffects)
 Here is another way (and probably easier) to visualize this effect:
 
 ```{r}
-library(interactions)
-
 interact_plot(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
 ```
 
+The visualization is telling, but the simple slope test is what will tell us which part of the model is significant:
 
 ```{r}
 sim_slopes(intMod2, pred = WEAPONS_ARR_CNT, modx = SEX_CODE_CD)
 ```
 
-For the sake of it, let's look at one more continuous by continuous interaction:
+We see that the simple slope for F is not significant, whereas the simple slope for M is significant. This offers the "driver" of the relationship.
 
+And another way:
 
 ```{r}
-domNarc = lm(SSL_SCORE ~ NARCOTICS_ARR_CNT * DOMESTIC_ARR_CNT , data = crimeScore)
+sjPlot::plot_model(intMod2, type = "int", 
+                    title = "") +
+  ggplot2::theme_minimal()
+```
+
+Those plots offered the same information, just slightly different looks -- pick whichever one you like most!
+
+For the sake of it, let's look at one more continuous by continuous interaction:
+
+```{r}
+domNarc <- lm(SSL_SCORE ~ NARCOTICS_ARR_CNT * DOMESTIC_ARR_CNT, 
+              data = crimeScore)
 
 summary(domNarc)
 ```
@@ -173,46 +274,199 @@ Let's look at these interactions:
 probe_interaction(domNarc, pred = NARCOTICS_ARR_CNT, modx = DOMESTIC_ARR_CNT)
 ```
 
+```{r}
+sjPlot::plot_model(domNarc, type = "int", 
+                    title = "") + 
+  theme_minimal()
+```
+
 And also some categorical interactions:
 
 ```{r}
-crimeScore2 = crimeScore %>% 
-  filter(AGE_CURR != "" & SEX_CODE_CD != "X") %>% 
-  mutate(AGE_CURR = relevel(as.factor(.$AGE_CURR), ref = "less than 20"))
+crimeScore2 <- crimeScore[AGE_CURR != "" & SEX_CODE_CD != "X", 
+           AGE_CURR_Rec := .(relevel(as.factor(AGE_CURR), ref = "less than 20"))]
 
-sexMod = lm(SSL_SCORE ~ SEX_CODE_CD, data = crimeScore2)
+# crimeScore2 = crimeScore %>% 
+#   filter(AGE_CURR != "" & SEX_CODE_CD != "X") %>% 
+#   mutate(AGE_CURR = relevel(as.factor(.$AGE_CURR), ref = "less than 20"))
+
+sexMod <- lm(SSL_SCORE ~ SEX_CODE_CD, data = crimeScore2)
 
 summary(sexMod)
 
-ageMod = lm(SSL_SCORE ~ AGE_CURR, data = crimeScore2)
+ageMod <- lm(SSL_SCORE ~ AGE_CURR_Rec, data = crimeScore2)
 
 summary(ageMod)
 
-sexAge = lm(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR, data = crimeScore2)
+sexAge <- lm(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR_Rec, data = crimeScore2)
 
 summary(sexAge)
 ```
 
 ```{r}
-cat_plot(sexAge, pred = SEX_CODE_CD, modx = AGE_CURR, geom = "line")
+cat_plot(sexAge, pred = SEX_CODE_CD, modx = AGE_CURR_Rec, 
+         geom = "line")
 ```
 
+## Mediation
 
-## Two-way ANOVA
+As noted earlier, interactions are often referred to as moderators. Just to reiterate, they are testing if the relationship between the X & Y change when introducing a Z. A slightly different model details mediation -- the relationship between X and Y exists because M directs the relationship. 
 
-Remember that whole issue with the ANOVA being the flipped regression, we can highlight that perfectly here:
+```{r, echo = FALSE}
+library(DiagrammeR)
+
+library(magrittr)
+
+node_df <-
+  create_node_df(
+    n = 3,
+    label = c("X", "M", "Y"))
+
+edf <-
+  create_edge_df(
+    from = c(1, 1, 2),
+    to = c(2, 3, 3),
+    rel = as.vector(c("A", "B", "C")))
+
+graph <-
+  create_graph(
+    nodes_df = node_df,
+    edges_df = edf, 
+    attr_theme = "lr")
+
+graph %>% render_graph(output = "graph")
+```
+
+We can refer to these paths as follows: 
+
+X -> M = a
+
+M -> Y = b
+
+X -> Y = c`
+
+Let's think how this might look conceptually: 
+
+Age -> Salary -> Job Satisfaction
+
+We are saying that the effect of age on job satisfaction goes through salary. In other words, age doesn't increase job satisfaction -- age increases salary, which in turn increases job satisfaction. 
+
+To test this mediation model, we need to construct 4 separate regression models:
+
+Model 1: Test path c (X predicts Y)
+
+Model 2: Test path a (X predicts M)
+
+Model 3: Test path b (M predicts Y)
+
+If all of these yield significant results, you can go to:
+
+Model 4: Use X and M as predictor to Y
+
+If the effect of M on Y is significant in Model 4, then there is mediation: full mediation if X is not significant or partial mediation if X is significant. As awesome as a fully-mediated relationship sounds, it is not something that you are going to encounter all that often; instead, partial mediation is where things tend to fall.
+
+Let's try it out with our crime data:
+
+```{r, echo = FALSE}
+node_df <-
+  create_node_df(
+    n = 3,
+    label = c("Narcotics", "Weapons", "Score"))
+
+edf <-
+  create_edge_df(
+    from = c(1, 1, 2),
+    to = c(2, 3, 3),
+    rel = as.vector(c("A", "B", "C")))
+
+graph <-
+  create_graph(
+    nodes_df = node_df,
+    edges_df = edf, 
+    attr_theme = "lr")
+
+graph %>% render_graph(output = "graph")
+```
+
+Just to put some words behind this -- we are proposing that narcotics arrests increase weapons arrests, which in turn leads to increased crime scores.
 
 ```{r}
-summary(aov(SSL_SCORE ~ SEX_CODE_CD + AGE_CURR, data = crimeScore2))
+mediationData <- crimeScore[, 
+                            .(SSL_SCORE, NARCOTICS_ARR_CNT, WEAPONS_ARR_CNT)]
 
-summary(aov(SSL_SCORE ~ SEX_CODE_CD * AGE_CURR, data = crimeScore2))
+mediationData <- na.omit(mediationData)
+
+pathC <- lm(SSL_SCORE ~ NARCOTICS_ARR_CNT, 
+            data = mediationData)
+
+summary(pathC)
 ```
+
+Our `pathC` object (Model 1) is significant, so let's go to the next step:
 
 ```{r}
-TukeyHSD(aov(SSL_SCORE ~ SEX_CODE_CD + AGE_CURR, data = crimeScore2), which = "SEX_CODE_CD:AGE_CURR")
+pathA <- lm(WEAPONS_ARR_CNT ~ NARCOTICS_ARR_CNT, 
+            data = mediationData)
+
+summary(pathA)
 ```
 
-# Effect Sizes
+Model 2 -- the effect of narcotics on weapons -- is also significant. Things are looking promising so far.
+
+```{r}
+pathB <- lm(SSL_SCORE ~ WEAPONS_ARR_CNT, 
+            data = mediationData)
+
+summary(pathB)
+```
+
+Model 3 is also looking good! Weapons certainly has an effect on crime score.
+
+```{r}
+pathFull <- lm(SSL_SCORE ~ NARCOTICS_ARR_CNT + WEAPONS_ARR_CNT, 
+               data = mediationData)
+
+summary(pathFull)
+```
+
+Since all predictors continue to be significant, we would have partial mediation. It would be a weak moderation, though, because we did not reduced the magnitude of narcotics when the mediator was included in the model. 
+
+We can also test the indirect effect of X through M to Y by subtracting coefficients from models 1 and 4. 
+
+```{r}
+# This is Judd and Kenny's method:
+
+pathC$coefficients["NARCOTICS_ARR_CNT"] - 
+  pathFull$coefficients["NARCOTICS_ARR_CNT"]
+```
+
+Or by multiplying the full path moderator's coefficient (model 4) from path a's coefficient (model 2)
+
+```{r}
+# This is Sobel's method:
+
+pathFull$coefficients["WEAPONS_ARR_CNT"] * 
+  pathA$coefficients["NARCOTICS_ARR_CNT"]
+```
+
+And those are equal! It doesn't matter which one you choose, but I find Judd and Kenny to be a little more straightforward.
+
+```{r}
+library(mediation)
+
+medTest <- mediate(pathA, pathFull, sims = 50, 
+                    boot = TRUE, 
+                    treat = "NARCOTICS_ARR_CNT", 
+                    mediator = "WEAPONS_ARR_CNT")
+summary(medTest)
+```
+
+Some of those values should look pretty similar to what we have already done! ACME (Average Causal Mediation Effect) is the indirect effect where we multiplied or substracted our coefficients. ADE (Average Direct Effect) is from our full model. The total effect is what we found from pathC. We are most focused on ACME here, and this significant effect would indicate that we have a significant indirect effect.
+
+We can learn a lot through mediation (it can also be combined with interactions to form mediated moderation or moderated mediation), but it should be used with a great deal of though; it is not just something you start testing models to see how they work. Typically, you need to have a pretty good theoretical reason to dive into mediation.
+
+
+## Effect Sizes
 
 Effect sizes, in conjunction with our *p*-values, will provide a really good idea about the strength of the difference.
 
@@ -228,17 +482,21 @@ $$ d = \frac{\mu_1-\mu_2}{\sigma_{pooled}} $$
 
 $$ SD_{pooled} = \sqrt{\frac{\sigma_1^2 + \sigma_2^2}{2}} $$
 
-
 We are subtracting the mean of one group from another and dividing by the standard deviation.
 
 ```{r}
 library(dplyr)
 
-crimeScoreGender %>%
-  group_by(SEX_CODE_CD) %>%
-  summarize(mean = mean(SSL_SCORE),
-            sd = sd(SSL_SCORE),
-            n = n())
+crimeScoreGender[, .(mean = mean(SSL_SCORE), 
+                     sd = sd(SSL_SCORE), 
+                     n = .N), 
+                 by = SEX_CODE_CD]
+
+# crimeScoreGender %>%
+#   group_by(SEX_CODE_CD) %>%
+#   summarize(mean = mean(SSL_SCORE),
+#             sd = sd(SSL_SCORE),
+#             n = n())
 
 sd(crimeScoreGender$SSL_SCORE)
 ```
@@ -253,7 +511,7 @@ We can do it by hand:
 And with the pooled method:
 
 ```{r}
-sdPooled = sqrt((52.74889^2 + 59.52397^2) / 2)
+sdPooled <- sqrt((52.74889^2 + 59.52397^2) / 2)
 
 (283.46-278.689) / sdPooled
 ```
@@ -271,7 +529,7 @@ mes(m.1 = 283.46, m.2 = 278.689,
     n.1 = 96307, n.2 = 302320)
 ```
 
-# Power Analysis
+## Power Analysis
 
 Rules of thumb have been around for a long time and have changed over the years -- maybe you learned that you needed 20 rows per predictor, or maybe even 50 rows per predictor. Instead of trusting outdated advice, use actual science to determine how many people you need to find if a difference exists.
 
@@ -287,7 +545,7 @@ We need three of the following parameters:
 
 We **should** always be doing this *a priori*.
 
-## Power
+### Power
 
 Power is ability to detect an effect. In NHST words, we are trying to determine if we correctly reject the null hypothesis.
 
@@ -295,7 +553,7 @@ Power is ability to detect an effect. In NHST words, we are trying to determine 
 
 - Type II errors: Reject a false $H_{o}$ (false negative -- saying something is not there when it is)
 
-## Putting It All Together
+### Putting It All Together
 
 Let's use the <span class="func">pwr</span> package.
 
@@ -319,89 +577,17 @@ In the function:
 
 Power is typically set at .8, because it represents a 4 to 1 trade between Type II and Type I errors.
 
-
-## Different Test, Different Power Tests
+### Different Test, Different Power Tests
 
 We just did a test for a linear regression model.
 
 Here is one for a *t*-test:
 
 ```{r}
-tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8,
+tPower <- pwr.t.test(n = NULL, d = 0.1, power = 0.8,
                     type = "two.sample", alternative = "greater")
 
 plot(tPower)
 ```
 
-
-
-
 Let theory be your guide (but be realistic).
-
-## Power
-
-Power is ability to detect an effect.
-
-- In NHST words, we are trying to determine if we correctly reject the null hypothesis.
-
-- Type I errors: Reject a true $H_{o}$ (false positive)
-
-- Type II errors: Reject a false $H_{o}$ (false negative)
-
-We typically set power to be .8 or .9 (depending upon the context). Th
-
-## Putting It All Together
-
-Let's use the `pwr` package.
-
-Here is how we can determine a necessary sample size for a regression. We just need the numerator and denominator degrees of freedom for the *F*-test.
-
-We also need to specify the size of our effect. Here is an estimate for a medium effect size:
-
-
-```{r}
-library(pwr)
-
-pwr::cohen.ES("f2", "medium")
-```
-
-We can pop that into the `pwr.f2.test` function:
-
-```{r}
-pwr.f2.test(u = 1, v = NULL, f2 = .15, power = .8)
-```
-
-In the function: 
-
-- u is the numerator df (*k* - 1)
-
-- v is the denominator df (*n* - *k*) 
-
-- f2 is the effect size
-
-
-## Your Turn!
-
-Use various values to do an *a priori* power analyses.
-
-How does the proposed sample size change as the number of predictors goes up?
-
-What if you tweak the significance level?
-
-What about power?
-
-
-## Different Test, Different Power Tests
-
-We just did a test for a linear regression model.
-
-Here is one for a *t*-test:
-
-```{r}
-tPower = pwr.t.test(n = NULL, d = 0.1, power = 0.8, 
-                    type= "two.sample", alternative = "greater")
-
-plot(tPower)
-```
-
-  

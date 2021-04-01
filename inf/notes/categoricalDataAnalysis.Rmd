@@ -14,14 +14,17 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, comment = "
 ## Packages
 
 ```{r, eval = FALSE}
-install.packages(c("UpSetR", "ggmosaic", "vcd", "rgl", "vcdExtra"))
+install.packages(c("UpSetR", "ggmosaic", "vcd", 
+                   "rgl", "vcdExtra", "DescTools"))
 ```
-
 
 Categorical data is common. You will see it in just about any domain that you would want to explore. It does, however, have its own unique set of challenges. For example, we cannot get means for categorical variables and we cannot get correlations between two categorical values. 
 
 What is important, though, is what we can do with categorical data. 
 
+<aside>
+Throughout most document packages are denoted by purple (<span class="pack">ggplot2</span>) and functions are orange (<span class="func">ggplot</span>). Clicking on the purple words won't do anything `r emo::ji("rofl")`
+</aside>
 
 ## As A Data Type
 
@@ -34,7 +37,6 @@ ggplot(mtcars, aes(mpg, hp, color = cyl)) +
   geom_point() + 
   theme_minimal()
 ```
-
 
 Nothing really looks amiss here, right? We have our x and y axes and we have the points colored by cylinder. But...what do you know about cylinders in a vehicle? I am not a mechanic, but I am pretty sure that there are not many 8.5 cylinder cars on the road.
 
@@ -51,12 +53,11 @@ Instead of a color gradient, we have a nice discreet color scheme that makes it 
 In the second <span class="func">ggplot</span> chunk, you might have noticed that we converted our cyl variable to a factor with the <span class="func">as.factor</span> function. This function, and the related <span class="func">as.numeric</span> and <span class="func">as.character</span>, serve the same purpose. You will often see data like the following:
 
 ```{r}
-factorExample = data.frame(numeric = 1:10, 
+factorExample <- data.frame(numeric = 1:10, 
                            factor = factor(seq(1, 5.5, by = .5)))
 
 factorExample
 ```
-
 
 Great! The data looks perfect the way we see it. You might be interested in looking at the means of your variables:
 
@@ -110,7 +111,6 @@ Finally!
 mean(as.numeric(as.character(factorExample$factor)))
 ```
 
-
 ## Data
 
 When dealing with categorical data, another issue that we see deals with balance. If our categories are perfectly balanced, we have an even split between groups. As we get more and more unbalanced, we tend to run into trouble.
@@ -120,24 +120,26 @@ When dealing with categorical data, another issue that we see deals with balance
 ```{r}
 set.seed(1001)
 
-balanced = data.frame(managerNY = sample(0:1, 100, replace = TRUE, prob = c(.5, .5)), 
-                       exemptNY = sample(0:1, 100, replace = TRUE, prob = c(.5, .5)))
+balanced <- data.frame(managerNY = sample(0:1, 100, replace = TRUE, 
+                                          prob = c(.5, .5)), 
+                       exemptNY = sample(0:1, 100, replace = TRUE, 
+                                         prob = c(.5, .5)))
 
 table(balanced)
 ```
-
 
 ### Ehhh...
 
 ```{r}
 set.seed(1000)
 
-unbalanced = data.frame(managerNY = sample(0:1, 100, replace = TRUE, prob = c(.7, .3)), 
-                       exemptNY = sample(0:1, 100, replace = TRUE, prob = c(.3, .7)))
+unbalanced <- data.frame(managerNY = sample(0:1, 100, replace = TRUE, 
+                                            prob = c(.7, .3)), 
+                       exemptNY = sample(0:1, 100, replace = TRUE, 
+                                         prob = c(.3, .7)))
 
 table(unbalanced)
 ```
-
 
 ## Visualizations
 
@@ -159,7 +161,6 @@ assoc(table(balanced))
 
 We will come back to this later.
 
-
 The <span class="pack">vcdExtra</span> package (you will need to install <span class="pack">rgl</span> along with it) extends the functionality of <span class="pack">vcd</span> and let's you create some interesting plots:
 
 ```{r, eval = FALSE}
@@ -180,7 +181,7 @@ library(ggmosaic)
 
 library(dplyr)
 
-balancedTableDF = balanced %>% 
+balancedTableDF <- balanced %>% 
   table() %>%
   as.data.frame()
 
@@ -190,11 +191,14 @@ ggplot(data = balancedTableDF) +
   scale_fill_brewer(type = "qual")
 ```
 
-
-Some categorical data, especially in combinations, can be thought of as *sets* (i.e., a group of unique objects). Sets and their various brethern are cornerstones of math, but the visualization of those sets has largely been in the world of the Venn diagram. Venn diagrams are great for very small sets, but quickly fall apart when our sets become large. Venn diagrams also have larger issues with circles and proportional sizes.
+Some categorical data, especially in combinations, can be thought of as *sets* (i.e., a group of unique objects). Sets and their various brethren are cornerstones of math, but the visualization of those sets has largely been in the world of the Venn diagram. Venn diagrams are great for very small sets, but quickly fall apart when our sets become large. Venn diagrams also have larger issues with circles and proportional sizes.
 
 ```{r}
-teamMembership = read.csv("http://www.nd.edu/~sberry5/data/teamMembershipData.csv")
+dataLink <- "http://www.nd.edu/~sberry5/data/teamMembershipData.csv"
+
+teamMembership <- read.csv(dataLink)
+
+knitr::kable(head(teamMembership))
 ```
 
 
@@ -229,7 +233,6 @@ venn.plot <- draw.quintuple.venn(area1 = 301, area2 = 321, area3 = 311,
 grid.draw(venn.plot)
 ```
 
-
 Instead, set plots have been created to provide better visual inspections of sets.
 
 ```{r}
@@ -238,14 +241,14 @@ library(UpSetR)
 upset(teamMembership, order.by = "freq", empty.intersections = "on")
 ```
 
+We have all the same information, but in an easier to digest format!
 
 ## Contingency Tables
-
 
 The contingency table is the *insert plain, but high utility trope of your choice* worker behind many things. We previously saw what it could do with our visualizations, but it can be useful in its own right.
 
 ```{r}
-contTable = table(balanced)
+contTable <- table(balanced)
 
 contTable
 ```
@@ -258,7 +261,7 @@ When we are dealing with purely categorical variables, it is not *proper* to say
 
 When we want to see the association between two categorical variables, we can use a few different techniques. The ones that you will most commonly see are Cramer's *V* (also noted as $\phi_c$) and the $\phi$ coefficient. Cramer's *V* is handy because it ranges from 0 (no association) to 1 (perfect association). The $\phi$ coefficient's range will change based upon the distribution of the variables (but only if one of those variables has more than two categories).
 
-$$V = \frac{\chi^2/n}{min(c-1,r-1)} $$
+$$V = \sqrt\frac{\chi^2/n}{min(c-1,r-1)} $$
 
 $$\phi = \sqrt\frac{\chi^2}{n}$$
 
@@ -269,7 +272,6 @@ A number of packages will run $\phi_c$ and $\phi$, but you can get them both thr
 ```{r}
 summary(assocstats(table(balanced)))
 ```
-
 
 <aside>
 The contingency coefficient is the square root of $\chi^2$ divided by $N + \chi^2$. It is only ever positive.
@@ -294,36 +296,47 @@ table(balanced)
 We need the information about the margins to be able to compute the expected size, so let's use the <span class="func">addmargins</span> function:
 
 ```{r}
-tabs = addmargins(table(balanced))
+tabs <- addmargins(table(balanced))
 
 tabs
 ```
 
-Let's put all of these into individual objects:
+Let's put all of these into individual objects. We could reference those rows with magic numbers (e.g., tabs[1, 1]) or something a little safer (but slightly verbose, because tables are silly to work on).
 
 ```{r}
-nonManagerNonExemptObserved = tabs[1, 1]
+nonManagerNonExemptObserved <- tabs[which(dimnames(tabs)$managerNY == "0"), 
+                                    which(dimnames(tabs)$exemptNY == "0")]
 
-nonManagerExemptObserved = tabs[1, 2]
+nonManagerExemptObserved <- tabs[which(dimnames(tabs)$managerNY == "0"), 
+                                    which(dimnames(tabs)$exemptNY == "1")]
 
-managerNonExemptObserved = tabs[2, 1]
+managerNonExemptObserved <- tabs[which(dimnames(tabs)$managerNY == "1"), 
+                                    which(dimnames(tabs)$exemptNY == "0")]
 
-managerExemptObserved = tabs[2, 2]
+managerExemptObserved <- tabs[which(dimnames(tabs)$managerNY == "1"), 
+                                    which(dimnames(tabs)$exemptNY == "1")]
 
-row1Total = tabs[1, 3]
+row1Total <- tabs[which(dimnames(tabs)$managerNY == "0"), 
+                                    which(dimnames(tabs)$exemptNY == "Sum")]
 
-row2Total = tabs[2, 3]
+row2Total <- tabs[which(dimnames(tabs)$managerNY == "1"), 
+                                    which(dimnames(tabs)$exemptNY == "Sum")]
 
-column1Total = tabs[3, 1]
+column1Total <- tabs[which(dimnames(tabs)$managerNY == "Sum"), 
+                                    which(dimnames(tabs)$exemptNY == "0")]
 
-column2Total = tabs[3, 2]
+column2Total <- tabs[which(dimnames(tabs)$managerNY == "Sum"), 
+                                    which(dimnames(tabs)$exemptNY == "1")]
 ```
-
 
 We can start with non-manager (0) and non-exempt (0):
 
+<aside>
+Note that the 100 here is our marginal total. We could have also used sum(table(balanced)).
+</aside>
+
 ```{r}
-nonManagerNonExemptExpected = (row1Total * column1Total) / 100
+nonManagerNonExemptExpected <- (row1Total * column1Total) / 100
 
 nonManagerNonExemptExpected
 ```
@@ -333,13 +346,12 @@ So the expected count for that particular cell is `r nonManagerNonExemptExpected
 We can do the same for the remaining groups now:
 
 ```{r}
-nonManagerExemptExpected = (row1Total * column2Total) / 100
+nonManagerExemptExpected <- (row1Total * column2Total) / 100
 
-managerNonExemptExpected = (row2Total * column1Total) / 100
+managerNonExemptExpected <- (row2Total * column1Total) / 100
 
-managerExemptExpected = (row2Total * column2Total) / 100
+managerExemptExpected <- (row2Total * column2Total) / 100
 ```
-
 
 Now that we have the expected values for each of the 4 cells, we can use the $\chi^2$ test to see if our observed values are different from our expected values.
 
@@ -347,37 +359,39 @@ $$\chi^2 = \sum\frac{(o - e)^2}{e}$$
 
 In a $\chi^2$ test, we take our expected frequencies and test them against our observed frequencies. If they are pretty close (i.e., our expected values are close to our observed values), we have a small $\chi^2$. In this small $\chi^2$, we are going to retain our null hypothesis (i.e., we fail to reject the null hypothesis that the variables are different). 
 
+$H_0 = \text{Variables A and B are independent}$
+
+$H_1 = \text{Variables A and B are associated}$
+
 In our null hypothesis, we are essentially saying that the variables are independent of each other -- they are not associated.
 
 ```{r}
-nonManNonEx = (nonManagerNonExemptObserved - nonManagerNonExemptExpected)^2 / 
+nonManNonEx <- (nonManagerNonExemptObserved - nonManagerNonExemptExpected)^2 / 
   nonManagerNonExemptExpected
 
-nonManEx = (nonManagerExemptObserved - nonManagerExemptExpected)^2 / 
+nonManEx  <- (nonManagerExemptObserved - nonManagerExemptExpected)^2 / 
   nonManagerExemptExpected
 
-manNonEx = (managerNonExemptObserved - managerNonExemptExpected)^2 / 
+manNonEx <- (managerNonExemptObserved - managerNonExemptExpected)^2 / 
   managerNonExemptExpected
 
-manEx = (managerExemptObserved - managerExemptExpected)^2 / 
+manEx <- (managerExemptObserved - managerExemptExpected)^2 / 
   managerExemptExpected
 
-chiSquareRes = nonManNonEx + nonManEx + manNonEx + manEx
+chiSquareRes <- nonManNonEx + nonManEx + manNonEx + manEx
 
 chiSquareRes
 ```
 
-We can save all of that hassle and just use the <span class="func">chisq.test</span> function. 
-
+We can save all of that hassle and just use the `chisq.test` function. 
 
 ```{r}
-test = chisq.test(balanced$exemptNY, balanced$managerNY, correct = FALSE)
+test <- chisq.test(balanced$exemptNY, balanced$managerNY, correct = FALSE)
 
 test
 ```
 
 In a $\chi^2$ test, we can use the *p*-value to tell us whether or not the rows and columns fit the expected distribution or are significantly associated. Given our small $\chi^2$ and our large *p*-value, we can be pretty certain that our rows and columns are not associated (which we have already seen in our association measures above) and the number expected versus the number observed are not significantly different.
-
 
 ### The Yates Correction
 
@@ -401,15 +415,14 @@ fisher.test(balanced$managerNY, balanced$exemptNY)
 
 You can see that we did not get a new $\chi^2$ value, but we did get a new *p*-value. 
 
-
 At the end of the day, though, you will not be likely to get much guff from just running a standard $\chi^2$ test.
 
 Let's see what would happen with our unbalanced data:
 
 ```{r}
-unbalancedTest = chisq.test(unbalanced$exemptNY, unbalanced$managerNY, correct = FALSE)
+unbalancedTest <- chisq.test(unbalanced$exemptNY, unbalanced$managerNY, 
+                             correct = FALSE)
 ```
-
 
 Before we look at the results, let's check a few things out:
 
@@ -430,9 +443,9 @@ unbalancedTest$statistic
 How about this one:
 
 ```{r}
-shipCount = as.table(rbind(c(762, 327, 468), c(484, 239, 477)))
+shipCount <- as.table(rbind(c(762, 327, 468), c(484, 239, 477)))
 
-dimnames(shipCount) = list(shipType = c("Foreign", "Domestic"),
+dimnames(shipCount) <- list(shipType = c("Foreign", "Domestic"),
                     port = c("South Louisiana", "Houston", "Long Beach"))
 
 shipCount
@@ -440,9 +453,8 @@ shipCount
 
 
 ```{r}
-shipChiSquare = chisq.test(shipCount)
+shipChiSquare <- chisq.test(shipCount)
 ```
-
 
 
 ```{r}
@@ -456,7 +468,6 @@ shipChiSquare
 ```
 
 If you said, "Bigger", you are correct. 
-
 
 Let's look at our expected and observed again.
 
@@ -484,7 +495,37 @@ We can see what we get, just by using our values for foreign and South Louisiana
 (762 - 703.6714) / sqrt(703.6714)
 ```
 
+## The G-test
 
+No statisticians is ever satisfied and people took exception to the $\chi^2$ because of one very important assumption that it makes: the marginal values for the rows and columns are random. The exact test has a different issue -- all of the marginal values are fixed (would really only happen if you were doing experiments). Another big issue relates to size -- $\chi^2$ can fall apart when you get cells under 5. That is where the G-test comes in:
+
+$G = 2 \Sigma \, observed_i * ln \frac{observed_i}{expected_i}$
+
+```{r}
+2 * sum(
+  shipChiSquare$observed * log(shipChiSquare$observed/shipChiSquare$expected)
+)
+```
+
+Will give us our G value -- this will be nearly identical to what the GTest function will return, but will be more stable under most conditions:
+
+```{r}
+DescTools::GTest(shipCount)$expected
+```
+
+Let's see how it will work with some NBA data.
+
+```{r}
+load("allStars.RData")
+
+DescTools::GTest(playerTable)
+```
+
+We see that these variables do exhibit some dependence, but what would the direction look like?
+
+```{r}
+assoc(playerTable, shade = TRUE)
+```
 
 ## Practical Applications
 
@@ -498,4 +539,6 @@ Age Group and Media-type consumption
 
 Political affiliation and region
 
-##
+## Extensions
+
+We have just been looking at these models with 2 variables, but what if we want to throw a 3rd variable into the model -- we could turn to the Cochran-Mantel-Haenszel test (think about mapping a decade variable into our All Star data). In reality, though, you might choose to think more about what question you are really asking if you are getting into a 3-way contingency table. 
